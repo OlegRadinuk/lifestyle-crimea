@@ -14,6 +14,12 @@ type Props = {
   onBurgerClick: () => void;
 };
 
+/* ✅ ЕДИНЫЙ ТИП диапазона дат — как ожидают Calendar и BookingModal */
+type DateRange = {
+  from: Date;
+  to: Date;
+} | null;
+
 // временно — потом API
 const mockAvailability = [
   { date: '2026-02-10', available: true },
@@ -27,16 +33,13 @@ export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
-
-  const {
-    currentApartment,
-  } = useApartment();
+  const { currentApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<any>(null);
+  const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -102,10 +105,7 @@ export default function Header({ onBurgerClick }: Props) {
         `}
       >
         {/* BURGER */}
-        <button
-          className="header__burger"
-          onClick={onBurgerClick}
-        >
+        <button className="header__burger" onClick={onBurgerClick}>
           <div className="burger-icon">
             <span />
             <span />
@@ -150,8 +150,10 @@ export default function Header({ onBurgerClick }: Props) {
                   value={guests}
                   onChange={e => setGuests(+e.target.value)}
                 >
-                  {[1,2,3,4,5,6].map(n => (
-                    <option key={n} value={n}>{n}</option>
+                  {[1, 2, 3, 4, 5, 6].map(n => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -176,49 +178,49 @@ export default function Header({ onBurgerClick }: Props) {
 
         {/* ===== APARTMENT PAGE MODE ===== */}
         {mode === 'apartment' && currentApartment && (
-  <div className="header__booking-wrapper is-apartment">
-    <div
-      className="header__booking-action"
-      style={{ position: 'relative' }}
-    >
-      <button
-        className="header__booking with-apartment"
-        onClick={() => setCalendarOpen(prev => !prev)}
-      >
-        <span className="header__booking-label">
-          Проверить доступность
-        </span>
+          <div className="header__booking-wrapper is-apartment">
+            <div
+              className="header__booking-action"
+              style={{ position: 'relative' }}
+            >
+              <button
+                className="header__booking with-apartment"
+                onClick={() => setCalendarOpen(prev => !prev)}
+              >
+                <span className="header__booking-label">
+                  Проверить доступность
+                </span>
 
-        <span className="header__booking-apartment">
-          {currentApartment.title}
-        </span>
-      </button>
+                <span className="header__booking-apartment">
+                  {currentApartment.title}
+                </span>
+              </button>
 
-      {calendarOpen && (
-        <div
-          ref={popoverRef}
-          className="header__calendar-popover"
-        >
-          <ApartmentAvailabilityCalendar
-            availability={mockAvailability}
-            onConfirm={(range) => {
-              setSelectedRange(range);
-              setCalendarOpen(false);
-              setBookingModalOpen(true);
-            }}
-          />
-        </div>
-      )}
-    </div>
-  </div>
-)}
+              {calendarOpen && (
+                <div
+                  ref={popoverRef}
+                  className="header__calendar-popover"
+                >
+                  <ApartmentAvailabilityCalendar
+                    availability={mockAvailability}
+                    onConfirm={(range) => {
+                      setSelectedRange(range);
+                      setCalendarOpen(false);
+                      setBookingModalOpen(true);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* BOOKING MODAL */}
       {bookingModalOpen && currentApartment && (
         <BookingModal
           apartment={currentApartment}
-          initialRange={selectedRange ?? null}
+          initialRange={selectedRange}
           initialGuests={guests}
           onClose={() => setBookingModalOpen(false)}
           onConfirm={(data) => {

@@ -91,7 +91,7 @@ function calculatePrice(params: {
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '');
-  let numbers = digits.replace(/^7|^8/, '').slice(0, 10);
+  const numbers = digits.replace(/^7|^8/, '').slice(0, 10);
 
   const parts = [
     numbers.slice(0, 3),

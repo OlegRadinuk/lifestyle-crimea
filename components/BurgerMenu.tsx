@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 type MenuItemType = 'image' | 'slider' | 'tour' | 'video';
@@ -11,6 +11,7 @@ type MenuItem = {
   type: MenuItemType;
   image?: string;
   images?: string[];
+  external?: boolean;
 };
 
 type Props = {
@@ -55,11 +56,11 @@ const menuItems: MenuItem[] = [
     image: '/images/menu/news.jpg',
   },
   {
-    // ✅ ИСПРАВЛЕНО: перенос через \n, без JSX
     title: 'Дизайн / Ремонт\nот ООО «Стиль Жизни»',
     href: 'https://lifestyle-crimea.ru',
     type: 'image',
     image: '/images/menu/remont.jpg',
+    external: true,
   },
 ];
 
@@ -67,19 +68,17 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [activeItem, setActiveItem] = useState<MenuItem>(menuItems[0]);
+  /* ---------- ACTIVE ITEM (derived state) ---------- */
+  const activeItem = useMemo(() => {
+    const found = menuItems.find(
+      (item) => item.href.split('#')[0] === pathname
+    );
+    return found ?? menuItems[0];
+  }, [pathname]);
+
   const [slideIndex, setSlideIndex] = useState(0);
   const slideMemory = useRef<Record<string, number>>({});
   const touchStartX = useRef<number | null>(null);
-
-  /* синхронизация с роутом */
-  useEffect(() => {
-    const found = menuItems.find((item) => item.href === pathname);
-    if (found) {
-      setActiveItem(found);
-      setSlideIndex(slideMemory.current[found.title] ?? 0);
-    }
-  }, [pathname]);
 
   /* ESC */
   useEffect(() => {
@@ -134,12 +133,23 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     touchStartX.current = null;
   };
 
+  const handleNavigation = (item: MenuItem) => {
+    if (item.external) {
+      window.open(item.href, '_blank', 'noopener,noreferrer');
+    } else {
+      router.push(item.href);
+    }
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="burger-overlay" onClick={onClose}>
       <div className="burger-card" onClick={(e) => e.stopPropagation()}>
-        <button className="burger-close" onClick={onClose}>✕</button>
+        <button className="burger-close" onClick={onClose} aria-label="Закрыть меню">
+          ✕
+        </button>
 
         <div className="burger-layout">
           {/* LEFT */}
@@ -150,14 +160,10 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                   key={item.title}
                   className={activeItem.title === item.title ? 'active' : ''}
                   onMouseEnter={() => {
-                    setActiveItem(item);
                     setSlideIndex(slideMemory.current[item.title] ?? 0);
                   }}
-                  onClick={() => {
-                    router.push(item.href);
-                    onClose();
-                  }}
-                  style={{ whiteSpace: 'pre-line' }}  // ✅ чтобы \n работал
+                  onClick={() => handleNavigation(item)}
+                  style={{ whiteSpace: 'pre-line' }}
                 >
                   {item.title}
                 </li>
@@ -165,21 +171,15 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
             </ul>
 
             {/* CTA */}
-            <a
-              href="/booking"
-              className="burger-booking"
-              onClick={onClose}
-            >
+            <a href="/booking" className="burger-booking" onClick={onClose}>
               Забронировать
             </a>
 
             {/* CONTACTS */}
             <div className="burger-contacts">
-              <a href="tel:+79786964510">+7 (978) 503-63-63</a>
-              <a href="tel:88007776308">+7 (978) 696-45-10</a>
-              <div className="burger-address">
-                Алушта, Западная ул., 4, корп. 3
-              </div>
+              <a href="tel:+79785036363">+7 (978) 503-63-63</a>
+              <a href="tel:+79786964510">+7 (978) 696-45-10</a>
+              <div className="burger-address">Алушта, Западная ул., 4, корп. 3</div>
               <div className="burger-time">Круглосуточно</div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                 />
 
                 <div className="slider-controls">
-                  <button onClick={prevSlide}>‹</button>
+                  <button onClick={prevSlide} aria-label="Предыдущий слайд">‹</button>
                   <div className="dots">
                     {activeItem.images.map((_, i) => (
                       <span
@@ -219,7 +219,7 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                       />
                     ))}
                   </div>
-                  <button onClick={nextSlide}>›</button>
+                  <button onClick={nextSlide} aria-label="Следующий слайд">›</button>
                 </div>
               </div>
             )}

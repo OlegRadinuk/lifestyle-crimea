@@ -769,7 +769,7 @@ body {
   justify-content: space-between;
 
   background: transparent;
-  z-index: 2000;
+  z-index: 5000;
 
   transition:
     background 0.35s ease,
