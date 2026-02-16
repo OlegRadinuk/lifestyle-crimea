@@ -213,7 +213,7 @@ export default function Hero() {
           <h1 className="hero-title">
             Стиль Жизни{' '}
             <span className="hero-love">
-              {'с любовью...'.split('').map((char, i) => (
+              {'с Любовью...'.split('').map((char, i) => (
                 <span
                   key={i}
                   className="hero-love-char"
