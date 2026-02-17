@@ -29,27 +29,36 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
+      <head>
+        {/* Preload первой панорамы */}
+        <link
+          rel="preload"
+          as="image"
+          href="/panoramas/LS-Art-Sweet-Caramel.webp"
+          crossOrigin="anonymous"
+          fetchPriority="high"
+        />
+      </head>
+
       <body className={montserrat.variable}>
-  <LayoutGroup id="global-modals">
+        <LayoutGroup id="global-modals">
+          <HeaderProvider>
+            <SearchProvider>
+              <ApartmentProvider>
+                <PhotoModalProvider>
 
-    <HeaderProvider>
-      <SearchProvider>
-        <ApartmentProvider>
-          <PhotoModalProvider>
+                  <HeaderWrapper />
 
-            <HeaderWrapper />
+                  {children}
 
-            {children}
+                  <ModalProvider />
 
-            <ModalProvider />
-
-          </PhotoModalProvider>
-        </ApartmentProvider>
-      </SearchProvider>
-    </HeaderProvider>
-
-  </LayoutGroup>
-</body>
+                </PhotoModalProvider>
+              </ApartmentProvider>
+            </SearchProvider>
+          </HeaderProvider>
+        </LayoutGroup>
+      </body>
     </html>
   )
 }

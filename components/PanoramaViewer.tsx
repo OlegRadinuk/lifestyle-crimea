@@ -11,6 +11,7 @@ import { motion } from "framer-motion"
 import Link from 'next/link';
 
 export default function PanoramaViewer() {
+
   /* ===============================
      REFS
   =============================== */
@@ -34,8 +35,6 @@ export default function PanoramaViewer() {
   const [hintAllowed, setHintAllowed] = useState(true);
   const [isHover, setIsHover] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // 🔹 ТОЛЬКО ДЛЯ ЭФФЕКТОВ (не влияет на Three.js)
   const [effectsActive, setEffectsActive] = useState(false);
 
   /* ===============================
@@ -48,14 +47,16 @@ export default function PanoramaViewer() {
   const currentMeshRef = useRef<THREE.Mesh | null>(null);
   const nextMeshRef = useRef<THREE.Mesh | null>(null);
 
+  // 🔥 КЭШ ТЕКСТУР
+  const preloadedTextures = useRef<Record<number, THREE.Texture>>({});
+
   const { open } = usePhotoModal();
   const currentApartment = APARTMENTS.find(
-  ap => ap.id === PANORAMAS[currentIndex].id
-);
+    ap => ap.id === PANORAMAS[currentIndex].id
+  );
 
   /* ===============================
-     HEADER MODE + BOOKING BUTTON
-     (ТОЛЬКО КОГДА СЕКЦИЯ В ВИДИМОСТИ)
+     HEADER MODE
   =============================== */
 
   useEffect(() => {
@@ -68,10 +69,7 @@ export default function PanoramaViewer() {
         setShowApartmentBooking(entry.isIntersecting);
 
         if (entry.isIntersecting) {
-          register(id, {
-            mode: 'apartment',
-            priority: 2,
-          });
+          register(id, { mode: 'apartment', priority: 2 });
         } else {
           unregister(id);
         }
@@ -87,6 +85,10 @@ export default function PanoramaViewer() {
       setShowApartmentBooking(false);
     };
   }, [register, unregister, setShowApartmentBooking]);
+
+  /* ===============================
+     INIT THREE SCENE
+  =============================== */
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -115,6 +117,7 @@ export default function PanoramaViewer() {
     geometry.scale(-1, 1, 1);
 
     const loader = new THREE.TextureLoader();
+
     loader.load(PANORAMAS[0].image, texture => {
       texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -128,6 +131,9 @@ export default function PanoramaViewer() {
       scene.add(mesh);
       currentMeshRef.current = mesh;
       setLoading(false);
+
+      // 🔥 preload следующей
+      preloadTexture(1);
     });
 
     let lon = 0;
@@ -199,12 +205,16 @@ export default function PanoramaViewer() {
     };
   }, []);
 
+  /* ===============================
+     ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ
+  =============================== */
+
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
-    const loader = new THREE.TextureLoader();
+    const geometry = currentMeshRef.current.geometry;
 
-    loader.load(PANORAMAS[currentIndex].image, texture => {
+    const applyTexture = (texture: THREE.Texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const material = new THREE.MeshBasicMaterial({
@@ -213,7 +223,6 @@ export default function PanoramaViewer() {
         opacity: 0,
       });
 
-      const geometry = currentMeshRef.current!.geometry;
       const nextMesh = new THREE.Mesh(geometry, material);
       sceneRef.current!.add(nextMesh);
       nextMeshRef.current = nextMesh;
@@ -233,15 +242,42 @@ export default function PanoramaViewer() {
         } else {
           sceneRef.current!.remove(currentMeshRef.current!);
           (oldMaterial.map as THREE.Texture)?.dispose();
-oldMaterial.dispose();
+          oldMaterial.dispose();
           currentMeshRef.current = nextMesh;
           nextMeshRef.current = null;
+
+          // 🔥 preload следующей
+          preloadTexture((currentIndex + 1) % PANORAMAS.length);
         }
       };
 
       fade();
-    });
+    };
+
+    const cached = preloadedTextures.current[currentIndex];
+
+    if (cached) {
+      applyTexture(cached);
+    } else {
+      const loader = new THREE.TextureLoader();
+      loader.load(PANORAMAS[currentIndex].image, applyTexture);
+    }
+
   }, [currentIndex]);
+
+  /* ===============================
+     PRELOAD ФУНКЦИЯ
+  =============================== */
+
+  const preloadTexture = (index: number) => {
+    if (preloadedTextures.current[index]) return;
+
+    const loader = new THREE.TextureLoader();
+    loader.load(PANORAMAS[index].image, texture => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      preloadedTextures.current[index] = texture;
+    });
+  };
 
   /* ===============================
      HELPERS
@@ -260,11 +296,7 @@ oldMaterial.dispose();
   =============================== */
 
   return (
-    <section
-    id="panorama"          // ← ДОБАВЛЕНО
-    ref={sectionRef}
-    className="panorama-section"
-  >
+    <section id="panorama" ref={sectionRef} className="panorama-section">
       <div
         ref={containerRef}
         className="panorama-canvas"
@@ -297,8 +329,7 @@ oldMaterial.dispose();
 
           <p className="panorama-info-description">
             Просторные премиальные апартаменты с панорамным видом
-            на Чёрное море. Архитектура, свет и воздух объединены
-            в цельное пространство для жизни.
+            на Чёрное море.
           </p>
 
           <ul className="panorama-info-meta">
@@ -308,26 +339,26 @@ oldMaterial.dispose();
           </ul>
 
           <div className="panorama-info-actions">
-  {currentApartment && (
-  <Link
-    href={`/apartments/${currentApartment.id}`}
-    className="panorama-btn primary"
-  >
-    Смотреть апартамент
-  </Link>
-)}
+            {currentApartment && (
+              <Link
+                href={`/apartments/${currentApartment.id}`}
+                className="panorama-btn primary"
+              >
+                Смотреть апартамент
+              </Link>
+            )}
 
-  <motion.button
-  layoutId="photo-modal"
-  className="panorama-btn secondary"
-  onClick={() => {
-    if (!currentApartment) return
-    open(currentApartment.images, 0)
-  }}
->
-  Фото / Видео
-</motion.button>
-</div>
+            <motion.button
+              layoutId="photo-modal"
+              className="panorama-btn secondary"
+              onClick={() => {
+                if (!currentApartment) return
+                open(currentApartment.images, 0)
+              }}
+            >
+              Фото / Видео
+            </motion.button>
+          </div>
         </div>
       </div>
 
