@@ -37,6 +37,10 @@ export default function PanoramaViewer() {
   const [loading, setLoading] = useState(true);
   const [effectsActive, setEffectsActive] = useState(false);
 
+  // overlay при медленной загрузке
+  const [transitioning, setTransitioning] = useState(false);
+  const transitionTimer = useRef<NodeJS.Timeout | null>(null);
+
   /* ===============================
      THREE REFS
   =============================== */
@@ -132,7 +136,6 @@ export default function PanoramaViewer() {
       currentMeshRef.current = mesh;
       setLoading(false);
 
-      // 🔥 preload следующей
       preloadTexture(1);
     });
 
@@ -199,7 +202,6 @@ export default function PanoramaViewer() {
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-
       container.removeChild(renderer.domElement);
       renderer.dispose();
     };
@@ -246,8 +248,13 @@ export default function PanoramaViewer() {
           currentMeshRef.current = nextMesh;
           nextMeshRef.current = null;
 
-          // 🔥 preload следующей
           preloadTexture((currentIndex + 1) % PANORAMAS.length);
+
+          if (transitionTimer.current) {
+            clearTimeout(transitionTimer.current);
+            transitionTimer.current = null;
+          }
+          setTransitioning(false);
         }
       };
 
@@ -257,6 +264,11 @@ export default function PanoramaViewer() {
     const cached = preloadedTextures.current[currentIndex];
 
     if (cached) {
+      if (transitionTimer.current) {
+        clearTimeout(transitionTimer.current);
+        transitionTimer.current = null;
+      }
+      setTransitioning(false);
       applyTexture(cached);
     } else {
       const loader = new THREE.TextureLoader();
@@ -288,6 +300,17 @@ export default function PanoramaViewer() {
   const nextIndex =
     (currentIndex + 1) % PANORAMAS.length;
 
+  const changePanorama = (index: number) => {
+    if (transitionTimer.current) clearTimeout(transitionTimer.current);
+
+    transitionTimer.current = setTimeout(() => {
+      setTransitioning(true);
+    }, 250);
+
+    setCurrentIndex(index);
+    setCurrentApartmentIndex(index);
+  };
+
   const cleanTitle = (title: string) =>
     title.replace(/^LS\s*/i, '');
 
@@ -311,6 +334,17 @@ export default function PanoramaViewer() {
       />
 
       <div className="panorama-overlay" />
+
+      {/* ✨ Иммерсивный overlay */}
+      {transitioning && (
+        <div className="panorama-loading-overlay light">
+          <div className="panorama-loading-content">
+            <p className="panorama-loading-title">
+              Проходим в апартамент…
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="panorama-info">
         <div
@@ -373,10 +407,7 @@ export default function PanoramaViewer() {
       <div className="panorama-ui">
         <button
           className="panorama-arrow left"
-          onClick={() => {
-            setCurrentIndex(prevIndex);
-            setCurrentApartmentIndex(prevIndex);
-          }}
+          onClick={() => changePanorama(prevIndex)}
         >
           <span className="arrow-icon">←</span>
           <span className="arrow-label">
@@ -390,10 +421,7 @@ export default function PanoramaViewer() {
               <span
                 key={i}
                 className={`tile ${i === currentIndex ? 'active' : ''}`}
-                onClick={() => {
-                  setCurrentIndex(i);
-                  setCurrentApartmentIndex(i);
-                }}
+                onClick={() => changePanorama(i)}
               />
             ))}
           </div>
@@ -407,10 +435,7 @@ export default function PanoramaViewer() {
 
         <button
           className="panorama-arrow right"
-          onClick={() => {
-            setCurrentIndex(nextIndex);
-            setCurrentApartmentIndex(nextIndex);
-          }}
+          onClick={() => changePanorama(nextIndex)}
         >
           <span className="arrow-label">
             {cleanTitle(PANORAMAS[nextIndex].title)}
