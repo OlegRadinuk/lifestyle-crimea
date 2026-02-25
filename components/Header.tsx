@@ -9,12 +9,12 @@ import { useHeader } from '@/components/HeaderContext';
 
 import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCalendar';
 import BookingModal from '@/components/BookingModal';
+import MobileBookingSheet from '@/components/MobileBookingSheet';
 
 type Props = {
   onBurgerClick: () => void;
 };
 
-/* ✅ ЕДИНЫЙ ТИП диапазона дат — как ожидают Calendar и BookingModal */
 type DateRange = {
   from: Date;
   to: Date;
@@ -36,12 +36,11 @@ export default function Header({ onBurgerClick }: Props) {
   const { currentApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
-
-  const popoverRef = useRef<HTMLDivElement | null>(null);
 
   /* ---------- HERO STATE ---------- */
   const [checkIn, setCheckIn] = useState('');
@@ -49,7 +48,22 @@ export default function Header({ onBurgerClick }: Props) {
   const [guests, setGuests] = useState(2);
   const [formError, setFormError] = useState('');
 
+  /* ---------- MOBILE SHEET ---------- */
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
+
+  /* ---------- DETECT MOBILE ---------- */
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   /* ---------- SCROLL ---------- */
   useEffect(() => {
@@ -64,17 +78,13 @@ export default function Header({ onBurgerClick }: Props) {
     if (!calendarOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
-      ) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setCalendarOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () =>
-      document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [calendarOpen]);
 
   /* ---------- HERO SEARCH ---------- */
@@ -95,6 +105,12 @@ export default function Header({ onBurgerClick }: Props) {
     router.push('/apartments');
   };
 
+  /* ---------- MOBILE BOOKING ---------- */
+  const handleMobileBooking = (data: { checkIn: string; checkOut: string; guests: number }) => {
+    setSearch(data);
+    router.push('/apartments');
+  };
+
   return (
     <>
       <header
@@ -102,9 +118,10 @@ export default function Header({ onBurgerClick }: Props) {
           header
           header--${mode}
           ${scrolled ? 'scrolled' : ''}
+          ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        {/* BURGER */}
+        {/* BURGER - всегда одинаковый */}
         <button className="header__burger" onClick={onBurgerClick}>
           <div className="burger-icon">
             <span />
@@ -116,84 +133,89 @@ export default function Header({ onBurgerClick }: Props) {
 
         {/* ===== HERO MODE ===== */}
         {mode === 'hero' && (
-          <div className="header__booking-wrapper">
-            <div className="header__booking-fields">
-              <div className="booking-field">
-                <label>Заезд</label>
-                <input
-                  type="date"
-                  min={today}
-                  value={checkIn}
-                  onChange={e => {
-                    setCheckIn(e.target.value);
-                    setFormError('');
-                  }}
-                />
-              </div>
+          <>
+            {!isMobile ? (
+              /* DESKTOP VERSION - полная форма */
+              <div className="header__booking-wrapper">
+                <div className="header__booking-fields">
+                  <div className="booking-field">
+                    <label>Заезд</label>
+                    <input
+                      type="date"
+                      min={today}
+                      value={checkIn}
+                      onChange={e => {
+                        setCheckIn(e.target.value);
+                        setFormError('');
+                      }}
+                    />
+                  </div>
 
-              <div className="booking-field">
-                <label>Выезд</label>
-                <input
-                  type="date"
-                  min={checkIn || today}
-                  value={checkOut}
-                  onChange={e => {
-                    setCheckOut(e.target.value);
-                    setFormError('');
-                  }}
-                />
-              </div>
+                  <div className="booking-field">
+                    <label>Выезд</label>
+                    <input
+                      type="date"
+                      min={checkIn || today}
+                      value={checkOut}
+                      onChange={e => {
+                        setCheckOut(e.target.value);
+                        setFormError('');
+                      }}
+                    />
+                  </div>
 
-              <div className="booking-field">
-                <label>Гости</label>
-                <select
-                  value={guests}
-                  onChange={e => setGuests(+e.target.value)}
-                >
-                  {[1, 2, 3, 4, 5, 6].map(n => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="header__booking-action">
-              <button
-                className="header__booking"
-                onClick={handleHeroSearch}
-              >
-                Выбрать апартаменты
-              </button>
-
-              {formError && (
-                <div className="header__booking-error">
-                  {formError}
+                  <div className="booking-field">
+                    <label>Гости</label>
+                    <select
+                      value={guests}
+                      onChange={e => setGuests(+e.target.value)}
+                    >
+                      {[1, 2, 3, 4, 5, 6].map(n => (
+                        <option key={n} value={n}>
+                          {n} {n === 1 ? 'гость' : 'гостей'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+
+                <div className="header__booking-action">
+                  <button
+                    className="header__booking"
+                    onClick={handleHeroSearch}
+                  >
+                    Выбрать апартаменты
+                  </button>
+
+                  {formError && (
+                    <div className="header__booking-error">
+                      {formError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* MOBILE VERSION - одна кнопка */
+              <button 
+                className="header__mobile-book-btn"
+                onClick={() => setMobileSheetOpen(true)}
+              >
+                Забронировать
+              </button>
+            )}
+          </>
         )}
 
-        {/* ===== APARTMENT PAGE MODE ===== */}
+        {/* ===== APARTMENT MODE ===== */}
         {mode === 'apartment' && currentApartment && (
           <div className="header__booking-wrapper is-apartment">
-            <div
-              className="header__booking-action"
-              style={{ position: 'relative' }}
-            >
+            <div className="header__booking-action" style={{ position: 'relative' }}>
               <button
                 className="header__booking with-apartment"
                 onClick={() => setCalendarOpen(prev => !prev)}
               >
-                <span className="header__booking-label">
-                  Проверить доступность
-                </span>
-
-                <span className="header__booking-apartment">
-                  {currentApartment.title}
-                </span>
+                <span className="header__booking-label">Проверить доступность</span>
+                <span className="header__booking-apartment">{currentApartment.title}</span>
               </button>
 
               {calendarOpen && (
@@ -214,7 +236,23 @@ export default function Header({ onBurgerClick }: Props) {
             </div>
           </div>
         )}
+
+        {/* ===== DARK MODE - просто пустой div для баланса (опционально) ===== */}
+        {mode === 'dark' && (
+          <div className="header__dark-placeholder" />
+        )}
       </header>
+
+      {/* MOBILE BOOKING SHEET */}
+      {mobileSheetOpen && (
+        <MobileBookingSheet
+          isOpen={mobileSheetOpen}
+          onClose={() => setMobileSheetOpen(false)}
+          onConfirm={handleMobileBooking}
+          initialGuests={guests}
+          today={today}
+        />
+      )}
 
       {/* BOOKING MODAL */}
       {bookingModalOpen && currentApartment && (

@@ -68,17 +68,21 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
-  /* ---------- ACTIVE ITEM (derived state) ---------- */
-  const activeItem = useMemo(() => {
+  const [hoveredItem, setHoveredItem] = useState<MenuItem | null>(null);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const slideMemory = useRef<Record<string, number>>({});
+  const touchStartX = useRef<number | null>(null);
+
+  /* ✅ ИСПРАВЛЕНО: useMemo теперь всегда вызывается в одном и том же порядке */
+  const baseActiveItem = useMemo(() => {
     const found = menuItems.find(
       (item) => item.href.split('#')[0] === pathname
     );
     return found ?? menuItems[0];
   }, [pathname]);
 
-  const [slideIndex, setSlideIndex] = useState(0);
-  const slideMemory = useRef<Record<string, number>>({});
-  const touchStartX = useRef<number | null>(null);
+  // Активный элемент: либо hovered, либо baseActiveItem
+  const activeItem = hoveredItem ?? baseActiveItem;
 
   /* ESC */
   useEffect(() => {
@@ -120,7 +124,6 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     });
   };
 
-  /* touch swipe */
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -160,8 +163,10 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                   key={item.title}
                   className={activeItem.title === item.title ? 'active' : ''}
                   onMouseEnter={() => {
+                    setHoveredItem(item);
                     setSlideIndex(slideMemory.current[item.title] ?? 0);
                   }}
+                  onMouseLeave={() => setHoveredItem(null)}
                   onClick={() => handleNavigation(item)}
                   style={{ whiteSpace: 'pre-line' }}
                 >
@@ -170,12 +175,10 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
               ))}
             </ul>
 
-            {/* CTA */}
             <a href="/booking" className="burger-booking" onClick={onClose}>
               Забронировать
             </a>
 
-            {/* CONTACTS */}
             <div className="burger-contacts">
               <a href="tel:+79785036363">+7 (978) 503-63-63</a>
               <a href="tel:+79786964510">+7 (978) 696-45-10</a>

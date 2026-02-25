@@ -53,7 +53,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  gap: 0px;
 }
 
 .ap-header-row h1 {
@@ -304,4 +304,346 @@
 
 .ap-list-card:hover .btn-primary {
   box-shadow: 0 22px 55px rgba(19, 154, 182, 0.55);
+}
+
+/* ===== МОБИЛЬНАЯ АДАПТАЦИЯ СТРАНИЦЫ АПАРТАМЕНТОВ ===== */
+@media (max-width: 768px) {
+  .ap-top-inner {
+    padding: 16px 16px 32px;
+    position: relative;
+  }
+
+  /* ПЕРВЫЙ РЯД: иконка бургера и текст справа */
+  .ap-brand {
+    text-align: right;
+    font-size: 25px;
+    font-weight: 500;
+    color: #139ab6;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+    padding-top: 35px;
+  }
+
+  /* ВТОРОЙ РЯД: Доступные апартаменты - по центру */
+  .ap-header-row {
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .ap-header-row h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 15px 0 20px 0;
+    text-align: center;
+    width: 100%;
+    color: #1a2a33;
+  }
+
+  /* ТРЕТИЙ РЯД: даты и кнопка по центру */
+  .ap-header-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ap-dates {
+    font-size: 15px;
+    background: rgba(19, 154, 182, 0.08);
+    padding: 10px 20px;
+    border-radius: 30px;
+    white-space: nowrap;
+    color: #139ab6;
+    font-weight: 500;
+  }
+
+  .ap-change-dates {
+    padding: 10px 24px;
+    font-size: 14px;
+    white-space: nowrap;
+    background: #139ab6;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .ap-change-dates:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(19, 154, 182, 0.4);
+  }
+
+  /* Количество результатов */
+  .ap-results {
+    text-align: center;
+    margin: 30px auto 24px;
+    padding: 0 16px;
+    font-size: 15px;
+    color: #4a5a63;
+  }
+
+  .ap-results strong {
+    color: #139ab6;
+  }
+
+  /* Список апартаментов */
+  .ap-list {
+    padding: 0 16px 60px;
+    gap: 0px;
+    margin-bottom: 40px;
+  }
+
+  /* Карточка апартамента */
+  .ap-list-card {
+    grid-template-columns: 1fr;
+    border-radius: 24px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(19, 154, 182, 0.15);
+  }
+
+  .ap-list-image {
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .ap-list-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ap-list-gallery-btn {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    padding: 8px 18px;
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .ap-list-gallery-btn:active {
+    background: rgba(19, 154, 182, 0.8);
+  }
+
+  /* Контент карточки */
+  .ap-list-content {
+    padding: 20px 20px 24px;
+  }
+
+  .ap-list-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .ap-list-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: #1a2a33;
+  }
+
+  .ap-list-guests {
+    font-size: 13px;
+    background: rgba(19, 154, 182, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: #139ab6;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .ap-list-description {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    color: #4a5a63;
+  }
+
+  .ap-list-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+
+  .ap-list-features li {
+    font-size: 13px;
+    background: rgba(19, 154, 182, 0.05);
+    padding: 4px 14px;
+    border-radius: 20px;
+    list-style: none;
+    color: #2a3a43;
+  }
+
+  .ap-list-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(19, 154, 182, 0.15);
+  }
+
+  .ap-list-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #139ab6;
+  }
+
+  /* КНОПКИ В КАРТОЧКЕ - В РЯД */
+  .ap-list-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .ap-list-actions button {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: #139ab6;
+    border: 1px solid #139ab6 !important;
+  }
+
+  .btn-outline:active {
+    background: rgba(19, 154, 182, 0.1);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #139ab6, #1fb3cf);
+    color: white;
+    box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(19, 154, 182, 0.4);
+  }
+
+  /* Убираем hover-эффекты на мобилках */
+  .ap-list-card:hover {
+    transform: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* для совсем маленьких экранов */
+@media (max-width: 480px) {
+  .ap-brand {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .ap-header-row h1 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .ap-header-right {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ap-dates {
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .ap-change-dates {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .ap-list-image {
+    height: 180px;
+  }
+
+  .ap-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .ap-list-header h2 {
+    font-size: 20px;
+  }
+
+  .ap-list-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ap-list-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ap-list-actions button {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .ap-list-price {
+    font-size: 16px;
+  }
+}
+
+/* для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ap-list-card {
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+  }
+
+  .ap-list-content {
+    padding: 24px 24px 24px 0;
+  }
+
+  .ap-list-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ap-list-actions button {
+    width: 100%;
+  }
 }

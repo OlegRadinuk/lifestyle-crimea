@@ -42,17 +42,20 @@ const REVIEWS: Review[] = [
 export default function Reviews() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(REVIEWS.length); // начинаем с первого оригинального
   const [paused, setPaused] = useState(false);
+  const [slideWidth, setSlideWidth] = useState(0);
 
-  const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS];
-  const VISIBLE = 3;
+  const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS]; // зацикливаем
 
-  /* ===== HEADER MODE (DARK) ===== */
+  /* ===== HEADER MODE ===== */
   useEffect(() => {
     if (!sectionRef.current) return;
 
@@ -80,7 +83,7 @@ export default function Reviews() {
     };
   }, [register, unregister]);
 
-  /* ===== intersection animation ===== */
+  /* ===== VISIBLE ANIMATION ===== */
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -89,14 +92,33 @@ export default function Reviews() {
           observer.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.2 }
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
 
-  /* ===== autoplay ===== */
+  /* ===== CALC SLIDE WIDTH ===== */
+  useEffect(() => {
+    const calculateWidth = () => {
+      if (!viewportRef.current) return;
+      
+      const viewportWidth = viewportRef.current.clientWidth;
+      const gap = 20; // должно совпадать с gap в CSS
+      const slidesPerView = window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3;
+      const width = (viewportWidth - (gap * (slidesPerView - 1))) / slidesPerView;
+      
+      setSlideWidth(width);
+    };
+
+    calculateWidth();
+    window.addEventListener('resize', calculateWidth);
+    
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, []);
+
+  /* ===== AUTOPLAY ===== */
   useEffect(() => {
     if (paused) return;
 
@@ -107,72 +129,124 @@ export default function Reviews() {
     return () => clearInterval(id);
   }, [paused]);
 
-  /* ===== translate ===== */
+  /* ===== TRANSLATE ===== */
   useEffect(() => {
-    if (!trackRef.current) return;
+    if (!trackRef.current || slideWidth === 0) return;
 
-    const slideWidth = trackRef.current.clientWidth / VISIBLE;
-    trackRef.current.style.transform = `translateX(-${index * slideWidth}px)`;
+    trackRef.current.style.transform = `translateX(-${index * (slideWidth + 20)}px)`;
 
+    // бесконечная прокрутка
     if (index >= REVIEWS.length * 2) {
       setTimeout(() => {
         trackRef.current!.style.transition = 'none';
         setIndex(REVIEWS.length);
         requestAnimationFrame(() => {
-          trackRef.current!.style.transition = 'transform 0.6s ease';
+          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
         });
       }, 600);
     }
-  }, [index]);
+
+    if (index <= 0) {
+      setTimeout(() => {
+        trackRef.current!.style.transition = 'none';
+        setIndex(REVIEWS.length);
+        requestAnimationFrame(() => {
+          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+        });
+      }, 600);
+    }
+  }, [index, slideWidth]);
+
+  /* ===== TOUCH HANDLERS FOR SWIPE ===== */
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    setPaused(true); // останавливаем автоплей при касании
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const diffX = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50; // минимальное расстояние для свайпа
+
+    if (Math.abs(diffX) > minSwipeDistance) {
+      if (diffX > 0) {
+        // свайп влево - следующий отзыв
+        setIndex(i => i + 1);
+      } else {
+        // свайп вправо - предыдущий отзыв
+        setIndex(i => i - 1);
+      }
+    }
+
+    // сбрасываем значения
+    touchStartX.current = null;
+    touchEndX.current = null;
+    
+    // возобновляем автоплей через небольшую задержку
+    setTimeout(() => setPaused(false), 3000);
+  };
 
   return (
     <section
       ref={sectionRef}
       className={`reviews ${visible ? 'is-visible' : ''}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      <h2 className="reviews__title">
-        Отзывы гостей о комплексе апартаментов «Стиль Жизни»
-      </h2>
+      <div className="reviews__mobile-content">
+        <h2 className="reviews__title">
+          Отзывы гостей о комплексе апартаментов «Стиль Жизни»
+        </h2>
 
-      <div
-        className="reviews__outer"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
-        <button
-          className="reviews__arrow reviews__arrow--left"
-          onClick={() => setIndex(i => i - 1)}
+        <div
+          className="reviews__outer"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
         >
-          ‹
-        </button>
+          {/* Стрелки скрыты на мобильных через CSS, оставлены для десктопа */}
+          <button
+            className="reviews__arrow reviews__arrow--left"
+            onClick={() => setIndex(i => i - 1)}
+            aria-label="Предыдущие отзывы"
+          >
+            ‹
+          </button>
 
-        <div className="reviews__viewport">
-          <div className="reviews__track" ref={trackRef}>
-            {slides.map((r, i) => (
-              <div className="review-card" key={i}>
-                <p className="review-card__text">{r.text}</p>
-                <div className="review-card__author">{r.author}</div>
-              </div>
-            ))}
+          <div className="reviews__viewport" ref={viewportRef}>
+            <div className="reviews__track" ref={trackRef}>
+              {slides.map((review, i) => (
+                <div className="review-card" key={`${review.author}-${i}`}>
+                  <p className="review-card__text">{review.text}</p>
+                  <div className="review-card__author">{review.author}</div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          <button
+            className="reviews__arrow reviews__arrow--right"
+            onClick={() => setIndex(i => i + 1)}
+            aria-label="Следующие отзывы"
+          >
+            ›
+          </button>
         </div>
 
-        <button
-          className="reviews__arrow reviews__arrow--right"
-          onClick={() => setIndex(i => i + 1)}
+        <a
+          className="reviews__yandex"
+          href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
+          target="_blank"
+          rel="noreferrer"
         >
-          ›
-        </button>
+          Смотреть все отзывы на Яндекс Картах
+        </a>
       </div>
-
-      <a
-        className="reviews__yandex"
-        href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Смотреть все отзывы на Яндекс Картах
-      </a>
     </section>
   );
 }
