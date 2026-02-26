@@ -1,0 +1,26 @@
+import { NextResponse } from 'next/server';
+import { bookingService, externalBookingService } from '@/lib/db';
+import type { BlockedDate } from '@/lib/types';
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ apartmentId: string }> }
+) {
+  try {
+    const { apartmentId } = await params;
+    const { searchParams } = new URL(request.url);
+    const checkIn = searchParams.get('checkIn');
+    const checkOut = searchParams.get('checkOut');
+
+    if (checkIn && checkOut) {
+      const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
+      return NextResponse.json({ apartmentId, checkIn, checkOut, isAvailable });
+    }
+
+    const blockedDates = externalBookingService.getBlockedDates(apartmentId);
+    return NextResponse.json({ apartmentId, blockedDates });
+  } catch (error) {
+    console.error('Error checking availability:', error);
+    return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });
+  }
+}
