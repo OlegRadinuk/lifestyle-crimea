@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 /* ===== exports ===== */
 
@@ -126,9 +127,11 @@ export default function BookingModal({
   onClose,
   onConfirm,
 }: Props) {
+  const router = useRouter();
   const [dates] = useState<DateRange | null>(initialRange);
   const [guests, setGuests] = useState(initialGuests);
   const [meals, setMeals] = useState<Meals>('none');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [guestInfo, setGuestInfo] = useState({
     firstName: '',
@@ -155,38 +158,128 @@ export default function BookingModal({
     };
   }, []);
 
-  const handleConfirm = () => {
-    if (!dates || !price) return;
+  const validateForm = () => {
+    if (!guestInfo.firstName.trim()) {
+      alert('Введите имя');
+      return false;
+    }
+    if (!guestInfo.lastName.trim()) {
+      alert('Введите фамилию');
+      return false;
+    }
+    if (guestInfo.phone.replace(/\D/g, '').length < 10) {
+      alert('Введите корректный номер телефона');
+      return false;
+    }
+    if (!guestInfo.email.includes('@') || !guestInfo.email.includes('.')) {
+      alert('Введите корректный email');
+      return false;
+    }
+    return true;
+  };
 
-    onConfirm({
-      apartment,
-      range: dates,
-      guests,
-      meals,
-      totalPrice: price.total,
-      guest: guestInfo,
-    });
+  const handleConfirm = async () => {
+    if (!dates || !price) return;
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Отправляем бронирование в API
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apartmentId: apartment.id,
+          checkIn: dates.from.toISOString().split('T')[0],
+          checkOut: dates.to.toISOString().split('T')[0],
+          guestsCount: guests,
+          guestName: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
+          guestPhone: guestInfo.phone,
+          guestEmail: guestInfo.email,
+          totalPrice: price.total,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Ошибка при бронировании');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Успешное бронирование - отправляем уведомление в Telegram
+      try {
+        await fetch('/api/telegram/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `🔔 <b>Новое бронирование!</b>\n\n` +
+              `🏠 <b>Апартамент:</b> ${apartment.title}\n` +
+              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(dates.to)}\n` +
+              `🌙 <b>Ночей:</b> ${price.nights}\n` +
+              `👥 <b>Гостей:</b> ${guests}\n` +
+              `🍽 <b>Питание:</b> ${meals === 'none' ? 'Без питания' : meals === 'breakfast' ? 'Завтрак' : 'Завтрак + ужин'}\n` +
+              `💰 <b>Сумма:</b> ${price.total.toLocaleString()} ₽\n\n` +
+              `👤 <b>Гость:</b> ${guestInfo.firstName} ${guestInfo.lastName}\n` +
+              `📞 <b>Телефон:</b> ${guestInfo.phone}\n` +
+              `📧 <b>Email:</b> ${guestInfo.email}\n\n` +
+              `🆔 <b>ID брони:</b> ${data.booking.id}`,
+            bookingId: data.booking.id,
+            type: 'new_booking',
+          }),
+        });
+      } catch (telegramError) {
+        // Ошибка Telegram не должна блокировать успешное бронирование
+        console.error('Failed to send telegram notification:', telegramError);
+      }
+
+      // Вызываем onConfirm для обратной совместимости
+      onConfirm({
+        apartment,
+        range: dates,
+        guests,
+        meals,
+        totalPrice: price.total,
+        guest: guestInfo,
+      });
+
+      // Показываем сообщение об успехе
+      alert('✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.');
+      
+      onClose();
+      router.refresh(); // обновить страницу, чтобы увидеть изменения
+      
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('❌ Ошибка при бронировании. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-  <div
-    className="booking-modal-overlay"
-    onClick={onClose}
-  >
     <div
-      className="booking-modal"
-      onClick={e => e.stopPropagation()}
+      className="booking-modal-overlay"
+      onClick={onClose}
     >
-      {/* HEADER */}
-      <div className="booking-modal__header">
-        <h2>Бронирование</h2>
-        <button onClick={onClose} className="booking-modal__close">
-          ✕
-        </button>
-      </div>
+      <div
+        className="booking-modal"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="booking-modal__header">
+          <h2>Бронирование</h2>
+          <button onClick={onClose} className="booking-modal__close" disabled={isSubmitting}>
+            ✕
+          </button>
+        </div>
 
-      {/* CONTENT */}
-      <div className="booking-modal__content">
+        {/* CONTENT */}
+        <div className="booking-modal__content">
           <div className="booking-modal__left">
             <section>
               <h3>Апартамент</h3>
@@ -196,31 +289,30 @@ export default function BookingModal({
             <section>
               <h3>Даты проживания</h3>
               {dates && (
-                <p>{formatDate(dates.from)} — {formatDate(dates.to)}</p>
+                <p className="booking-dates">
+                  {formatDate(dates.from)} — {formatDate(dates.to)}
+                </p>
               )}
             </section>
 
             <section>
-  <h3>Гости</h3>
-
-  <div className="counter">
-    <button
-      onClick={() => setGuests(g => Math.max(1, g - 1))}
-      disabled={guests <= 1}
-    >
-      −
-    </button>
-
-    <span>{guests}</span>
-
-    <button
-      onClick={() => setGuests(g => Math.min(4, g + 1))}
-      disabled={guests >= 4}
-    >
-      +
-    </button>
-  </div>
-</section>
+              <h3>Гости</h3>
+              <div className="counter">
+                <button
+                  onClick={() => setGuests(g => Math.max(1, g - 1))}
+                  disabled={guests <= 1 || isSubmitting}
+                >
+                  −
+                </button>
+                <span>{guests}</span>
+                <button
+                  onClick={() => setGuests(g => Math.min(4, g + 1))}
+                  disabled={guests >= 4 || isSubmitting}
+                >
+                  +
+                </button>
+              </div>
+            </section>
 
             <section>
               <h3>Питание</h3>
@@ -228,6 +320,7 @@ export default function BookingModal({
                 className="meals-select"
                 value={meals}
                 onChange={e => setMeals(e.target.value as Meals)}
+                disabled={isSubmitting}
               >
                 <option value="none">Без питания</option>
                 <option value="breakfast">Завтрак</option>
@@ -239,67 +332,84 @@ export default function BookingModal({
               <h3>Данные гостя</h3>
               <div className="guest-grid">
                 <input
-                  placeholder="Имя"
+                  placeholder="Имя *"
                   value={guestInfo.firstName}
                   onChange={e => setGuestInfo({ ...guestInfo, firstName: e.target.value })}
+                  disabled={isSubmitting}
+                  required
                 />
                 <input
-                  placeholder="Фамилия"
+                  placeholder="Фамилия *"
                   value={guestInfo.lastName}
                   onChange={e => setGuestInfo({ ...guestInfo, lastName: e.target.value })}
+                  disabled={isSubmitting}
+                  required
                 />
                 <input
-                  placeholder="+7 (999) 123 45 67"
+                  placeholder="+7 (999) 123 45 67 *"
                   value={guestInfo.phone}
                   onChange={e => setGuestInfo({ ...guestInfo, phone: formatPhone(e.target.value) })}
+                  disabled={isSubmitting}
+                  required
                 />
                 <input
-                  placeholder="Email"
+                  placeholder="Email *"
+                  type="email"
                   value={guestInfo.email}
                   onChange={e => setGuestInfo({ ...guestInfo, email: e.target.value })}
+                  disabled={isSubmitting}
+                  required
                 />
               </div>
             </section>
           </div>
 
           <div className="booking-modal__right">
-  {!price ? (
-    <div>Нет данных для расчёта</div>
-  ) : (
-    <>
-      <div className="price-row">
-        <span>
-          {price.basePerNight.toLocaleString()} ₽ × {price.nights} ночей
-        </span>
-        <span>{price.baseTotal.toLocaleString()} ₽</span>
-      </div>
+            {!price ? (
+              <div className="price-empty">Нет данных для расчёта</div>
+            ) : (
+              <>
+                <div className="price-row">
+                  <span>
+                    {price.basePerNight.toLocaleString()} ₽ × {price.nights} {price.nights === 1 ? 'ночь' : price.nights <= 4 ? 'ночи' : 'ночей'}
+                  </span>
+                  <span>{price.baseTotal.toLocaleString()} ₽</span>
+                </div>
 
-      {meals !== 'none' && (
-        <div className="price-row">
-          <span>
-            Питание ({meals === 'breakfast' ? 'завтрак' : 'завтрак + ужин'})
-          </span>
-          <span>{price.mealsTotal.toLocaleString()} ₽</span>
-        </div>
-      )}
+                {meals !== 'none' && (
+                  <div className="price-row">
+                    <span>
+                      Питание ({meals === 'breakfast' ? 'завтрак' : 'завтрак + ужин'})
+                    </span>
+                    <span>{price.mealsTotal.toLocaleString()} ₽</span>
+                  </div>
+                )}
 
-      <div className="price-divider" />
+                <div className="price-divider" />
 
-      <div className="price-total">
-        <span>Итого</span>
-        <strong>{price.total.toLocaleString()} ₽</strong>
-      </div>
-    </>
-  )}
+                <div className="price-total">
+                  <span>Итого</span>
+                  <strong>{price.total.toLocaleString()} ₽</strong>
+                </div>
 
-  <button
-    className="confirm-booking"
-    disabled={!price}
-    onClick={handleConfirm}
-  >
-    Подтвердить бронирование
-  </button>
-</div>
+                <div className="price-notice">
+                  * Оплата при заезде наличными или картой
+                </div>
+              </>
+            )}
+
+            <button
+              className="confirm-booking"
+              disabled={!price || isSubmitting}
+              onClick={handleConfirm}
+            >
+              {isSubmitting ? (
+                <span className="loading-spinner">⏳ Отправляем...</span>
+              ) : (
+                'Подтвердить бронирование'
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
