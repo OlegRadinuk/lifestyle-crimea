@@ -672,7 +672,7 @@ body {
   position: absolute;
   z-index: 1;
   inset: 0;
-  background-image: url('/images/hero/hero.jpg'); /* пока картинка */
+  background-image: url('/images/hero/hero.webp'); /* пока картинка */
   background-size: cover;
   background-position: center bottom;
   animation: heroZoom 12s ease forwards;

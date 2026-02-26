@@ -30,9 +30,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Панорамные окна', 'Терраса'],
     images: [
-      '/images/apartments/sweet-caramel/1.jpg',
-      '/images/apartments/sweet-caramel/2.jpg',
-      '/images/apartments/sweet-caramel/3.jpg',
+      '/images/apartments/sweet-caramel/1.webp',
+      '/images/apartments/sweet-caramel/2.webp',
+      '/images/apartments/sweet-caramel/3.webp',
     ],
   },
 
@@ -48,8 +48,8 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Вид на море', 'Балкон'],
     images: [
-      '/images/apartments/flower-kiss/1.jpg',
-      '/images/apartments/flower-kiss/2.jpg',
+      '/images/apartments/flower-kiss/1.webp',
+      '/images/apartments/flower-kiss/2.webp',
     ],
   },
 
@@ -65,9 +65,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Лаунж-зона', 'Панорамные окна'],
     images: [
-      '/images/apartments/soft-blue/1.jpg',
-      '/images/apartments/soft-blue/2.jpg',
-      '/images/apartments/soft-blue/3.jpg',
+      '/images/apartments/soft-blue/1.webp',
+      '/images/apartments/soft-blue/2.webp',
+      '/images/apartments/soft-blue/3.webp',
     ],
   },
 
@@ -83,8 +83,8 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Французский балкон', 'Вид на море'],
     images: [
-      '/images/apartments/crystal-blue/1.jpg',
-      '/images/apartments/crystal-blue/2.jpg',
+      '/images/apartments/crystal-blue/1.webp',
+      '/images/apartments/crystal-blue/2.webp',
     ],
   },
 
@@ -100,9 +100,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Терраса', 'Панорамные окна'],
     images: [
-      '/images/apartments/sunny-mood/1.jpg',
-      '/images/apartments/sunny-mood/2.jpg',
-      '/images/apartments/sunny-mood/3.jpg',
+      '/images/apartments/sunny-mood/1.webp',
+      '/images/apartments/sunny-mood/2.webp',
+      '/images/apartments/sunny-mood/3.webp',
     ],
   },
 
@@ -118,9 +118,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Большая терраса', 'Панорамный вид'],
     images: [
-      '/images/apartments/beautiful-days/1.jpg',
-      '/images/apartments/beautiful-days/2.jpg',
-      '/images/apartments/beautiful-days/3.jpg',
+      '/images/apartments/beautiful-days/1.webp',
+      '/images/apartments/beautiful-days/2.webp',
+      '/images/apartments/beautiful-days/3.webp',
     ],
   },
 
@@ -136,9 +136,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Зона отдыха', 'Панорамные окна'],
     images: [
-      '/images/apartments/sun-rays/1.jpg',
-      '/images/apartments/sun-rays/2.jpg',
-      '/images/apartments/sun-rays/3.jpg',
+      '/images/apartments/sun-rays/1.webp',
+      '/images/apartments/sun-rays/2.webp',
+      '/images/apartments/sun-rays/3.webp',
     ],
   },
 
@@ -154,8 +154,8 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Балкон', 'Вид на море'],
     images: [
-      '/images/apartments/sunshine/1.jpg',
-      '/images/apartments/sunshine/2.jpg',
+      '/images/apartments/sunshine/1.webp',
+      '/images/apartments/sunshine/2.webp',
     ],
   },
 
@@ -171,9 +171,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Терраса', 'Панорамные окна'],
     images: [
-      '/images/apartments/fly-birds/1.jpg',
-      '/images/apartments/fly-birds/2.jpg',
-      '/images/apartments/fly-birds/3.jpg',
+      '/images/apartments/fly-birds/1.webp',
+      '/images/apartments/fly-birds/2.webp',
+      '/images/apartments/fly-birds/3.webp',
     ],
   },
 
@@ -189,9 +189,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Лаунж-зона', 'Вид на море'],
     images: [
-      '/images/apartments/fly-mood/1.jpg',
-      '/images/apartments/fly-mood/2.jpg',
-      '/images/apartments/fly-mood/3.jpg',
+      '/images/apartments/fly-mood/1.webp',
+      '/images/apartments/fly-mood/2.webp',
+      '/images/apartments/fly-mood/3.webp',
     ],
   },
 
@@ -207,9 +207,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Терраса', 'Панорамные окна'],
     images: [
-      '/images/apartments/fly-sky/1.jpg',
-      '/images/apartments/fly-sky/2.jpg',
-      '/images/apartments/fly-sky/3.jpg',
+      '/images/apartments/fly-sky/1.webp',
+      '/images/apartments/fly-sky/2.webp',
+      '/images/apartments/fly-sky/3.webp',
     ],
   },
 
@@ -225,8 +225,8 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: false,
     features: ['Балкон', 'Вид на море'],
     images: [
-      '/images/apartments/only-you/1.jpg',
-      '/images/apartments/only-you/2.jpg',
+      '/images/apartments/only-you/1.webp',
+      '/images/apartments/only-you/2.webp',
     ],
   },
 
@@ -242,9 +242,9 @@ export const APARTMENTS: Apartment[] = [
     hasTerrace: true,
     features: ['Терраса', 'Панорамные окна'],
     images: [
-      '/images/apartments/dream-vacation/1.jpg',
-      '/images/apartments/dream-vacation/2.jpg',
-      '/images/apartments/dream-vacation/3.jpg',
+      '/images/apartments/dream-vacation/1.webp',
+      '/images/apartments/dream-vacation/2.webp',
+      '/images/apartments/dream-vacation/3.webp',
     ],
   },
 ];

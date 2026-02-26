@@ -6,17 +6,17 @@ import { useHeader } from '@/components/HeaderContext';
 const slides = [
   {
     id: 1,
-    image: '/images/hero/hero1.jpg',
+    image: '/images/hero/hero1.webp',
     text: 'Ваш стиль жизни у берега Черного моря',
   },
   {
     id: 2,
-    image: '/images/hero/hero2.jpg',
+    image: '/images/hero/hero2.webp',
     text: 'Премиальные апартаменты в Алуште',
   },
   {
     id: 3,
-    image: '/images/hero/hero3.jpg',
+    image: '/images/hero/hero3.webp',
     text: 'Комфорт, эстетика и природа',
   },
 ];
