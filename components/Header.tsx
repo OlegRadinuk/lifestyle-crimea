@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
 import { useApartment } from '@/components/ApartmentContext';
 import { useSearch } from '@/components/SearchContext';
 import { useHeader } from '@/components/HeaderContext';
-
+import { useAvailability } from '@/hooks/useAvailability'; // <-- новый импорт
 import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCalendar';
 import BookingModal from '@/components/BookingModal';
 import MobileBookingSheet from '@/components/MobileBookingSheet';
@@ -20,15 +19,6 @@ type DateRange = {
   to: Date;
 } | null;
 
-// временно — потом API
-const mockAvailability = [
-  { date: '2026-02-10', available: true },
-  { date: '2026-02-11', available: true },
-  { date: '2026-02-12', available: false },
-  { date: '2026-02-13', available: true },
-  { date: '2026-02-14', available: true },
-];
-
 export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const { setSearch } = useSearch();
@@ -41,6 +31,11 @@ export default function Header({ onBurgerClick }: Props) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
+
+  // Хук доступности для текущего апартамента (если есть)
+  const { blockedDates, loading, getDisabledDays } = useAvailability(
+    currentApartment?.id || null
+  );
 
   /* ---------- HERO STATE ---------- */
   const [checkIn, setCheckIn] = useState('');
@@ -218,13 +213,13 @@ export default function Header({ onBurgerClick }: Props) {
                 <span className="header__booking-apartment">{currentApartment.title}</span>
               </button>
 
-              {calendarOpen && (
+              {calendarOpen && !loading && (
                 <div
                   ref={popoverRef}
                   className="header__calendar-popover"
                 >
                   <ApartmentAvailabilityCalendar
-                    availability={mockAvailability}
+                    blockedDates={blockedDates}
                     onConfirm={(range) => {
                       setSelectedRange(range);
                       setCalendarOpen(false);
@@ -255,7 +250,7 @@ export default function Header({ onBurgerClick }: Props) {
       )}
 
       {/* BOOKING MODAL */}
-      {bookingModalOpen && currentApartment && (
+      {bookingModalOpen && currentApartment && selectedRange && (
         <BookingModal
           apartment={currentApartment}
           initialRange={selectedRange}

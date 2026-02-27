@@ -8,7 +8,7 @@ import { useHeader } from '@/components/HeaderContext';
 import BookingModal, { DateRange } from '@/components/BookingModal';
 import Footer from '@/components/Footer';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 
 import './apartments.css';
 
@@ -26,6 +26,13 @@ export default function ApartmentsPage() {
   const { search } = useSearch();
   const { register, unregister } = useHeader();
 
+  const [bookingApartment, setBookingApartment] = useState<null | {
+    id: string;
+    title: string;
+  }>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
+
   useEffect(() => {
     register('apartments-page', {
       mode: 'dark',
@@ -37,12 +44,34 @@ export default function ApartmentsPage() {
     };
   }, [register, unregister]);
 
-  const [bookingApartment, setBookingApartment] = useState<null | {
-    id: string;
-    title: string;
-  }>(null);
+  // Проверка доступности перед бронированием
+  const handleBookingClick = async (apartment: (typeof APARTMENTS)[0]) => {
+    if (!search) return;
 
-  const [bookingOpen, setBookingOpen] = useState(false);
+    setCheckingId(apartment.id);
+
+    try {
+      const response = await fetch(
+        `/api/availability/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}`
+      );
+      const data = await response.json();
+
+      if (data.isAvailable) {
+        setBookingApartment({
+          id: apartment.id,
+          title: apartment.title,
+        });
+        setBookingOpen(true);
+      } else {
+        alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
+      }
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      alert('Ошибка при проверке доступности');
+    } finally {
+      setCheckingId(null);
+    }
+  };
 
   /* ---------- NO SEARCH ---------- */
   if (!search) {
@@ -53,10 +82,7 @@ export default function ApartmentsPage() {
           Пожалуйста, выберите даты и количество гостей на главной странице.
         </p>
 
-        <button
-          className="btn-primary"
-          onClick={() => router.push('/')}
-        >
+        <button className="btn-primary" onClick={() => router.push('/')}>
           Перейти на главную
         </button>
       </section>
@@ -73,9 +99,7 @@ export default function ApartmentsPage() {
         {/* TOP */}
         <header className="ap-top">
           <div className="ap-top-inner">
-            <div className="ap-brand fade-in">
-              Стиль жизни · Алушта
-            </div>
+            <div className="ap-brand fade-in">Стиль жизни · Алушта</div>
 
             <div className="ap-header-row slide-in">
               <h1>Доступные апартаменты</h1>
@@ -110,18 +134,15 @@ export default function ApartmentsPage() {
               style={{ animationDelay: `${index * 80}ms` }}
             >
               <div className="ap-list-image">
-  <img
-    src={apartment.images[0]}
-    alt={apartment.title}
-  />
+                <img src={apartment.images[0]} alt={apartment.title} />
 
-<button
-  className="ap-list-gallery-btn"
-  onClick={() => open(apartment.images, 0)}
->
-  Смотреть фото
-</button>
-</div>
+                <button
+                  className="ap-list-gallery-btn"
+                  onClick={() => open(apartment.images, 0)}
+                >
+                  Смотреть фото
+                </button>
+              </div>
               <div className="ap-list-content">
                 <div className="ap-list-header">
                   <h2>{apartment.title}</h2>
@@ -148,23 +169,20 @@ export default function ApartmentsPage() {
 
                   <div className="ap-list-actions">
                     <button
-  className="btn-outline"
-  onClick={() => router.push(`/apartments/${apartment.id}`)}
->
-  Смотреть апартамент
-</button>
+                      className="btn-outline"
+                      onClick={() => router.push(`/apartments/${apartment.id}`)}
+                    >
+                      Смотреть апартамент
+                    </button>
 
                     <button
                       className="btn-primary"
-                      onClick={() => {
-                        setBookingApartment({
-                          id: apartment.id,
-                          title: apartment.title,
-                        });
-                        setBookingOpen(true);
-                      }}
+                      onClick={() => handleBookingClick(apartment)}
+                      disabled={checkingId === apartment.id}
                     >
-                      Забронировать
+                      {checkingId === apartment.id
+                        ? 'Проверка...'
+                        : 'Забронировать'}
                     </button>
                   </div>
                 </div>
@@ -175,7 +193,7 @@ export default function ApartmentsPage() {
         <Footer />
       </section>
 
-      {bookingOpen && bookingApartment && (
+      {bookingOpen && bookingApartment && search && (
         <BookingModal
           apartment={bookingApartment}
           initialRange={{
@@ -184,9 +202,10 @@ export default function ApartmentsPage() {
           } as DateRange}
           initialGuests={search.guests}
           onClose={() => setBookingOpen(false)}
-          onConfirm={(data) => {
+          onConfirm={data => {
             console.log('BOOKING RESULT', data);
             setBookingOpen(false);
+            // Можно добавить редирект или показать сообщение
           }}
         />
       )}

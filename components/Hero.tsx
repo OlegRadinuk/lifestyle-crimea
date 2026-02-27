@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
+import Image from 'next/image';
 
 const slides = [
   {

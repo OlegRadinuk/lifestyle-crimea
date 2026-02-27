@@ -47,10 +47,7 @@ type Props = {
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 function getNights(from: Date, to: Date) {
-  return Math.max(
-    1,
-    Math.round((to.getTime() - from.getTime()) / MS_PER_DAY)
-  );
+  return Math.max(1, Math.round((to.getTime() - from.getTime()) / MS_PER_DAY));
 }
 
 function getSeasonPrice(date: Date) {
@@ -185,6 +182,22 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
+      // 🔥 ПРОВЕРКА ДОСТУПНОСТИ ПЕРЕД ОТПРАВКОЙ
+      const checkResponse = await fetch(
+        `/api/availability/${apartment.id}?checkIn=${
+          dates.from.toISOString().split('T')[0]
+        }&checkOut=${dates.to.toISOString().split('T')[0]}`
+      );
+      const checkData = await checkResponse.json();
+
+      if (!checkData.isAvailable) {
+        alert(
+          'К сожалению, эти даты уже заняты. Пожалуйста, выберите другие даты.'
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       // Отправляем бронирование в API
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -217,12 +230,21 @@ export default function BookingModal({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: `🔔 <b>Новое бронирование!</b>\n\n` +
+            message:
+              `🔔 <b>Новое бронирование!</b>\n\n` +
               `🏠 <b>Апартамент:</b> ${apartment.title}\n` +
-              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(dates.to)}\n` +
+              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(
+                dates.to
+              )}\n` +
               `🌙 <b>Ночей:</b> ${price.nights}\n` +
               `👥 <b>Гостей:</b> ${guests}\n` +
-              `🍽 <b>Питание:</b> ${meals === 'none' ? 'Без питания' : meals === 'breakfast' ? 'Завтрак' : 'Завтрак + ужин'}\n` +
+              `🍽 <b>Питание:</b> ${
+                meals === 'none'
+                  ? 'Без питания'
+                  : meals === 'breakfast'
+                  ? 'Завтрак'
+                  : 'Завтрак + ужин'
+              }\n` +
               `💰 <b>Сумма:</b> ${price.total.toLocaleString()} ₽\n\n` +
               `👤 <b>Гость:</b> ${guestInfo.firstName} ${guestInfo.lastName}\n` +
               `📞 <b>Телефон:</b> ${guestInfo.phone}\n` +
@@ -247,33 +269,33 @@ export default function BookingModal({
         guest: guestInfo,
       });
 
-      // Показываем сообщение об успехе
-      alert('✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.');
-      
+      alert(
+        '✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.'
+      );
+
       onClose();
       router.refresh(); // обновить страницу, чтобы увидеть изменения
-      
     } catch (error) {
       console.error('Error creating booking:', error);
-      alert('❌ Ошибка при бронировании. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.');
+      alert(
+        '❌ Ошибка при бронировании. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div
-      className="booking-modal-overlay"
-      onClick={onClose}
-    >
-      <div
-        className="booking-modal"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="booking-modal-overlay" onClick={onClose}>
+      <div className="booking-modal" onClick={e => e.stopPropagation()}>
         {/* HEADER */}
         <div className="booking-modal__header">
           <h2>Бронирование</h2>
-          <button onClick={onClose} className="booking-modal__close" disabled={isSubmitting}>
+          <button
+            onClick={onClose}
+            className="booking-modal__close"
+            disabled={isSubmitting}
+          >
             ✕
           </button>
         </div>
@@ -334,21 +356,27 @@ export default function BookingModal({
                 <input
                   placeholder="Имя *"
                   value={guestInfo.firstName}
-                  onChange={e => setGuestInfo({ ...guestInfo, firstName: e.target.value })}
+                  onChange={e =>
+                    setGuestInfo({ ...guestInfo, firstName: e.target.value })
+                  }
                   disabled={isSubmitting}
                   required
                 />
                 <input
                   placeholder="Фамилия *"
                   value={guestInfo.lastName}
-                  onChange={e => setGuestInfo({ ...guestInfo, lastName: e.target.value })}
+                  onChange={e =>
+                    setGuestInfo({ ...guestInfo, lastName: e.target.value })
+                  }
                   disabled={isSubmitting}
                   required
                 />
                 <input
                   placeholder="+7 (999) 123 45 67 *"
                   value={guestInfo.phone}
-                  onChange={e => setGuestInfo({ ...guestInfo, phone: formatPhone(e.target.value) })}
+                  onChange={e =>
+                    setGuestInfo({ ...guestInfo, phone: formatPhone(e.target.value) })
+                  }
                   disabled={isSubmitting}
                   required
                 />
@@ -356,7 +384,9 @@ export default function BookingModal({
                   placeholder="Email *"
                   type="email"
                   value={guestInfo.email}
-                  onChange={e => setGuestInfo({ ...guestInfo, email: e.target.value })}
+                  onChange={e =>
+                    setGuestInfo({ ...guestInfo, email: e.target.value })
+                  }
                   disabled={isSubmitting}
                   required
                 />
@@ -371,7 +401,12 @@ export default function BookingModal({
               <>
                 <div className="price-row">
                   <span>
-                    {price.basePerNight.toLocaleString()} ₽ × {price.nights} {price.nights === 1 ? 'ночь' : price.nights <= 4 ? 'ночи' : 'ночей'}
+                    {price.basePerNight.toLocaleString()} ₽ × {price.nights}{' '}
+                    {price.nights === 1
+                      ? 'ночь'
+                      : price.nights <= 4
+                      ? 'ночи'
+                      : 'ночей'}
                   </span>
                   <span>{price.baseTotal.toLocaleString()} ₽</span>
                 </div>
@@ -379,7 +414,8 @@ export default function BookingModal({
                 {meals !== 'none' && (
                   <div className="price-row">
                     <span>
-                      Питание ({meals === 'breakfast' ? 'завтрак' : 'завтрак + ужин'})
+                      Питание (
+                      {meals === 'breakfast' ? 'завтрак' : 'завтрак + ужин'})
                     </span>
                     <span>{price.mealsTotal.toLocaleString()} ₽</span>
                   </div>
