@@ -1,3 +1,4 @@
+// app/api/availability/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { bookingService, externalBookingService } from '@/lib/db';
 import type { BlockedDate } from '@/lib/types';
@@ -17,8 +18,23 @@ export async function GET(
       return NextResponse.json({ apartmentId, checkIn, checkOut, isAvailable });
     }
 
-    const blockedDates = externalBookingService.getBlockedDates(apartmentId);
-    return NextResponse.json({ apartmentId, blockedDates });
+    // Получаем заблокированные даты из ОБОИХ источников
+    const externalBlocked = externalBookingService.getBlockedDates(apartmentId);
+    
+    // Получаем бронирования из нашей БД
+    const dbBookings = bookingService.getBookingsByApartment(apartmentId);
+    const bookingBlocked: BlockedDate[] = dbBookings.map(booking => ({
+      start: booking.check_in,
+      end: booking.check_out,
+      source: 'booking'
+    }));
+
+    // Объединяем
+    const allBlockedDates = [...externalBlocked, ...bookingBlocked];
+    
+    console.log(`📅 API: Возвращаем ${allBlockedDates.length} заблокированных дат для ${apartmentId}`);
+
+    return NextResponse.json({ apartmentId, blockedDates: allBlockedDates });
   } catch (error) {
     console.error('Error checking availability:', error);
     return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });

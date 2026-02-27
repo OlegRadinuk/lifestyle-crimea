@@ -200,37 +200,38 @@ export default function Header({ onBurgerClick }: Props) {
         )}
 
         {/* ===== APARTMENT MODE ===== */}
-                {mode === 'apartment' && currentApartment && (
-          <div className="header__booking-wrapper is-apartment">
-            <div className="header__booking-action" style={{ position: 'relative' }}>
-              <button
-                className="header__booking with-apartment"
-                onClick={() => setCalendarOpen(prev => !prev)}
-              >
-                <span className="header__booking-label">Проверить доступность</span>
-                <span className="header__booking-apartment">{currentApartment.title}</span>
-              </button>
+{mode === 'apartment' && currentApartment && (
+  <div className="header__booking-wrapper is-apartment">
+    <div className="header__booking-action" style={{ position: 'relative' }}>
+      <button
+        className="header__booking with-apartment"
+        onClick={() => setCalendarOpen(prev => !prev)}
+      >
+        <span className="header__booking-label">Проверить доступность</span>
+        <span className="header__booking-apartment">{currentApartment.title}</span>
+      </button>
 
-              {calendarOpen && (
-                <div
-                  ref={popoverRef}
-                  className="header__calendar-popover"
-                >
-                  <ApartmentAvailabilityCalendar
-                    key={currentApartment.id + String(blockedDates.length)}
-                    blockedDates={blockedDates}
-                    onConfirm={(range) => {
-                      setSelectedRange(range);
-                      setCalendarOpen(false);
-                      setBookingModalOpen(true);
-                    }}
-                    onClose={() => setCalendarOpen(false)}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+      {calendarOpen && (
+        <div
+          ref={popoverRef}
+          className="header__calendar-popover"
+        >
+          <ApartmentAvailabilityCalendar
+            key={`calendar-${currentApartment.id}-${blockedDates.length}-${Date.now()}`}
+            blockedDates={blockedDates}
+            onConfirm={(range) => {
+              console.log('📅 Выбран диапазон:', range);
+              setSelectedRange(range);
+              setCalendarOpen(false);
+              setBookingModalOpen(true);
+            }}
+            onClose={() => setCalendarOpen(false)}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
         {/* ===== DARK MODE - просто пустой div для баланса (опционально) ===== */}
         {mode === 'dark' && (

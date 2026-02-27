@@ -273,7 +273,14 @@ export default function BookingModal({
         '✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.'
       );
 
-      window.dispatchEvent(new CustomEvent('booking-completed'));
+      window.dispatchEvent(new CustomEvent('booking-completed', { 
+  detail: { 
+    apartmentId: apartment.id,
+    checkIn: dates.from.toISOString().split('T')[0],
+    checkOut: dates.to.toISOString().split('T')[0],
+    timestamp: Date.now()
+  } 
+}));
 
       onClose();
       router.refresh(); // обновить страницу, чтобы увидеть изменения

@@ -222,6 +222,37 @@ export const bookingService = {
     `);
     stmt.run(status, id);
   },
+
+  // 🔥 НОВЫЙ МЕТОД: Получить все бронирования (для календаря)
+  getAllBookings: (): Booking[] => {
+    try {
+      const stmt = db.prepare(`
+        SELECT * FROM bookings 
+        WHERE status = 'confirmed' OR status IS NULL
+        ORDER BY check_in ASC
+      `);
+      return stmt.all() as Booking[];
+    } catch (error) {
+      console.error('Error getting all bookings:', error);
+      return [];
+    }
+  },
+
+  // 🔥 НОВЫЙ МЕТОД: Получить бронирования по апартаменту
+  getBookingsByApartment: (apartmentId: string): Booking[] => {
+    try {
+      const stmt = db.prepare(`
+        SELECT * FROM bookings 
+        WHERE apartment_id = ? 
+        AND (status = 'confirmed' OR status IS NULL)
+        ORDER BY check_in ASC
+      `);
+      return stmt.all(apartmentId) as Booking[];
+    } catch (error) {
+      console.error(`Error getting bookings for apartment ${apartmentId}:`, error);
+      return [];
+    }
+  },
 };
 
 // Сервис для работы с ICS источниками
@@ -304,6 +335,17 @@ export const externalBookingService = {
     `);
     return stmt.all(apartmentId) as BlockedDate[];
   },
+
+  // 🔥 УЛУЧШЕННЫЙ МЕТОД: Получить все заблокированные даты (включая будущие и прошлые)
+  getAllBlockedDates: (apartmentId: string): BlockedDate[] => {
+    const stmt = db.prepare(`
+      SELECT check_in as start, check_out as end, source_name as source 
+      FROM external_bookings 
+      WHERE apartment_id = ?
+      ORDER BY check_in ASC
+    `);
+    return stmt.all(apartmentId) as BlockedDate[];
+  },
 };
 
 // Сервис для логов
@@ -347,12 +389,9 @@ export const logService = {
 
 // Сервис для уведомлений (Telegram)
 export const notificationService = {
-  // Сохранить настройки Telegram
   saveTelegramSettings: (botToken: string, chatId: string) => {
     const id = uuidv4();
-    // Сначала деактивируем старые настройки
     db.prepare('UPDATE telegram_settings SET is_active = 0').run();
-    // Добавляем новые
     const stmt = db.prepare(`
       INSERT INTO telegram_settings (id, bot_token, chat_id)
       VALUES (?, ?, ?)
@@ -361,7 +400,6 @@ export const notificationService = {
     return { id, botToken, chatId };
   },
 
-  // Получить активные настройки
   getActiveTelegramSettings: () => {
     const stmt = db.prepare(`
       SELECT * FROM telegram_settings 
@@ -372,7 +410,6 @@ export const notificationService = {
     return stmt.get() as { bot_token: string; chat_id: string } | undefined;
   },
 
-  // Логировать отправку уведомления
   logNotification: (data: {
     bookingId?: string;
     type: 'new_booking' | 'cancellation' | 'reminder';
@@ -393,7 +430,6 @@ export const notificationService = {
     );
   },
 
-  // Добавить комментарий к бронированию
   addComment: (bookingId: string, comment: string) => {
     const id = uuidv4();
     const stmt = db.prepare(`
@@ -404,7 +440,6 @@ export const notificationService = {
     return { id, bookingId, comment };
   },
 
-  // Получить комментарии к бронированию
   getComments: (bookingId: string) => {
     const stmt = db.prepare(`
       SELECT * FROM booking_comments 
@@ -414,7 +449,6 @@ export const notificationService = {
     return stmt.all(bookingId);
   },
 
-  // Получить статистику уведомлений
   getNotificationStats: (days: number = 7) => {
     const stmt = db.prepare(`
       SELECT 
@@ -457,7 +491,6 @@ export function getApartmentByToken(token: string): string | null {
   return null;
 }
 
-// Функция для получения статистики по бронированиям
 export function getBookingStats(apartmentId?: string) {
   let query = `
     SELECT 
@@ -479,5 +512,4 @@ export function getBookingStats(apartmentId?: string) {
   return stmt.get(...params);
 }
 
-// Для совместимости экспортируем db при необходимости
 export { db };

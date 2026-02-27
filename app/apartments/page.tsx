@@ -55,18 +55,23 @@ export default function ApartmentsPage() {
         return;
       }
 
+      console.log('🏠 Страница списка: Проверяем доступность всех апартаментов...');
       setLoadingAvailability(true);
       const unavailable = new Set<string>();
 
       await Promise.all(
         APARTMENTS.map(async (apt) => {
           try {
+            // Добавляем timestamp для избежания кэширования
             const response = await fetch(
-              `/api/availability/${apt.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}`
+              `/api/availability/${apt.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`
             );
             const data = await response.json();
             if (!data.isAvailable) {
+              console.log(`❌ Апартамент ${apt.id} (${apt.title}) - НЕДОСТУПЕН`);
               unavailable.add(apt.id);
+            } else {
+              console.log(`✅ Апартамент ${apt.id} (${apt.title}) - доступен`);
             }
           } catch (error) {
             console.error(`Error checking ${apt.id}:`, error);
@@ -74,6 +79,7 @@ export default function ApartmentsPage() {
         })
       );
 
+      console.log('🏠 Итог: Недоступные апартаменты:', Array.from(unavailable));
       setUnavailableIds(unavailable);
       setLoadingAvailability(false);
     };
@@ -81,7 +87,9 @@ export default function ApartmentsPage() {
     checkAllAvailability();
 
     // Слушаем событие бронирования для обновления списка
-    const handleBookingCompleted = () => {
+    const handleBookingCompleted = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      console.log('🏠 Получено событие бронирования на странице списка:', customEvent.detail);
       checkAllAvailability();
     };
 
@@ -97,7 +105,7 @@ export default function ApartmentsPage() {
 
     try {
       const response = await fetch(
-        `/api/availability/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}`
+        `/api/availability/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`
       );
       const data = await response.json();
 
@@ -263,8 +271,15 @@ export default function ApartmentsPage() {
           onConfirm={(data) => {
             console.log('BOOKING RESULT', data);
             setBookingOpen(false);
-            // Отправляем событие обновления
-            window.dispatchEvent(new CustomEvent('booking-completed'));
+            // Отправляем событие обновления с данными о бронировании
+            window.dispatchEvent(new CustomEvent('booking-completed', { 
+              detail: { 
+                apartmentId: bookingApartment.id,
+                checkIn: search.checkIn,
+                checkOut: search.checkOut,
+                timestamp: Date.now()
+              } 
+            }));
           }}
         />
       )}
