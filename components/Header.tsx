@@ -33,9 +33,7 @@ export default function Header({ onBurgerClick }: Props) {
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
   // Хук доступности для текущего апартамента (если есть)
-  const { blockedDates, loading, getDisabledDays } = useAvailability(
-    currentApartment?.id || null
-  );
+  const { blockedDates } = useAvailability(currentApartment?.id || null);
 
   /* ---------- HERO STATE ---------- */
   const [checkIn, setCheckIn] = useState('');
@@ -202,7 +200,7 @@ export default function Header({ onBurgerClick }: Props) {
         )}
 
         {/* ===== APARTMENT MODE ===== */}
-        {mode === 'apartment' && currentApartment && (
+                {mode === 'apartment' && currentApartment && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action" style={{ position: 'relative' }}>
               <button
@@ -213,20 +211,23 @@ export default function Header({ onBurgerClick }: Props) {
                 <span className="header__booking-apartment">{currentApartment.title}</span>
               </button>
 
-              {calendarOpen && !loading && (
-  <div ref={popoverRef} className="header__calendar-popover">
-    <ApartmentAvailabilityCalendar
-      key={currentApartment?.id + String(blockedDates.length)} // 👈 принудительный ререндер
-      blockedDates={blockedDates}
-      onConfirm={(range) => {
-        setSelectedRange(range);
-        setCalendarOpen(false);
-        setBookingModalOpen(true);
-      }}
-      onClose={() => setCalendarOpen(false)}
-    />
-  </div>
-)}
+              {calendarOpen && (
+                <div
+                  ref={popoverRef}
+                  className="header__calendar-popover"
+                >
+                  <ApartmentAvailabilityCalendar
+                    key={currentApartment.id + String(blockedDates.length)}
+                    blockedDates={blockedDates}
+                    onConfirm={(range) => {
+                      setSelectedRange(range);
+                      setCalendarOpen(false);
+                      setBookingModalOpen(true);
+                    }}
+                    onClose={() => setCalendarOpen(false)}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

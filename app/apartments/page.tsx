@@ -31,8 +31,10 @@ export default function ApartmentsPage() {
   }>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  
+  // Состояние для занятых ID
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [loadingAvailability, setLoadingAvailability] = useState(true);
 
   useEffect(() => {
     register('apartments-page', {
@@ -48,9 +50,12 @@ export default function ApartmentsPage() {
   // Проверка доступности всех апартаментов
   useEffect(() => {
     const checkAllAvailability = async () => {
-      if (!search) return;
+      if (!search) {
+        setLoadingAvailability(false);
+        return;
+      }
 
-      setLoading(true);
+      setLoadingAvailability(true);
       const unavailable = new Set<string>();
 
       await Promise.all(
@@ -70,7 +75,7 @@ export default function ApartmentsPage() {
       );
 
       setUnavailableIds(unavailable);
-      setLoading(false);
+      setLoadingAvailability(false);
     };
 
     checkAllAvailability();
@@ -104,6 +109,8 @@ export default function ApartmentsPage() {
         setBookingOpen(true);
       } else {
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
+        // Обновляем список, чтобы убрать этот апартамент
+        setUnavailableIds(prev => new Set(prev).add(apartment.id));
       }
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -118,10 +125,7 @@ export default function ApartmentsPage() {
     return (
       <section className="ap-empty">
         <h1>Нет параметров поиска</h1>
-        <p>
-          Пожалуйста, выберите даты и количество гостей на главной странице.
-        </p>
-
+        <p>Пожалуйста, выберите даты и количество гостей на главной странице.</p>
         <button className="btn-primary" onClick={() => router.push('/')}>
           Перейти на главную
         </button>
@@ -134,7 +138,7 @@ export default function ApartmentsPage() {
     (apt) => apt.maxGuests >= search.guests && !unavailableIds.has(apt.id)
   );
 
-  if (loading) {
+  if (loadingAvailability) {
     return (
       <section className="ap-page">
         <div className="ap-loading">Загрузка доступных апартаментов...</div>
@@ -203,15 +207,12 @@ export default function ApartmentsPage() {
                 <div className="ap-list-content">
                   <div className="ap-list-header">
                     <h2>{apartment.title}</h2>
-
                     <span className="ap-list-guests">
                       до {apartment.maxGuests} гостей
                     </span>
                   </div>
 
-                  <p className="ap-list-description">
-                    {apartment.shortDescription}
-                  </p>
+                  <p className="ap-list-description">{apartment.shortDescription}</p>
 
                   <ul className="ap-list-features">
                     {apartment.features.map((feature) => (
@@ -237,9 +238,7 @@ export default function ApartmentsPage() {
                         onClick={() => handleBookingClick(apartment)}
                         disabled={checkingId === apartment.id}
                       >
-                        {checkingId === apartment.id
-                          ? 'Проверка...'
-                          : 'Забронировать'}
+                        {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
                       </button>
                     </div>
                   </div>
@@ -264,6 +263,8 @@ export default function ApartmentsPage() {
           onConfirm={(data) => {
             console.log('BOOKING RESULT', data);
             setBookingOpen(false);
+            // Отправляем событие обновления
+            window.dispatchEvent(new CustomEvent('booking-completed'));
           }}
         />
       )}

@@ -12,6 +12,7 @@ type BlockedDate = {
 export function useAvailability(apartmentId: string | null) {
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAvailability = useCallback(async () => {
     if (!apartmentId) {
@@ -20,12 +21,19 @@ export function useAvailability(apartmentId: string | null) {
     }
 
     setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch(`/api/availability/${apartmentId}`);
-      const data = await res.json();
+      const response = await fetch(`/api/availability/${apartmentId}`);
+      
+      if (!response.ok) {
+        throw new Error('Ошибка загрузки доступности');
+      }
+
+      const data = await response.json();
       setBlockedDates(data.blockedDates || []);
-    } catch (e) {
-      console.error('fetch error', e);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
     } finally {
       setLoading(false);
     }
@@ -36,47 +44,59 @@ export function useAvailability(apartmentId: string | null) {
     fetchAvailability();
   }, [fetchAvailability]);
 
-  // Слушаем глобальное событие обновления
+  // Слушаем событие бронирования для обновления
   useEffect(() => {
-    const onBooking = () => fetchAvailability();
-    window.addEventListener('booking-completed', onBooking);
-    return () => window.removeEventListener('booking-completed', onBooking);
+    const handleBookingCompleted = () => {
+      fetchAvailability();
+    };
+
+    window.addEventListener('booking-completed', handleBookingCompleted);
+    return () => window.removeEventListener('booking-completed', handleBookingCompleted);
   }, [fetchAvailability]);
 
+  // Проверка, доступна ли конкретная дата
   const isDateAvailable = (date: Date): boolean => {
-    const d = date.toISOString().split('T')[0];
-    return !blockedDates.some(b => d >= b.start && d < b.end);
+    const dateStr = date.toISOString().split('T')[0];
+    return !blockedDates.some(blocked => dateStr >= blocked.start && dateStr < blocked.end);
   };
 
+  // Проверка, доступен ли диапазон дат
   const isRangeAvailable = (from: Date, to: Date): boolean => {
-    let cur = new Date(from);
-    while (cur < to) {
-      if (!isDateAvailable(cur)) return false;
-      cur = addDays(cur, 1);
+    let current = new Date(from);
+    while (current < to) {
+      if (!isDateAvailable(current)) return false;
+      current = addDays(current, 1);
     }
     return true;
   };
 
-  const getDisabledDays = (): ({ before: Date } | Date)[] => {
+  // Получить все недоступные даты для календаря
+  const getDisabledDays = () => {
     const disabled: ({ before: Date } | Date)[] = [{ before: new Date() }];
-    blockedDates.forEach(b => {
-      const start = new Date(b.start);
-      const end = new Date(b.end);
-      let cur = new Date(start);
-      while (cur < end) {
-        disabled.push(new Date(cur));
-        cur = addDays(cur, 1);
+    blockedDates.forEach(blocked => {
+      const start = new Date(blocked.start);
+      const end = new Date(blocked.end);
+      let current = new Date(start);
+      while (current < end) {
+        disabled.push(new Date(current));
+        current = addDays(current, 1);
       }
     });
     return disabled;
   };
 
+  // Принудительное обновление
+  const refetch = useCallback(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
+
   return {
     blockedDates,
     loading,
+    error,
     isDateAvailable,
     isRangeAvailable,
     getDisabledDays,
-    refetch: fetchAvailability,
+    refetch,
   };
 }
