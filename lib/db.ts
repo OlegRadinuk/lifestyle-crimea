@@ -127,36 +127,31 @@ db.exec(`
 
 // Сервис для работы с бронированиями
 export const bookingService = {
-  checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boolean => {
-    const stmt = db.prepare(`
-      SELECT COUNT(*) as count FROM (
-        SELECT check_in, check_out FROM bookings 
-        WHERE apartment_id = ? AND status = 'confirmed'
-        AND (
-          (check_in < ? AND check_out > ?) OR
-          (check_in < ? AND check_out > ?) OR
-          (check_in >= ? AND check_out <= ?)
-        )
-        UNION ALL
-        SELECT check_in, check_out FROM external_bookings 
-        WHERE apartment_id = ? 
-        AND (
-          (check_in < ? AND check_out > ?) OR
-          (check_in < ? AND check_out > ?) OR
-          (check_in >= ? AND check_out <= ?)
-        )
+checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boolean => {
+  const stmt = db.prepare(`
+    SELECT COUNT(*) as count FROM (
+      SELECT check_in, check_out FROM bookings 
+      WHERE apartment_id = ? AND status = 'confirmed'
+      AND (
+        -- Проверка на ПЕРЕСЕЧЕНИЕ, а не на полное вхождение
+        check_in < ? AND check_out > ?
       )
-    `);
-    const result = stmt.get(
-      apartmentId, checkOut, checkIn,
-      checkOut, checkIn,
-      checkIn, checkOut,
-      apartmentId, checkOut, checkIn,
-      checkOut, checkIn,
-      checkIn, checkOut
-    ) as { count: number };
-    return result.count === 0;
-  },
+      UNION ALL
+      SELECT check_in, check_out FROM external_bookings 
+      WHERE apartment_id = ? 
+      AND (
+        check_in < ? AND check_out > ?
+      )
+    )
+  `);
+  
+  const result = stmt.get(
+    apartmentId, checkOut, checkIn,  // для bookings
+    apartmentId, checkOut, checkIn   // для external_bookings
+  ) as { count: number };
+  
+  return result.count === 0;
+},
 
   createBooking: (data: {
     apartmentId: string;

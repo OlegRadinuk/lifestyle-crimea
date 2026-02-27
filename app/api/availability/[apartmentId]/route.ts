@@ -13,9 +13,19 @@ export async function GET(
     const checkIn = searchParams.get('checkIn');
     const checkOut = searchParams.get('checkOut');
 
+    // Если переданы даты — проверяем доступность
     if (checkIn && checkOut) {
+      // Используем исправленный метод с правильной логикой
       const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
-      return NextResponse.json({ apartmentId, checkIn, checkOut, isAvailable });
+      
+      console.log(`📅 API: Проверка доступности ${apartmentId} с ${checkIn} по ${checkOut}: ${isAvailable ? '✅ свободно' : '❌ занято'}`);
+      
+      return NextResponse.json({ 
+        apartmentId, 
+        checkIn, 
+        checkOut, 
+        isAvailable 
+      });
     }
 
     // Получаем заблокированные даты из ОБОИХ источников
@@ -34,9 +44,16 @@ export async function GET(
     
     console.log(`📅 API: Возвращаем ${allBlockedDates.length} заблокированных дат для ${apartmentId}`);
 
-    return NextResponse.json({ apartmentId, blockedDates: allBlockedDates });
+    return NextResponse.json({ 
+      apartmentId, 
+      blockedDates: allBlockedDates 
+    });
+    
   } catch (error) {
     console.error('Error checking availability:', error);
-    return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to check availability' }, 
+      { status: 500 }
+    );
   }
 }
