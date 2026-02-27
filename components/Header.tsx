@@ -214,20 +214,19 @@ export default function Header({ onBurgerClick }: Props) {
               </button>
 
               {calendarOpen && !loading && (
-                <div
-                  ref={popoverRef}
-                  className="header__calendar-popover"
-                >
-                  <ApartmentAvailabilityCalendar
-                    blockedDates={blockedDates}
-                    onConfirm={(range) => {
-                      setSelectedRange(range);
-                      setCalendarOpen(false);
-                      setBookingModalOpen(true);
-                    }}
-                  />
-                </div>
-              )}
+  <div ref={popoverRef} className="header__calendar-popover">
+    <ApartmentAvailabilityCalendar
+      key={currentApartment?.id + String(blockedDates.length)} // 👈 принудительный ререндер
+      blockedDates={blockedDates}
+      onConfirm={(range) => {
+        setSelectedRange(range);
+        setCalendarOpen(false);
+        setBookingModalOpen(true);
+      }}
+      onClose={() => setCalendarOpen(false)}
+    />
+  </div>
+)}
             </div>
           </div>
         )}

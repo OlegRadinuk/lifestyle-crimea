@@ -4,7 +4,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
 import 'react-day-picker/dist/style.css';
 import { useMemo, useState, useEffect } from 'react';
-import { startOfToday, differenceInCalendarDays, addDays } from 'date-fns';
+import { startOfToday, differenceInCalendarDays } from 'date-fns';
 
 type BlockedDate = {
   start: string;
@@ -23,37 +23,26 @@ export default function ApartmentAvailabilityCalendar({
   onConfirm,
   onClose,
 }: Props) {
-  const [range, setRange] = useState<DateRange | undefined>();
+  const [range, setRange] = useState<DateRange>();
   const [isMobile, setIsMobile] = useState(false);
-  
   const today = startOfToday();
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Формируем массив недоступных дат для DayPicker
   const disabledDays = useMemo(() => {
     const disabled: ({ before: Date } | Date)[] = [{ before: today }];
-
-    blockedDates.forEach(blocked => {
-      const start = new Date(blocked.start);
-      const end = new Date(blocked.end);
-      
-      let current = new Date(start);
-      while (current < end) {
-        disabled.push(new Date(current));
-        current = addDays(current, 1);
+    blockedDates.forEach(b => {
+      const start = new Date(b.start);
+      const end = new Date(b.end);
+      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+        disabled.push(new Date(d));
       }
     });
-
     return disabled;
   }, [blockedDates, today]);
 
@@ -61,7 +50,11 @@ export default function ApartmentAvailabilityCalendar({
     ? differenceInCalendarDays(range.to, range.from)
     : 0;
 
-  const isValidRange = nights >= 1;
+  const handleConfirm = () => {
+    if (range?.from && range?.to) {
+      onConfirm({ from: range.from, to: range.to });
+    }
+  };
 
   return (
     <div className={`availability-calendar ${isMobile ? 'mobile' : ''}`}>
@@ -79,9 +72,7 @@ export default function ApartmentAvailabilityCalendar({
         onSelect={setRange}
         disabled={disabledDays}
         weekStartsOn={1}
-        numberOfMonths={1} // 👈 ТОЛЬКО ОДИН МЕСЯЦ
-        pagedNavigation
-        showOutsideDays
+        numberOfMonths={1}
         modifiersClassNames={{
           selected: 'rdp-day_selected',
           range_start: 'rdp-day_range_start',
@@ -93,17 +84,14 @@ export default function ApartmentAvailabilityCalendar({
 
       {range?.from && range?.to && (
         <div className="calendar-info">
-          <span>Проживание: {nights} {nights === 1 ? 'ночь' : nights <= 4 ? 'ночи' : 'ночей'}</span>
+          {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
         </div>
       )}
 
       <button
         className="calendar-confirm"
-        disabled={!isValidRange}
-        onClick={() => {
-          if (!range?.from || !range?.to || !isValidRange) return;
-          onConfirm({ from: range.from, to: range.to });
-        }}
+        disabled={!range?.from || !range?.to}
+        onClick={handleConfirm}
       >
         Забронировать
       </button>
