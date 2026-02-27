@@ -273,6 +273,8 @@ export default function BookingModal({
         '✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.'
       );
 
+      window.dispatchEvent(new CustomEvent('booking-completed'));
+
       onClose();
       router.refresh(); // обновить страницу, чтобы увидеть изменения
     } catch (error) {

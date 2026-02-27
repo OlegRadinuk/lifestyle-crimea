@@ -41,10 +41,8 @@ export default function ApartmentAvailabilityCalendar({
 
   // Формируем массив недоступных дат для DayPicker
   const disabledDays = useMemo(() => {
-    // Сначала добавляем все даты до сегодня
     const disabled: ({ before: Date } | Date)[] = [{ before: today }];
 
-    // Добавляем каждую занятую дату
     blockedDates.forEach(blocked => {
       const start = new Date(blocked.start);
       const end = new Date(blocked.end);
@@ -81,7 +79,7 @@ export default function ApartmentAvailabilityCalendar({
         onSelect={setRange}
         disabled={disabledDays}
         weekStartsOn={1}
-        numberOfMonths={isMobile ? 1 : 2}
+        numberOfMonths={1} // 👈 ТОЛЬКО ОДИН МЕСЯЦ
         pagedNavigation
         showOutsideDays
         modifiersClassNames={{

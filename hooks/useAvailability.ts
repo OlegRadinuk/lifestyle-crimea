@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { isWithinInterval, addDays } from 'date-fns';
+import { useState, useEffect, useCallback } from 'react';
+import { addDays } from 'date-fns';
 
 type BlockedDate = {
   start: string;
@@ -19,48 +19,45 @@ export function useAvailability(apartmentId: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Загружаем занятые даты при изменении apartmentId
-  useEffect(() => {
+  const fetchAvailability = useCallback(async () => {
     if (!apartmentId) {
       setBlockedDates([]);
       return;
     }
 
-    let mounted = true;
+    setLoading(true);
+    setError(null);
 
-    const fetchAvailability = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`/api/availability/${apartmentId}`);
-        
-        if (!response.ok) {
-          throw new Error('Ошибка загрузки доступности');
-        }
-
-        const data: AvailabilityResponse = await response.json();
-        
-        if (mounted) {
-          setBlockedDates(data.blockedDates || []);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+    try {
+      const response = await fetch(`/api/availability/${apartmentId}`);
+      
+      if (!response.ok) {
+        throw new Error('Ошибка загрузки доступности');
       }
-    };
 
-    fetchAvailability();
-
-    return () => {
-      mounted = false;
-    };
+      const data: AvailabilityResponse = await response.json();
+      setBlockedDates(data.blockedDates || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } finally {
+      setLoading(false);
+    }
   }, [apartmentId]);
+
+  // Загружаем при монтировании и изменении apartmentId
+  useEffect(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
+
+  // Слушаем событие бронирования для обновления
+  useEffect(() => {
+    const handleBookingCompleted = () => {
+      fetchAvailability();
+    };
+
+    window.addEventListener('booking-completed', handleBookingCompleted);
+    return () => window.removeEventListener('booking-completed', handleBookingCompleted);
+  }, [fetchAvailability]);
 
   // Проверка, доступна ли конкретная дата
   const isDateAvailable = (date: Date): boolean => {
@@ -69,7 +66,7 @@ export function useAvailability(apartmentId: string | null) {
     return !blockedDates.some(blocked => {
       const start = blocked.start;
       const end = blocked.end;
-      return dateStr >= start && dateStr < end; // день выезда свободен
+      return dateStr >= start && dateStr < end;
     });
   };
 
@@ -89,7 +86,7 @@ export function useAvailability(apartmentId: string | null) {
 
   // Получить все недоступные даты для календаря
   const getDisabledDays = () => {
-    const disabled: Date[] = [];
+    const disabled: ({ before: Date } | Date)[] = [{ before: new Date() }];
 
     blockedDates.forEach(blocked => {
       const start = new Date(blocked.start);
@@ -112,5 +109,6 @@ export function useAvailability(apartmentId: string | null) {
     isDateAvailable,
     isRangeAvailable,
     getDisabledDays,
+    refetch: fetchAvailability,
   };
 }

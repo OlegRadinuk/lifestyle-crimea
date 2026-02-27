@@ -1,35 +1,71 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Оптимизация изображений
   images: {
-    // Форматы, которые Next.js может генерировать
-    formats: ['image/webp'],
-    
-    // Размеры изображений для оптимизации
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    
-    // Кэширование оптимизированных изображений (в секундах)
-    minimumCacheTTL: 60,
-    
-    // Если используете внешние изображения - укажите домены
-    // domains: ['example.com'],
-    
-    // Remote patterns для более гибкой настройки
-    remotePatterns: [],
+    minimumCacheTTL: 31536000,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lovelifestyle.ru',
+      },
+    ],
   },
-  
-  // Сжатие ответов
+
+  // Сжатие
   compress: true,
-  
-  // Опции для TurboPack (вы используете)
-  experimental: {
-    turbo: {
-      rules: {
-        '*.webp': ['file-loader'],
-      }
+
+  // Заголовки кэширования
+  async headers() {
+    return [
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/panoramas/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+
+  // ❌ УБИРАЕМ swcMinify — он больше не нужен
+  // swcMinify: true,
+
+  // ✅ Turbopack конфиг (пустой, чтобы избежать ошибки)
+  turbopack: {},
+
+  // ✅ Webpack всё ещё можно использовать, но только на сервере
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'better-sqlite3': false,
+        fs: false,
+        path: false,
+        os: false,
+        crypto: false,
+      };
     }
-  }
+    return config;
+  },
+
+  // Другие полезные настройки
+  output: 'standalone',
+  poweredByHeader: false,
+  reactStrictMode: true,
 };
 
 export default nextConfig;

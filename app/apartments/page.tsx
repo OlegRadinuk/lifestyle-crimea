@@ -8,7 +8,6 @@ import { useHeader } from '@/components/HeaderContext';
 import BookingModal, { DateRange } from '@/components/BookingModal';
 import Footer from '@/components/Footer';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
-import { motion } from 'framer-motion';
 
 import './apartments.css';
 
@@ -32,6 +31,8 @@ export default function ApartmentsPage() {
   }>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     register('apartments-page', {
@@ -44,7 +45,46 @@ export default function ApartmentsPage() {
     };
   }, [register, unregister]);
 
-  // Проверка доступности перед бронированием
+  // Проверка доступности всех апартаментов
+  useEffect(() => {
+    const checkAllAvailability = async () => {
+      if (!search) return;
+
+      setLoading(true);
+      const unavailable = new Set<string>();
+
+      await Promise.all(
+        APARTMENTS.map(async (apt) => {
+          try {
+            const response = await fetch(
+              `/api/availability/${apt.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}`
+            );
+            const data = await response.json();
+            if (!data.isAvailable) {
+              unavailable.add(apt.id);
+            }
+          } catch (error) {
+            console.error(`Error checking ${apt.id}:`, error);
+          }
+        })
+      );
+
+      setUnavailableIds(unavailable);
+      setLoading(false);
+    };
+
+    checkAllAvailability();
+
+    // Слушаем событие бронирования для обновления списка
+    const handleBookingCompleted = () => {
+      checkAllAvailability();
+    };
+
+    window.addEventListener('booking-completed', handleBookingCompleted);
+    return () => window.removeEventListener('booking-completed', handleBookingCompleted);
+  }, [search]);
+
+  // Проверка перед бронированием
   const handleBookingClick = async (apartment: (typeof APARTMENTS)[0]) => {
     if (!search) return;
 
@@ -89,9 +129,18 @@ export default function ApartmentsPage() {
     );
   }
 
+  // Фильтруем апартаменты: сначала по гостям, потом убираем занятые
   const filteredApartments = APARTMENTS.filter(
-    apt => apt.maxGuests >= search.guests
+    (apt) => apt.maxGuests >= search.guests && !unavailableIds.has(apt.id)
   );
+
+  if (loading) {
+    return (
+      <section className="ap-page">
+        <div className="ap-loading">Загрузка доступных апартаментов...</div>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -126,70 +175,80 @@ export default function ApartmentsPage() {
         </div>
 
         {/* LIST */}
-        <div className="ap-list">
-          {filteredApartments.map((apartment, index) => (
-            <article
-              key={apartment.id}
-              className="ap-list-card card-appear"
-              style={{ animationDelay: `${index * 80}ms` }}
-            >
-              <div className="ap-list-image">
-                <img src={apartment.images[0]} alt={apartment.title} />
+        {filteredApartments.length === 0 ? (
+          <div className="ap-no-results">
+            <p>Нет свободных апартаментов на выбранные даты.</p>
+            <button className="btn-primary" onClick={() => router.push('/')}>
+              Изменить даты
+            </button>
+          </div>
+        ) : (
+          <div className="ap-list">
+            {filteredApartments.map((apartment, index) => (
+              <article
+                key={apartment.id}
+                className="ap-list-card card-appear"
+                style={{ animationDelay: `${index * 80}ms` }}
+              >
+                <div className="ap-list-image">
+                  <img src={apartment.images[0]} alt={apartment.title} />
 
-                <button
-                  className="ap-list-gallery-btn"
-                  onClick={() => open(apartment.images, 0)}
-                >
-                  Смотреть фото
-                </button>
-              </div>
-              <div className="ap-list-content">
-                <div className="ap-list-header">
-                  <h2>{apartment.title}</h2>
-
-                  <span className="ap-list-guests">
-                    до {apartment.maxGuests} гостей
-                  </span>
+                  <button
+                    className="ap-list-gallery-btn"
+                    onClick={() => open(apartment.images, 0)}
+                  >
+                    Смотреть фото
+                  </button>
                 </div>
+                <div className="ap-list-content">
+                  <div className="ap-list-header">
+                    <h2>{apartment.title}</h2>
 
-                <p className="ap-list-description">
-                  {apartment.shortDescription}
-                </p>
-
-                <ul className="ap-list-features">
-                  {apartment.features.map(feature => (
-                    <li key={feature}>{feature}</li>
-                  ))}
-                </ul>
-
-                <div className="ap-list-footer">
-                  <div className="ap-list-price">
-                    от {apartment.priceBase.toLocaleString()} ₽ / ночь
+                    <span className="ap-list-guests">
+                      до {apartment.maxGuests} гостей
+                    </span>
                   </div>
 
-                  <div className="ap-list-actions">
-                    <button
-                      className="btn-outline"
-                      onClick={() => router.push(`/apartments/${apartment.id}`)}
-                    >
-                      Смотреть апартамент
-                    </button>
+                  <p className="ap-list-description">
+                    {apartment.shortDescription}
+                  </p>
 
-                    <button
-                      className="btn-primary"
-                      onClick={() => handleBookingClick(apartment)}
-                      disabled={checkingId === apartment.id}
-                    >
-                      {checkingId === apartment.id
-                        ? 'Проверка...'
-                        : 'Забронировать'}
-                    </button>
+                  <ul className="ap-list-features">
+                    {apartment.features.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
+                  </ul>
+
+                  <div className="ap-list-footer">
+                    <div className="ap-list-price">
+                      от {apartment.priceBase.toLocaleString()} ₽ / ночь
+                    </div>
+
+                    <div className="ap-list-actions">
+                      <button
+                        className="btn-outline"
+                        onClick={() => router.push(`/apartments/${apartment.id}`)}
+                      >
+                        Смотреть апартамент
+                      </button>
+
+                      <button
+                        className="btn-primary"
+                        onClick={() => handleBookingClick(apartment)}
+                        disabled={checkingId === apartment.id}
+                      >
+                        {checkingId === apartment.id
+                          ? 'Проверка...'
+                          : 'Забронировать'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
+
         <Footer />
       </section>
 
@@ -202,10 +261,9 @@ export default function ApartmentsPage() {
           } as DateRange}
           initialGuests={search.guests}
           onClose={() => setBookingOpen(false)}
-          onConfirm={data => {
+          onConfirm={(data) => {
             console.log('BOOKING RESULT', data);
             setBookingOpen(false);
-            // Можно добавить редирект или показать сообщение
           }}
         />
       )}
