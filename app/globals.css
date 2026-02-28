@@ -5402,8 +5402,9 @@ a {
 
 /* Hero режим — календарь слева */
 .availability-calendar.position-left {
-  right: auto;
-  left: 0;
+    left: 32px;
+    top: -16px;
+    right: auto;
 }
 
 .availability-calendar.position-left::before {
@@ -5413,18 +5414,14 @@ a {
 
 /* Apartment режим — календарь справа (по умолчанию) */
 .availability-calendar.position-right {
-  left: auto;
-  right: 0;
+    left: auto;
+    right: 33px;
+    top: 101px;
 }
 
 .availability-calendar.position-right::before {
   right: 20px;
   left: auto;
-}
-
-/* Убираем стрелку для Hero */
-.availability-calendar.position-left::before {
-  display: none;
 }
 
 /* Специальные стили для Hero календаря */

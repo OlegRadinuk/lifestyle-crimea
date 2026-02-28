@@ -157,7 +157,7 @@ export default function ApartmentAvailabilityCalendar({
           disabled={!isValidRange}
           onClick={handleConfirm}
         >
-          Забронировать
+          Выбрать
         </button>
       </motion.div>
     </AnimatePresence>
