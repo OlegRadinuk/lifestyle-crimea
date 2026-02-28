@@ -5193,3 +5193,101 @@ a {
   cursor: not-allowed;
 }
 
+/* ===== УЛУЧШЕННЫЙ КАЛЕНДАРЬ ===== */
+
+/* Подсветка выходных */
+.rdp-day_weekend {
+  color: #139ab6 !important;
+  font-weight: 600;
+}
+
+/* Ховер эффект для дня */
+.rdp-day_hovered {
+  background: rgba(19, 154, 182, 0.15) !important;
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+/* Быстрые диапазоны */
+.quick-ranges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.quick-range-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(19, 154, 182, 0.08);
+  border: 1px solid rgba(19, 154, 182, 0.2);
+  border-radius: 20px;
+  font-size: 13px;
+  color: #139ab6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-range-btn:hover {
+  background: #139ab6;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Тултип с ценой */
+.price-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #139ab6;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
+  z-index: 20;
+}
+
+.price-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #139ab6;
+}
+
+/* Календарь в Hero режиме */
+.calendar-trigger {
+  cursor: pointer;
+}
+
+.calendar-trigger input {
+  cursor: pointer;
+}
+
+/* Анимация появления */
+@keyframes calendarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Итоговая цена в календаре */
+.calendar-total-price {
+  color: #139ab6;
+  font-weight: 600;
+  margin-left: 8px;
+}
