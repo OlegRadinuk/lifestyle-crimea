@@ -163,7 +163,6 @@ export default function BookingModal({
       alert('Введите корректный номер телефона');
       return false;
     }
-    // ✅ Email больше не обязателен
     return true;
   };
 
@@ -174,7 +173,7 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
-      // 🔥 ПРОВЕРКА ДОСТУПНОСТИ ПЕРЕД ОТПРАВКОЙ
+      // Проверка доступности перед отправкой
       const checkResponse = await fetch(
         `/api/availability/${apartment.id}?checkIn=${
           dates.from.toISOString().split('T')[0]
@@ -188,11 +187,8 @@ export default function BookingModal({
         return;
       }
 
-      // 🔥 ПРАВИЛЬНЫЙ checkOut: добавляем 1 день
-      const checkOutDate = new Date(dates.to);
-      checkOutDate.setDate(checkOutDate.getDate() + 1);
-      const checkOutStr = checkOutDate.toISOString().split('T')[0];
-
+      // ⚠️ ВАЖНО: Отправляем checkOut БЕЗ добавления дня!
+      // День выезда должен быть свободен, поэтому в БД сохраняем как есть
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -201,11 +197,11 @@ export default function BookingModal({
         body: JSON.stringify({
           apartmentId: apartment.id,
           checkIn: dates.from.toISOString().split('T')[0],
-          checkOut: checkOutStr,
+          checkOut: dates.to.toISOString().split('T')[0], // НЕ добавляем +1 день!
           guestsCount: guests,
           guestName: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
           guestPhone: guestInfo.phone,
-          guestEmail: guestInfo.email || null, // ✅ может быть пустым
+          guestEmail: guestInfo.email || null,
           totalPrice: price.total,
         }),
       });
@@ -265,7 +261,7 @@ export default function BookingModal({
         detail: { 
           apartmentId: apartment.id,
           checkIn: dates.from.toISOString().split('T')[0],
-          checkOut: checkOutStr,
+          checkOut: dates.to.toISOString().split('T')[0],
           timestamp: Date.now()
         } 
       }));
