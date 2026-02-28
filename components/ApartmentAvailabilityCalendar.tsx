@@ -32,6 +32,7 @@ export default function ApartmentAvailabilityCalendar({
   blockedDates,
   onConfirm,
   onClose,
+  position = 'right',
   showPrice = false,
   apartmentPrice = 0,
 }: Props) {
@@ -46,15 +47,22 @@ export default function ApartmentAvailabilityCalendar({
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Исправлено: не добавляем день выезда в заблокированные
   const disabledDays = useMemo(() => {
     const disabled: ({ before: Date } | Date)[] = [{ before: today }];
+    
     blockedDates.forEach(b => {
       const start = new Date(b.start);
       const end = new Date(b.end);
-      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-        disabled.push(new Date(d));
+      
+      // Добавляем все дни, КРОМЕ последнего (дня выезда)
+      let current = new Date(start);
+      while (current < end) { // строгое неравенство, чтобы исключить день выезда
+        disabled.push(new Date(current));
+        current = addDays(current, 1);
       }
     });
+    
     return disabled;
   }, [blockedDates, today]);
 
@@ -96,7 +104,7 @@ export default function ApartmentAvailabilityCalendar({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`availability-calendar ${isMobile ? 'mobile' : ''}position-$ {position}`}
+        className={`availability-calendar ${isMobile ? 'mobile' : ''} position-${position}`}
       >
         {isMobile && (
           <div className="calendar-header">
@@ -105,7 +113,7 @@ export default function ApartmentAvailabilityCalendar({
           </div>
         )}
 
-        {!isMobile && (
+        {!isMobile && position === 'right' && (
           <div className="quick-ranges">
             {QUICK_RANGES.map(({ label, days }) => (
               <button

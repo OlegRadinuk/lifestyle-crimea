@@ -170,22 +170,22 @@ export default function Header({ onBurgerClick }: Props) {
                 </div>
 
                 <AnimatePresence>
-                  {calendarOpen && (
-                    <div ref={popoverRef}>
-                      <ApartmentAvailabilityCalendar
-                        blockedDates={[]}
-                        position="left"
-                        onConfirm={(range) => {
-                          setCheckIn(range.from.toISOString().split('T')[0]);
-                          setCheckOut(range.to.toISOString().split('T')[0]);
-                          setCalendarOpen(false);
-                        }}
-                        onClose={() => setCalendarOpen(false)}
-                        showPrice={false}
-                      />
-                    </div>
-                  )}
-                </AnimatePresence>
+  {calendarOpen && mode === 'hero' && (
+    <div ref={popoverRef} className="header__calendar-popover hero-calendar">
+      <ApartmentAvailabilityCalendar
+        blockedDates={[]}
+        position="left"
+        onConfirm={(range) => {
+          setCheckIn(range.from.toISOString().split('T')[0]);
+          setCheckOut(range.to.toISOString().split('T')[0]);
+          setCalendarOpen(false);
+        }}
+        onClose={() => setCalendarOpen(false)}
+        showPrice={false}
+      />
+    </div>
+  )}
+</AnimatePresence>
               </div>
             ) : (
               <button
@@ -210,24 +210,24 @@ export default function Header({ onBurgerClick }: Props) {
               </button>
 
               <AnimatePresence>
-                {calendarOpen && (
-                  <div ref={popoverRef} className="header__calendar-popover">
-                    <ApartmentAvailabilityCalendar
-                      key={`calendar-${currentApartment.id}-${blockedDates.length}`}
-                      blockedDates={blockedDates}
-                      position="right"
-                      onConfirm={(range) => {
-                        setSelectedRange(range);
-                        setCalendarOpen(false);
-                        setBookingModalOpen(true);
-                      }}
-                      onClose={() => setCalendarOpen(false)}
-                      showPrice
-                      apartmentPrice={apartmentPrice}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
+  {calendarOpen && mode === 'apartment' && (
+    <div ref={popoverRef} className="header__calendar-popover">
+      <ApartmentAvailabilityCalendar
+        key={`calendar-${currentApartment.id}-${blockedDates.length}`}
+        blockedDates={blockedDates}
+        position="right"
+        onConfirm={(range) => {
+          setSelectedRange(range);
+          setCalendarOpen(false);
+          setBookingModalOpen(true);
+        }}
+        onClose={() => setCalendarOpen(false)}
+        showPrice
+        apartmentPrice={apartmentPrice}
+      />
+    </div>
+  )}
+</AnimatePresence>
             </div>
           </div>
         )}

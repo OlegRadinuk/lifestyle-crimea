@@ -5426,3 +5426,30 @@ a {
 .availability-calendar.position-left::before {
   display: none;
 }
+
+/* Специальные стили для Hero календаря */
+.header__calendar-popover.hero-calendar {
+  position: absolute;
+  left: 0;
+  right: auto;
+}
+
+/* Убираем стрелку у календаря слева */
+.availability-calendar.position-left::before {
+  display: none;
+}
+
+/* Корректировка позиции для Hero */
+.header--hero .header__calendar-popover {
+  top: calc(100% + 12px);
+  left: 24px;
+}
+
+/* Для мобильных оставляем как есть */
+@media (max-width: 768px) {
+  .header--hero .header__calendar-popover {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+}
