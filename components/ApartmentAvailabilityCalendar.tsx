@@ -4,13 +4,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
 import 'react-day-picker/dist/style.css';
 import { useMemo, useState, useEffect } from 'react';
-import { 
-  startOfToday, 
-  differenceInCalendarDays, 
-  addDays, 
-  isWeekend,
-  format 
-} from 'date-fns';
+import { startOfToday, differenceInCalendarDays, addDays, isWeekend } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type BlockedDate = {
@@ -23,11 +17,10 @@ type Props = {
   blockedDates: BlockedDate[];
   onConfirm: (range: { from: Date; to: Date }) => void;
   onClose?: () => void;
-  showPrice?: boolean;        // для Hero режима цена не показывается
-  apartmentPrice?: number;     // цена за ночь (для Apartment режима)
+  showPrice?: boolean;
+  apartmentPrice?: number;
 };
 
-// Предустановленные диапазоны
 const QUICK_RANGES = [
   { label: 'Уикенд', days: 3 },
   { label: 'Неделя', days: 7 },
@@ -43,7 +36,6 @@ export default function ApartmentAvailabilityCalendar({
 }: Props) {
   const [range, setRange] = useState<DateRange>();
   const [isMobile, setIsMobile] = useState(false);
-  const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const today = startOfToday();
 
   useEffect(() => {
@@ -83,42 +75,17 @@ export default function ApartmentAvailabilityCalendar({
     setRange({ from, to });
   };
 
-  // Кастомный день с ценой при наведении
-  const DayComponent = (props: any) => {
-    const { day, modifiers, ...rest } = props;
-    const date = day.date;
-    const isWeekendDay = isWeekend(date);
-    const isHovered = hoveredDate && format(hoveredDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-    
-    let dayClassName = 'rdp-day';
-    if (modifiers.selected) dayClassName += ' rdp-day_selected';
-    if (modifiers.range_start) dayClassName += ' rdp-day_range_start';
-    if (modifiers.range_end) dayClassName += ' rdp-day_range_end';
-    if (modifiers.range_middle) dayClassName += ' rdp-day_range_middle';
-    if (modifiers.disabled) dayClassName += ' rdp-day_disabled';
-    if (isWeekendDay && !modifiers.disabled) dayClassName += ' rdp-day_weekend';
-    if (isHovered && !modifiers.disabled) dayClassName += ' rdp-day_hovered';
+  const modifiers = {
+    weekend: (date: Date) => isWeekend(date),
+  };
 
-    return (
-      <div
-        {...rest}
-        className={dayClassName}
-        onMouseEnter={() => setHoveredDate(date)}
-        onMouseLeave={() => setHoveredDate(null)}
-      >
-        <span>{format(date, 'd')}</span>
-        {showPrice && apartmentPrice > 0 && !modifiers.disabled && isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="price-tooltip"
-          >
-            {apartmentPrice.toLocaleString()} ₽
-          </motion.div>
-        )}
-      </div>
-    );
+  const modifiersClassNames = {
+    weekend: 'rdp-day_weekend',
+    selected: 'rdp-day_selected',
+    range_start: 'rdp-day_range_start',
+    range_end: 'rdp-day_range_end',
+    range_middle: 'rdp-day_range_middle',
+    disabled: 'rdp-day_disabled',
   };
 
   return (
@@ -137,7 +104,6 @@ export default function ApartmentAvailabilityCalendar({
           </div>
         )}
 
-        {/* Быстрые диапазоны (только на десктопе) */}
         {!isMobile && (
           <div className="quick-ranges">
             {QUICK_RANGES.map(({ label, days }) => (
@@ -153,29 +119,22 @@ export default function ApartmentAvailabilityCalendar({
         )}
 
         <DayPicker
-          key={`calendar-${blockedDates.length}`}
           locale={ru}
           mode="range"
           selected={range}
           onSelect={setRange}
           disabled={disabledDays}
+          modifiers={modifiers}
+          modifiersClassNames={modifiersClassNames}
           weekStartsOn={1}
           numberOfMonths={1}
-          components={{
-            Day: DayComponent,
-          }}
-          modifiersClassNames={{
-            selected: 'rdp-day_selected',
-            range_start: 'rdp-day_range_start',
-            range_end: 'rdp-day_range_end',
-            range_middle: 'rdp-day_range_middle',
-            disabled: 'rdp-day_disabled',
-          }}
         />
 
         {range?.from && range?.to && (
           <div className="calendar-info">
-            {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
+            <span>
+              {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
+            </span>
             {showPrice && apartmentPrice > 0 && (
               <span className="calendar-total-price">
                 • {(apartmentPrice * nights).toLocaleString()} ₽

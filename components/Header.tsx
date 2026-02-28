@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion'; // 👈 добавили импорт
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApartment } from '@/components/ApartmentContext';
 import { useSearch } from '@/components/SearchContext';
 import { useHeader } from '@/components/HeaderContext';
@@ -21,14 +21,13 @@ type DateRange = {
   to: Date;
 } | null;
 
-// Функция форматирования даты для отображения
-function formatDate(dateStr: string) {
+function formatDateForInput(dateStr: string) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   });
 }
 
@@ -45,7 +44,6 @@ export default function Header({ onBurgerClick }: Props) {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
-  // Хук доступности для текущего апартамента (если есть)
   const { blockedDates } = useAvailability(currentApartment?.id || null);
 
   /* ---------- HERO STATE ---------- */
@@ -60,18 +58,13 @@ export default function Header({ onBurgerClick }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  /* ---------- DETECT MOBILE ---------- */
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  /* ---------- SCROLL ---------- */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
@@ -79,43 +72,35 @@ export default function Header({ onBurgerClick }: Props) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  /* ---------- CLOSE CALENDAR ---------- */
   useEffect(() => {
     if (!calendarOpen) return;
-
     const handleClickOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setCalendarOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [calendarOpen]);
 
-  /* ---------- HERO SEARCH ---------- */
   const handleHeroSearch = () => {
     if (!checkIn || !checkOut) {
       setFormError('Пожалуйста, выберите даты заезда и выезда');
       return;
     }
-
     setFormError('');
-
-    setSearch({
-      checkIn,
-      checkOut,
-      guests,
-    });
-
+    setSearch({ checkIn, checkOut, guests });
     router.push('/apartments');
   };
 
-  /* ---------- MOBILE BOOKING ---------- */
   const handleMobileBooking = (data: { checkIn: string; checkOut: string; guests: number }) => {
     setSearch(data);
     router.push('/apartments');
   };
+
+  const apartmentPrice = currentApartment
+    ? APARTMENTS.find(a => a.id === currentApartment.id)?.priceBase || 8000
+    : 0;
 
   return (
     <>
@@ -127,7 +112,6 @@ export default function Header({ onBurgerClick }: Props) {
           ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        {/* BURGER - всегда одинаковый */}
         <button className="header__burger" onClick={onBurgerClick}>
           <div className="burger-icon">
             <span />
@@ -137,14 +121,12 @@ export default function Header({ onBurgerClick }: Props) {
           <span className="burger-text">Меню</span>
         </button>
 
-        {/* ===== HERO MODE ===== */}
         {mode === 'hero' && (
           <>
             {!isMobile ? (
-              /* DESKTOP VERSION - с календарём */
               <div className="header__booking-wrapper">
                 <div className="header__booking-fields">
-                  <div 
+                  <div
                     className="booking-field calendar-trigger"
                     onClick={() => setCalendarOpen(true)}
                   >
@@ -152,12 +134,11 @@ export default function Header({ onBurgerClick }: Props) {
                     <input
                       type="text"
                       placeholder="ДД.ММ.ГГГГ"
-                      value={checkIn ? formatDate(checkIn) : ''}
+                      value={formatDateForInput(checkIn)}
                       readOnly
                     />
                   </div>
-
-                  <div 
+                  <div
                     className="booking-field calendar-trigger"
                     onClick={() => setCalendarOpen(true)}
                   >
@@ -165,17 +146,13 @@ export default function Header({ onBurgerClick }: Props) {
                     <input
                       type="text"
                       placeholder="ДД.ММ.ГГГГ"
-                      value={checkOut ? formatDate(checkOut) : ''}
+                      value={formatDateForInput(checkOut)}
                       readOnly
                     />
                   </div>
-
                   <div className="booking-field">
                     <label>Гости</label>
-                    <select
-                      value={guests}
-                      onChange={e => setGuests(+e.target.value)}
-                    >
+                    <select value={guests} onChange={e => setGuests(+e.target.value)}>
                       {[1, 2, 3, 4, 5, 6].map(n => (
                         <option key={n} value={n}>
                           {n} {n === 1 ? 'гость' : 'гостей'}
@@ -186,26 +163,17 @@ export default function Header({ onBurgerClick }: Props) {
                 </div>
 
                 <div className="header__booking-action">
-                  <button
-                    className="header__booking"
-                    onClick={handleHeroSearch}
-                  >
+                  <button className="header__booking" onClick={handleHeroSearch}>
                     Выбрать апартаменты
                   </button>
-
-                  {formError && (
-                    <div className="header__booking-error">
-                      {formError}
-                    </div>
-                  )}
+                  {formError && <div className="header__booking-error">{formError}</div>}
                 </div>
 
-                {/* Календарь для Hero режима */}
                 <AnimatePresence>
                   {calendarOpen && (
                     <div ref={popoverRef}>
                       <ApartmentAvailabilityCalendar
-                        blockedDates={[]} // в Hero режиме нет занятых дат
+                        blockedDates={[]}
                         onConfirm={(range) => {
                           setCheckIn(range.from.toISOString().split('T')[0]);
                           setCheckOut(range.to.toISOString().split('T')[0]);
@@ -219,8 +187,7 @@ export default function Header({ onBurgerClick }: Props) {
                 </AnimatePresence>
               </div>
             ) : (
-              /* MOBILE VERSION - одна кнопка */
-              <button 
+              <button
                 className="header__mobile-book-btn"
                 onClick={() => setMobileSheetOpen(true)}
               >
@@ -230,7 +197,6 @@ export default function Header({ onBurgerClick }: Props) {
           </>
         )}
 
-        {/* ===== APARTMENT MODE ===== */}
         {mode === 'apartment' && currentApartment && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action" style={{ position: 'relative' }}>
@@ -243,38 +209,30 @@ export default function Header({ onBurgerClick }: Props) {
               </button>
 
               <AnimatePresence>
-  {calendarOpen && (
-    <div
-      ref={popoverRef}
-      className="header__calendar-popover"
-    >
-      <ApartmentAvailabilityCalendar
-        key={`calendar-${currentApartment.id}-${blockedDates.length}`}
-        blockedDates={blockedDates}
-        onConfirm={(range) => {
-          console.log('📅 Выбран диапазон:', range);
-          setSelectedRange(range);
-          setCalendarOpen(false);
-          setBookingModalOpen(true);
-        }}
-        onClose={() => setCalendarOpen(false)}
-        showPrice={true}
-        apartmentPrice={APARTMENTS.find(a => a.id === currentApartment.id)?.priceBase || 8000}
-      />
-    </div>
-  )}
-</AnimatePresence>
+                {calendarOpen && (
+                  <div ref={popoverRef} className="header__calendar-popover">
+                    <ApartmentAvailabilityCalendar
+                      key={`calendar-${currentApartment.id}-${blockedDates.length}`}
+                      blockedDates={blockedDates}
+                      onConfirm={(range) => {
+                        setSelectedRange(range);
+                        setCalendarOpen(false);
+                        setBookingModalOpen(true);
+                      }}
+                      onClose={() => setCalendarOpen(false)}
+                      showPrice
+                      apartmentPrice={apartmentPrice}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}
 
-        {/* ===== DARK MODE - просто пустой div для баланса (опционально) ===== */}
-        {mode === 'dark' && (
-          <div className="header__dark-placeholder" />
-        )}
+        {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
 
-      {/* MOBILE BOOKING SHEET */}
       {mobileSheetOpen && (
         <MobileBookingSheet
           isOpen={mobileSheetOpen}
@@ -285,7 +243,6 @@ export default function Header({ onBurgerClick }: Props) {
         />
       )}
 
-      {/* BOOKING MODAL */}
       {bookingModalOpen && currentApartment && selectedRange && (
         <BookingModal
           apartment={currentApartment}

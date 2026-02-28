@@ -5193,7 +5193,7 @@ a {
   cursor: not-allowed;
 }
 
-/* ===== КАЛЕНДАРЬ — РАБОЧАЯ ВЕРСИЯ (ГОРИЗОНТАЛЬНЫЙ) ===== */
+/* ===== КАЛЕНДАРЬ — ФИНАЛЬНЫЕ СТИЛИ ===== */
 
 .availability-calendar {
   position: absolute;
@@ -5207,7 +5207,6 @@ a {
   z-index: 2000;
 }
 
-/* Мобильная версия */
 .availability-calendar.mobile {
   position: fixed;
   top: auto;
@@ -5220,7 +5219,6 @@ a {
   animation: slideUp 0.3s ease;
 }
 
-/* Сбрасываем DayPicker */
 .rdp {
   --rdp-cell-size: 40px;
   --rdp-accent-color: #139ab6;
@@ -5297,7 +5295,7 @@ a {
   pointer-events: none;
 }
 
-/* Выходные — опционально */
+/* Подсветка выходных */
 .rdp-day_weekend:not(.rdp-day_disabled) {
   color: #139ab6;
   font-weight: 600;
@@ -5312,6 +5310,12 @@ a {
   border-radius: 12px;
   font-size: 15px;
   color: #333;
+}
+
+.calendar-total-price {
+  color: #139ab6;
+  font-weight: 600;
+  margin-left: 8px;
 }
 
 /* Кнопка подтверждения */
@@ -5361,6 +5365,33 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Быстрые диапазоны */
+.quick-ranges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.quick-range-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  background: rgba(19,154,182,0.08);
+  border: 1px solid rgba(19,154,182,0.2);
+  border-radius: 20px;
+  font-size: 13px;
+  color: #139ab6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-range-btn:hover {
+  background: #139ab6;
+  color: white;
+  transform: translateY(-2px);
 }
 
 /* Анимация */
