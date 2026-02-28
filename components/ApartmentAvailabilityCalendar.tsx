@@ -23,8 +23,8 @@ type Props = {
   blockedDates: BlockedDate[];
   onConfirm: (range: { from: Date; to: Date }) => void;
   onClose?: () => void;
-  showPrice?: boolean; // для Hero режима цена не показывается
-  apartmentPrice?: number; // цена за ночь (для Apartment режима)
+  showPrice?: boolean;        // для Hero режима цена не показывается
+  apartmentPrice?: number;     // цена за ночь (для Apartment режима)
 };
 
 // Предустановленные диапазоны
@@ -53,7 +53,6 @@ export default function ApartmentAvailabilityCalendar({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Формируем недоступные даты
   const disabledDays = useMemo(() => {
     const disabled: ({ before: Date } | Date)[] = [{ before: today }];
     blockedDates.forEach(b => {
@@ -66,13 +65,30 @@ export default function ApartmentAvailabilityCalendar({
     return disabled;
   }, [blockedDates, today]);
 
-  // Кастомный компонент для дня с ценой
+  const nights = range?.from && range?.to
+    ? differenceInCalendarDays(range.to, range.from)
+    : 0;
+
+  const isValidRange = nights >= 1;
+
+  const handleConfirm = () => {
+    if (range?.from && range?.to && isValidRange) {
+      onConfirm({ from: range.from, to: range.to });
+    }
+  };
+
+  const handleQuickRange = (days: number) => {
+    const from = new Date();
+    const to = addDays(from, days);
+    setRange({ from, to });
+  };
+
+  // Кастомный день с ценой при наведении
   const DayComponent = (props: any) => {
     const { day, modifiers, ...rest } = props;
     const date = day.date;
     const isWeekendDay = isWeekend(date);
     const isHovered = hoveredDate && format(hoveredDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-    const isSelected = range?.from && range?.to && date >= range.from && date < range.to;
     
     let dayClassName = 'rdp-day';
     if (modifiers.selected) dayClassName += ' rdp-day_selected';
@@ -103,24 +119,6 @@ export default function ApartmentAvailabilityCalendar({
         )}
       </div>
     );
-  };
-
-  const nights = range?.from && range?.to
-    ? differenceInCalendarDays(range.to, range.from)
-    : 0;
-
-  const isValidRange = nights >= 1;
-
-  const handleConfirm = () => {
-    if (range?.from && range?.to && isValidRange) {
-      onConfirm({ from: range.from, to: range.to });
-    }
-  };
-
-  const handleQuickRange = (days: number) => {
-    const from = new Date();
-    const to = addDays(from, days);
-    setRange({ from, to });
   };
 
   return (
@@ -162,7 +160,7 @@ export default function ApartmentAvailabilityCalendar({
           onSelect={setRange}
           disabled={disabledDays}
           weekStartsOn={1}
-          numberOfMonths={isMobile ? 1 : 1}
+          numberOfMonths={1}
           components={{
             Day: DayComponent,
           }}
@@ -180,7 +178,7 @@ export default function ApartmentAvailabilityCalendar({
             {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
             {showPrice && apartmentPrice > 0 && (
               <span className="calendar-total-price">
-                • {apartmentPrice * nights} ₽
+                • {(apartmentPrice * nights).toLocaleString()} ₽
               </span>
             )}
           </div>
