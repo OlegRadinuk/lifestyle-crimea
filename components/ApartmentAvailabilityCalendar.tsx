@@ -17,6 +17,7 @@ type Props = {
   blockedDates: BlockedDate[];
   onConfirm: (range: { from: Date; to: Date }) => void;
   onClose?: () => void;
+  position?: 'left' | 'right';
   showPrice?: boolean;
   apartmentPrice?: number;
 };
@@ -95,7 +96,7 @@ export default function ApartmentAvailabilityCalendar({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`availability-calendar ${isMobile ? 'mobile' : ''}`}
+        className={`availability-calendar ${isMobile ? 'mobile' : ''}position-$ {position}`}
       >
         {isMobile && (
           <div className="calendar-header">

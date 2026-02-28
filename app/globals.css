@@ -5399,3 +5399,30 @@ a {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+/* Hero режим — календарь слева */
+.availability-calendar.position-left {
+  right: auto;
+  left: 0;
+}
+
+.availability-calendar.position-left::before {
+  left: 20px;
+  right: auto;
+}
+
+/* Apartment режим — календарь справа (по умолчанию) */
+.availability-calendar.position-right {
+  left: auto;
+  right: 0;
+}
+
+.availability-calendar.position-right::before {
+  right: 20px;
+  left: auto;
+}
+
+/* Убираем стрелку для Hero */
+.availability-calendar.position-left::before {
+  display: none;
+}

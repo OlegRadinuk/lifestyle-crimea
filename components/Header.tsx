@@ -174,6 +174,7 @@ export default function Header({ onBurgerClick }: Props) {
                     <div ref={popoverRef}>
                       <ApartmentAvailabilityCalendar
                         blockedDates={[]}
+                        position="left"
                         onConfirm={(range) => {
                           setCheckIn(range.from.toISOString().split('T')[0]);
                           setCheckOut(range.to.toISOString().split('T')[0]);
@@ -214,6 +215,7 @@ export default function Header({ onBurgerClick }: Props) {
                     <ApartmentAvailabilityCalendar
                       key={`calendar-${currentApartment.id}-${blockedDates.length}`}
                       blockedDates={blockedDates}
+                      position="right"
                       onConfirm={(range) => {
                         setSelectedRange(range);
                         setCalendarOpen(false);
