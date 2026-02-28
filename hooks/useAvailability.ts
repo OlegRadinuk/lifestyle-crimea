@@ -17,9 +17,17 @@ export function useAvailability(apartmentId: string | null) {
   
   const isMounted = useRef(true);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const apartmentIdRef = useRef(apartmentId);
+
+  // Обновляем ref при изменении apartmentId
+  useEffect(() => {
+    apartmentIdRef.current = apartmentId;
+  }, [apartmentId]);
 
   const fetchAvailability = useCallback(async (force = false) => {
-    if (!apartmentId) {
+    const currentApartmentId = apartmentIdRef.current;
+    
+    if (!currentApartmentId) {
       setBlockedDates([]);
       return;
     }
@@ -27,12 +35,12 @@ export function useAvailability(apartmentId: string | null) {
     // Если уже загружаем и это не принудительно — пропускаем
     if (loading && !force) return;
 
-    console.log(`🔄 Хук: Запрашиваем доступность для ${apartmentId}...`);
+    console.log(`🔄 Хук: Запрашиваем доступность для ${currentApartmentId}...`);
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/availability/${apartmentId}?t=${Date.now()}`, {
+      const response = await fetch(`/api/availability/${currentApartmentId}?t=${Date.now()}`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -46,22 +54,22 @@ export function useAvailability(apartmentId: string | null) {
 
       const data = await response.json();
       
-      if (isMounted.current) {
-        console.log(`✅ Хук: Получено ${data.blockedDates?.length || 0} заблокированных дат для ${apartmentId}`);
+      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
+        console.log(`✅ Хук: Получено ${data.blockedDates?.length || 0} заблокированных дат для ${currentApartmentId}`);
         setBlockedDates(data.blockedDates || []);
         setLastUpdated(new Date());
       }
     } catch (err) {
-      if (isMounted.current) {
+      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
         console.error('❌ Хук: Ошибка загрузки:', err);
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       }
     } finally {
-      if (isMounted.current) {
+      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
         setLoading(false);
       }
     }
-  }, [apartmentId, loading]);
+  }, [loading]); // 👈 ТЕПЕРЬ ТОЛЬКО loading
 
   // Первичная загрузка
   useEffect(() => {
@@ -74,7 +82,7 @@ export function useAvailability(apartmentId: string | null) {
         clearTimeout(fetchTimeoutRef.current);
       }
     };
-  }, [fetchAvailability]);
+  }, [fetchAvailability, apartmentId]); // 👈 добавили apartmentId
 
   // Слушаем событие бронирования
   useEffect(() => {
@@ -85,7 +93,7 @@ export function useAvailability(apartmentId: string | null) {
       console.log('🎯 Хук: Получено событие booking-completed:', detail);
       
       // Если событие для конкретного апартамента и он не наш — пропускаем
-      if (detail.apartmentId && detail.apartmentId !== apartmentId) {
+      if (detail.apartmentId && detail.apartmentId !== apartmentIdRef.current) {
         console.log(`⏭️ Хук: Событие для другого апартамента (${detail.apartmentId}), пропускаем`);
         return;
       }
@@ -99,7 +107,7 @@ export function useAvailability(apartmentId: string | null) {
     return () => {
       window.removeEventListener('booking-completed', handleBookingCompleted);
     };
-  }, [apartmentId, fetchAvailability]);
+  }, [fetchAvailability]); // 👈 ТОЛЬКО fetchAvailability, БЕЗ apartmentId
 
   // Дополнительная защита: перезапрашиваем при возвращении на страницу
   useEffect(() => {
@@ -120,8 +128,6 @@ export function useAvailability(apartmentId: string | null) {
   // Проверка доступности даты
   const isDateAvailable = (date: Date): boolean => {
     const dateStr = date.toISOString().split('T')[0];
-    // Дата считается занятой, только если она внутри [start, end)
-    // end (день выезда) считается свободным
     return !blockedDates.some(blocked => 
       dateStr >= blocked.start && dateStr < blocked.end
     );
@@ -144,7 +150,6 @@ export function useAvailability(apartmentId: string | null) {
       const start = new Date(blocked.start);
       const end = new Date(blocked.end);
       let current = new Date(start);
-      // Добавляем каждый день до (но не включая) дня выезда
       while (current < end) {
         disabled.push(new Date(current));
         current = addDays(current, 1);
