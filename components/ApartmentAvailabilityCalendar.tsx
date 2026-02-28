@@ -66,21 +66,22 @@ export default function ApartmentAvailabilityCalendar({
       )}
 
       <DayPicker
-        locale={ru}
-        mode="range"
-        selected={range}
-        onSelect={setRange}
-        disabled={disabledDays}
-        weekStartsOn={1}
-        numberOfMonths={1}
-        modifiersClassNames={{
-          selected: 'rdp-day_selected',
-          range_start: 'rdp-day_range_start',
-          range_end: 'rdp-day_range_end',
-          range_middle: 'rdp-day_range_middle',
-          disabled: 'rdp-day_disabled',
-        }}
-      />
+  key={blockedDates.length} // 👈 добавить эту строку
+  locale={ru}
+  mode="range"
+  selected={range}
+  onSelect={setRange}
+  disabled={disabledDays}
+  weekStartsOn={1}
+  numberOfMonths={1}
+  modifiersClassNames={{
+    selected: 'rdp-day_selected',
+    range_start: 'rdp-day_range_start',
+    range_end: 'rdp-day_range_end',
+    range_middle: 'rdp-day_range_middle',
+    disabled: 'rdp-day_disabled',
+  }}
+/>
 
       {range?.from && range?.to && (
         <div className="calendar-info">

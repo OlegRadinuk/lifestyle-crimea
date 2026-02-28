@@ -13,12 +13,10 @@ export async function GET(
     const checkIn = searchParams.get('checkIn');
     const checkOut = searchParams.get('checkOut');
 
-    // Если переданы даты — проверяем доступность
     if (checkIn && checkOut) {
-      // Используем исправленный метод с правильной логикой
       const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
       
-      console.log(`📅 API: Проверка доступности ${apartmentId} с ${checkIn} по ${checkOut}: ${isAvailable ? '✅ свободно' : '❌ занято'}`);
+      console.log(`📅 API Проверка: ${apartmentId} ${checkIn}–${checkOut} = ${isAvailable ? '✅ свободно' : '❌ занято'}`);
       
       return NextResponse.json({ 
         apartmentId, 
@@ -28,21 +26,22 @@ export async function GET(
       });
     }
 
-    // Получаем заблокированные даты из ОБОИХ источников
+    // Получаем заблокированные даты
     const externalBlocked = externalBookingService.getBlockedDates(apartmentId);
-    
-    // Получаем бронирования из нашей БД
     const dbBookings = bookingService.getBookingsByApartment(apartmentId);
+    
     const bookingBlocked: BlockedDate[] = dbBookings.map(booking => ({
       start: booking.check_in,
       end: booking.check_out,
       source: 'booking'
     }));
 
-    // Объединяем
     const allBlockedDates = [...externalBlocked, ...bookingBlocked];
     
-    console.log(`📅 API: Возвращаем ${allBlockedDates.length} заблокированных дат для ${apartmentId}`);
+    console.log(`📅 API Календарь: ${apartmentId} — ${allBlockedDates.length} заблокированных диапазонов`);
+    allBlockedDates.forEach(b => {
+      console.log(`   📅 ${b.start} – ${b.end} (${b.source})`);
+    });
 
     return NextResponse.json({ 
       apartmentId, 
