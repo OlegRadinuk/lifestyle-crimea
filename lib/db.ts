@@ -132,22 +132,17 @@ checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boo
     SELECT COUNT(*) as count FROM (
       SELECT check_in, check_out FROM bookings 
       WHERE apartment_id = ? AND status = 'confirmed'
-      AND (
-        -- Правильная логика: пересечение, где день выезда свободен
-        check_in < ? AND check_out > ?
-      )
+      AND check_in < ? AND check_out > ?
       UNION ALL
       SELECT check_in, check_out FROM external_bookings 
       WHERE apartment_id = ? 
-      AND (
-        check_in < ? AND check_out > ?
-      )
+      AND check_in < ? AND check_out > ?
     )
   `);
   
   const result = stmt.get(
-    apartmentId, checkOut, checkIn,  // для bookings
-    apartmentId, checkOut, checkIn   // для external_bookings
+    apartmentId, checkOut, checkIn,  // bookings: check_in < checkOut AND check_out > checkIn
+    apartmentId, checkOut, checkIn   // external: check_in < checkOut AND check_out > checkIn
   ) as { count: number };
   
   return result.count === 0;

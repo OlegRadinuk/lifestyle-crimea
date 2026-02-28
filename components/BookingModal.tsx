@@ -52,7 +52,6 @@ function getNights(from: Date, to: Date) {
 
 function getSeasonPrice(date: Date) {
   const month = date.getMonth() + 1;
-
   if (month >= 6 && month <= 9) return 15000;
   if (month === 5 || month === 10) return 11000;
   return 8000;
@@ -65,7 +64,6 @@ function calculatePrice(params: {
   meals: Meals;
 }) {
   const { from, to, guests, meals } = params;
-
   const nights = getNights(from, to);
   const basePerNight = getSeasonPrice(from);
   const baseTotal = basePerNight * nights;
@@ -90,7 +88,6 @@ function calculatePrice(params: {
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '');
   const numbers = digits.replace(/^7|^8/, '').slice(0, 10);
-
   const parts = [
     numbers.slice(0, 3),
     numbers.slice(3, 6),
@@ -103,7 +100,6 @@ function formatPhone(value: string) {
   if (parts[1]) result += ` ${parts[1]}`;
   if (parts[2]) result += ` ${parts[2]}`;
   if (parts[3]) result += ` ${parts[3]}`;
-
   return result;
 }
 
@@ -139,7 +135,6 @@ export default function BookingModal({
 
   const price = useMemo(() => {
     if (!dates) return null;
-
     return calculatePrice({
       from: dates.from,
       to: dates.to,
@@ -168,10 +163,7 @@ export default function BookingModal({
       alert('Введите корректный номер телефона');
       return false;
     }
-    if (!guestInfo.email.includes('@') || !guestInfo.email.includes('.')) {
-      alert('Введите корректный email');
-      return false;
-    }
+    // ✅ Email больше не обязателен
     return true;
   };
 
@@ -191,14 +183,16 @@ export default function BookingModal({
       const checkData = await checkResponse.json();
 
       if (!checkData.isAvailable) {
-        alert(
-          'К сожалению, эти даты уже заняты. Пожалуйста, выберите другие даты.'
-        );
+        alert('К сожалению, эти даты уже заняты.');
         setIsSubmitting(false);
         return;
       }
 
-      // Отправляем бронирование в API
+      // 🔥 ПРАВИЛЬНЫЙ checkOut: добавляем 1 день
+      const checkOutDate = new Date(dates.to);
+      checkOutDate.setDate(checkOutDate.getDate() + 1);
+      const checkOutStr = checkOutDate.toISOString().split('T')[0];
+
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -207,11 +201,11 @@ export default function BookingModal({
         body: JSON.stringify({
           apartmentId: apartment.id,
           checkIn: dates.from.toISOString().split('T')[0],
-          checkOut: dates.to.toISOString().split('T')[0],
+          checkOut: checkOutStr,
           guestsCount: guests,
           guestName: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
           guestPhone: guestInfo.phone,
-          guestEmail: guestInfo.email,
+          guestEmail: guestInfo.email || null, // ✅ может быть пустым
           totalPrice: price.total,
         }),
       });
@@ -224,7 +218,7 @@ export default function BookingModal({
         return;
       }
 
-      // Успешное бронирование - отправляем уведомление в Telegram
+      // Telegram уведомление
       try {
         await fetch('/api/telegram/send', {
           method: 'POST',
@@ -233,9 +227,7 @@ export default function BookingModal({
             message:
               `🔔 <b>Новое бронирование!</b>\n\n` +
               `🏠 <b>Апартамент:</b> ${apartment.title}\n` +
-              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(
-                dates.to
-              )}\n` +
+              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(dates.to)}\n` +
               `🌙 <b>Ночей:</b> ${price.nights}\n` +
               `👥 <b>Гостей:</b> ${guests}\n` +
               `🍽 <b>Питание:</b> ${
@@ -248,18 +240,16 @@ export default function BookingModal({
               `💰 <b>Сумма:</b> ${price.total.toLocaleString()} ₽\n\n` +
               `👤 <b>Гость:</b> ${guestInfo.firstName} ${guestInfo.lastName}\n` +
               `📞 <b>Телефон:</b> ${guestInfo.phone}\n` +
-              `📧 <b>Email:</b> ${guestInfo.email}\n\n` +
+              (guestInfo.email ? `📧 <b>Email:</b> ${guestInfo.email}\n\n` : '\n') +
               `🆔 <b>ID брони:</b> ${data.booking.id}`,
             bookingId: data.booking.id,
             type: 'new_booking',
           }),
         });
       } catch (telegramError) {
-        // Ошибка Telegram не должна блокировать успешное бронирование
         console.error('Failed to send telegram notification:', telegramError);
       }
 
-      // Вызываем onConfirm для обратной совместимости
       onConfirm({
         apartment,
         range: dates,
@@ -269,26 +259,22 @@ export default function BookingModal({
         guest: guestInfo,
       });
 
-      alert(
-        '✅ Бронирование подтверждено! Мы отправили детали на ваш email и свяжемся с вами в ближайшее время.'
-      );
+      alert('✅ Бронирование подтверждено!');
 
       window.dispatchEvent(new CustomEvent('booking-completed', { 
-  detail: { 
-    apartmentId: apartment.id,
-    checkIn: dates.from.toISOString().split('T')[0],
-    checkOut: dates.to.toISOString().split('T')[0],
-    timestamp: Date.now()
-  } 
-}));
+        detail: { 
+          apartmentId: apartment.id,
+          checkIn: dates.from.toISOString().split('T')[0],
+          checkOut: checkOutStr,
+          timestamp: Date.now()
+        } 
+      }));
 
       onClose();
-      router.refresh(); // обновить страницу, чтобы увидеть изменения
+      router.refresh();
     } catch (error) {
       console.error('Error creating booking:', error);
-      alert(
-        '❌ Ошибка при бронировании. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
-      );
+      alert('❌ Ошибка при бронировании.');
     } finally {
       setIsSubmitting(false);
     }
@@ -297,7 +283,6 @@ export default function BookingModal({
   return (
     <div className="booking-modal-overlay" onClick={onClose}>
       <div className="booking-modal" onClick={e => e.stopPropagation()}>
-        {/* HEADER */}
         <div className="booking-modal__header">
           <h2>Бронирование</h2>
           <button
@@ -309,7 +294,6 @@ export default function BookingModal({
           </button>
         </div>
 
-        {/* CONTENT */}
         <div className="booking-modal__content">
           <div className="booking-modal__left">
             <section>
@@ -390,14 +374,13 @@ export default function BookingModal({
                   required
                 />
                 <input
-                  placeholder="Email *"
+                  placeholder="Email (необязательно)"
                   type="email"
                   value={guestInfo.email}
                   onChange={e =>
                     setGuestInfo({ ...guestInfo, email: e.target.value })
                   }
                   disabled={isSubmitting}
-                  required
                 />
               </div>
             </section>

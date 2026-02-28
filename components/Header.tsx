@@ -212,23 +212,23 @@ export default function Header({ onBurgerClick }: Props) {
       </button>
 
       {calendarOpen && (
-        <div
-          ref={popoverRef}
-          className="header__calendar-popover"
-        >
-          <ApartmentAvailabilityCalendar
-            key={`calendar-${currentApartment.id}-${blockedDates.length}-${Date.now()}`}
-            blockedDates={blockedDates}
-            onConfirm={(range) => {
-              console.log('📅 Выбран диапазон:', range);
-              setSelectedRange(range);
-              setCalendarOpen(false);
-              setBookingModalOpen(true);
-            }}
-            onClose={() => setCalendarOpen(false)}
-          />
-        </div>
-      )}
+  <div
+    ref={popoverRef}
+    className="header__calendar-popover"
+  >
+    <ApartmentAvailabilityCalendar
+      key={`calendar-${currentApartment.id}-${blockedDates.length}`} // ❗ стабильный ключ
+      blockedDates={blockedDates}
+      onConfirm={(range) => {
+        console.log('📅 Выбран диапазон:', range);
+        setSelectedRange(range);
+        setCalendarOpen(false);
+        setBookingModalOpen(true);
+      }}
+      onClose={() => setCalendarOpen(false)}
+    />
+  </div>
+)}
     </div>
   </div>
 )}

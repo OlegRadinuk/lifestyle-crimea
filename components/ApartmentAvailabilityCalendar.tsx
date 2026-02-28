@@ -50,8 +50,10 @@ export default function ApartmentAvailabilityCalendar({
     ? differenceInCalendarDays(range.to, range.from)
     : 0;
 
+  const isValidRange = nights >= 1; // ❗ минимум одна ночь
+
   const handleConfirm = () => {
-    if (range?.from && range?.to) {
+    if (range?.from && range?.to && isValidRange) {
       onConfirm({ from: range.from, to: range.to });
     }
   };
@@ -66,22 +68,22 @@ export default function ApartmentAvailabilityCalendar({
       )}
 
       <DayPicker
-  key={blockedDates.length} // 👈 добавить эту строку
-  locale={ru}
-  mode="range"
-  selected={range}
-  onSelect={setRange}
-  disabled={disabledDays}
-  weekStartsOn={1}
-  numberOfMonths={1}
-  modifiersClassNames={{
-    selected: 'rdp-day_selected',
-    range_start: 'rdp-day_range_start',
-    range_end: 'rdp-day_range_end',
-    range_middle: 'rdp-day_range_middle',
-    disabled: 'rdp-day_disabled',
-  }}
-/>
+        key={`calendar-${blockedDates.length}`} // ❗ стабильный ключ
+        locale={ru}
+        mode="range"
+        selected={range}
+        onSelect={setRange}
+        disabled={disabledDays}
+        weekStartsOn={1}
+        numberOfMonths={1}
+        modifiersClassNames={{
+          selected: 'rdp-day_selected',
+          range_start: 'rdp-day_range_start',
+          range_end: 'rdp-day_range_end',
+          range_middle: 'rdp-day_range_middle',
+          disabled: 'rdp-day_disabled',
+        }}
+      />
 
       {range?.from && range?.to && (
         <div className="calendar-info">
@@ -91,7 +93,7 @@ export default function ApartmentAvailabilityCalendar({
 
       <button
         className="calendar-confirm"
-        disabled={!range?.from || !range?.to}
+        disabled={!isValidRange}
         onClick={handleConfirm}
       >
         Забронировать
