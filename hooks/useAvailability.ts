@@ -25,56 +25,59 @@ export function useAvailability(apartmentId: string | null) {
   }, [apartmentId]);
 
   const fetchAvailability = useCallback(async (force = false) => {
-    const currentId = apartmentIdRef.current;
+  const currentId = apartmentIdRef.current;
+  
+  if (!currentId) {
+    setBlockedDates([]);
+    return;
+  }
+
+  if (fetchingRef.current && !force) {
+    console.log('⏳ Уже загружаем, пропускаем');
+    return;
+  }
+
+  // Защита от слишком частых запросов
+  const now = Date.now();
+  if (lastUpdated && now - lastUpdated.getTime() < 3000 && !force) {
+    console.log('⏳ Слишком часто, пропускаем');
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+  fetchingRef.current = true;
+
+  try {
+    const response = await fetch(`/api/availability/${currentId}?t=${now}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     
-    if (!currentId) {
-      setBlockedDates([]);
-      return;
+    if (!response.ok) {
+      throw new Error('Ошибка загрузки доступности');
     }
 
-    if (fetchingRef.current && !force) {
-      return;
+    const data = await response.json();
+    
+    if (isMounted.current && apartmentIdRef.current === currentId) {
+      setBlockedDates(data.blockedDates || []);
+      setLastUpdated(new Date());
     }
-
-    const now = Date.now();
-    if (lastUpdated && now - lastUpdated.getTime() < 3000 && !force) {
-      return;
+  } catch (err) {
+    if (isMounted.current && apartmentIdRef.current === currentId) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
     }
-
-    setLoading(true);
-    setError(null);
-    fetchingRef.current = true;
-
-    try {
-      const response = await fetch(`/api/availability/${currentId}?t=${now}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Ошибка загрузки доступности');
-      }
-
-      const data = await response.json();
-      
-      if (isMounted.current && apartmentIdRef.current === currentId) {
-        setBlockedDates(data.blockedDates || []);
-        setLastUpdated(new Date());
-      }
-    } catch (err) {
-      if (isMounted.current && apartmentIdRef.current === currentId) {
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-      }
-    } finally {
-      if (isMounted.current && apartmentIdRef.current === currentId) {
-        setLoading(false);
-      }
-      fetchingRef.current = false;
+  } finally {
+    if (isMounted.current && apartmentIdRef.current === currentId) {
+      setLoading(false);
     }
-  }, [lastUpdated]);
+    fetchingRef.current = false;
+  }
+}, [lastUpdated]); // ← lastUpdated зависимость
 
   useEffect(() => {
     isMounted.current = true;
@@ -89,31 +92,31 @@ export function useAvailability(apartmentId: string | null) {
   }, [apartmentId]);
 
   useEffect(() => {
-    const handleBookingCompleted = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const detail = customEvent.detail || {};
-      
-      if (detail.apartmentId && detail.apartmentId !== apartmentIdRef.current) {
-        return;
-      }
-      
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        fetchAvailability(true);
-      }, 500);
-    };
-
-    window.addEventListener('booking-completed', handleBookingCompleted);
+  const handleBookingCompleted = (event: Event) => {
+    const customEvent = event as CustomEvent;
+    const detail = customEvent.detail || {};
     
-    return () => {
-      window.removeEventListener('booking-completed', handleBookingCompleted);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+    if (detail.apartmentId && detail.apartmentId !== apartmentIdRef.current) {
+      return;
+    }
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      fetchAvailability(true);
+    }, 500);
+  };
+
+  window.addEventListener('booking-completed', handleBookingCompleted);
+  
+  return () => {
+    window.removeEventListener('booking-completed', handleBookingCompleted);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+}, []);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
