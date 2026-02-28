@@ -173,11 +173,13 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
+      // РУЧНОЕ ФОРМАТИРОВАНИЕ ДАТ С УЧЁТОМ ЛОКАЛЬНОГО ЧАСОВОГО ПОЯСА
+      const checkInStr = `${dates.from.getFullYear()}-${String(dates.from.getMonth() + 1).padStart(2, '0')}-${String(dates.from.getDate()).padStart(2, '0')}`;
+      const checkOutStr = `${dates.to.getFullYear()}-${String(dates.to.getMonth() + 1).padStart(2, '0')}-${String(dates.to.getDate()).padStart(2, '0')}`;
+
       // Проверка доступности перед отправкой
       const checkResponse = await fetch(
-        `/api/availability/${apartment.id}?checkIn=${
-          dates.from.toISOString().split('T')[0]
-        }&checkOut=${dates.to.toISOString().split('T')[0]}`
+        `/api/availability/${apartment.id}?checkIn=${checkInStr}&checkOut=${checkOutStr}`
       );
       const checkData = await checkResponse.json();
 
@@ -187,8 +189,7 @@ export default function BookingModal({
         return;
       }
 
-      // ⚠️ ВАЖНО: Отправляем checkOut БЕЗ добавления дня!
-      // День выезда должен быть свободен, поэтому в БД сохраняем как есть
+      // Создание брони
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -196,8 +197,8 @@ export default function BookingModal({
         },
         body: JSON.stringify({
           apartmentId: apartment.id,
-          checkIn: dates.from.toISOString().split('T')[0],
-          checkOut: dates.to.toISOString().split('T')[0], // НЕ добавляем +1 день!
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
           guestsCount: guests,
           guestName: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
           guestPhone: guestInfo.phone,
@@ -260,8 +261,8 @@ export default function BookingModal({
       window.dispatchEvent(new CustomEvent('booking-completed', { 
         detail: { 
           apartmentId: apartment.id,
-          checkIn: dates.from.toISOString().split('T')[0],
-          checkOut: dates.to.toISOString().split('T')[0],
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
           timestamp: Date.now()
         } 
       }));
