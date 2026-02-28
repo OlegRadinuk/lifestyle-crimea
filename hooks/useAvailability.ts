@@ -16,8 +16,8 @@ export function useAvailability(apartmentId: string | null) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   const isMounted = useRef(true);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const apartmentIdRef = useRef(apartmentId);
+  const fetchingRef = useRef(false); // 👈 защита от параллельных запросов
 
   // Обновляем ref при изменении apartmentId
   useEffect(() => {
@@ -25,22 +25,33 @@ export function useAvailability(apartmentId: string | null) {
   }, [apartmentId]);
 
   const fetchAvailability = useCallback(async (force = false) => {
-    const currentApartmentId = apartmentIdRef.current;
+    const currentId = apartmentIdRef.current;
     
-    if (!currentApartmentId) {
+    if (!currentId) {
       setBlockedDates([]);
       return;
     }
 
     // Если уже загружаем и это не принудительно — пропускаем
-    if (loading && !force) return;
+    if (fetchingRef.current && !force) {
+      console.log(`⏭️ Хук: Запрос уже выполняется для ${currentId}, пропускаем`);
+      return;
+    }
 
-    console.log(`🔄 Хук: Запрашиваем доступность для ${currentApartmentId}...`);
+    // Защита от слишком частых запросов
+    const now = Date.now();
+    if (lastUpdated && now - lastUpdated.getTime() < 5000 && !force) {
+      console.log(`⏱️ Хук: Последний запрос был ${Math.round((now - lastUpdated.getTime())/1000)}с назад, пропускаем`);
+      return;
+    }
+
+    console.log(`🔄 Хук: Запрашиваем доступность для ${currentId}...`);
     setLoading(true);
     setError(null);
+    fetchingRef.current = true;
 
     try {
-      const response = await fetch(`/api/availability/${currentApartmentId}?t=${Date.now()}`, {
+      const response = await fetch(`/api/availability/${currentId}?t=${now}`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -54,35 +65,35 @@ export function useAvailability(apartmentId: string | null) {
 
       const data = await response.json();
       
-      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
-        console.log(`✅ Хук: Получено ${data.blockedDates?.length || 0} заблокированных дат для ${currentApartmentId}`);
+      if (isMounted.current && apartmentIdRef.current === currentId) {
+        console.log(`✅ Хук: Получено ${data.blockedDates?.length || 0} заблокированных дат для ${currentId}`);
         setBlockedDates(data.blockedDates || []);
         setLastUpdated(new Date());
       }
     } catch (err) {
-      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
+      if (isMounted.current && apartmentIdRef.current === currentId) {
         console.error('❌ Хук: Ошибка загрузки:', err);
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       }
     } finally {
-      if (isMounted.current && apartmentIdRef.current === currentApartmentId) {
+      if (isMounted.current && apartmentIdRef.current === currentId) {
         setLoading(false);
       }
+      fetchingRef.current = false;
     }
-  }, [loading]); // 👈 ТЕПЕРЬ ТОЛЬКО loading
+  }, [lastUpdated]); // 👈 ТОЛЬКО lastUpdated в зависимостях
 
   // Первичная загрузка
   useEffect(() => {
     isMounted.current = true;
+    
+    // Загружаем только при монтировании или изменении apartmentId
     fetchAvailability(true);
     
     return () => {
       isMounted.current = false;
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
     };
-  }, [fetchAvailability, apartmentId]); // 👈 добавили apartmentId
+  }, [apartmentId]); // 👈 apartmentId в зависимостях, НО НЕ fetchAvailability
 
   // Слушаем событие бронирования
   useEffect(() => {
@@ -98,7 +109,7 @@ export function useAvailability(apartmentId: string | null) {
         return;
       }
       
-      // Немедленно обновляем данные
+      // Обновляем данные
       fetchAvailability(true);
     };
 
@@ -107,7 +118,7 @@ export function useAvailability(apartmentId: string | null) {
     return () => {
       window.removeEventListener('booking-completed', handleBookingCompleted);
     };
-  }, [fetchAvailability]); // 👈 ТОЛЬКО fetchAvailability, БЕЗ apartmentId
+  }, []); // 👈 ПУСТОЙ МАССИВ! Никаких зависимостей
 
   // Дополнительная защита: перезапрашиваем при возвращении на страницу
   useEffect(() => {
@@ -123,7 +134,7 @@ export function useAvailability(apartmentId: string | null) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchAvailability]);
+  }, []); // 👈 ПУСТОЙ МАССИВ
 
   // Проверка доступности даты
   const isDateAvailable = (date: Date): boolean => {
