@@ -154,13 +154,11 @@ export function useAvailability(apartmentId: string | null) {
 
   // Проверка доступности даты (исправленная логика)
   const isDateAvailable = (date: Date): boolean => {
-    const dateStr = date.toISOString().split('T')[0];
-    // Дата считается занятой, только если она внутри [start, end)
-    // end (день выезда) считается свободным
-    return !blockedDates.some(blocked => 
-      dateStr >= blocked.start && dateStr < blocked.end
-    );
-  };
+  const dateStr = date.toISOString().split('T')[0];
+  return !blockedDates.some(blocked => 
+    dateStr >= blocked.start && dateStr < blocked.end
+  );
+};
 
   // Проверка доступности диапазона
   const isRangeAvailable = (from: Date, to: Date): boolean => {
@@ -174,29 +172,20 @@ export function useAvailability(apartmentId: string | null) {
 
   // Получить массив недоступных дат для календаря
   const getDisabledDays = () => {
-    const disabled: ({ before: Date } | Date)[] = [{ before: new Date() }];
-    blockedDates.forEach(blocked => {
-      const start = new Date(blocked.start);
-      const end = new Date(blocked.end);
-      let current = new Date(start);
-      // Добавляем все дни ДО дня выезда
-      while (current < end) {
-        disabled.push(new Date(current));
-        current = addDays(current, 1);
-      }
-    });
-    return disabled;
-  };
-
-  return {
-    blockedDates,
-    loading,
-    error,
-    lastUpdated,
-    version, // 👈 добавили version для принудительного ререндера
-    isDateAvailable,
-    isRangeAvailable,
-    getDisabledDays,
-    refetch: () => fetchAvailability(true),
-  };
+  const disabled: ({ before: Date } | Date)[] = [{ before: new Date() }];
+  
+  blockedDates.forEach(blocked => {
+    const start = new Date(blocked.start);
+    const end = new Date(blocked.end);
+    
+    // Добавляем все дни, КРОМЕ последнего (дня выезда)
+    let current = new Date(start);
+    while (current < end) {
+      disabled.push(new Date(current));
+      current = addDays(current, 1);
+    }
+  });
+  
+  return disabled;
+};
 }

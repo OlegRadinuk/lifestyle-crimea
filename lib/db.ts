@@ -133,7 +133,7 @@ checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boo
       SELECT check_in, check_out FROM bookings 
       WHERE apartment_id = ? AND status = 'confirmed'
       AND (
-        -- Проверка на ПЕРЕСЕЧЕНИЕ, а не на полное вхождение
+        -- Правильная логика: пересечение, где день выезда свободен
         check_in < ? AND check_out > ?
       )
       UNION ALL
@@ -235,19 +235,14 @@ checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boo
 
   // 🔥 НОВЫЙ МЕТОД: Получить бронирования по апартаменту
   getBookingsByApartment: (apartmentId: string): Booking[] => {
-    try {
-      const stmt = db.prepare(`
-        SELECT * FROM bookings 
-        WHERE apartment_id = ? 
-        AND (status = 'confirmed' OR status IS NULL)
-        ORDER BY check_in ASC
-      `);
-      return stmt.all(apartmentId) as Booking[];
-    } catch (error) {
-      console.error(`Error getting bookings for apartment ${apartmentId}:`, error);
-      return [];
-    }
-  },
+  const stmt = db.prepare(`
+    SELECT * FROM bookings 
+    WHERE apartment_id = ? 
+    AND status = 'confirmed'
+    ORDER BY check_in ASC
+  `);
+  return stmt.all(apartmentId) as Booking[];
+},
 };
 
 // Сервис для работы с ICS источниками
