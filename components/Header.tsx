@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 import { useApartment } from '@/components/ApartmentContext';
 import { useSearch } from '@/components/SearchContext';
 import { useHeader } from '@/components/HeaderContext';
@@ -170,22 +171,23 @@ export default function Header({ onBurgerClick }: Props) {
                 </div>
 
                 <AnimatePresence>
-  {calendarOpen && mode === 'hero' && (
-    <div ref={popoverRef} className="header__calendar-popover hero-calendar">
-      <ApartmentAvailabilityCalendar
-        blockedDates={[]}
-        position="left"
-        onConfirm={(range) => {
-          setCheckIn(range.from.toISOString().split('T')[0]);
-          setCheckOut(range.to.toISOString().split('T')[0]);
-          setCalendarOpen(false);
-        }}
-        onClose={() => setCalendarOpen(false)}
-        showPrice={false}
-      />
-    </div>
-  )}
-</AnimatePresence>
+                  {calendarOpen && mode === 'hero' && (
+                    <div ref={popoverRef} className="header__calendar-popover hero-calendar">
+                      <ApartmentAvailabilityCalendar
+                        blockedDates={[]}
+                        position="left"
+                        onConfirm={(range) => {
+                          // Используем date-fns format для правильного форматирования без часовых поясов
+                          setCheckIn(format(range.from, 'yyyy-MM-dd'));
+                          setCheckOut(format(range.to, 'yyyy-MM-dd'));
+                          setCalendarOpen(false);
+                        }}
+                        onClose={() => setCalendarOpen(false)}
+                        showPrice={false}
+                      />
+                    </div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <button
@@ -210,24 +212,24 @@ export default function Header({ onBurgerClick }: Props) {
               </button>
 
               <AnimatePresence>
-  {calendarOpen && mode === 'apartment' && (
-    <div ref={popoverRef} className="header__calendar-popover">
-      <ApartmentAvailabilityCalendar
-        key={`calendar-${currentApartment.id}-${blockedDates.length}`}
-        blockedDates={blockedDates}
-        position="right"
-        onConfirm={(range) => {
-          setSelectedRange(range);
-          setCalendarOpen(false);
-          setBookingModalOpen(true);
-        }}
-        onClose={() => setCalendarOpen(false)}
-        showPrice
-        apartmentPrice={apartmentPrice}
-      />
-    </div>
-  )}
-</AnimatePresence>
+                {calendarOpen && mode === 'apartment' && (
+                  <div ref={popoverRef} className="header__calendar-popover">
+                    <ApartmentAvailabilityCalendar
+                      key={`calendar-${currentApartment.id}-${blockedDates.length}`}
+                      blockedDates={blockedDates}
+                      position="right"
+                      onConfirm={(range) => {
+                        setSelectedRange(range);
+                        setCalendarOpen(false);
+                        setBookingModalOpen(true);
+                      }}
+                      onClose={() => setCalendarOpen(false)}
+                      showPrice
+                      apartmentPrice={apartmentPrice}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}

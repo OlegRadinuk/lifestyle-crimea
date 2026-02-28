@@ -11,13 +11,13 @@ type Props = {
 
 export default function ClientApartmentWrapper({ apartment }: Props) {
   const { setCurrentApartmentIndex } = useApartment();
-  const apartmentIndex = APARTMENTS.findIndex(a => a.id === apartment.id);
 
   useEffect(() => {
-    if (apartmentIndex !== -1) {
-      setCurrentApartmentIndex(apartmentIndex);
+    const index = APARTMENTS.findIndex(a => a.id === apartment.id);
+    if (index !== -1) {
+      setCurrentApartmentIndex(index);
     }
-  }, [apartmentIndex, setCurrentApartmentIndex]);
+  }, [apartment.id, setCurrentApartmentIndex]);
 
   return <ApartmentHero apartment={apartment} />;
 }

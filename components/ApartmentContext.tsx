@@ -1,15 +1,12 @@
-// components/ApartmentContext.tsx
 'use client';
 
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { PANORAMAS } from '@/data/panoramas';
 
 type ApartmentContextType = {
   currentApartmentIndex: number;
   setCurrentApartmentIndex: (i: number) => void;
-
   currentApartment: (typeof PANORAMAS)[number] | null;
-
   showApartmentBooking: boolean;
   setShowApartmentBooking: (v: boolean) => void;
 };
@@ -47,9 +44,7 @@ export function ApartmentProvider({
 export function useApartment() {
   const ctx = useContext(ApartmentContext);
   if (!ctx) {
-    throw new Error(
-      'useApartment must be used inside ApartmentProvider'
-    );
+    throw new Error('useApartment must be used inside ApartmentProvider');
   }
   return ctx;
 }

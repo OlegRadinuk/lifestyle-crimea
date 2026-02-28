@@ -4,7 +4,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
 import 'react-day-picker/dist/style.css';
 import { useMemo, useState, useEffect } from 'react';
-import { startOfToday, differenceInCalendarDays, addDays, isWeekend } from 'date-fns';
+import { startOfToday, differenceInCalendarDays, addDays, isWeekend, format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type BlockedDate = {
@@ -47,17 +47,17 @@ export default function ApartmentAvailabilityCalendar({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Исправлено: не добавляем день выезда в заблокированные
+  // Критически важно: день выезда (end) НЕ добавляется в заблокированные
   const disabledDays = useMemo(() => {
     const disabled: ({ before: Date } | Date)[] = [{ before: today }];
     
-    blockedDates.forEach(b => {
-      const start = new Date(b.start);
-      const end = new Date(b.end);
+    blockedDates.forEach(blocked => {
+      const start = new Date(blocked.start);
+      const end = new Date(blocked.end);
       
-      // Добавляем все дни, КРОМЕ последнего (дня выезда)
+      // Добавляем все дни от start ДО end (не включая end)
       let current = new Date(start);
-      while (current < end) { // строгое неравенство, чтобы исключить день выезда
+      while (current < end) {
         disabled.push(new Date(current));
         current = addDays(current, 1);
       }
