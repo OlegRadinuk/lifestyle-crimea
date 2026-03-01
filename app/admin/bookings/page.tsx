@@ -29,29 +29,43 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
   const [notes, setNotes] = useState('');
   const [prepaidAmount, setPrepaidAmount] = useState(0);
 
+  // Отладка
+  console.log('📌 Params:', params);
+  console.log('📌 Params ID:', params?.id);
+
   useEffect(() => {
-    // ✅ ЗАЩИТА: проверяем что ID существует
+    // Проверяем что ID существует
     if (!params?.id) {
-      console.error('No booking ID provided');
+      console.error('❌ No booking ID provided');
       router.push('/admin/bookings');
       return;
     }
     
-    fetchBooking();
-  }, [params?.id]); // 👈 добавляем зависимость
+    // Небольшая задержка для надежности
+    const timer = setTimeout(() => {
+      fetchBooking();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [params?.id]);
 
   const fetchBooking = async () => {
     try {
+      console.log('📡 Fetching booking with ID:', params.id);
       const res = await fetch(`/api/admin/bookings/${params.id}`);
+      
       if (!res.ok) {
-        throw new Error('Booking not found');
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
+      
       const data = await res.json();
+      console.log('✅ Booking data received:', data);
+      
       setBooking(data);
       setNotes(data.manager_notes || '');
       setPrepaidAmount(data.prepaid_amount || 0);
     } catch (error) {
-      console.error('Error fetching booking:', error);
+      console.error('❌ Error fetching booking:', error);
       router.push('/admin/bookings');
     } finally {
       setLoading(false);
@@ -60,34 +74,61 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
 
   const updateStatus = async (status: string) => {
     if (!params?.id) return;
-    await fetch(`/api/admin/bookings/${params.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    fetchBooking();
+    
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (res.ok) {
+        fetchBooking();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   const updatePrepaid = async () => {
-    if (!params?.id) return;
-    await fetch(`/api/admin/bookings/${params.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prepaid_amount: prepaidAmount,
-        prepaid_status: prepaidAmount > 0 ? (prepaidAmount === booking?.total_price ? 'full' : 'partial') : 'none'
-      }),
-    });
-    fetchBooking();
+    if (!params?.id || !booking) return;
+    
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prepaid_amount: prepaidAmount,
+          prepaid_status: prepaidAmount > 0 
+            ? (prepaidAmount === booking.total_price ? 'full' : 'partial') 
+            : 'none'
+        }),
+      });
+      
+      if (res.ok) {
+        fetchBooking();
+      }
+    } catch (error) {
+      console.error('Error updating prepaid:', error);
+    }
   };
 
   const saveNotes = async () => {
     if (!params?.id) return;
-    await fetch(`/api/admin/bookings/${params.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ manager_notes: notes }),
-    });
+    
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manager_notes: notes }),
+      });
+      
+      if (res.ok) {
+        alert('Заметки сохранены');
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    }
   };
 
   if (loading) return <div className="admin-loading">Загрузка...</div>;
