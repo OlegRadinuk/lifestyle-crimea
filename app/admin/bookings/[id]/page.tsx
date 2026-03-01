@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-import { v4 as uuidv4 } from 'uuid';
+import './booking-detail.css'; // Создадим отдельный CSS файл
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -245,83 +245,6 @@ export default async function BookingPage({ params }: PageProps) {
           </form>
         </div>
       </div>
-
-      <style jsx>{`
-        .booking-detail-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-        .admin-card {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .admin-card.full-width {
-          grid-column: span 2;
-        }
-        .admin-card h2 {
-          font-size: 18px;
-          margin-bottom: 20px;
-          color: #1a2634;
-        }
-        .info-row {
-          display: flex;
-          padding: 8px 0;
-          border-bottom: 1px solid #eef2f6;
-        }
-        .info-label {
-          width: 120px;
-          color: #64748b;
-        }
-        .info-value {
-          flex: 1;
-          color: #1e293b;
-          font-weight: 500;
-        }
-        .status-buttons {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-        .status-btn {
-          flex: 1;
-          padding: 10px;
-          border: 2px solid #e2e8f0;
-          border-radius: 8px;
-          background: white;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-        .status-btn.active {
-          border-color: #139ab6;
-          background: #e6f7ff;
-        }
-        .prepaid-section {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 10px;
-        }
-        .prepaid-section input {
-          flex: 1;
-          padding: 10px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-        }
-        .prepaid-status {
-          color: #64748b;
-          font-size: 14px;
-        }
-        textarea {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-family: inherit;
-        }
-      `}</style>
     </div>
   );
 }
