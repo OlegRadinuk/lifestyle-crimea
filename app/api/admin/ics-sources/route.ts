@@ -3,7 +3,6 @@ import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchAndParseICS } from '@/lib/ics-parser';
 
-// GET /api/admin/ics-sources - список всех источников
 export async function GET() {
   try {
     const sources = db.prepare(`
@@ -13,11 +12,19 @@ export async function GET() {
       ORDER BY a.title, s.source_name
     `).all();
 
-    // Преобразуем BigInt в Number
+    // Преобразуем BigInt в Number для КАЖДОГО источника
     const formattedSources = (sources as any[]).map(source => ({
-      ...source,
-      is_active: Number(source.is_active),
-      // добавляем преобразование для других числовых полей, если есть
+      id: source.id,
+      apartment_id: source.apartment_id,
+      source_name: source.source_name,
+      ics_url: source.ics_url,
+      is_active: Number(source.is_active), // преобразование
+      last_sync: source.last_sync,
+      sync_status: source.sync_status,
+      error_message: source.error_message,
+      created_at: source.created_at,
+      updated_at: source.updated_at,
+      apartment_title: source.apartment_title
     }));
 
     return NextResponse.json(formattedSources);
@@ -27,7 +34,6 @@ export async function GET() {
   }
 }
 
-// POST /api/admin/ics-sources - создать новый источник
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -39,13 +45,6 @@ export async function POST(request: Request) {
     `);
 
     stmt.run(id, data.apartment_id, data.source_name, data.ics_url, 1);
-
-    // Сразу пробуем синхронизировать
-    try {
-      await fetchAndParseICS(id, data.ics_url, data.apartment_id, data.source_name);
-    } catch (syncError) {
-      console.error('Initial sync failed:', syncError);
-    }
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
