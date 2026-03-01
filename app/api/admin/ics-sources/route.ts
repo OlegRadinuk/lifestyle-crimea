@@ -7,14 +7,22 @@ import { fetchAndParseICS } from '@/lib/ics-parser';
 export async function GET() {
   try {
     const sources = db.prepare(`
-      SELECT s.*, a.title as apartment_title 
+      SELECT s.*, a.title as apartment_title
       FROM ics_sources s
       JOIN apartments a ON s.apartment_id = a.id
       ORDER BY a.title, s.source_name
     `).all();
 
-    return NextResponse.json(sources);
+    // Преобразуем BigInt в Number
+    const formattedSources = (sources as any[]).map(source => ({
+      ...source,
+      is_active: Number(source.is_active),
+      // добавляем преобразование для других числовых полей, если есть
+    }));
+
+    return NextResponse.json(formattedSources);
   } catch (error) {
+    console.error('Error in GET /api/admin/ics-sources:', error);
     return NextResponse.json({ error: 'Failed to fetch ICS sources' }, { status: 500 });
   }
 }
@@ -41,6 +49,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
+    console.error('Error in POST /api/admin/ics-sources:', error);
     return NextResponse.json({ error: 'Failed to add ICS source' }, { status: 500 });
   }
 }
