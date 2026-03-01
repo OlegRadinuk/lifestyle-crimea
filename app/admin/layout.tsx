@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function AdminLayout({
   children,
@@ -10,7 +10,40 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // Проверка авторизации
+  useEffect(() => {
+    // Если мы уже на странице логина - пропускаем
+    if (pathname === '/admin/login') {
+      setIsAuthorized(true);
+      return;
+    }
+
+    const auth = localStorage.getItem('admin_auth');
+    if (auth !== 'true') {
+      router.push('/admin/login');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [pathname, router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_auth');
+    router.push('/admin/login');
+  };
+
+  // Если не авторизован и не на логине - показываем ничего
+  if (!isAuthorized && pathname !== '/admin/login') {
+    return null;
+  }
+
+  // Если на странице логина - показываем только её
+  if (pathname === '/admin/login') {
+    return children;
+  }
 
   const menuItems = [
     { href: '/admin', label: '📊 Дашборд', icon: '📊' },
@@ -49,6 +82,10 @@ export default function AdminLayout({
         </nav>
 
         <div className="admin-sidebar-footer">
+          <button onClick={handleLogout} className="admin-nav-item" style={{ width: '100%' }}>
+            <span className="admin-nav-icon">🚪</span>
+            {!collapsed && <span>Выйти</span>}
+          </button>
           <Link href="/" className="admin-nav-item" target="_blank">
             <span className="admin-nav-icon">🏠</span>
             {!collapsed && <span>На сайт</span>}
