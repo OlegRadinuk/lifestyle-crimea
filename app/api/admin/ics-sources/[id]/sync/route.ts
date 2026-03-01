@@ -19,11 +19,17 @@ export async function POST(
       return NextResponse.json({ error: 'Source not found' }, { status: 404 });
     }
 
+    // Преобразуем BigInt в Number
+    const cleanSource = {
+      ...source,
+      is_active: Number(source.is_active)
+    };
+
     const result = await fetchAndParseICS(
       id,
-      source.ics_url,
-      source.apartment_id,
-      source.source_name
+      cleanSource.ics_url,
+      cleanSource.apartment_id,
+      cleanSource.source_name
     );
 
     db.prepare(`
@@ -40,8 +46,8 @@ export async function POST(
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       uuidv4(),
-      source.source_name,
-      source.apartment_id,
+      cleanSource.source_name,
+      cleanSource.apartment_id,
       'import',
       'success',
       result.count,
@@ -50,6 +56,8 @@ export async function POST(
 
     return NextResponse.json({ success: true, count: result.count });
   } catch (error: any) {
+    console.error('Sync error:', error);
+    
     db.prepare(`
       UPDATE ics_sources 
       SET sync_status = ?, error_message = ?
