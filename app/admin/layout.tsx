@@ -14,9 +14,7 @@ export default function AdminLayout({
   const [collapsed, setCollapsed] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // Проверка авторизации
   useEffect(() => {
-    // Если мы уже на странице логина - пропускаем
     if (pathname === '/admin/login') {
       setIsAuthorized(true);
       return;
@@ -35,31 +33,33 @@ export default function AdminLayout({
     router.push('/admin/login');
   };
 
-  // Если не авторизован и не на логине - показываем ничего
   if (!isAuthorized && pathname !== '/admin/login') {
     return null;
   }
 
-  // Если на странице логина - показываем только её
   if (pathname === '/admin/login') {
     return children;
   }
 
   const menuItems = [
-    { href: '/admin', label: '📊 Дашборд', icon: '📊' },
-    { href: '/admin/apartments', label: '🏢 Апартаменты', icon: '🏢' },
-    { href: '/admin/bookings', label: '📋 Бронирования', icon: '📋' },
-    { href: '/admin/calendar', label: '📅 Календарь', icon: '📅' },
-    { href: '/admin/sync/sources', label: '🔄 ICS источники', icon: '🔄' },
-    { href: '/admin/sync/logs', label: '📝 Логи синхронизации', icon: '📝' },
-    { href: '/admin/settings', label: '⚙️ Настройки', icon: '⚙️' },
+    { href: '/admin', label: 'Дашборд', icon: '📊' },
+    { href: '/admin/apartments', label: 'Апартаменты', icon: '🏢' },
+    { href: '/admin/bookings', label: 'Бронирования', icon: '📋' },
+    { href: '/admin/calendar', label: 'Календарь', icon: '📅' },
+    { href: '/admin/sync/sources', label: 'ICS источники', icon: '🔄' },
+    { href: '/admin/sync/logs', label: 'Логи синхронизации', icon: '📝' },
+    { href: '/admin/settings', label: 'Настройки', icon: '⚙️' },
   ];
 
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="admin-sidebar-header">
-          <h2>Lifestyle Admin</h2>
+          {!collapsed ? (
+            <h2>Lifestyle Admin</h2>
+          ) : (
+            <h2 style={{ fontSize: '14px', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Админ</h2>
+          )}
           <button onClick={() => setCollapsed(!collapsed)} className="admin-sidebar-toggle">
             {collapsed ? '→' : '←'}
           </button>
@@ -73,6 +73,7 @@ export default function AdminLayout({
                 key={item.href}
                 href={item.href}
                 className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed ? item.label : undefined}
               >
                 <span className="admin-nav-icon">{item.icon}</span>
                 {!collapsed && <span>{item.label}</span>}

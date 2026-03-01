@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Montserrat } from 'next/font/google'
 import './globals.css'
 
-import HeaderWrapper from '@/components/HeaderWrapper'
+import HeaderConditional from '@/components/HeaderConditional' // ← новый компонент
 
 import { HeaderProvider } from '@/components/HeaderContext'
 import { SearchProvider } from '@/components/SearchContext'
@@ -30,7 +30,6 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <head>
-        {/* Preload первой панорамы */}
         <link
           rel="preload"
           as="image"
@@ -47,7 +46,8 @@ export default function RootLayout({
               <ApartmentProvider>
                 <PhotoModalProvider>
 
-                  <HeaderWrapper />
+                  {/* Вместо HeaderWrapper используем условный компонент */}
+                  <HeaderConditional />
 
                   {children}
 
