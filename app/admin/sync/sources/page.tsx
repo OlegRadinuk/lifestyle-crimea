@@ -27,7 +27,7 @@ export default function IcsSourcesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newSource, setNewSource] = useState({
     apartment_id: '',
-    source_name: '',
+    source_name: 'travelline',
     ics_url: '',
   });
 
@@ -36,7 +36,6 @@ export default function IcsSourcesPage() {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [sourcesRes, apartmentsRes] = await Promise.all([
         fetch('/api/admin/ics-sources'),
@@ -57,14 +56,17 @@ export default function IcsSourcesPage() {
 
   const handleAddSource = async () => {
     try {
-      await fetch('/api/admin/ics-sources', {
+      const res = await fetch('/api/admin/ics-sources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSource),
       });
-      setShowAddForm(false);
-      setNewSource({ apartment_id: '', source_name: '', ics_url: '' });
-      fetchData(); // перезагружаем список
+      
+      if (res.ok) {
+        setShowAddForm(false);
+        setNewSource({ apartment_id: '', source_name: 'travelline', ics_url: '' });
+        fetchData();
+      }
     } catch (error) {
       console.error('Error adding source:', error);
     }
@@ -85,11 +87,29 @@ export default function IcsSourcesPage() {
 
   const syncNow = async (id: string) => {
     try {
-      await fetch(`/api/admin/ics-sources/${id}/sync`, { method: 'POST' });
-      fetchData();
+      const res = await fetch(`/api/admin/ics-sources/${id}/sync`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (res.ok) {
+        alert('Синхронизация запущена');
+        fetchData();
+      } else {
+        const error = await res.json();
+        alert('Ошибка: ' + error.error);
+      }
     } catch (error) {
       console.error('Error syncing source:', error);
+      alert('Ошибка при синхронизации');
     }
+  };
+
+  const copyIcsLink = (apartmentId: string) => {
+    // Формируем ссылку для экспорта в Travelline
+    const link = `https://lovelifestyle.ru/api/export/ics/${apartmentId}`;
+    navigator.clipboard.writeText(link);
+    alert('Ссылка скопирована');
   };
 
   if (loading) return <div className="admin-loading">Загрузка...</div>;
@@ -97,7 +117,7 @@ export default function IcsSourcesPage() {
   return (
     <div className="admin-page">
       <div className="admin-header">
-        <h1 className="admin-title">ICS источники</h1>
+        <h1 className="admin-title">ICS источники (Travelline)</h1>
         <button onClick={() => setShowAddForm(true)} className="admin-button primary">
           + Добавить источник
         </button>
@@ -124,22 +144,23 @@ export default function IcsSourcesPage() {
               value={newSource.source_name}
               onChange={(e) => setNewSource({ ...newSource, source_name: e.target.value })}
             >
+              <option value="travelline">Travelline</option>
               <option value="yandex">Яндекс Путешествия</option>
               <option value="booking">Booking.com</option>
-              <option value="avito">Avito</option>
               <option value="sutochno">Суточно.ру</option>
-              <option value="airbnb">Airbnb</option>
-              <option value="other">Другое</option>
             </select>
           </div>
           <div className="form-group">
-            <label>ICS URL</label>
+            <label>ICS URL (из Travelline)</label>
             <input
               type="url"
               value={newSource.ics_url}
               onChange={(e) => setNewSource({ ...newSource, ics_url: e.target.value })}
-              placeholder="https://..."
+              placeholder="https://api.travelline.ru/ical/v1/..."
             />
+            <small className="form-hint">
+              Скопируйте ссылку из Travelline: Календарь → Экспорт ICS
+            </small>
           </div>
           <div className="form-actions">
             <button onClick={handleAddSource} className="admin-button primary">Сохранить</button>
@@ -165,12 +186,7 @@ export default function IcsSourcesPage() {
               <tr key={source.id}>
                 <td>{source.apartment_title}</td>
                 <td>
-                  {source.source_name === 'yandex' && 'Яндекс'}
-                  {source.source_name === 'booking' && 'Booking'}
-                  {source.source_name === 'avito' && 'Avito'}
-                  {source.source_name === 'sutochno' && 'Суточно.ру'}
-                  {source.source_name === 'airbnb' && 'Airbnb'}
-                  {source.source_name === 'other' && 'Другое'}
+                  {source.source_name === 'travelline' ? 'Travelline' : source.source_name}
                 </td>
                 <td>
                   <span className={`status-badge ${source.is_active ? 'active' : 'inactive'}`}>
@@ -187,6 +203,13 @@ export default function IcsSourcesPage() {
                 <td className="actions">
                   <button onClick={() => syncNow(source.id)} className="admin-button small">
                     Синхр.
+                  </button>
+                  <button
+                    onClick={() => copyIcsLink(source.apartment_id)}
+                    className="admin-button small"
+                    title="Скопировать ссылку для Travelline"
+                  >
+                    🔗 ICS
                   </button>
                   <button
                     onClick={() => toggleActive(source.id, !!source.is_active)}

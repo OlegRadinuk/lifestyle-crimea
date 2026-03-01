@@ -9,13 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/react-big-calendar": "^1.16.3",
     "better-sqlite3": "^12.6.2",
     "framer-motion": "^12.34.0",
     "ical.js": "^2.2.1",
+    "moment": "^2.30.1",
     "next": "^16.1.6",
     "node-cron": "^4.2.1",
     "node-ical": "^0.25.4",
     "react": "19.2.3",
+    "react-big-calendar": "^1.19.4",
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "three": "^0.182.0",

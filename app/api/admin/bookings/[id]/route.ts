@@ -2,6 +2,25 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
+type RawBooking = {
+  id: string;
+  apartment_id: string;
+  guest_name: string | null;
+  guest_phone: string | null;
+  guest_email: string | null;
+  check_in: string;
+  check_out: string;
+  guests_count: number;
+  total_price: number;
+  status: string;
+  prepaid_amount: number | null;
+  prepaid_status: string | null;
+  source: string;
+  manager_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -14,7 +33,7 @@ export async function GET(
       FROM bookings b
       JOIN apartments a ON b.apartment_id = a.id
       WHERE b.id = ?
-    `).get(id);
+    `).get(id) as RawBooking | undefined;
 
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
@@ -22,6 +41,7 @@ export async function GET(
 
     return NextResponse.json(booking);
   } catch (error) {
+    console.error('Error fetching booking:', error);
     return NextResponse.json({ error: 'Failed to fetch booking' }, { status: 500 });
   }
 }
@@ -41,6 +61,16 @@ export async function PATCH(
     if (data.status) {
       updates.push('status = ?');
       values.push(data.status);
+    }
+
+    if (data.check_in) {
+      updates.push('check_in = ?');
+      values.push(data.check_in);
+    }
+
+    if (data.check_out) {
+      updates.push('check_out = ?');
+      values.push(data.check_out);
     }
 
     if (data.prepaid_amount !== undefined) {
@@ -63,14 +93,35 @@ export async function PATCH(
     }
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
-    
-    const query = `UPDATE bookings SET ${updates.join(', ')} WHERE id = ?`;
     values.push(id);
 
+    const query = `UPDATE bookings SET ${updates.join(', ')} WHERE id = ?`;
     db.prepare(query).run(...values);
+
+    // Логируем изменение
+    db.prepare(`
+      INSERT INTO booking_history (id, booking_id, action, new_value, created_by)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(uuidv4(), id, 'update', JSON.stringify(data), 'admin');
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Error updating booking:', error);
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    return NextResponse.json({ error: 'Failed to delete booking' }, { status: 500 });
   }
 }
