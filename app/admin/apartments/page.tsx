@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 type Apartment = {
   id: string;
@@ -13,7 +12,6 @@ type Apartment = {
 };
 
 export default function ApartmentsPage() {
-  const router = useRouter();
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,12 +71,6 @@ export default function ApartmentsPage() {
                 <td className="actions">
                   <Link href={`/admin/apartments/${apt.id}`} className="admin-button small">
                     Редактировать
-                  </Link>
-                  <Link href={`/admin/apartments/${apt.id}/prices`} className="admin-button small">
-                    Цены
-                  </Link>
-                  <Link href={`/admin/apartments/${apt.id}/images`} className="admin-button small">
-                    Фото
                   </Link>
                   <button
                     onClick={() => toggleActive(apt.id, apt.is_active)}

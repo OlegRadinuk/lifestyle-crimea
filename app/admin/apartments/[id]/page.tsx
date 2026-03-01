@@ -1,112 +1,90 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import ApartmentForm from './ApartmentForm';
 
-export default function ApartmentEditPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const [apartment, setApartment] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-  useEffect(() => {
-    fetchApartment();
-  }, []);
+// Server Action для сохранения
+async function saveApartment(formData: FormData) {
+  'use server';
+  
+  const id = formData.get('id') as string;
+  
+  const updates: string[] = [];
+  const values: any[] = [];
 
-  const fetchApartment = async () => {
-    const res = await fetch(`/api/admin/apartments/${params.id}`);
-    const data = await res.json();
-    setApartment(data);
-    setLoading(false);
+  const fields = [
+    'title', 'short_description', 'description', 'max_guests',
+    'area', 'price_base', 'view', 'has_terrace', 'is_active'
+  ];
+
+  fields.forEach(field => {
+    const value = formData.get(field);
+    if (value !== null) {
+      updates.push(`${field} = ?`);
+      
+      if (field === 'has_terrace' || field === 'is_active') {
+        values.push(value === 'on' ? 1 : 0);
+      } else if (field === 'max_guests' || field === 'area' || field === 'price_base') {
+        values.push(Number(value));
+      } else {
+        values.push(value);
+      }
+    }
+  });
+
+  // Особенности (features) приходят как массив
+  const features = formData.getAll('features[]');
+  updates.push('features = ?');
+  values.push(JSON.stringify(features));
+
+  // Изображения (пока заглушка)
+  updates.push('images = ?');
+  values.push(JSON.stringify([]));
+
+  updates.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(id);
+
+  const query = `UPDATE apartments SET ${updates.join(', ')} WHERE id = ?`;
+  db.prepare(query).run(...values);
+
+  revalidatePath(`/admin/apartments/${id}`);
+  redirect(`/admin/apartments/${id}?success=true`);
+}
+
+export default async function ApartmentEditPage({ params }: PageProps) {
+  const { id } = await params;
+
+  // Получаем данные апартамента
+  const apartment = db.prepare('SELECT * FROM apartments WHERE id = ?').get(id) as any;
+
+  if (!apartment) {
+    notFound();
+  }
+
+  // Преобразуем JSON строки обратно в массивы
+  const formattedApartment = {
+    ...apartment,
+    features: apartment.features ? JSON.parse(apartment.features) : [],
+    images: apartment.images ? JSON.parse(apartment.images) : [],
+    has_terrace: Boolean(apartment.has_terrace),
+    is_active: Boolean(apartment.is_active),
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await fetch(`/api/admin/apartments/${params.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(apartment),
-    });
-    alert('Сохранено!');
-  };
-
-  if (loading) return <div>Загрузка...</div>;
 
   return (
     <div className="admin-page">
       <div className="admin-header">
-        <h1 className="admin-title">Редактирование: {apartment.title}</h1>
+        <h1 className="admin-title">Редактирование: {formattedApartment.title}</h1>
         <Link href="/admin/apartments" className="admin-button">← Назад</Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="admin-form">
-        <div className="form-group">
-          <label>Название</label>
-          <input 
-            value={apartment.title} 
-            onChange={(e) => setApartment({...apartment, title: e.target.value})}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Краткое описание</label>
-          <input 
-            value={apartment.short_description || ''} 
-            onChange={(e) => setApartment({...apartment, short_description: e.target.value})}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Полное описание</label>
-          <textarea 
-            value={apartment.description || ''} 
-            onChange={(e) => setApartment({...apartment, description: e.target.value})}
-            rows={5}
-          />
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Макс. гостей</label>
-            <input 
-              type="number" 
-              value={apartment.max_guests} 
-              onChange={(e) => setApartment({...apartment, max_guests: +e.target.value})}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Площадь (м²)</label>
-            <input 
-              type="number" 
-              value={apartment.area || ''} 
-              onChange={(e) => setApartment({...apartment, area: +e.target.value})}
-            />
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Базовая цена (₽/ночь)</label>
-          <input 
-            type="number" 
-            value={apartment.price_base} 
-            onChange={(e) => setApartment({...apartment, price_base: +e.target.value})}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>
-            <input 
-              type="checkbox" 
-              checked={apartment.is_active} 
-              onChange={(e) => setApartment({...apartment, is_active: e.target.checked})}
-            />
-            Апартамент активен (показывается на сайте)
-          </label>
-        </div>
-
-        <button type="submit" className="admin-button primary">Сохранить</button>
-      </form>
+      {formattedApartment && (
+        <ApartmentForm apartment={formattedApartment} action={saveApartment} />
+      )}
     </div>
   );
 }
