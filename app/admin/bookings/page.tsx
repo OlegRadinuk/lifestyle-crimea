@@ -22,37 +22,46 @@ type Booking = {
   manager_notes: string | null;
 };
 
-export default function BookingDetailPage({ params }: { params: { id: string } }) {
+export default function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState('');
   const [prepaidAmount, setPrepaidAmount] = useState(0);
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
-  // Отладка
-  console.log('📌 Params:', params);
-  console.log('📌 Params ID:', params?.id);
+  // Разворачиваем Promise params
+  useEffect(() => {
+    const resolveParams = async () => {
+      try {
+        const resolved = await params;
+        console.log('✅ Resolved params:', resolved);
+        setResolvedParams(resolved);
+      } catch (error) {
+        console.error('Error resolving params:', error);
+        router.push('/admin/bookings');
+      }
+    };
+    
+    resolveParams();
+  }, [params, router]);
 
   useEffect(() => {
-    // Проверяем что ID существует
-    if (!params?.id) {
-      console.error('❌ No booking ID provided');
-      router.push('/admin/bookings');
+    if (!resolvedParams?.id) {
+      if (resolvedParams) {
+        console.error('❌ No booking ID in resolved params');
+        router.push('/admin/bookings');
+      }
       return;
     }
     
-    // Небольшая задержка для надежности
-    const timer = setTimeout(() => {
-      fetchBooking();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [params?.id]);
+    fetchBooking();
+  }, [resolvedParams]);
 
   const fetchBooking = async () => {
     try {
-      console.log('📡 Fetching booking with ID:', params.id);
-      const res = await fetch(`/api/admin/bookings/${params.id}`);
+      console.log('📡 Fetching booking with ID:', resolvedParams?.id);
+      const res = await fetch(`/api/admin/bookings/${resolvedParams?.id}`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -73,10 +82,10 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
   };
 
   const updateStatus = async (status: string) => {
-    if (!params?.id) return;
+    if (!resolvedParams?.id) return;
     
     try {
-      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+      const res = await fetch(`/api/admin/bookings/${resolvedParams.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -91,10 +100,10 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
   };
 
   const updatePrepaid = async () => {
-    if (!params?.id || !booking) return;
+    if (!resolvedParams?.id || !booking) return;
     
     try {
-      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+      const res = await fetch(`/api/admin/bookings/${resolvedParams.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,10 +123,10 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
   };
 
   const saveNotes = async () => {
-    if (!params?.id) return;
+    if (!resolvedParams?.id) return;
     
     try {
-      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+      const res = await fetch(`/api/admin/bookings/${resolvedParams.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ manager_notes: notes }),
@@ -131,7 +140,7 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
     }
   };
 
-  if (loading) return <div className="admin-loading">Загрузка...</div>;
+  if (loading || !resolvedParams) return <div className="admin-loading">Загрузка...</div>;
   if (!booking) return <div>Бронь не найдена</div>;
 
   return (
