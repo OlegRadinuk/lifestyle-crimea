@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
-import { fetchAndParseICS } from '@/lib/ics-parser';
 
+// GET /api/admin/ics-sources - список всех источников
 export async function GET() {
   try {
     const sources = db.prepare(`
@@ -12,13 +12,13 @@ export async function GET() {
       ORDER BY a.title, s.source_name
     `).all();
 
-    // Преобразуем BigInt в Number для КАЖДОГО источника
+    // Преобразуем BigInt в Number
     const formattedSources = (sources as any[]).map(source => ({
       id: source.id,
       apartment_id: source.apartment_id,
       source_name: source.source_name,
       ics_url: source.ics_url,
-      is_active: Number(source.is_active), // преобразование
+      is_active: Number(source.is_active),
       last_sync: source.last_sync,
       sync_status: source.sync_status,
       error_message: source.error_message,
@@ -34,6 +34,7 @@ export async function GET() {
   }
 }
 
+// POST /api/admin/ics-sources - создать новый источник
 export async function POST(request: Request) {
   try {
     const data = await request.json();

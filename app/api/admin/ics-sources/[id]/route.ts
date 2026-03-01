@@ -13,7 +13,7 @@ export async function GET(
       FROM ics_sources s
       JOIN apartments a ON s.apartment_id = a.id
       WHERE s.id = ?
-    `).get(id) as any;
+    `).get(id);
 
     if (!source) {
       return NextResponse.json({ error: 'Source not found' }, { status: 404 });
@@ -21,17 +21,8 @@ export async function GET(
 
     // Преобразуем BigInt
     const formattedSource = {
-      id: source.id,
-      apartment_id: source.apartment_id,
-      source_name: source.source_name,
-      ics_url: source.ics_url,
-      is_active: Number(source.is_active),
-      last_sync: source.last_sync,
-      sync_status: source.sync_status,
-      error_message: source.error_message,
-      created_at: source.created_at,
-      updated_at: source.updated_at,
-      apartment_title: source.apartment_title
+      ...(source as any),
+      is_active: Number((source as any).is_active)
     };
 
     return NextResponse.json(formattedSource);
