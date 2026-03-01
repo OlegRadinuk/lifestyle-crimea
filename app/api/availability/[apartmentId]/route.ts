@@ -1,56 +1,52 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { bookingService, externalBookingService } from '@/lib/db';
 
+// GET /api/availability/[apartmentId]
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ apartmentId: string }> } // 👈 apartmentId, а не id
 ) {
-  const { id } = await params;
-  
   try {
-    const apartment = db.prepare(`
-      SELECT * FROM apartments WHERE id = ?
-    `).get(id);
+    const { apartmentId } = await params; // 👈 apartmentId
+    const { searchParams } = new URL(request.url);
+    
+    const checkIn = searchParams.get('checkIn');
+    const checkOut = searchParams.get('checkOut');
 
-    if (!apartment) {
-      return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
+    // Если переданы конкретные даты - проверяем доступность
+    if (checkIn && checkOut) {
+      const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
+      return NextResponse.json({
+        apartmentId,
+        checkIn,
+        checkOut,
+        isAvailable,
+      });
     }
 
-    return NextResponse.json(apartment);
+    // Иначе возвращаем все заблокированные даты
+    const bookings = bookingService.getBookingsByApartment(apartmentId);
+    const external = externalBookingService.getBlockedDates(apartmentId);
+
+    const blockedDates = [
+      ...bookings.map(b => ({
+        start: b.check_in,
+        end: b.check_out,
+        source: 'booking',
+      })),
+      ...external,
+    ];
+
+    return NextResponse.json({
+      apartmentId,
+      blockedDates,
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch apartment' }, { status: 500 });
-  }
-}
-
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  
-  try {
-    const data = await request.json();
-    
-    const stmt = db.prepare(`
-      UPDATE apartments 
-      SET title = ?, max_guests = ?, price_base = ?, 
-          description = ?, short_description = ?, area = ?,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `);
-
-    stmt.run(
-      data.title,
-      data.max_guests,
-      data.price_base,
-      data.description || null,
-      data.short_description || null,
-      data.area || null,
-      id
+    console.error('Error in availability API:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
     );
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update apartment' }, { status: 500 });
   }
 }
