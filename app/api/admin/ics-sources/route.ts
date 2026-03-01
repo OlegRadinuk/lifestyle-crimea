@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchAndParseICS } from '@/lib/ics-parser';
 
-// GET /api/admin/ics-sources
+// GET /api/admin/ics-sources - список всех источников
 export async function GET() {
   try {
     const sources = db.prepare(`
@@ -19,7 +19,7 @@ export async function GET() {
   }
 }
 
-// POST /api/admin/ics-sources
+// POST /api/admin/ics-sources - создать новый источник
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -42,28 +42,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, id });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to add ICS source' }, { status: 500 });
-  }
-}
-
-// PATCH /api/admin/ics-sources/[id]
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> } // 👈 Promise
-) {
-  try {
-    const data = await request.json();
-    const { id } = await params; // 👈 await
-
-    const stmt = db.prepare(`
-      UPDATE ics_sources 
-      SET is_active = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `);
-
-    stmt.run(data.is_active ? 1 : 0, id);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update ICS source' }, { status: 500 });
   }
 }

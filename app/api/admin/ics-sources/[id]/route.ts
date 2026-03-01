@@ -1,0 +1,88 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+
+// GET /api/admin/ics-sources/[id] - получить конкретный источник
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    const source = db.prepare(`
+      SELECT s.*, a.title as apartment_title 
+      FROM ics_sources s
+      JOIN apartments a ON s.apartment_id = a.id
+      WHERE s.id = ?
+    `).get(id);
+
+    if (!source) {
+      return NextResponse.json({ error: 'Source not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(source);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch source' }, { status: 500 });
+  }
+}
+
+// PATCH /api/admin/ics-sources/[id] - обновить источник
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    const data = await request.json();
+    
+    // Обновляем только переданные поля
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    if (data.is_active !== undefined) {
+      updates.push('is_active = ?');
+      values.push(data.is_active ? 1 : 0);
+    }
+
+    if (data.ics_url !== undefined) {
+      updates.push('ics_url = ?');
+      values.push(data.ics_url);
+    }
+
+    if (data.source_name !== undefined) {
+      updates.push('source_name = ?');
+      values.push(data.source_name);
+    }
+
+    if (updates.length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    
+    const query = `UPDATE ics_sources SET ${updates.join(', ')} WHERE id = ?`;
+    values.push(id);
+
+    db.prepare(query).run(...values);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update ICS source' }, { status: 500 });
+  }
+}
+
+// DELETE /api/admin/ics-sources/[id] - удалить источник
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    db.prepare('DELETE FROM ics_sources WHERE id = ?').run(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete source' }, { status: 500 });
+  }
+}

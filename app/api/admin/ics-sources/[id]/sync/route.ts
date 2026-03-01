@@ -5,13 +5,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> } // 👈 Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now();
-  const { id } = await params; // 👈 await
+  const { id } = await params;
 
   try {
-    // Получаем источник
     const source = db.prepare(`
       SELECT * FROM ics_sources WHERE id = ?
     `).get(id) as any;
@@ -20,7 +19,6 @@ export async function POST(
       return NextResponse.json({ error: 'Source not found' }, { status: 404 });
     }
 
-    // Синхронизируем
     const result = await fetchAndParseICS(
       id,
       source.ics_url,
@@ -28,7 +26,6 @@ export async function POST(
       source.source_name
     );
 
-    // Обновляем статус
     db.prepare(`
       UPDATE ics_sources 
       SET last_sync = CURRENT_TIMESTAMP, 
@@ -38,7 +35,6 @@ export async function POST(
       WHERE id = ?
     `).run('success', null, id);
 
-    // Логируем
     db.prepare(`
       INSERT INTO sync_logs (id, source_name, apartment_id, action, status, events_count, duration_ms)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -54,7 +50,6 @@ export async function POST(
 
     return NextResponse.json({ success: true, count: result.count });
   } catch (error: any) {
-    // Логируем ошибку
     db.prepare(`
       UPDATE ics_sources 
       SET sync_status = ?, error_message = ?
