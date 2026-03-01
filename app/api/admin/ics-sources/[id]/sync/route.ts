@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { fetchAndParseICS } from '@/lib/ics-parser';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // 👈 Promise
 ) {
   const startTime = Date.now();
+  const { id } = await params; // 👈 await
 
   try {
-    const { id } = params;
-
     // Получаем источник
     const source = db.prepare(`
       SELECT * FROM ics_sources WHERE id = ?
@@ -43,7 +43,7 @@ export async function POST(
       INSERT INTO sync_logs (id, source_name, apartment_id, action, status, events_count, duration_ms)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-      require('uuid').v4(),
+      uuidv4(),
       source.source_name,
       source.apartment_id,
       'import',
@@ -59,13 +59,13 @@ export async function POST(
       UPDATE ics_sources 
       SET sync_status = ?, error_message = ?
       WHERE id = ?
-    `).run('error', error.message, params.id);
+    `).run('error', error.message, id);
 
     db.prepare(`
       INSERT INTO sync_logs (id, source_name, action, status, error_message, duration_ms)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(
-      require('uuid').v4(),
+      uuidv4(),
       'unknown',
       'import',
       'error',

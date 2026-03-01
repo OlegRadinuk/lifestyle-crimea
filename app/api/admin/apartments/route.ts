@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
-// GET /api/admin/apartments
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const simple = searchParams.get('simple') === 'true';
@@ -27,7 +26,6 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/admin/apartments
 export async function POST(request: Request) {
   try {
     const data = await request.json();

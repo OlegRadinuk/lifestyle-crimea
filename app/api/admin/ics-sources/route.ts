@@ -48,11 +48,11 @@ export async function POST(request: Request) {
 // PATCH /api/admin/ics-sources/[id]
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // 👈 Promise
 ) {
   try {
     const data = await request.json();
-    const { id } = params;
+    const { id } = await params; // 👈 await
 
     const stmt = db.prepare(`
       UPDATE ics_sources 

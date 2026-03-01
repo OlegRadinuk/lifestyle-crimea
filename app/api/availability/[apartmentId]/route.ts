@@ -1,58 +1,56 @@
-// app/api/availability/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { bookingService, externalBookingService } from '@/lib/db';
-import type { BlockedDate } from '@/lib/types';
+import { db } from '@/lib/db';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ apartmentId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  
   try {
-    const { apartmentId } = await params;
-    const { searchParams } = new URL(request.url);
-    const checkIn = searchParams.get('checkIn');
-    const checkOut = searchParams.get('checkOut');
+    const apartment = db.prepare(`
+      SELECT * FROM apartments WHERE id = ?
+    `).get(id);
 
-    if (checkIn && checkOut) {
-      const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
-      
-      console.log(`📅 API Проверка: ${apartmentId} ${checkIn}–${checkOut} = ${isAvailable ? '✅ свободно' : '❌ занято'}`);
-      
-      return NextResponse.json({ 
-        apartmentId, 
-        checkIn, 
-        checkOut, 
-        isAvailable 
-      });
+    if (!apartment) {
+      return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
 
-    // Получаем заблокированные даты
-    const externalBlocked = externalBookingService.getBlockedDates(apartmentId);
-    const dbBookings = bookingService.getBookingsByApartment(apartmentId);
-    
-    const bookingBlocked: BlockedDate[] = dbBookings.map(booking => ({
-      start: booking.check_in,
-      end: booking.check_out,
-      source: 'booking'
-    }));
-
-    const allBlockedDates = [...externalBlocked, ...bookingBlocked];
-    
-    console.log(`📅 API Календарь: ${apartmentId} — ${allBlockedDates.length} заблокированных диапазонов`);
-    allBlockedDates.forEach(b => {
-      console.log(`   📅 ${b.start} – ${b.end} (${b.source})`);
-    });
-
-    return NextResponse.json({ 
-      apartmentId, 
-      blockedDates: allBlockedDates 
-    });
-    
+    return NextResponse.json(apartment);
   } catch (error) {
-    console.error('Error checking availability:', error);
-    return NextResponse.json(
-      { error: 'Failed to check availability' }, 
-      { status: 500 }
+    return NextResponse.json({ error: 'Failed to fetch apartment' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    const data = await request.json();
+    
+    const stmt = db.prepare(`
+      UPDATE apartments 
+      SET title = ?, max_guests = ?, price_base = ?, 
+          description = ?, short_description = ?, area = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(
+      data.title,
+      data.max_guests,
+      data.price_base,
+      data.description || null,
+      data.short_description || null,
+      data.area || null,
+      id
     );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update apartment' }, { status: 500 });
   }
 }
