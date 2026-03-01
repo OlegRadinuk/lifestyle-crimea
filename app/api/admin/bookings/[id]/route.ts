@@ -69,28 +69,8 @@ export async function PATCH(
 
     db.prepare(query).run(...values);
 
-    // Логируем изменение
-    db.prepare(`
-      INSERT INTO booking_history (id, booking_id, action, new_value, created_by)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(uuidv4(), id, 'update', JSON.stringify(data), 'admin');
-
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  
-  try {
-    db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete booking' }, { status: 500 });
   }
 }
