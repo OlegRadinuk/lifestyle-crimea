@@ -3,13 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Apartment } from '@/lib/types';
+import { ApartmentClient } from '@/lib/types';
 
 interface ApartmentDetailsProps {
-  apartment: Apartment & {
-    features: string[];
-    images: string[];
-  };
+  apartment: ApartmentClient;
 }
 
 export default function ApartmentDetails({ apartment }: ApartmentDetailsProps) {

@@ -7,10 +7,28 @@ export interface Apartment {
   area: number | null;
   price_base: number;
   view: string | null;
-  has_terrace: number;
-  is_active: number;
-  features: string | string[];
-  images: string | string[];
+  has_terrace: number; // 0 или 1 в БД
+  is_active: number; // 0 или 1 в БД
+  features: string | null; // JSON строка в БД
+  images: string | null; // JSON строка в БД
+  created_at: string;
+  updated_at: string;
+}
+
+// Для использования в клиенте
+export interface ApartmentClient {
+  id: string;
+  title: string;
+  short_description: string | null;
+  description: string | null;
+  max_guests: number;
+  area: number | null;
+  price_base: number;
+  view: string | null;
+  has_terrace: boolean; // boolean для клиента
+  is_active: boolean; // boolean для клиента
+  features: string[]; // массив для клиента
+  images: string[]; // массив для клиента
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +53,18 @@ export interface Booking {
   prepaid_status?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Добавляем ExternalBooking
+export interface ExternalBooking {
+  id: string;
+  apartment_id: string;
+  source_name: string;
+  external_id: string | null;
+  check_in: string;
+  check_out: string;
+  raw_data: string | null;
+  imported_at: string;
 }
 
 export interface IcsSource {

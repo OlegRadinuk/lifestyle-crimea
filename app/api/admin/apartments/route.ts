@@ -22,6 +22,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(apartments);
   } catch (error) {
+    console.error('Error fetching apartments:', error);
     return NextResponse.json({ error: 'Failed to fetch apartments' }, { status: 500 });
   }
 }
@@ -29,21 +30,27 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const id = data.id || uuidv4();
+    const id = uuidv4();
 
     const stmt = db.prepare(`
-      INSERT INTO apartments (id, title, max_guests, price_base, description, short_description, area)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO apartments (
+        id, title, short_description, description, max_guests, 
+        area, price_base, view, has_terrace, features, is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
       id,
       data.title,
-      data.max_guests,
-      data.price_base,
-      data.description || null,
       data.short_description || null,
-      data.area || null
+      data.description || null,
+      data.max_guests,
+      data.area || null,
+      data.price_base,
+      data.view || 'sea',
+      data.has_terrace ? 1 : 0,
+      data.features ? JSON.stringify(data.features) : '[]',
+      data.is_active ? 1 : 0
     );
 
     // Генерируем токен для экспорта
@@ -54,6 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
+    console.error('Error creating apartment:', error);
     return NextResponse.json({ error: 'Failed to create apartment' }, { status: 500 });
   }
 }
