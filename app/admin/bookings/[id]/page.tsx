@@ -1,114 +1,122 @@
-import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
-import { db } from '@/lib/db';
-import { revalidatePath } from 'next/cache';
-import './booking-detail.css'; // Создадим отдельный CSS файл
+'use client';
 
-type PageProps = {
-  params: Promise<{ id: string }>;
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+type Booking = {
+  id: string;
+  apartment_title: string;
+  guest_name: string;
+  guest_phone: string;
+  guest_email: string | null;
+  check_in: string;
+  check_out: string;
+  guests_count: number;
+  total_price: number;
+  status: string;
+  prepaid_amount: number;
+  prepaid_status: string;
+  source: string;
+  created_at: string;
+  manager_notes: string | null;
 };
 
-// Server Action для обновления статуса
-async function updateStatus(formData: FormData) {
-  'use server';
-  
-  const id = formData.get('id') as string;
-  const status = formData.get('status') as string;
-  
-  const stmt = db.prepare(`
-    UPDATE bookings 
-    SET status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `);
-  
-  stmt.run(status, id);
-  
-  revalidatePath(`/admin/bookings/${id}`);
-}
+export default function BookingDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState('');
+  const [prepaidAmount, setPrepaidAmount] = useState(0);
 
-// Server Action для обновления предоплаты
-async function updatePrepaid(formData: FormData) {
-  'use server';
-  
-  const id = formData.get('id') as string;
-  const prepaid_amount = Number(formData.get('prepaid_amount'));
-  const total_price = Number(formData.get('total_price'));
-  
-  const prepaid_status = prepaid_amount > 0 
-    ? (prepaid_amount === total_price ? 'full' : 'partial') 
-    : 'none';
-  
-  const stmt = db.prepare(`
-    UPDATE bookings 
-    SET prepaid_amount = ?, prepaid_status = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `);
-  
-  stmt.run(prepaid_amount, prepaid_status, id);
-  
-  revalidatePath(`/admin/bookings/${id}`);
-}
+  useEffect(() => {
+    if (!params?.id) {
+      console.error('No booking ID provided');
+      router.push('/admin/bookings');
+      return;
+    }
+    fetchBooking();
+  }, [params?.id]);
 
-// Server Action для обновления заметок
-async function updateNotes(formData: FormData) {
-  'use server';
-  
-  const id = formData.get('id') as string;
-  const manager_notes = formData.get('notes') as string;
-  
-  const stmt = db.prepare(`
-    UPDATE bookings 
-    SET manager_notes = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `);
-  
-  stmt.run(manager_notes, id);
-  
-  revalidatePath(`/admin/bookings/${id}`);
-}
-
-export default async function BookingPage({ params }: PageProps) {
-  const { id } = await params;
-
-  if (!id) {
-    redirect('/admin/bookings');
-  }
-
-  // Получаем данные брони
-  const booking = db.prepare(`
-    SELECT b.*, a.title as apartment_title 
-    FROM bookings b
-    JOIN apartments a ON b.apartment_id = a.id
-    WHERE b.id = ?
-  `).get(id) as any;
-
-  if (!booking) {
-    notFound();
-  }
-
-  // Преобразуем BigInt в Number
-  const formattedBooking = {
-    id: booking.id,
-    apartment_title: booking.apartment_title,
-    guest_name: booking.guest_name,
-    guest_phone: booking.guest_phone,
-    guest_email: booking.guest_email,
-    check_in: booking.check_in,
-    check_out: booking.check_out,
-    guests_count: booking.guests_count,
-    total_price: Number(booking.total_price),
-    status: booking.status,
-    prepaid_amount: Number(booking.prepaid_amount || 0),
-    prepaid_status: booking.prepaid_status || 'none',
-    source: booking.source,
-    created_at: booking.created_at,
-    manager_notes: booking.manager_notes || '',
+  const fetchBooking = async () => {
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch booking');
+      }
+      const data = await res.json();
+      setBooking(data);
+      setNotes(data.manager_notes || '');
+      setPrepaidAmount(data.prepaid_amount || 0);
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+      router.push('/admin/bookings');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const updateStatus = async (status: string) => {
+    if (!booking) return;
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        setBooking({ ...booking, status });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const updatePrepaid = async () => {
+    if (!booking) return;
+    try {
+      const prepaid_status = prepaidAmount > 0 
+        ? (prepaidAmount === booking.total_price ? 'full' : 'partial') 
+        : 'none';
+      
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prepaid_amount: prepaidAmount, prepaid_status }),
+      });
+      
+      if (res.ok) {
+        setBooking({ ...booking, prepaid_amount: prepaidAmount, prepaid_status });
+      }
+    } catch (error) {
+      console.error('Error updating prepaid:', error);
+    }
+  };
+
+  const saveNotes = async () => {
+    if (!booking) return;
+    try {
+      const res = await fetch(`/api/admin/bookings/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manager_notes: notes }),
+      });
+      
+      if (res.ok) {
+        alert('Заметки сохранены');
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    }
+  };
+
+  if (loading) return <div className="admin-loading">Загрузка...</div>;
+  if (!booking) return <div>Бронь не найдена</div>;
 
   return (
     <div className="admin-page">
       <div className="admin-header">
-        <h1 className="admin-title">Бронь #{formattedBooking.id.slice(0, 8)}</h1>
+        <h1 className="admin-title">Бронь #{booking.id.slice(0, 8)}</h1>
         <Link href="/admin/bookings" className="admin-button">← Назад</Link>
       </div>
 
@@ -116,112 +124,88 @@ export default async function BookingPage({ params }: PageProps) {
         {/* Основная информация */}
         <div className="admin-card">
           <h2>Информация о брони</h2>
-
           <div className="info-row">
             <span className="info-label">Апартамент:</span>
-            <span className="info-value">{formattedBooking.apartment_title}</span>
+            <span className="info-value">{booking.apartment_title}</span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Гость:</span>
-            <span className="info-value">{formattedBooking.guest_name}</span>
+            <span className="info-value">{booking.guest_name}</span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Телефон:</span>
-            <span className="info-value">{formattedBooking.guest_phone}</span>
+            <span className="info-value">{booking.guest_phone}</span>
           </div>
-
-          {formattedBooking.guest_email && (
+          {booking.guest_email && (
             <div className="info-row">
               <span className="info-label">Email:</span>
-              <span className="info-value">{formattedBooking.guest_email}</span>
+              <span className="info-value">{booking.guest_email}</span>
             </div>
           )}
-
           <div className="info-row">
             <span className="info-label">Даты:</span>
             <span className="info-value">
-              {new Date(formattedBooking.check_in).toLocaleDateString()} — {new Date(formattedBooking.check_out).toLocaleDateString()}
+              {new Date(booking.check_in).toLocaleDateString()} — {new Date(booking.check_out).toLocaleDateString()}
             </span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Гостей:</span>
-            <span className="info-value">{formattedBooking.guests_count}</span>
+            <span className="info-value">{booking.guests_count}</span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Сумма:</span>
-            <span className="info-value">{formattedBooking.total_price.toLocaleString()} ₽</span>
+            <span className="info-value">{booking.total_price.toLocaleString()} ₽</span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Источник:</span>
-            <span className="info-value">{formattedBooking.source === 'website' ? 'Сайт' : 'Ручное'}</span>
+            <span className="info-value">{booking.source === 'website' ? 'Сайт' : 'Ручное'}</span>
           </div>
-
           <div className="info-row">
             <span className="info-label">Дата брони:</span>
-            <span className="info-value">{new Date(formattedBooking.created_at).toLocaleString()}</span>
+            <span className="info-value">{new Date(booking.created_at).toLocaleString()}</span>
           </div>
         </div>
 
         {/* Управление статусом */}
         <div className="admin-card">
           <h2>Статус брони</h2>
-
-          <form action={updateStatus} className="status-buttons">
-            <input type="hidden" name="id" value={formattedBooking.id} />
-            
-            <button 
-              type="submit" 
-              name="status" 
-              value="pending"
-              className={`status-btn ${formattedBooking.status === 'pending' ? 'active' : ''}`}
+          <div className="status-buttons">
+            <button
+              className={`status-btn ${booking.status === 'pending' ? 'active' : ''}`}
+              onClick={() => updateStatus('pending')}
             >
               🟡 Ожидает
             </button>
-            
-            <button 
-              type="submit" 
-              name="status" 
-              value="confirmed"
-              className={`status-btn ${formattedBooking.status === 'confirmed' ? 'active' : ''}`}
+            <button
+              className={`status-btn ${booking.status === 'confirmed' ? 'active' : ''}`}
+              onClick={() => updateStatus('confirmed')}
             >
               🟢 Подтверждена
             </button>
-            
-            <button 
-              type="submit" 
-              name="status" 
-              value="cancelled"
-              className={`status-btn ${formattedBooking.status === 'cancelled' ? 'active' : ''}`}
+            <button
+              className={`status-btn ${booking.status === 'cancelled' ? 'active' : ''}`}
+              onClick={() => updateStatus('cancelled')}
             >
               🔴 Отменена
             </button>
-          </form>
+          </div>
 
           <h2 style={{ marginTop: '30px' }}>Предоплата</h2>
-          <form action={updatePrepaid} className="prepaid-section">
-            <input type="hidden" name="id" value={formattedBooking.id} />
-            <input type="hidden" name="total_price" value={formattedBooking.total_price} />
-            
+          <div className="prepaid-section">
             <input
               type="number"
-              name="prepaid_amount"
-              defaultValue={formattedBooking.prepaid_amount}
+              value={prepaidAmount}
+              onChange={(e) => setPrepaidAmount(Number(e.target.value))}
               placeholder="Сумма предоплаты"
             />
-            <button type="submit" className="admin-button primary">
+            <button onClick={updatePrepaid} className="admin-button primary">
               Сохранить
             </button>
-          </form>
-          
+          </div>
           <div className="prepaid-status">
             Статус: {
-              formattedBooking.prepaid_status === 'full' ? '💳 Оплачено полностью' :
-              formattedBooking.prepaid_status === 'partial' ? '💰 Частичная предоплата' :
+              booking.prepaid_status === 'full' ? '💳 Оплачено полностью' :
+              booking.prepaid_status === 'partial' ? '💰 Частичная предоплата' :
               '⏳ Без предоплаты'
             }
           </div>
@@ -230,21 +214,94 @@ export default async function BookingPage({ params }: PageProps) {
         {/* Заметки менеджера */}
         <div className="admin-card full-width">
           <h2>Заметки</h2>
-          <form action={updateNotes}>
-            <input type="hidden" name="id" value={formattedBooking.id} />
-            
-            <textarea
-              name="notes"
-              defaultValue={formattedBooking.manager_notes}
-              rows={5}
-              placeholder="Внутренние заметки по брони..."
-            />
-            <button type="submit" className="admin-button primary" style={{ marginTop: '10px' }}>
-              Сохранить заметки
-            </button>
-          </form>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={5}
+            placeholder="Внутренние заметки по брони..."
+          />
+          <button onClick={saveNotes} className="admin-button primary" style={{ marginTop: '10px' }}>
+            Сохранить заметки
+          </button>
         </div>
       </div>
+
+      <style jsx>{`
+        .booking-detail-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+        .admin-card {
+          background: white;
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .admin-card.full-width {
+          grid-column: span 2;
+        }
+        .admin-card h2 {
+          font-size: 18px;
+          margin-bottom: 20px;
+          color: #1a2634;
+        }
+        .info-row {
+          display: flex;
+          padding: 8px 0;
+          border-bottom: 1px solid #eef2f6;
+        }
+        .info-label {
+          width: 120px;
+          color: #64748b;
+        }
+        .info-value {
+          flex: 1;
+          color: #1e293b;
+          font-weight: 500;
+        }
+        .status-buttons {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .status-btn {
+          flex: 1;
+          padding: 10px;
+          border: 2px solid #e2e8f0;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+        .status-btn.active {
+          border-color: #139ab6;
+          background: #e6f7ff;
+        }
+        .prepaid-section {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .prepaid-section input {
+          flex: 1;
+          padding: 10px;
+          border: 1px solid #d0d9e2;
+          border-radius: 8px;
+        }
+        .prepaid-status {
+          color: #64748b;
+          font-size: 14px;
+        }
+        textarea {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #d0d9e2;
+          border-radius: 8px;
+          font-family: inherit;
+        }
+      `}</style>
     </div>
   );
 }
