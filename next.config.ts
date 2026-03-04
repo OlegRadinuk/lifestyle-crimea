@@ -38,14 +38,24 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Отключаем кэширование для JS чанков в разработке
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
     ];
   },
 
   // ✅ Turbopack конфиг
   turbopack: {},
 
-  // ✅ Webpack конфиг
-  webpack: (config, { isServer }) => {
+  // ✅ Webpack конфиг с версионированием
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -56,6 +66,13 @@ const nextConfig: NextConfig = {
         crypto: false,
       };
     }
+    
+    // Добавляем хеш в имена чанков для инвалидации кэша
+    if (!dev) {
+      config.output.filename = 'static/chunks/[name].[contenthash].js';
+      config.output.chunkFilename = 'static/chunks/[name].[contenthash].js';
+    }
+    
     return config;
   },
 
@@ -65,6 +82,11 @@ const nextConfig: NextConfig = {
       allowedOrigins: ['localhost:3000', 'lovelifestyle.ru'],
       bodySizeLimit: '2mb'
     }
+  },
+
+  // Генерируем уникальный ID для сборки
+  generateBuildId: async () => {
+    return `build-${Date.now()}`;
   },
 
   // Другие полезные настройки

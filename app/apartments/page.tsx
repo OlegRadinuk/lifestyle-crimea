@@ -2,9 +2,10 @@ import { db } from '@/lib/db';
 import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
 
-// ОТКЛЮЧАЕМ статическую генерацию
+// ОТКЛЮЧАЕМ статическую генерацию и кэширование
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 interface ApartmentRow {
   id: string;
@@ -47,5 +48,9 @@ export default async function ApartmentsPage() {
     updated_at: apt.updated_at
   }));
 
-  return <ApartmentsClient initialApartments={formattedApartments} />;
+  // Добавляем timestamp для предотвращения кэширования
+  return <ApartmentsClient 
+    initialApartments={formattedApartments} 
+    key={Date.now()} // Это заставит клиентский компонент пересоздаться при изменении данных
+  />;
 }

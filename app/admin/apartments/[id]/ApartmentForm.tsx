@@ -45,6 +45,14 @@ export default function ApartmentForm({ apartment }: { apartment: Apartment }) {
     formData.delete('features[]');
     features.forEach(f => formData.append('features[]', f));
 
+    // Преобразуем чекбоксы в понятные значения
+    if (formData.get('has_terrace') === null) {
+      formData.append('has_terrace', 'false');
+    }
+    if (formData.get('is_active') === null) {
+      formData.append('is_active', 'false');
+    }
+
     try {
       const response = await fetch(`/api/admin/apartments/${apartment.id}`, {
         method: 'PATCH',
@@ -187,7 +195,7 @@ export default function ApartmentForm({ apartment }: { apartment: Apartment }) {
               value={newFeature}
               onChange={(e) => setNewFeature(e.target.value)}
               placeholder="Новая особенность"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
             />
             <button type="button" onClick={addFeature} className="admin-button">
               Добавить
@@ -201,123 +209,6 @@ export default function ApartmentForm({ apartment }: { apartment: Apartment }) {
           {saving ? 'Сохранение...' : 'Сохранить изменения'}
         </button>
       </div>
-
-      <style jsx>{`
-        .admin-form {
-          background: white;
-          border-radius: 12px;
-          padding: 30px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .success-message {
-          background: #d4edda;
-          color: #155724;
-          padding: 12px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          border: 1px solid #c3e6cb;
-        }
-        .form-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-        .form-group.full-width {
-          grid-column: span 2;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: 500;
-          color: #1a2634;
-        }
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group select,
-        .form-group textarea {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-size: 14px;
-        }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #139ab6;
-        }
-        .checkbox-group {
-          display: flex;
-          align-items: center;
-        }
-        .checkbox-group label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-        .features-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 15px;
-          min-height: 40px;
-        }
-        .feature-item {
-          background: #e6f7ff;
-          border: 1px solid #139ab6;
-          border-radius: 20px;
-          padding: 5px 12px;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .remove-feature {
-          background: none;
-          border: none;
-          color: #999;
-          cursor: pointer;
-          font-size: 14px;
-          padding: 0 4px;
-        }
-        .remove-feature:hover {
-          color: #c62828;
-        }
-        .add-feature {
-          display: flex;
-          gap: 10px;
-        }
-        .add-feature input {
-          flex: 1;
-          padding: 8px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-        }
-        .form-actions {
-          margin-top: 30px;
-          display: flex;
-          justify-content: flex-end;
-        }
-        .admin-button {
-          padding: 10px 20px;
-          border-radius: 8px;
-          font-size: 14px;
-          cursor: pointer;
-          border: none;
-        }
-        .admin-button.primary {
-          background: #139ab6;
-          color: white;
-        }
-        .admin-button.primary:hover:not(:disabled) {
-          background: #0f7a91;
-        }
-        .admin-button.primary:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      `}</style>
     </form>
   );
 }

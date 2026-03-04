@@ -6,16 +6,22 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 interface BookingDetailsProps {
-  booking: any; // Временно используем any
+  booking: any; // Пока оставим any, но позже нужно типизировать
 }
 
 export default function BookingDetails({ booking }: BookingDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState(booking.manager_notes || '');
-  const [prepaidAmount, setPrepaidAmount] = useState(booking.prepaid_amount || 0);
-  const [prepaidStatus, setPrepaidStatus] = useState(booking.prepaid_status || 'not_required');
+  // Добавляем проверку на существование поля
+  const [notes, setNotes] = useState(booking?.manager_notes || '');
+  const [prepaidAmount, setPrepaidAmount] = useState(booking?.prepaid_amount || 0);
+  const [prepaidStatus, setPrepaidStatus] = useState(booking?.prepaid_status || 'not_required');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Если booking не определен, показываем загрузку или ошибку
+  if (!booking) {
+    return <div>Бронь не найдена</div>;
+  }
 
   const formatDate = (dateStr: string) => {
     try {
@@ -75,7 +81,7 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
     <div className="admin-page">
       <div className="admin-header">
         <h1 className="admin-title">
-          Бронь #{booking.id.slice(0, 8)}
+          Бронь #{booking.id?.slice(0, 8) || 'N/A'}
           <span className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
             {booking.status === 'confirmed' ? 'Подтверждено' : 
              booking.status === 'cancelled' ? 'Отменено' : 

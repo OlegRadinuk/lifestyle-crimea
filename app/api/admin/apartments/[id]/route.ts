@@ -10,6 +10,12 @@ export async function PATCH(
   try {
     const formData = await request.formData();
     
+    // Сначала проверяем, существует ли запись
+    const exists = db.prepare('SELECT id FROM apartments WHERE id = ?').get(id);
+    if (!exists) {
+      return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
+    }
+    
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -24,19 +30,29 @@ export async function PATCH(
         updates.push(`${field} = ?`);
         
         if (field === 'has_terrace' || field === 'is_active') {
-          values.push(value === 'on' ? 1 : 0);
+          // Для чекбоксов: если value === 'on' или true
+          values.push(value === 'on' || value === 'true' ? 1 : 0);
         } else if (field === 'max_guests' || field === 'area' || field === 'price_base') {
-          values.push(Number(value));
+          // Для числовых полей
+          const numValue = Number(value);
+          values.push(isNaN(numValue) ? null : numValue);
         } else {
-          values.push(value);
+          // Приводим к строке, так как это текстовые поля
+          values.push(value.toString());
         }
       }
     });
 
     // Особенности (features) приходят как массив
     const features = formData.getAll('features[]');
-    updates.push('features = ?');
-    values.push(JSON.stringify(features));
+    if (features.length > 0) {
+      updates.push('features = ?');
+      // Фильтруем пустые строки и приводим каждый элемент к строке
+      const validFeatures = features
+        .map(f => f.toString())
+        .filter(f => f.trim() !== '');
+      values.push(JSON.stringify(validFeatures));
+    }
 
     // Изображения (пока заглушка)
     updates.push('images = ?');
@@ -45,12 +61,19 @@ export async function PATCH(
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
 
+    if (updates.length === 1) { // Только updated_at
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    }
+
     const query = `UPDATE apartments SET ${updates.join(', ')} WHERE id = ?`;
     db.prepare(query).run(...values);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating apartment:', error);
-    return NextResponse.json({ error: 'Failed to update apartment' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to update apartment',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
