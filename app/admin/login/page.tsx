@@ -10,6 +10,7 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Простая проверка (потом заменишь на нормальную)
     if (password === 'admin123') {
       localStorage.setItem('admin_auth', 'true');
       router.push('/admin');
@@ -19,18 +20,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit}>
-        <h1>Вход в админку</h1>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Пароль"
-        />
-        {error && <div className="error">{error}</div>}
-        <button type="submit">Войти</button>
-      </form>
+    <div className="admin-login">
+      <div className="login-card">
+        <h1>Вход в админ-панель</h1>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <div className="error">{error}</div>}
+          <button type="submit">Войти</button>
+        </form>
+      </div>
     </div>
   );
 }

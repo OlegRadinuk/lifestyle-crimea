@@ -19,7 +19,13 @@ export async function GET() {
     stats.confirmedBookings = (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('confirmed') as any)?.count || 0;
     stats.pendingBookings = (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('pending') as any)?.count || 0;
     stats.cancelledBookings = (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('cancelled') as any)?.count || 0;
-    stats.upcomingBookings = (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE check_in > date("now") AND status = "confirmed"').get() as any)?.count || 0;
+    
+    // ✅ ИСПРАВЛЕНО: date('now') в одинарных кавычках
+    stats.upcomingBookings = (db.prepare(`
+      SELECT COUNT(*) as count FROM bookings 
+      WHERE check_in > date('now') AND status = 'confirmed'
+    `).get() as any)?.count || 0;
+    
     stats.totalRevenue = (db.prepare('SELECT SUM(total_price) as sum FROM bookings WHERE status = "confirmed"').get() as any)?.sum || 0;
     stats.apartmentsCount = (db.prepare('SELECT COUNT(*) as count FROM apartments').get() as any)?.count || 0;
     stats.activeSources = (db.prepare('SELECT COUNT(*) as count FROM ics_sources WHERE is_active = 1').get() as any)?.count || 0;

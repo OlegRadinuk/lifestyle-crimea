@@ -5451,7 +5451,11 @@ a {
   }
 }
 
-/* ===== ADMIN LAYOUT ===== */
+/* =========================================
+   ADMIN PANEL STYLES
+   ========================================= */
+
+/* ----- Layout ----- */
 .admin-layout {
   display: flex;
   min-height: 100vh;
@@ -5494,6 +5498,9 @@ a {
   height: 24px;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-nav {
@@ -5511,6 +5518,11 @@ a {
   text-decoration: none;
   transition: all 0.2s;
   margin-bottom: 4px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
 }
 
 .admin-nav-item:hover {
@@ -5534,7 +5546,6 @@ a {
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
-/* ===== MAIN CONTENT ===== */
 .admin-main {
   flex: 1;
   padding: 30px;
@@ -5546,19 +5557,23 @@ a {
   margin: 0 auto;
 }
 
-/* ===== COMMON ===== */
-.admin-title {
-  font-size: 28px;
-  font-weight: 500;
-  color: #1a2634;
-  margin-bottom: 24px;
+/* ----- Common Pages ----- */
+.admin-page {
+  padding: 20px;
 }
 
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+}
+
+.admin-title {
+  font-size: 28px;
+  font-weight: 500;
+  color: #1a2634;
+  margin: 0;
 }
 
 .admin-button {
@@ -5569,9 +5584,13 @@ a {
   color: #1a2634;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
   text-decoration: none;
   display: inline-block;
+  transition: all 0.2s;
+}
+
+.admin-button:hover {
+  background: #f0f3f7;
 }
 
 .admin-button.primary {
@@ -5599,7 +5618,12 @@ a {
   background: #ffcdd2;
 }
 
-/* ===== TABLES ===== */
+.admin-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ----- Tables ----- */
 .admin-table-container {
   background: #fff;
   border-radius: 12px;
@@ -5638,7 +5662,7 @@ a {
   flex-wrap: wrap;
 }
 
-/* ===== STATUS BADGES ===== */
+/* ----- Status Badges ----- */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -5672,90 +5696,40 @@ a {
   color: #c62828;
 }
 
-.sync-status {
-  font-size: 11px;
-  color: #666;
-}
-
-.sync-success {
-  color: #2e7d32;
-}
-
-.sync-error {
-  color: #c62828;
-}
-
-/* ===== STATS CARDS ===== */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background: #fff;
+/* ----- Forms ----- */
+.admin-form {
+  background: white;
   border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  padding: 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.stat-icon {
-  font-size: 32px;
-  width: 60px;
-  height: 60px;
-  background: #f0f9ff;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a2634;
-  line-height: 1.2;
-}
-
-.stat-label {
-  color: #64748b;
-  font-size: 14px;
-}
-
-/* ===== FORMS ===== */
-.admin-form-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  max-width: 800px;
 }
 
 .form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #1e293b;
-  font-size: 14px;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.form-group input,
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #1a2634;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="password"],
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px;
   border: 1px solid #d0d9e2;
   border-radius: 8px;
   font-size: 14px;
@@ -5769,75 +5743,20 @@ a {
   border-color: #139ab6;
 }
 
-.form-actions {
+.form-group.checkbox {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-/* ===== LOADING ===== */
-.admin-loading {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 400px;
-  font-size: 16px;
-  color: #64748b;
 }
 
-/* ===== DASHBOARD SECTIONS ===== */
-.dashboard-sections {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+.form-group.checkbox input {
+  margin-right: 8px;
 }
 
-.dashboard-section {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.form-actions {
+  margin-top: 30px;
 }
 
-.dashboard-section h2 {
-  font-size: 18px;
-  margin-bottom: 16px;
-  color: #1e293b;
-}
-
-.section-link {
-  float: right;
-  color: #139ab6;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .admin-sidebar {
-    width: 60px;
-  }
-  
-  .admin-main {
-    padding: 20px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dashboard-sections {
-    grid-template-columns: 1fr;
-  }
-  
-  .admin-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-
-/* ===== ADMIN LOGIN ===== */
+/* ----- Login ----- */
 .admin-login {
   min-height: 100vh;
   display: flex;
@@ -5899,39 +5818,326 @@ a {
   text-align: center;
 }
 
-/* Добавить в globals.css */
-
-/* Когда сайдбар свернут */
-.admin-sidebar.collapsed .admin-nav-item {
-  justify-content: center;
-  padding: 12px 0;
+/* ----- Dashboard ----- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.admin-sidebar.collapsed .admin-nav-icon {
-  margin: 0;
-  font-size: 20px;
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.admin-sidebar.collapsed .admin-sidebar-header {
-  justify-content: center;
-  padding: 20px 0;
-}
-
-.admin-sidebar.collapsed .admin-sidebar-toggle {
-  position: absolute;
-  right: -12px;
-  background: #139ab6;
-  border: 2px solid #fff;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+.stat-icon {
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  background: #f0f9ff;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  z-index: 10;
 }
 
-.admin-sidebar.collapsed .admin-sidebar-header {
-  position: relative;
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a2634;
+  line-height: 1.2;
+}
+
+.stat-label {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.dashboard-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.dashboard-section h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.section-link {
+  float: right;
+  color: #139ab6;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* ----- Booking Details ----- */
+.booking-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.admin-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.admin-card.full-width {
+  grid-column: span 2;
+}
+
+.admin-card h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #1a2634;
+}
+
+.info-row {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.info-label {
+  width: 120px;
+  color: #64748b;
+}
+
+.info-value {
+  flex: 1;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.status-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.status-btn.active {
+  border-color: #139ab6;
+  background: #e6f7ff;
+}
+
+.prepaid-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.prepaid-section input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d0d9e2;
+  border-radius: 8px;
+}
+
+.prepaid-status {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ----- Apartment Form ----- */
+.features-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  min-height: 40px;
+}
+
+.feature-item {
+  background: #e6f7ff;
+  border: 1px solid #139ab6;
+  border-radius: 20px;
+  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remove-feature {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+.remove-feature:hover {
+  color: #c62828;
+}
+
+.add-feature {
+  display: flex;
+  gap: 10px;
+}
+
+.add-feature input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #d0d9e2;
+  border-radius: 8px;
+}
+
+/* ----- Calendar ----- */
+.calendar-container {
+  padding: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 20px;
+}
+
+.legend-item {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.legend-item.confirmed {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.legend-item.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.legend-item.cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.calendar-wrapper {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.event-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.event-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.event-modal-content h3 {
+  margin-bottom: 20px;
+  color: #1a2634;
+}
+
+.event-modal-content p {
+  margin: 10px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ----- Loading ----- */
+.admin-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 60px;
+  }
+  
+  .admin-main {
+    padding: 20px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .booking-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-card.full-width {
+    grid-column: span 1;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
