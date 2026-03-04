@@ -2,25 +2,6 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
-type RawBooking = {
-  id: string;
-  apartment_id: string;
-  guest_name: string | null;
-  guest_phone: string | null;
-  guest_email: string | null;
-  check_in: string;
-  check_out: string;
-  guests_count: number;
-  total_price: number;
-  status: string;
-  prepaid_amount: number | null;
-  prepaid_status: string | null;
-  source: string;
-  manager_notes: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -31,9 +12,9 @@ export async function GET(
     const booking = db.prepare(`
       SELECT b.*, a.title as apartment_title 
       FROM bookings b
-      JOIN apartments a ON b.apartment_id = a.id
+      LEFT JOIN apartments a ON b.apartment_id = a.id
       WHERE b.id = ?
-    `).get(id) as RawBooking | undefined;
+    `).get(id);
 
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
@@ -55,38 +36,28 @@ export async function PATCH(
   try {
     const data = await request.json();
     
+    // Проверяем существование брони
+    const exists = db.prepare('SELECT id FROM bookings WHERE id = ?').get(id);
+    if (!exists) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    
     const updates: string[] = [];
     const values: any[] = [];
 
-    if (data.status) {
-      updates.push('status = ?');
-      values.push(data.status);
-    }
+    // Разрешенные поля для обновления
+    const allowedFields = [
+      'status', 'check_in', 'check_out', 'guests_count',
+      'total_price', 'guest_name', 'guest_phone', 'guest_email',
+      'prepaid_amount', 'prepaid_status', 'manager_notes'
+    ];
 
-    if (data.check_in) {
-      updates.push('check_in = ?');
-      values.push(data.check_in);
-    }
-
-    if (data.check_out) {
-      updates.push('check_out = ?');
-      values.push(data.check_out);
-    }
-
-    if (data.prepaid_amount !== undefined) {
-      updates.push('prepaid_amount = ?');
-      values.push(data.prepaid_amount);
-    }
-
-    if (data.prepaid_status) {
-      updates.push('prepaid_status = ?');
-      values.push(data.prepaid_status);
-    }
-
-    if (data.manager_notes !== undefined) {
-      updates.push('manager_notes = ?');
-      values.push(data.manager_notes);
-    }
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(data[field]);
+      }
+    });
 
     if (updates.length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
@@ -99,10 +70,14 @@ export async function PATCH(
     db.prepare(query).run(...values);
 
     // Логируем изменение
-    db.prepare(`
-      INSERT INTO booking_history (id, booking_id, action, new_value, created_by)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(uuidv4(), id, 'update', JSON.stringify(data), 'admin');
+    try {
+      db.prepare(`
+        INSERT INTO booking_history (id, booking_id, action, new_value, created_by)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(uuidv4(), id, 'update', JSON.stringify(data), 'admin');
+    } catch (e) {
+      // Игнорируем ошибку, если таблицы нет
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -118,7 +93,12 @@ export async function DELETE(
   const { id } = await params;
   
   try {
-    db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
+    const result = db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
+    
+    if (result.changes === 0) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting booking:', error);
