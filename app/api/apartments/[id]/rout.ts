@@ -16,6 +16,28 @@ export async function GET(
       return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
 
+    // Проверяем, есть ли поле panorama_image, если нет - используем заглушку
+    const panoramaImage = apartment.panorama_image || null;
+
+    // Получаем изображения апартамента из отдельной таблицы (если есть)
+    let images = [];
+    try {
+      images = db.prepare(`
+        SELECT url FROM apartment_images 
+        WHERE apartment_id = ? 
+        ORDER BY sort_order
+      `).all(id).map((img: any) => img.url);
+    } catch (e) {
+      // Если таблицы нет или ошибка, используем images из JSON поля
+      if (apartment.images) {
+        try {
+          images = JSON.parse(apartment.images);
+        } catch (e) {
+          images = [];
+        }
+      }
+    }
+
     // Преобразуем JSON поля
     const formatted = {
       id: apartment.id,
@@ -24,11 +46,12 @@ export async function GET(
       description: apartment.description,
       max_guests: apartment.max_guests,
       area: apartment.area,
-      price_base: apartment.price_base,
+      price_base: Number(apartment.price_base),
       view: apartment.view,
       has_terrace: Boolean(apartment.has_terrace),
       features: apartment.features ? JSON.parse(apartment.features) : [],
-      images: apartment.images ? JSON.parse(apartment.images) : [],
+      images: images,
+      panorama_image: panoramaImage, // Добавляем поле для панорамы
       is_active: Boolean(apartment.is_active),
     };
 

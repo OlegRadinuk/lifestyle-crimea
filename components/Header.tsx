@@ -221,7 +221,9 @@ export default function Header({ onBurgerClick }: Props) {
                 onClick={() => setCalendarOpen(prev => !prev)}
               >
                 <span className="header__booking-label">Проверить доступность</span>
-                <span className="header__booking-apartment">{currentApartment.title}</span>
+                <span className="header__booking-apartment">
+                  {currentApartment.title.replace(/^LS\s*/i, '')}
+                </span>
               </button>
 
               <AnimatePresence>

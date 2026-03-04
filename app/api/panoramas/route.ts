@@ -3,27 +3,38 @@ import { db } from '@/lib/db';
 
 export async function GET() {
   try {
+    // Получаем апартаменты, у которых есть панорама
+    // Предполагаем, что в таблице apartments есть поле panorama_image
     const apartments = db.prepare(`
-      SELECT id, title, max_guests, area, has_terrace, features 
+      SELECT id, title, panorama_image, max_guests
       FROM apartments 
-      WHERE is_active = 1
-      ORDER BY price_base ASC
-    `).all() as any[];
+      WHERE is_active = 1 AND panorama_image IS NOT NULL AND panorama_image != ''
+      ORDER BY sort_order
+    `).all();
 
-    const panoramas = apartments.map(apt => {
-      const features = apt.features ? JSON.parse(apt.features) : [];
-      
+    // Если нет апартаментов с панорамами, возвращаем пустой массив
+    if (!apartments || apartments.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Форматируем данные для панорамы
+    const panoramas = apartments.map((apt: any) => {
+      // Формируем путь к изображению панорамы
+      const imagePath = apt.panorama_image.startsWith('/') 
+        ? apt.panorama_image 
+        : `/panoramas/${apt.panorama_image}`;
+
       return {
         id: apt.id,
         title: apt.title,
-        image: `/panoramas/${apt.id}.webp`,
+        image: imagePath,
         maxGuests: apt.max_guests,
+        // Мета-информация для отображения
         meta: [
           `До ${apt.max_guests} гостей`,
-          apt.area ? `${apt.area} м²` : null,
-          ...features.slice(0, 2),
-          apt.has_terrace ? 'Терраса' : null,
-        ].filter(Boolean),
+          'Вид на море',
+          'Премиум класс'
+        ]
       };
     });
 

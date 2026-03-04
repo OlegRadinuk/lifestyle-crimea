@@ -548,13 +548,24 @@ export default function PanoramaViewer() {
      LOADING STATE
   =============================== */
 
-  if (panoramasLoading || panoramas.length === 0) {
+  if (panoramasLoading) {
     return (
       <div className="panorama-section panorama-loading">
         <div className="panorama-loader">
           <span />
           <span />
           <span />
+          <p style={{ marginLeft: '12px', color: '#fff', fontSize: '14px' }}>Загрузка панорам...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (panoramas.length === 0) {
+    return (
+      <div className="panorama-section panorama-loading">
+        <div className="panorama-loader">
+          <p style={{ color: '#fff', fontSize: '14px' }}>Нет доступных панорам</p>
         </div>
       </div>
     );
@@ -593,6 +604,7 @@ export default function PanoramaViewer() {
       {transitioning && (
         <div className="panorama-loading-overlay light">
           <div className="panorama-loading-content">
+            <div className="panorama-loading-spinner" />
             <p className="panorama-loading-title">
               Загружаем панораму...
             </p>
@@ -624,8 +636,8 @@ export default function PanoramaViewer() {
           </p>
 
           <ul className="panorama-info-meta">
-            {panoramas[currentApartmentIndex]?.meta?.map(item => (
-              <li key={item}>{item}</li>
+            {panoramas[currentApartmentIndex]?.meta?.map((item: string, i: number) => (
+              <li key={i}>{item}</li>
             ))}
           </ul>
 
@@ -644,11 +656,18 @@ export default function PanoramaViewer() {
                 className="panorama-desktop-btn secondary"
                 onClick={() => {
                   if (!currentApartment) return;
-                  // Загружаем фото апартамента из БД
+                  // Загружаем фото апартамента
                   fetch(`/api/apartments/${currentApartment.id}`)
                     .then(res => res.json())
                     .then(data => {
-                      open(data.images || [], 0);
+                      if (data.images && data.images.length > 0) {
+                        open(data.images, 0);
+                      } else {
+                        alert('Фото временно недоступны');
+                      }
+                    })
+                    .catch(() => {
+                      alert('Ошибка загрузки фото');
                     });
                 }}
               >
@@ -716,7 +735,14 @@ export default function PanoramaViewer() {
                 fetch(`/api/apartments/${currentApartment.id}`)
                   .then(res => res.json())
                   .then(data => {
-                    open(data.images || [], 0);
+                    if (data.images && data.images.length > 0) {
+                      open(data.images, 0);
+                    } else {
+                      alert('Фото временно недоступны');
+                    }
+                  })
+                  .catch(() => {
+                    alert('Ошибка загрузки фото');
                   });
               }}
             >
