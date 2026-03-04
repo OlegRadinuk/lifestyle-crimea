@@ -2,6 +2,10 @@ import { db } from '@/lib/db';
 import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
 
+// ОТКЛЮЧАЕМ статическую генерацию
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ApartmentRow {
   id: string;
   title: string;
@@ -25,7 +29,7 @@ export default async function ApartmentsPage() {
     SELECT * FROM apartments WHERE is_active = 1 ORDER BY price_base ASC
   `).all() as ApartmentRow[];
 
-  // Преобразуем JSON строки в массивы и приводим к типу ApartmentClient
+  // Преобразуем JSON строки в массивы
   const formattedApartments: ApartmentClient[] = apartments.map(apt => ({
     id: apt.id,
     title: apt.title,
