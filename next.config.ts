@@ -38,13 +38,12 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Отключаем кэширование для JS чанков в разработке
       {
         source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -54,8 +53,8 @@ const nextConfig: NextConfig = {
   // ✅ Turbopack конфиг
   turbopack: {},
 
-  // ✅ Webpack конфиг с версионированием
-  webpack: (config, { isServer, dev }) => {
+  // ✅ Webpack конфиг
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -66,17 +65,10 @@ const nextConfig: NextConfig = {
         crypto: false,
       };
     }
-    
-    // Добавляем хеш в имена чанков для инвалидации кэша
-    if (!dev) {
-      config.output.filename = 'static/chunks/[name].[contenthash].js';
-      config.output.chunkFilename = 'static/chunks/[name].[contenthash].js';
-    }
-    
     return config;
   },
 
-  // ✅ ОТКЛЮЧАЕМ SERVER ACTIONS (правильный синтаксис для Next.js 16)
+  // ✅ Server Actions
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'lovelifestyle.ru'],
@@ -84,13 +76,9 @@ const nextConfig: NextConfig = {
     }
   },
 
-  // Генерируем уникальный ID для сборки
-  generateBuildId: async () => {
-    return `build-${Date.now()}`;
-  },
-
-  // Другие полезные настройки
-  output: 'standalone',
+  // ✅ УБИРАЕМ STANDALONE
+  // output: 'standalone',  // ← закомментировать или удалить
+  
   poweredByHeader: false,
   reactStrictMode: true,
 };
