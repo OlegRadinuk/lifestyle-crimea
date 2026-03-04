@@ -11,7 +11,6 @@ import { useAvailability } from '@/hooks/useAvailability';
 import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCalendar';
 import BookingModal from '@/components/BookingModal';
 import MobileBookingSheet from '@/components/MobileBookingSheet';
-import { APARTMENTS } from '@/data/apartments';
 
 type Props = {
   onBurgerClick: () => void;
@@ -40,6 +39,7 @@ export default function Header({ onBurgerClick }: Props) {
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [apartmentPrice, setApartmentPrice] = useState(0);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -58,6 +58,24 @@ export default function Header({ onBurgerClick }: Props) {
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
+
+  // Загружаем цену апартамента из БД
+  useEffect(() => {
+    if (!currentApartment?.id) return;
+    
+    const fetchPrice = async () => {
+      try {
+        const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        const data = await res.json();
+        setApartmentPrice(data.price_base || 8000);
+      } catch (error) {
+        console.error('Error fetching apartment price:', error);
+        setApartmentPrice(8000);
+      }
+    };
+
+    fetchPrice();
+  }, [currentApartment?.id]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -98,10 +116,6 @@ export default function Header({ onBurgerClick }: Props) {
     setSearch(data);
     router.push('/apartments');
   };
-
-  const apartmentPrice = currentApartment
-    ? APARTMENTS.find(a => a.id === currentApartment.id)?.priceBase || 8000
-    : 0;
 
   return (
     <>
@@ -177,7 +191,6 @@ export default function Header({ onBurgerClick }: Props) {
                         blockedDates={[]}
                         position="left"
                         onConfirm={(range) => {
-                          // Используем date-fns format для правильного форматирования без часовых поясов
                           setCheckIn(format(range.from, 'yyyy-MM-dd'));
                           setCheckOut(format(range.to, 'yyyy-MM-dd'));
                           setCalendarOpen(false);
@@ -249,7 +262,10 @@ export default function Header({ onBurgerClick }: Props) {
 
       {bookingModalOpen && currentApartment && selectedRange && (
         <BookingModal
-          apartment={currentApartment}
+          apartment={{
+            id: currentApartment.id,
+            title: currentApartment.title,
+          }}
           initialRange={selectedRange}
           initialGuests={guests}
           onClose={() => setBookingModalOpen(false)}

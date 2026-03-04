@@ -1,14 +1,23 @@
 'use client';
 
 import { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { PANORAMAS } from '@/data/panoramas';
+
+type Panorama = {
+  id: string;
+  title: string;
+  image: string;
+  maxGuests: number;
+  meta: string[];
+};
 
 type ApartmentContextType = {
   currentApartmentIndex: number;
   setCurrentApartmentIndex: (i: number) => void;
-  currentApartment: (typeof PANORAMAS)[number] | null;
+  currentApartment: Panorama | null;
   showApartmentBooking: boolean;
   setShowApartmentBooking: (v: boolean) => void;
+  panoramas: Panorama[];
+  loading: boolean;
 };
 
 const ApartmentContext = createContext<ApartmentContextType | null>(null);
@@ -20,10 +29,29 @@ export function ApartmentProvider({
 }) {
   const [currentApartmentIndex, setCurrentApartmentIndex] = useState(0);
   const [showApartmentBooking, setShowApartmentBooking] = useState(false);
+  const [panoramas, setPanoramas] = useState<Panorama[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Загружаем панорамы из БД
+  useEffect(() => {
+    const fetchPanoramas = async () => {
+      try {
+        const res = await fetch('/api/panoramas');
+        const data = await res.json();
+        setPanoramas(data);
+      } catch (error) {
+        console.error('Error loading panoramas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPanoramas();
+  }, []);
 
   const currentApartment = useMemo(
-    () => PANORAMAS[currentApartmentIndex] ?? null,
-    [currentApartmentIndex]
+    () => panoramas[currentApartmentIndex] ?? null,
+    [currentApartmentIndex, panoramas]
   );
 
   return (
@@ -34,6 +62,8 @@ export function ApartmentProvider({
         currentApartment,
         showApartmentBooking,
         setShowApartmentBooking,
+        panoramas,
+        loading,
       }}
     >
       {children}

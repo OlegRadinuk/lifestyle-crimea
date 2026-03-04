@@ -3,15 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "migrate": "node scripts/migrate.js",
-    "postinstall": "npm run migrate",
-    "db:backup": "cp data.sqlite data.sqlite.backup",
-    "db:restore": "cp data.sqlite.backup data.sqlite"
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint",
+  "db:backup": "cp data.sqlite data.sqlite.backup",
+  "db:restore": "cp data.sqlite.backup data.sqlite"
+},
   "dependencies": {
     "@types/react-big-calendar": "^1.16.3",
     "better-sqlite3": "^12.6.2",

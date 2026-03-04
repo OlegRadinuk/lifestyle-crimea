@@ -2,16 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { PANORAMAS } from '@/data/panoramas';
 import { useApartment } from '@/components/ApartmentContext';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
-import { APARTMENTS } from '@/data/apartments';
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import Link from 'next/link';
 
 export default function PanoramaViewer() {
-
   /* ===============================
      REFS
   =============================== */
@@ -22,8 +19,11 @@ export default function PanoramaViewer() {
   const hideUITimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
+    currentApartmentIndex,
     setCurrentApartmentIndex,
-    setShowApartmentBooking,
+    currentApartment,
+    panoramas,
+    loading: panoramasLoading,
   } = useApartment();
 
   const { register, unregister } = useHeader();
@@ -32,7 +32,6 @@ export default function PanoramaViewer() {
      STATE
   =============================== */
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [hintAllowed, setHintAllowed] = useState(true);
   const [isHover, setIsHover] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -62,21 +61,18 @@ export default function PanoramaViewer() {
   const preloadedTextures = useRef<Record<number, THREE.Texture>>({});
 
   const { open } = usePhotoModal();
-  const currentApartment = APARTMENTS.find(
-    ap => ap.id === PANORAMAS[currentIndex].id
-  );
 
   /* ===============================
      HELPERS
   =============================== */
 
-  const prevIndex = (currentIndex - 1 + PANORAMAS.length) % PANORAMAS.length;
-  const nextIndex = (currentIndex + 1) % PANORAMAS.length;
+  const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
+  const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
   const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '');
 
   const changePanorama = (index: number) => {
-    if (index === currentIndex) return;
+    if (index === currentApartmentIndex) return;
     
     // Отменяем предыдущий таймер
     if (transitionTimer.current) {
@@ -93,7 +89,6 @@ export default function PanoramaViewer() {
       setTransitioning(true);
     }, 300);
 
-    setCurrentIndex(index);
     setCurrentApartmentIndex(index);
     
     setHasInteracted(true);
@@ -140,8 +135,6 @@ export default function PanoramaViewer() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowApartmentBooking(entry.isIntersecting);
-
         if (entry.isIntersecting) {
           register(id, { mode: 'apartment', priority: 2 });
         } else {
@@ -156,9 +149,8 @@ export default function PanoramaViewer() {
     return () => {
       observer.disconnect();
       unregister(id);
-      setShowApartmentBooking(false);
     };
-  }, [register, unregister, setShowApartmentBooking]);
+  }, [register, unregister]);
 
   /* ===============================
      БЛОКИРОВКА СКРОЛЛА В FULLSCREEN
@@ -180,10 +172,10 @@ export default function PanoramaViewer() {
   =============================== */
 
   const preloadTexture = (index: number) => {
-    if (preloadedTextures.current[index]) return;
+    if (!panoramas[index] || preloadedTextures.current[index]) return;
 
     const loader = new THREE.TextureLoader();
-    loader.load(PANORAMAS[index].image, texture => {
+    loader.load(panoramas[index].image, texture => {
       texture.colorSpace = THREE.SRGBColorSpace;
       preloadedTextures.current[index] = texture;
     });
@@ -194,7 +186,7 @@ export default function PanoramaViewer() {
   =============================== */
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || panoramas.length === 0) return;
     const container = containerRef.current;
 
     // Очищаем предыдущую сцену если есть
@@ -228,7 +220,7 @@ export default function PanoramaViewer() {
     const loader = new THREE.TextureLoader();
 
     // Предзагружаем все текстуры
-    PANORAMAS.forEach((_, index) => {
+    panoramas.forEach((_, index) => {
       preloadTexture(index);
     });
 
@@ -248,7 +240,7 @@ export default function PanoramaViewer() {
         setLoading(false);
         setTransitioning(false);
       } else {
-        loader.load(PANORAMAS[0].image, texture => {
+        loader.load(panoramas[0].image, texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[0] = texture;
 
@@ -455,14 +447,14 @@ export default function PanoramaViewer() {
         sceneRef.current = null;
       }
     };
-  }, [isMobile, fullscreenMode]);
+  }, [isMobile, fullscreenMode, panoramas]);
 
   /* ===============================
      ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ
   =============================== */
 
   useEffect(() => {
-    if (!sceneRef.current || !currentMeshRef.current) return;
+    if (!sceneRef.current || !currentMeshRef.current || panoramas.length === 0) return;
 
     const geometry = currentMeshRef.current.geometry;
 
@@ -514,7 +506,7 @@ export default function PanoramaViewer() {
           nextMeshRef.current = null;
 
           // Предзагружаем следующую текстуру
-          preloadTexture((currentIndex + 1) % PANORAMAS.length);
+          preloadTexture((currentApartmentIndex + 1) % panoramas.length);
 
           // Убираем оверлей загрузки
           if (transitionTimer.current) {
@@ -530,7 +522,7 @@ export default function PanoramaViewer() {
       fade();
     };
 
-    const cached = preloadedTextures.current[currentIndex];
+    const cached = preloadedTextures.current[currentApartmentIndex];
 
     if (cached) {
       if (transitionTimer.current) {
@@ -541,7 +533,7 @@ export default function PanoramaViewer() {
       applyTexture(cached);
     } else {
       const loader = new THREE.TextureLoader();
-      loader.load(PANORAMAS[currentIndex].image, applyTexture);
+      loader.load(panoramas[currentApartmentIndex].image, applyTexture);
     }
 
     return () => {
@@ -550,7 +542,23 @@ export default function PanoramaViewer() {
         fadeAnimationRef.current = null;
       }
     };
-  }, [currentIndex]);
+  }, [currentApartmentIndex, panoramas]);
+
+  /* ===============================
+     LOADING STATE
+  =============================== */
+
+  if (panoramasLoading || panoramas.length === 0) {
+    return (
+      <div className="panorama-section panorama-loading">
+        <div className="panorama-loader">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
+  }
 
   /* ===============================
      JSX
@@ -600,14 +608,14 @@ export default function PanoramaViewer() {
           className={`panorama-info-inner ${
             effectsActive ? 'animate-in' : ''
           }`}
-          key={`${currentIndex}-${effectsActive}`}
+          key={`${currentApartmentIndex}-${effectsActive}`}
         >
           <span className="panorama-info-eyebrow">
             Lifestyle · Luxury
           </span>
 
           <h2 className="panorama-info-title">
-            {cleanTitle(PANORAMAS[currentIndex].title)}
+            {cleanTitle(panoramas[currentApartmentIndex].title)}
           </h2>
 
           <p className="panorama-info-description">
@@ -616,7 +624,7 @@ export default function PanoramaViewer() {
           </p>
 
           <ul className="panorama-info-meta">
-            {PANORAMAS[currentIndex]?.meta?.map(item => (
+            {panoramas[currentApartmentIndex]?.meta?.map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -635,8 +643,13 @@ export default function PanoramaViewer() {
                 layoutId="photo-modal-desktop"
                 className="panorama-desktop-btn secondary"
                 onClick={() => {
-                  if (!currentApartment) return
-                  open(currentApartment.images, 0)
+                  if (!currentApartment) return;
+                  // Загружаем фото апартамента из БД
+                  fetch(`/api/apartments/${currentApartment.id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                      open(data.images || [], 0);
+                    });
                 }}
               >
                 Смотреть фото
@@ -699,8 +712,12 @@ export default function PanoramaViewer() {
               layoutId="photo-modal"
               className="panorama-action-btn secondary"
               onClick={() => {
-                if (!currentApartment) return
-                open(currentApartment.images, 0)
+                if (!currentApartment) return;
+                fetch(`/api/apartments/${currentApartment.id}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    open(data.images || [], 0);
+                  });
               }}
             >
               Смотреть фото
@@ -718,16 +735,16 @@ export default function PanoramaViewer() {
           >
             <span className="arrow-icon">←</span>
             <span className="arrow-label">
-              {cleanTitle(PANORAMAS[prevIndex].title)}
+              {cleanTitle(panoramas[prevIndex].title)}
             </span>
           </button>
 
           <div className="panorama-center">
             <div className="panorama-tiles">
-              {PANORAMAS.map((_, i) => (
+              {panoramas.map((_, i) => (
                 <span
                   key={i}
-                  className={`tile ${i === currentIndex ? 'active' : ''}`}
+                  className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
                   onClick={() => changePanorama(i)}
                 />
               ))}
@@ -745,7 +762,7 @@ export default function PanoramaViewer() {
             onClick={() => changePanorama(nextIndex)}
           >
             <span className="arrow-label">
-              {cleanTitle(PANORAMAS[nextIndex].title)}
+              {cleanTitle(panoramas[nextIndex].title)}
             </span>
             <span className="arrow-icon">→</span>
           </button>
