@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type Apartment = {
   id: string;
@@ -17,14 +17,10 @@ type Apartment = {
   is_active: boolean;
 };
 
-export default function ApartmentForm({ 
-  apartment, 
-  action 
-}: { 
-  apartment: Apartment; 
-  action: (formData: FormData) => Promise<void>;
-}) {
+export default function ApartmentForm({ apartment }: { apartment: Apartment }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [saving, setSaving] = useState(false);
   const [features, setFeatures] = useState<string[]>(apartment.features || []);
   const [newFeature, setNewFeature] = useState('');
 
@@ -39,8 +35,39 @@ export default function ApartmentForm({
     setFeatures(features.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+
+    const formData = new FormData(e.currentTarget);
+    
+    // Удаляем старые features и добавляем новые
+    formData.delete('features[]');
+    features.forEach(f => formData.append('features[]', f));
+
+    try {
+      const response = await fetch(`/api/admin/apartments/${apartment.id}`, {
+        method: 'PATCH',
+        body: formData,
+      });
+
+      if (response.ok) {
+        router.push(`/admin/apartments/${apartment.id}?success=true`);
+        router.refresh();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Ошибка при сохранении');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('Ошибка при сохранении');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <form action={action} className="admin-form">
+    <form onSubmit={handleSubmit} className="admin-form">
       {searchParams.get('success') && (
         <div className="success-message">✓ Изменения сохранены</div>
       )}
@@ -151,7 +178,6 @@ export default function ApartmentForm({
                 >
                   ✕
                 </button>
-                <input type="hidden" name="features[]" value={feature} />
               </div>
             ))}
           </div>
@@ -171,8 +197,8 @@ export default function ApartmentForm({
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="admin-button primary">
-          Сохранить изменения
+        <button type="submit" className="admin-button primary" disabled={saving}>
+          {saving ? 'Сохранение...' : 'Сохранить изменения'}
         </button>
       </div>
 
@@ -272,6 +298,24 @@ export default function ApartmentForm({
           margin-top: 30px;
           display: flex;
           justify-content: flex-end;
+        }
+        .admin-button {
+          padding: 10px 20px;
+          border-radius: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          border: none;
+        }
+        .admin-button.primary {
+          background: #139ab6;
+          color: white;
+        }
+        .admin-button.primary:hover:not(:disabled) {
+          background: #0f7a91;
+        }
+        .admin-button.primary:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       `}</style>
     </form>

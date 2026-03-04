@@ -41,13 +41,10 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // ❌ УБИРАЕМ swcMinify — он больше не нужен
-  // swcMinify: true,
-
-  // ✅ Turbopack конфиг (пустой, чтобы избежать ошибки)
+  // ✅ Turbopack конфиг
   turbopack: {},
 
-  // ✅ Webpack всё ещё можно использовать, но только на сервере
+  // ✅ Webpack конфиг
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -60,6 +57,14 @@ const nextConfig: NextConfig = {
       };
     }
     return config;
+  },
+
+  // ✅ ОТКЛЮЧАЕМ SERVER ACTIONS (правильный синтаксис для Next.js 16)
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'lovelifestyle.ru'],
+      bodySizeLimit: '2mb'
+    }
   },
 
   // Другие полезные настройки
