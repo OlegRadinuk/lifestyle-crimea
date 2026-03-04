@@ -1,26 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 interface BookingDetailsProps {
-  booking: any; // Пока оставим any, но позже нужно типизировать
+  booking: any;
 }
 
 export default function BookingDetails({ booking }: BookingDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
-  // Добавляем проверку на существование поля
-  const [notes, setNotes] = useState(booking?.manager_notes || '');
-  const [prepaidAmount, setPrepaidAmount] = useState(booking?.prepaid_amount || 0);
-  const [prepaidStatus, setPrepaidStatus] = useState(booking?.prepaid_status || 'not_required');
+  const [notes, setNotes] = useState('');
+  const [prepaidAmount, setPrepaidAmount] = useState(0);
+  const [prepaidStatus, setPrepaidStatus] = useState('not_required');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [currentBooking, setCurrentBooking] = useState(booking);
 
-  // Если booking не определен, показываем загрузку или ошибку
-  if (!booking) {
-    return <div>Бронь не найдена</div>;
+  // Загружаем актуальные данные при монтировании
+  useEffect(() => {
+    fetchBooking();
+  }, []);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentBooking(data);
+        setNotes(data.manager_notes || '');
+        setPrepaidAmount(data.prepaid_amount || 0);
+        setPrepaidStatus(data.prepaid_status || 'not_required');
+      }
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+    }
+  };
+
+  if (!currentBooking) {
+    return <div>Загрузка...</div>;
   }
 
   const formatDate = (dateStr: string) => {
@@ -56,7 +75,7 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
     setMessage(null);
 
     try {
-      const response = await fetch(`/api/admin/bookings/${booking.id}`, {
+      const response = await fetch(`/api/admin/bookings/${currentBooking.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -70,6 +89,7 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
 
       setMessage({ text: 'Сохранено!', type: 'success' });
       setIsEditing(false);
+      await fetchBooking(); // Обновляем данные
     } catch (error) {
       setMessage({ text: 'Ошибка при сохранении', type: 'error' });
     } finally {
@@ -81,11 +101,11 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
     <div className="admin-page">
       <div className="admin-header">
         <h1 className="admin-title">
-          Бронь #{booking.id?.slice(0, 8) || 'N/A'}
-          <span className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
-            {booking.status === 'confirmed' ? 'Подтверждено' : 
-             booking.status === 'cancelled' ? 'Отменено' : 
-             booking.status === 'pending' ? 'Ожидание' : booking.status}
+          Бронь #{currentBooking.id?.slice(0, 8) || 'N/A'}
+          <span className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentBooking.status)}`}>
+            {currentBooking.status === 'confirmed' ? 'Подтверждено' : 
+             currentBooking.status === 'cancelled' ? 'Отменено' : 
+             currentBooking.status === 'pending' ? 'Ожидание' : currentBooking.status}
           </span>
         </h1>
         <div className="flex gap-2">
@@ -113,40 +133,40 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Апартаменты</div>
-                  <div className="font-medium">{booking.apartment_title || 'Не указано'}</div>
+                  <div className="font-medium">{currentBooking.apartment_title || 'Не указано'}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Источник</div>
-                  <div className="font-medium capitalize">{booking.source || 'website'}</div>
+                  <div className="font-medium capitalize">{currentBooking.source || 'website'}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Заезд</div>
-                  <div className="font-medium">{formatDate(booking.check_in)}</div>
+                  <div className="font-medium">{formatDate(currentBooking.check_in)}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Выезд</div>
-                  <div className="font-medium">{formatDate(booking.check_out)}</div>
+                  <div className="font-medium">{formatDate(currentBooking.check_out)}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Гостей</div>
-                  <div className="font-medium">{booking.guests_count} чел.</div>
+                  <div className="font-medium">{currentBooking.guests_count} чел.</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Общая стоимость</div>
-                  <div className="font-medium">{booking.total_price} ₽</div>
+                  <div className="font-medium">{currentBooking.total_price} ₽</div>
                 </div>
               </div>
 
-              {booking.external_id && (
+              {currentBooking.external_id && (
                 <div>
                   <div className="text-sm text-gray-500">ID во внешней системе</div>
-                  <div className="font-mono text-sm">{booking.external_id}</div>
+                  <div className="font-mono text-sm">{currentBooking.external_id}</div>
                 </div>
               )}
             </div>
@@ -158,17 +178,17 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
             <div className="space-y-4">
               <div>
                 <div className="text-sm text-gray-500">Имя</div>
-                <div className="font-medium">{booking.guest_name}</div>
+                <div className="font-medium">{currentBooking.guest_name}</div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Телефон</div>
-                  <div className="font-medium">{booking.guest_phone}</div>
+                  <div className="font-medium">{currentBooking.guest_phone}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Email</div>
-                  <div className="font-medium">{booking.guest_email}</div>
+                  <div className="font-medium">{currentBooking.guest_email}</div>
                 </div>
               </div>
             </div>
@@ -255,15 +275,15 @@ export default function BookingDetails({ booking }: BookingDetailsProps) {
             <div className="space-y-2 text-sm">
               <div>
                 <span className="text-gray-500">Создано:</span>
-                <span className="ml-2">{formatDate(booking.created_at)}</span>
+                <span className="ml-2">{formatDate(currentBooking.created_at)}</span>
               </div>
               <div>
                 <span className="text-gray-500">Обновлено:</span>
-                <span className="ml-2">{formatDate(booking.updated_at)}</span>
+                <span className="ml-2">{formatDate(currentBooking.updated_at)}</span>
               </div>
               <div>
                 <span className="text-gray-500">ID:</span>
-                <span className="ml-2 font-mono text-xs">{booking.id}</span>
+                <span className="ml-2 font-mono text-xs">{currentBooking.id}</span>
               </div>
             </div>
           </div>

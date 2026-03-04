@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "node scripts/migrate.js",
+    "postinstall": "npm run migrate",
+    "db:backup": "cp data.sqlite data.sqlite.backup",
+    "db:restore": "cp data.sqlite.backup data.sqlite"
   },
   "dependencies": {
     "@types/react-big-calendar": "^1.16.3",

@@ -2,7 +2,88 @@
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { BlockedDate, Booking, ExternalBooking, IcsSource, SyncLog } from './types';
+
+// Типы
+export interface Apartment {
+  id: string;
+  title: string;
+  short_description: string | null;
+  description: string | null;
+  max_guests: number;
+  area: number | null;
+  price_base: number;
+  view: string;
+  has_terrace: number;
+  is_active: number;
+  features: string | null;
+  images: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Booking {
+  id: string;
+  apartment_id: string;
+  apartment_title?: string;
+  guest_name: string | null;
+  guest_phone: string | null;
+  guest_email: string | null;
+  check_in: string;
+  check_out: string;
+  guests_count: number;
+  total_price: number;
+  status: string;
+  source: string;
+  external_id: string | null;
+  comment: string | null;
+  manager_notes: string | null;
+  prepaid_amount: number | null;
+  prepaid_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExternalBooking {
+  id: string;
+  apartment_id: string;
+  source_name: string;
+  external_id: string | null;
+  check_in: string;
+  check_out: string;
+  raw_data: string | null;
+  imported_at: string;
+}
+
+export interface IcsSource {
+  id: string;
+  apartment_id: string;
+  source_name: string;
+  ics_url: string;
+  is_active: number;
+  last_sync: string | null;
+  sync_status: string;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SyncLog {
+  id: string;
+  source_name: string;
+  apartment_id: string | null;
+  action: string;
+  status: string;
+  events_count: number;
+  error_message: string | null;
+  duration_ms: number | null;
+  created_at: string;
+}
+
+export interface BlockedDate {
+  start: string;
+  end: string;
+  source: string;
+}
 
 // Путь к базе данных
 const dbPath = path.join(process.cwd(), 'data.sqlite');
@@ -12,149 +93,172 @@ const db = new Database(dbPath);
 db.pragma('foreign_keys = ON');
 db.pragma('journal_mode = WAL');
 
-// Инициализация таблиц
-db.exec(`
-    CREATE TABLE IF NOT EXISTS apartments (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    short_description TEXT,
-    description TEXT,
-    max_guests INTEGER NOT NULL,
-    area INTEGER,
-    price_base INTEGER NOT NULL,
-    view TEXT DEFAULT 'sea',
-    has_terrace INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1,
-    features TEXT,
-    images TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+// Функция для проверки и обновления структуры таблиц
+function ensureDatabaseStructure() {
+  console.log('🔧 Checking database structure...');
 
-  CREATE TABLE IF NOT EXISTS ics_sources (
-    id TEXT PRIMARY KEY,
-    apartment_id TEXT NOT NULL,
-    source_name TEXT NOT NULL,
-    ics_url TEXT NOT NULL,
-    is_active INTEGER DEFAULT 1,
-    last_sync DATETIME,
-    sync_status TEXT DEFAULT 'pending',
-    error_message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE,
-    UNIQUE(apartment_id, source_name)
-  );
+  try {
+    // Создаем таблицы если их нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS apartments (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        short_description TEXT,
+        description TEXT,
+        max_guests INTEGER NOT NULL,
+        area INTEGER,
+        price_base INTEGER NOT NULL,
+        view TEXT DEFAULT 'sea',
+        has_terrace INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        features TEXT DEFAULT '[]',
+        images TEXT DEFAULT '[]',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS bookings (
-    id TEXT PRIMARY KEY,
-    apartment_id TEXT NOT NULL,
-    guest_name TEXT,
-    guest_phone TEXT,
-    guest_email TEXT,
-    check_in DATE NOT NULL,
-    check_out DATE NOT NULL,
-    guests_count INTEGER NOT NULL,
-    total_price INTEGER NOT NULL,
-    status TEXT DEFAULT 'confirmed',
-    source TEXT DEFAULT 'website',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
-  );
+      CREATE TABLE IF NOT EXISTS bookings (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        guest_name TEXT,
+        guest_phone TEXT,
+        guest_email TEXT,
+        check_in DATE NOT NULL,
+        check_out DATE NOT NULL,
+        guests_count INTEGER NOT NULL,
+        total_price INTEGER NOT NULL,
+        status TEXT DEFAULT 'confirmed',
+        source TEXT DEFAULT 'website',
+        external_id TEXT,
+        comment TEXT,
+        manager_notes TEXT,
+        prepaid_amount INTEGER DEFAULT 0,
+        prepaid_status TEXT DEFAULT 'not_required',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
+      );
 
-  CREATE TABLE IF NOT EXISTS external_bookings (
-    id TEXT PRIMARY KEY,
-    apartment_id TEXT NOT NULL,
-    source_name TEXT NOT NULL,
-    external_id TEXT,
-    check_in DATE NOT NULL,
-    check_out DATE NOT NULL,
-    raw_data TEXT,
-    imported_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
-  );
+      CREATE TABLE IF NOT EXISTS ics_sources (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        source_name TEXT NOT NULL,
+        ics_url TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        last_sync DATETIME,
+        sync_status TEXT DEFAULT 'pending',
+        error_message TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE,
+        UNIQUE(apartment_id, source_name)
+      );
 
-  CREATE TABLE IF NOT EXISTS export_tokens (
-    id TEXT PRIMARY KEY,
-    apartment_id TEXT NOT NULL,
-    token TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_accessed DATETIME,
-    FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
-  );
+      CREATE TABLE IF NOT EXISTS external_bookings (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        source_name TEXT NOT NULL,
+        external_id TEXT,
+        check_in DATE NOT NULL,
+        check_out DATE NOT NULL,
+        raw_data TEXT,
+        imported_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
+      );
 
-  CREATE TABLE IF NOT EXISTS sync_logs (
-    id TEXT PRIMARY KEY,
-    source_name TEXT NOT NULL,
-    apartment_id TEXT,
-    action TEXT NOT NULL,
-    status TEXT NOT NULL,
-    events_count INTEGER,
-    error_message TEXT,
-    duration_ms INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+      CREATE TABLE IF NOT EXISTS export_tokens (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_accessed DATETIME,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
+      );
 
-  -- Таблицы для Telegram бота
-  CREATE TABLE IF NOT EXISTS telegram_settings (
-    id TEXT PRIMARY KEY,
-    bot_token TEXT NOT NULL,
-    chat_id TEXT NOT NULL,
-    is_active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id TEXT PRIMARY KEY,
+        source_name TEXT NOT NULL,
+        apartment_id TEXT,
+        action TEXT NOT NULL,
+        status TEXT NOT NULL,
+        events_count INTEGER,
+        error_message TEXT,
+        duration_ms INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS notification_logs (
-    id TEXT PRIMARY KEY,
-    booking_id TEXT,
-    notification_type TEXT NOT NULL, -- 'new_booking', 'cancellation', 'reminder'
-    status TEXT NOT NULL, -- 'sent', 'failed'
-    error_message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
-  );
+      CREATE TABLE IF NOT EXISTS telegram_settings (
+        id TEXT PRIMARY KEY,
+        bot_token TEXT NOT NULL,
+        chat_id TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS booking_comments (
-    id TEXT PRIMARY KEY,
-    booking_id TEXT NOT NULL,
-    comment TEXT NOT NULL,
-    created_by TEXT DEFAULT 'manager',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
-  );
+      CREATE TABLE IF NOT EXISTS notification_logs (
+        id TEXT PRIMARY KEY,
+        booking_id TEXT,
+        notification_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
+      );
 
-  -- Индексы для быстрого поиска
-  CREATE INDEX IF NOT EXISTS idx_external_bookings_dates ON external_bookings(check_in, check_out);
-  CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(check_in, check_out);
-  CREATE INDEX IF NOT EXISTS idx_export_tokens_token ON export_tokens(token);
-  CREATE INDEX IF NOT EXISTS idx_booking_comments_booking ON booking_comments(booking_id);
-  CREATE INDEX IF NOT EXISTS idx_notification_logs_booking ON notification_logs(booking_id);
-`);
+      CREATE TABLE IF NOT EXISTS booking_comments (
+        id TEXT PRIMARY KEY,
+        booking_id TEXT NOT NULL,
+        comment TEXT NOT NULL,
+        created_by TEXT DEFAULT 'manager',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+      );
+    `);
+
+    // Создаем индексы
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_external_bookings_dates ON external_bookings(check_in, check_out);
+      CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(check_in, check_out);
+      CREATE INDEX IF NOT EXISTS idx_export_tokens_token ON export_tokens(token);
+      CREATE INDEX IF NOT EXISTS idx_booking_comments_booking ON booking_comments(booking_id);
+      CREATE INDEX IF NOT EXISTS idx_notification_logs_booking ON notification_logs(booking_id);
+      CREATE INDEX IF NOT EXISTS idx_bookings_apartment ON bookings(apartment_id);
+      CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+    `);
+
+    console.log('✅ Database structure is up to date');
+  } catch (error) {
+    console.error('❌ Error ensuring database structure:', error);
+    throw error;
+  }
+}
+
+// Вызываем проверку структуры
+ensureDatabaseStructure();
 
 // Сервис для работы с бронированиями
 export const bookingService = {
-checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boolean => {
-  const stmt = db.prepare(`
-    SELECT COUNT(*) as count FROM (
-      SELECT check_in, check_out FROM bookings 
-      WHERE apartment_id = ? AND status = 'confirmed'
-      AND check_in < ? AND check_out > ?
-      UNION ALL
-      SELECT check_in, check_out FROM external_bookings 
-      WHERE apartment_id = ? 
-      AND check_in < ? AND check_out > ?
-    )
-  `);
-  
-  const result = stmt.get(
-    apartmentId, checkOut, checkIn,  // bookings: check_in < checkOut AND check_out > checkIn
-    apartmentId, checkOut, checkIn   // external: check_in < checkOut AND check_out > checkIn
-  ) as { count: number };
-  
-  return result.count === 0;
-},
+  checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boolean => {
+    const stmt = db.prepare(`
+      SELECT COUNT(*) as count FROM (
+        SELECT check_in, check_out FROM bookings 
+        WHERE apartment_id = ? AND status = 'confirmed'
+        AND check_in < ? AND check_out > ?
+        UNION ALL
+        SELECT check_in, check_out FROM external_bookings 
+        WHERE apartment_id = ? 
+        AND check_in < ? AND check_out > ?
+      )
+    `);
+    
+    const result = stmt.get(
+      apartmentId, checkOut, checkIn,
+      apartmentId, checkOut, checkIn
+    ) as { count: number };
+    
+    return result.count === 0;
+  },
 
   createBooking: (data: {
     apartmentId: string;
@@ -206,13 +310,13 @@ checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boo
     const stmt = db.prepare(`
       SELECT b.*, a.title as apartment_title 
       FROM bookings b
-      JOIN apartments a ON b.apartment_id = a.id
+      LEFT JOIN apartments a ON b.apartment_id = a.id
       WHERE b.id = ?
     `);
     return stmt.get(id);
   },
 
-  updateBookingStatus: (id: string, status: 'confirmed' | 'cancelled' | 'pending') => {
+  updateBookingStatus: (id: string, status: string) => {
     const stmt = db.prepare(`
       UPDATE bookings 
       SET status = ?, updated_at = CURRENT_TIMESTAMP
@@ -221,31 +325,22 @@ checkAvailability: (apartmentId: string, checkIn: string, checkOut: string): boo
     stmt.run(status, id);
   },
 
-  // 🔥 НОВЫЙ МЕТОД: Получить все бронирования (для календаря)
   getAllBookings: (): Booking[] => {
-    try {
-      const stmt = db.prepare(`
-        SELECT * FROM bookings 
-        WHERE status = 'confirmed' OR status IS NULL
-        ORDER BY check_in ASC
-      `);
-      return stmt.all() as Booking[];
-    } catch (error) {
-      console.error('Error getting all bookings:', error);
-      return [];
-    }
+    const stmt = db.prepare(`
+      SELECT * FROM bookings 
+      ORDER BY check_in ASC
+    `);
+    return stmt.all() as Booking[];
   },
 
-  // 🔥 НОВЫЙ МЕТОД: Получить бронирования по апартаменту
   getBookingsByApartment: (apartmentId: string): Booking[] => {
-  const stmt = db.prepare(`
-    SELECT * FROM bookings 
-    WHERE apartment_id = ? 
-    AND status = 'confirmed'
-    ORDER BY check_in ASC
-  `);
-  return stmt.all(apartmentId) as Booking[];
-},
+    const stmt = db.prepare(`
+      SELECT * FROM bookings 
+      WHERE apartment_id = ? 
+      ORDER BY check_in ASC
+    `);
+    return stmt.all(apartmentId) as Booking[];
+  },
 };
 
 // Сервис для работы с ICS источниками
@@ -329,7 +424,6 @@ export const externalBookingService = {
     return stmt.all(apartmentId) as BlockedDate[];
   },
 
-  // 🔥 УЛУЧШЕННЫЙ МЕТОД: Получить все заблокированные даты (включая будущие и прошлые)
   getAllBlockedDates: (apartmentId: string): BlockedDate[] => {
     const stmt = db.prepare(`
       SELECT check_in as start, check_out as end, source_name as source 
