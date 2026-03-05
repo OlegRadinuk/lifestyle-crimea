@@ -196,7 +196,7 @@ export default function Header({ onBurgerClick }: Props) {
                           setCalendarOpen(false);
                         }}
                         onClose={() => setCalendarOpen(false)}
-                        showPrice={false}
+                        showPrice={false} // В hero режиме цену не показываем
                       />
                     </div>
                   )}
@@ -239,8 +239,8 @@ export default function Header({ onBurgerClick }: Props) {
                         setBookingModalOpen(true);
                       }}
                       onClose={() => setCalendarOpen(false)}
-                      showPrice
-                      apartmentPrice={apartmentPrice}
+                      showPrice={true} // Включаем показ цены
+                      apartmentPrice={apartmentPrice} // Передаем цену
                     />
                   </div>
                 )}
