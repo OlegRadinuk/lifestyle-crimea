@@ -2,35 +2,50 @@
 
 import { useEffect, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
-import type { Apartment } from '@/data/apartments';
+import './apartment.css';
 
 type Props = {
-  apartment: Apartment;
+  apartment: {
+    id: string;
+    title: string;
+    shortDescription: string;
+    description: string;
+    maxGuests: number;
+    area: number;
+    priceBase: number;
+    view: string;
+    hasTerrace: boolean;
+    features: string[];
+    images: string[];
+  };
 };
 
 export default function ApartmentHero({ apartment }: Props) {
   const { register, unregister } = useHeader();
-
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  /* HEADER MODE */
+  // HEADER MODE
   useEffect(() => {
     const id = 'apartment-hero';
     register(id, { mode: 'apartment', priority: 2 });
     return () => unregister(id);
   }, [register, unregister]);
 
-  /* AUTOPLAY */
+  // AUTOPLAY
   useEffect(() => {
-    if (paused) return;
+    if (paused || !apartment.images?.length) return;
 
     const timer = setInterval(() => {
       setActive(prev => (prev + 1) % apartment.images.length);
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [paused, apartment.images.length]);
+  }, [paused, apartment.images]);
+
+  if (!apartment.images?.length) {
+    return <div>Нет изображений</div>;
+  }
 
   return (
     <section
@@ -53,7 +68,7 @@ export default function ApartmentHero({ apartment }: Props) {
         ))}
       </div>
 
-      {/* OVERLAY */}
+      {/* OVERLAY (как в панораме) */}
       <div className="panorama-overlay" />
 
       {/* SVG FRAME */}
@@ -83,7 +98,7 @@ export default function ApartmentHero({ apartment }: Props) {
         />
       </svg>
 
-      {/* INFO — КЛАССЫ ИЗ PANORAMA */}
+      {/* INFO */}
       <div className="panorama-info">
         <div className="panorama-info-inner animate-in">
           <span className="panorama-info-eyebrow">
@@ -101,14 +116,14 @@ export default function ApartmentHero({ apartment }: Props) {
           <ul className="panorama-info-meta">
             <li>До {apartment.maxGuests} гостей</li>
             <li>{apartment.area} м²</li>
-            {apartment.features.map(item => (
-              <li key={item}>{item}</li>
+            {apartment.features?.map((item, i) => (
+              <li key={i}>{item}</li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* ARROWS — КЛАССЫ ИЗ HERO */}
+      {/* ARROWS */}
       <button
         className="hero-arrow hero-arrow--left"
         onClick={() =>

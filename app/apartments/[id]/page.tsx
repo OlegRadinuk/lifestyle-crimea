@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { Apartment, ApartmentClient } from '@/lib/types';
-import ApartmentDetails from './ApartmentDetails';
+import ClientApartmentWrapper from './ClientApartmentWrapper';
 
 interface ApartmentRow {
   id: string;
@@ -16,8 +15,6 @@ interface ApartmentRow {
   is_active: number;
   features: string | null;
   images: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 type PageProps = {
@@ -35,14 +32,20 @@ export default async function ApartmentPage({ params }: PageProps) {
     notFound();
   }
 
-  // Преобразуем в клиентский формат
-  const formattedApartment: ApartmentClient = {
-    ...apartment,
-    has_terrace: Boolean(apartment.has_terrace),
-    is_active: Boolean(apartment.is_active),
+  // Преобразуем в формат, совместимый с Hero
+  const formattedApartment = {
+    id: apartment.id,
+    title: apartment.title,
+    shortDescription: apartment.short_description || '',
+    description: apartment.description || '',
+    maxGuests: apartment.max_guests,
+    area: apartment.area || 0,
+    priceBase: apartment.price_base,
+    view: apartment.view || 'sea',
+    hasTerrace: Boolean(apartment.has_terrace),
     features: apartment.features ? JSON.parse(apartment.features) : [],
     images: apartment.images ? JSON.parse(apartment.images) : ['/images/placeholder.jpg'],
   };
 
-  return <ApartmentDetails apartment={formattedApartment} />;
+  return <ClientApartmentWrapper apartment={formattedApartment} />;
 }
