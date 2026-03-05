@@ -121,49 +121,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
   if (!search) {
     return (
-      <section className="ap-empty">
+      <div className="apartments-empty">
         <h1>Нет параметров поиска</h1>
         <p>Пожалуйста, выберите даты и количество гостей на главной странице.</p>
-        <button className="btn-primary" onClick={() => router.push('/')}>
+        <button className="apartments-btn-primary" onClick={() => router.push('/')}>
           Перейти на главную
         </button>
-
-        <style jsx>{`
-          .ap-empty {
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-          }
-          .ap-empty h1 {
-            font-size: 32px;
-            margin-bottom: 16px;
-            color: #1a2634;
-          }
-          .ap-empty p {
-            font-size: 18px;
-            color: #64748b;
-            margin-bottom: 24px;
-          }
-          .btn-primary {
-            background: #139ab6;
-            color: white;
-            border: none;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-          }
-          .btn-primary:hover {
-            background: #0f7a91;
-          }
-        `}</style>
-      </section>
+      </div>
     );
   }
 
@@ -174,41 +138,29 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
   if (loadingAvailability) {
     return (
-      <section className="ap-page">
-        <div className="ap-loading">Загрузка доступных апартаментов...</div>
-        <style jsx>{`
-          .ap-page {
-            min-height: 60vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .ap-loading {
-            font-size: 18px;
-            color: #64748b;
-          }
-        `}</style>
-      </section>
+      <div className="apartments-loading">
+        Загрузка доступных апартаментов...
+      </div>
     );
   }
 
   return (
     <>
-      <section className="ap-page">
-        <header className="ap-top">
-          <div className="ap-top-inner">
-            <div className="ap-brand fade-in">Стиль жизни · Алушта</div>
+      <div className="apartments-page">
+        <header className="apartments-header">
+          <div className="apartments-header-inner">
+            <div className="apartments-brand">Стиль жизни · Алушта</div>
 
-            <div className="ap-header-row slide-in">
+            <div className="apartments-header-row">
               <h1>Доступные апартаменты</h1>
 
-              <div className="ap-header-right">
-                <span className="ap-dates">
+              <div className="apartments-header-right">
+                <span className="apartments-dates">
                   {formatDate(search.checkIn)} — {formatDate(search.checkOut)}
                 </span>
 
                 <button
-                  className="ap-change-dates"
+                  className="apartments-change-dates"
                   onClick={() => router.push('/')}
                 >
                   Изменить даты
@@ -218,49 +170,49 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         </header>
 
-        <div className="ap-results fade-in-delay">
+        <div className="apartments-results">
           Найдено вариантов: <strong>{filteredApartments.length}</strong>
         </div>
 
         {filteredApartments.length === 0 ? (
-          <div className="ap-no-results">
+          <div className="apartments-no-results">
             <p>Нет свободных апартаментов на выбранные даты.</p>
-            <button className="btn-primary" onClick={() => router.push('/')}>
+            <button className="apartments-btn-primary" onClick={() => router.push('/')}>
               Изменить даты
             </button>
           </div>
         ) : (
-          <div className="ap-list">
+          <div className="apartments-list">
             {filteredApartments.map((apartment, index) => (
               <article
                 key={apartment.id}
-                className="ap-list-card card-appear"
+                className="apartments-card"
                 style={{ animationDelay: `${index * 80}ms` }}
               >
-                <div className="ap-list-image">
+                <div className="apartments-card-image">
                   <img 
                     src={apartment.images?.[0] || '/images/placeholder.jpg'} 
                     alt={apartment.title} 
                   />
                   <button
-                    className="ap-list-gallery-btn"
+                    className="apartments-card-gallery-btn"
                     onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
                   >
                     Смотреть фото
                   </button>
                 </div>
-                <div className="ap-list-content">
-                  <div className="ap-list-header">
+                <div className="apartments-card-content">
+                  <div className="apartments-card-header">
                     <h2>{apartment.title}</h2>
-                    <span className="ap-list-guests">
+                    <span className="apartments-card-guests">
                       до {apartment.max_guests} гостей
                     </span>
                   </div>
 
-                  <p className="ap-list-description">{apartment.short_description}</p>
+                  <p className="apartments-card-description">{apartment.short_description}</p>
 
                   {apartment.features && apartment.features.length > 0 && (
-                    <ul className="ap-list-features">
+                    <ul className="apartments-card-features">
                       {apartment.features.slice(0, 3).map((feature) => (
                         <li key={feature}>{feature}</li>
                       ))}
@@ -270,21 +222,21 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                     </ul>
                   )}
 
-                  <div className="ap-list-footer">
-                    <div className="ap-list-price">
+                  <div className="apartments-card-footer">
+                    <div className="apartments-card-price">
                       от {apartment.price_base.toLocaleString()} ₽ / ночь
                     </div>
 
-                    <div className="ap-list-actions">
+                    <div className="apartments-card-actions">
                       <Link
                         href={`/apartments/${apartment.id}`}
-                        className="btn-outline"
+                        className="apartments-btn-outline"
                       >
                         Подробнее
                       </Link>
 
                       <button
-                        className="btn-primary"
+                        className="apartments-btn-primary"
                         onClick={() => handleBookingClick(apartment)}
                         disabled={checkingId === apartment.id}
                       >
@@ -299,7 +251,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         )}
 
         <Footer />
-      </section>
+      </div>
 
       {bookingOpen && bookingApartment && search && (
         <BookingModal
