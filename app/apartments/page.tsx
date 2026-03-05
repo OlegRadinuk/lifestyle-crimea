@@ -1,10 +1,5 @@
 import { db } from '@/lib/db';
-import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
-
-// ОТКЛЮЧАЕМ статическую генерацию
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 interface ApartmentRow {
   id: string;
@@ -16,11 +11,8 @@ interface ApartmentRow {
   price_base: number;
   view: string | null;
   has_terrace: number;
-  is_active: number;
   features: string | null;
   images: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export default async function ApartmentsPage() {
@@ -30,21 +22,15 @@ export default async function ApartmentsPage() {
   `).all() as ApartmentRow[];
 
   // Преобразуем JSON строки в массивы
-  const formattedApartments: ApartmentClient[] = apartments.map(apt => ({
-    id: apt.id,
-    title: apt.title,
-    short_description: apt.short_description,
-    description: apt.description,
-    max_guests: apt.max_guests,
-    area: apt.area,
-    price_base: apt.price_base,
-    view: apt.view,
-    has_terrace: Boolean(apt.has_terrace),
-    is_active: Boolean(apt.is_active),
+  const formattedApartments = apartments.map(apt => ({
+    ...apt,
     features: apt.features ? JSON.parse(apt.features) : [],
     images: apt.images ? JSON.parse(apt.images) : ['/images/placeholder.jpg'],
-    created_at: apt.created_at,
-    updated_at: apt.updated_at
+    hasTerrace: Boolean(apt.has_terrace),
+    priceBase: apt.price_base,
+    maxGuests: apt.max_guests,
+    shortDescription: apt.short_description || '',
+    view: (apt.view as 'sea' | 'city' | 'garden') || 'sea',
   }));
 
   return <ApartmentsClient initialApartments={formattedApartments} />;
