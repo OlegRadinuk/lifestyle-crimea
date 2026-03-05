@@ -35,11 +35,12 @@ export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
-  const { currentApartment } = useApartment();
+  const { currentApartment } = useApartment(); // currentApartment из контекста
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [apartmentPrice, setApartmentPrice] = useState(0);
+  const [loadingPrice, setLoadingPrice] = useState(false);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -59,18 +60,32 @@ export default function Header({ onBurgerClick }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем цену апартамента из БД
+  // Загружаем цену апартамента из БД для текущего активного апартамента
   useEffect(() => {
-    if (!currentApartment?.id) return;
+    if (!currentApartment?.id) {
+      setApartmentPrice(0);
+      return;
+    }
     
     const fetchPrice = async () => {
+      setLoadingPrice(true);
       try {
+        console.log('Fetching price for apartment:', currentApartment.id);
         const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch apartment');
+        }
         const data = await res.json();
+        console.log('Received price data:', data);
         setApartmentPrice(data.price_base || 8000);
       } catch (error) {
         console.error('Error fetching apartment price:', error);
-        setApartmentPrice(8000);
+        // Если API недоступен, используем цену из currentApartment если она есть
+        // @ts-ignore - price_base может быть в currentApartment если это полные данные
+        const fallbackPrice = currentApartment?.price_base;
+        setApartmentPrice(fallbackPrice || 8000);
+      } finally {
+        setLoadingPrice(false);
       }
     };
 
@@ -196,7 +211,7 @@ export default function Header({ onBurgerClick }: Props) {
                           setCalendarOpen(false);
                         }}
                         onClose={() => setCalendarOpen(false)}
-                        showPrice={false} // В hero режиме цену не показываем
+                        showPrice={false}
                       />
                     </div>
                   )}
@@ -219,6 +234,7 @@ export default function Header({ onBurgerClick }: Props) {
               <button
                 className="header__booking with-apartment"
                 onClick={() => setCalendarOpen(prev => !prev)}
+                disabled={loadingPrice}
               >
                 <span className="header__booking-label">Проверить доступность</span>
                 <span className="header__booking-apartment">
@@ -230,7 +246,7 @@ export default function Header({ onBurgerClick }: Props) {
                 {calendarOpen && mode === 'apartment' && (
                   <div ref={popoverRef} className="header__calendar-popover">
                     <ApartmentAvailabilityCalendar
-                      key={`calendar-${currentApartment.id}-${blockedDates.length}`}
+                      key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
                       blockedDates={blockedDates}
                       position="right"
                       onConfirm={(range) => {
@@ -239,8 +255,8 @@ export default function Header({ onBurgerClick }: Props) {
                         setBookingModalOpen(true);
                       }}
                       onClose={() => setCalendarOpen(false)}
-                      showPrice={true} // Включаем показ цены
-                      apartmentPrice={apartmentPrice} // Передаем цену
+                      showPrice={true}
+                      apartmentPrice={apartmentPrice}
                     />
                   </div>
                 )}
