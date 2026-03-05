@@ -21,8 +21,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
 
-    if (guestsCount > apartment.maxGuests) {
-      return NextResponse.json({ error: `Maximum ${apartment.maxGuests} guests allowed` }, { status: 400 });
+    // ИСПРАВЛЕНО: maxGuests → max_guests
+    if (guestsCount > apartment.max_guests) {
+      return NextResponse.json({ error: `Maximum ${apartment.max_guests} guests allowed` }, { status: 400 });
     }
 
     const isAvailable = bookingService.checkAvailability(apartmentId, checkIn, checkOut);
@@ -30,8 +31,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Dates are not available' }, { status: 409 });
     }
 
+    // ИСПРАВЛЕНО: priceBase → price_base
     const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
-    const totalPrice = apartment.priceBase * nights;
+    const totalPrice = apartment.price_base * nights;
 
     const booking = bookingService.createBooking({
       apartmentId,
@@ -58,10 +60,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error creating booking:', error);
     
-    // Логируем ошибку (apartmentId может быть undefined)
+    // Логируем ошибку
     logService.addSyncLog({
       sourceName: 'website',
-      apartmentId: apartmentId, // используем переменную из внешней области
+      apartmentId: apartmentId,
       action: 'export',
       status: 'error',
       errorMessage: error instanceof Error ? error.message : 'Unknown error',
