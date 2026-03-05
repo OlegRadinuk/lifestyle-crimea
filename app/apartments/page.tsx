@@ -2,9 +2,10 @@ import { db } from '@/lib/db';
 import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
 
-// ОТКЛЮЧАЕМ статическую генерацию
+// ОТКЛЮЧАЕМ статическую генерацию и кэширование
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 interface ApartmentRow {
   id: string;
@@ -29,7 +30,7 @@ export default async function ApartmentsPage() {
     SELECT * FROM apartments WHERE is_active = 1 ORDER BY price_base ASC
   `).all() as ApartmentRow[];
 
-  // Преобразуем в соответствии с типом ApartmentClient
+  // Преобразуем JSON строки в массивы
   const formattedApartments: ApartmentClient[] = apartments.map(apt => ({
     id: apt.id,
     title: apt.title,
@@ -47,5 +48,9 @@ export default async function ApartmentsPage() {
     updated_at: apt.updated_at
   }));
 
-  return <ApartmentsClient initialApartments={formattedApartments} />;
+  // Добавляем timestamp для предотвращения кэширования
+  return <ApartmentsClient 
+    initialApartments={formattedApartments} 
+    key={Date.now()} // Это заставит клиентский компонент пересоздаться при изменении данных
+  />;
 }
