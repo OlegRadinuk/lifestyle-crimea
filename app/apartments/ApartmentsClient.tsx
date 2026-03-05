@@ -124,7 +124,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       <section className="ap-empty">
         <h1>Нет параметров поиска</h1>
         <p>Пожалуйста, выберите даты и количество гостей на главной странице.</p>
-        <button className="ap-btn-primary" onClick={() => router.push('/')}>
+        <button className="btn-primary" onClick={() => router.push('/')}>
           Перейти на главную
         </button>
 
@@ -148,7 +148,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
             color: #64748b;
             margin-bottom: 24px;
           }
-          .ap-btn-primary {
+          .btn-primary {
             background: #139ab6;
             color: white;
             border: none;
@@ -159,7 +159,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
             cursor: pointer;
             transition: background 0.2s;
           }
-          .ap-btn-primary:hover {
+          .btn-primary:hover {
             background: #0f7a91;
           }
         `}</style>
@@ -225,7 +225,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         {filteredApartments.length === 0 ? (
           <div className="ap-no-results">
             <p>Нет свободных апартаментов на выбранные даты.</p>
-            <button className="ap-btn-primary" onClick={() => router.push('/')}>
+            <button className="btn-primary" onClick={() => router.push('/')}>
               Изменить даты
             </button>
           </div>
@@ -278,13 +278,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                     <div className="ap-list-actions">
                       <Link
                         href={`/apartments/${apartment.id}`}
-                        className="ap-btn-outline"
+                        className="btn-outline"
                       >
                         Подробнее
                       </Link>
 
                       <button
-                        className="ap-btn-primary"
+                        className="btn-primary"
                         onClick={() => handleBookingClick(apartment)}
                         disabled={checkingId === apartment.id}
                       >
@@ -512,7 +512,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           gap: 12px;
         }
 
-        .ap-btn-outline {
+        .btn-outline {
           background: none;
           border: 2px solid #139ab6;
           color: #139ab6;
@@ -526,12 +526,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           display: inline-block;
         }
 
-        .ap-btn-outline:hover {
+        .btn-outline:hover {
           background: #139ab6;
           color: white;
         }
 
-        .ap-btn-primary {
+        .btn-primary {
           background: #139ab6;
           color: white;
           border: none;
@@ -543,11 +543,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           transition: background 0.2s;
         }
 
-        .ap-btn-primary:hover:not(:disabled) {
+        .btn-primary:hover:not(:disabled) {
           background: #0f7a91;
         }
 
-        .ap-btn-primary:disabled {
+        .btn-primary:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { ApartmentClient } from '@/lib/types';
+import { Apartment, ApartmentClient } from '@/lib/types';
 import ApartmentDetails from './ApartmentDetails';
 
 interface ApartmentRow {
