@@ -6142,3 +6142,33 @@ a {
   }
 }
 
+/* Сообщение о недоступности апартамента */
+.panorama-unavailable-message {
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.unavailable-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+.panorama-unavailable-message.mobile {
+  flex: 1;
+  padding: 16px 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  text-align: center;
+}
+
+.panorama-unavailable-message.mobile span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}

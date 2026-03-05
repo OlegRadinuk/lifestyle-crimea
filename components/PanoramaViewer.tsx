@@ -2,106 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { PANORAMAS } from '@/data/panoramas'; // Импортируем из файла
 import { useApartment } from '@/components/ApartmentContext';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import { motion } from "framer-motion";
 import Link from 'next/link';
-
-// Локальные данные для панорам (как было раньше)
-const LOCAL_PANORAMAS = [
-  {
-    id: 'ls-art-sweet-caramel',
-    title: 'LS Art Sweet Caramel',
-    image: '/panoramas/LS-Art-Sweet-Caramel.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-art-flower-kiss',
-    title: 'LS Art Flower Kiss',
-    image: '/panoramas/LS-Art-Flower-Kiss.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-soft-blue',
-    title: 'LS Lux Soft Blue',
-    image: '/panoramas/LS-Lux-Soft-Blue.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-art-crystal-blue',
-    title: 'LS Art Crystal Blue',
-    image: '/panoramas/LS-Art-Crystal-Blue.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-sunny-mood',
-    title: 'LS Lux Sunny Mood',
-    image: '/panoramas/LS-Lux-Sunny-Mood.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-beautiful-days',
-    title: 'LS Lux Beautiful Days',
-    image: '/panoramas/LS-Lux-Beautiful-Days.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-sun-rays',
-    title: 'LS Lux Sun Rays',
-    image: '/panoramas/LS-Lux-Sun-Rays.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-sunshine',
-    title: 'LS Lux Sunshine',
-    image: '/panoramas/LS-Lux-Sunshine.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-fly-birds',
-    title: 'LS Lux Fly Birds',
-    image: '/panoramas/LS-Lux-Fly-Birds.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-fly-mood',
-    title: 'LS Lux Fly Mood',
-    image: '/panoramas/LS-Lux-Fly-Mood.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-lux-fly-sky',
-    title: 'LS Lux Fly Sky',
-    image: '/panoramas/LS-Lux-Fly-Sky.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-art-only-you',
-    title: 'LS Art Only You',
-    image: '/panoramas/LS-Art-Only-You.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  },
-  {
-    id: 'ls-art-dream-vacation',
-    title: 'LS Art Dream Vacation',
-    image: '/panoramas/LS-Art-Dream-Vacation.webp',
-    maxGuests: 4,
-    meta: ['Вид на море', 'Премиум класс']
-  }
-];
 
 export default function PanoramaViewer() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -109,11 +15,12 @@ export default function PanoramaViewer() {
   const isHoverRef = useRef(false);
   const hideUITimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Из контекста берем только данные для бронирования
+  // Из контекста берем данные для бронирования (активные апартаменты из БД)
   const {
     currentApartmentIndex,
     setCurrentApartmentIndex,
-    currentApartment,
+    currentApartment: contextApartment,
+    panoramas: dbPanoramas, // массив активных апартаментов из БД
   } = useApartment();
 
   const { register, unregister } = useHeader();
@@ -131,8 +38,22 @@ export default function PanoramaViewer() {
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
 
-  // Используем локальные панорамы
-  const panoramas = LOCAL_PANORAMAS;
+  // Используем данные из panoramas.ts для отображения
+  const panoramas = PANORAMAS;
+
+  // Создаем мапу активных апартаментов из БД для быстрого доступа
+  const activeApartmentsMap = new Map(
+    dbPanoramas?.map(apt => [apt.id, apt]) || []
+  );
+
+  // Проверяем, активен ли текущий апартамент в БД
+  const currentPano = panoramas[currentApartmentIndex];
+  const isCurrentApartmentActive = currentPano ? 
+    activeApartmentsMap.has(currentPano.id) : false;
+
+  // Находим данные текущего апартамента из БД (если активен)
+  const currentApartmentData = currentPano ? 
+    activeApartmentsMap.get(currentPano.id) : null;
 
   // THREE REFS
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -149,7 +70,7 @@ export default function PanoramaViewer() {
   const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
   const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
-  const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '');
+  const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '').trim();
 
   const changePanorama = (index: number) => {
     if (index === currentApartmentIndex) return;
@@ -178,7 +99,7 @@ export default function PanoramaViewer() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // HEADER MODE - работает с контекстом
+  // HEADER MODE
   useEffect(() => {
     if (!sectionRef.current) return;
 
@@ -256,12 +177,10 @@ export default function PanoramaViewer() {
 
     const loader = new THREE.TextureLoader();
 
-    // Предзагружаем все текстуры
     panoramas.forEach((_, index) => {
       preloadTexture(index);
     });
 
-    // Загружаем первую текстуру
     const loadFirstTexture = () => {
       const cached = preloadedTextures.current[0];
       if (cached) {
@@ -553,33 +472,43 @@ export default function PanoramaViewer() {
           </ul>
 
           {/* КНОПКИ НА ДЕСКТОПЕ */}
-          {!isMobile && currentApartment && (
+          {!isMobile && (
             <div className="panorama-desktop-actions">
-              <Link
-                href={`/apartments/${currentApartment.id}`}
-                className="panorama-desktop-btn primary"
-              >
-                Перейти в апартамент
-              </Link>
+              {isCurrentApartmentActive && currentApartmentData ? (
+                <>
+                  <Link
+                    href={`/apartments/${currentApartmentData.id}`}
+                    className="panorama-desktop-btn primary"
+                  >
+                    Перейти в апартамент
+                  </Link>
 
-              <motion.button
-                layoutId="photo-modal-desktop"
-                className="panorama-desktop-btn secondary"
-                onClick={() => {
-                  fetch(`/api/apartments/${currentApartment.id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.images?.length) {
-                        open(data.images, 0);
-                      } else {
-                        alert('Фото временно недоступны');
-                      }
-                    })
-                    .catch(() => alert('Ошибка загрузки фото'));
-                }}
-              >
-                Смотреть фото
-              </motion.button>
+                  <motion.button
+                    layoutId="photo-modal-desktop"
+                    className="panorama-desktop-btn secondary"
+                    onClick={() => {
+                      fetch(`/api/apartments/${currentApartmentData.id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.images?.length) {
+                            open(data.images, 0);
+                          } else {
+                            alert('Фото временно недоступны');
+                          }
+                        })
+                        .catch(() => alert('Ошибка загрузки фото'));
+                    }}
+                  >
+                    Смотреть фото
+                  </motion.button>
+                </>
+              ) : (
+                <div className="panorama-unavailable-message">
+                  <span className="unavailable-text">
+                    Апартамент временно недоступен для бронирования
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -616,33 +545,39 @@ export default function PanoramaViewer() {
           </div>
 
           <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
-            {currentApartment && (
-              <Link
-                href={`/apartments/${currentApartment.id}`}
-                className="panorama-action-btn primary"
-              >
-                Перейти в апартамент
-              </Link>
-            )}
+            {isCurrentApartmentActive && currentApartmentData ? (
+              <>
+                <Link
+                  href={`/apartments/${currentApartmentData.id}`}
+                  className="panorama-action-btn primary"
+                >
+                  Перейти в апартамент
+                </Link>
 
-            <motion.button
-              layoutId="photo-modal"
-              className="panorama-action-btn secondary"
-              onClick={() => {
-                fetch(`/api/apartments/${currentApartment?.id}`)
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.images?.length) {
-                      open(data.images, 0);
-                    } else {
-                      alert('Фото временно недоступны');
-                    }
-                  })
-                  .catch(() => alert('Ошибка загрузки фото'));
-              }}
-            >
-              Смотреть фото
-            </motion.button>
+                <motion.button
+                  layoutId="photo-modal"
+                  className="panorama-action-btn secondary"
+                  onClick={() => {
+                    fetch(`/api/apartments/${currentApartmentData.id}`)
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.images?.length) {
+                          open(data.images, 0);
+                        } else {
+                          alert('Фото временно недоступны');
+                        }
+                      })
+                      .catch(() => alert('Ошибка загрузки фото'));
+                  }}
+                >
+                  Смотреть фото
+                </motion.button>
+              </>
+            ) : (
+              <div className="panorama-unavailable-message mobile">
+                <span>Временно недоступно</span>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -677,6 +612,37 @@ export default function PanoramaViewer() {
           </button>
         </div>
       )}
+
+      <style jsx>{`
+        .panorama-unavailable-message {
+          padding: 14px 28px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          text-align: center;
+        }
+        
+        .unavailable-text {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+          font-weight: 400;
+          letter-spacing: 0.3px;
+        }
+        
+        .panorama-unavailable-message.mobile {
+          flex: 1;
+          padding: 16px 12px;
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 30px;
+        }
+        
+        .panorama-unavailable-message.mobile span {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+        }
+      `}</style>
     </section>
   );
 }
