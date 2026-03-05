@@ -9,9 +9,7 @@ import { motion } from "framer-motion";
 import Link from 'next/link';
 
 export default function PanoramaViewer() {
-  /* ===============================
-     REFS
-  =============================== */
+  console.log('[PanoramaViewer] render');
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -26,11 +24,11 @@ export default function PanoramaViewer() {
     loading: panoramasLoading,
   } = useApartment();
 
-  const { register, unregister } = useHeader();
+  console.log('[PanoramaViewer] panoramas:', panoramas);
+  console.log('[PanoramaViewer] panoramasLoading:', panoramasLoading);
+  console.log('[PanoramaViewer] currentApartmentIndex:', currentApartmentIndex);
 
-  /* ===============================
-     STATE
-  =============================== */
+  const { register, unregister } = useHeader();
 
   const [hintAllowed, setHintAllowed] = useState(true);
   const [isHover, setIsHover] = useState(false);
@@ -41,30 +39,19 @@ export default function PanoramaViewer() {
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
-
-  // overlay при медленной загрузке
   const [transitioning, setTransitioning] = useState(false);
+
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
-
-  /* ===============================
-     THREE REFS
-  =============================== */
 
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const currentMeshRef = useRef<THREE.Mesh | null>(null);
   const nextMeshRef = useRef<THREE.Mesh | null>(null);
-
-  // КЭШ ТЕКСТУР
   const preloadedTextures = useRef<Record<number, THREE.Texture>>({});
 
   const { open } = usePhotoModal();
-
-  /* ===============================
-     HELPERS
-  =============================== */
 
   const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
   const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
@@ -73,68 +60,36 @@ export default function PanoramaViewer() {
 
   const changePanorama = (index: number) => {
     if (index === currentApartmentIndex) return;
-    
-    // Отменяем предыдущий таймер
-    if (transitionTimer.current) {
-      clearTimeout(transitionTimer.current);
-    }
-
-    // Отменяем предыдущую анимацию
-    if (fadeAnimationRef.current) {
-      cancelAnimationFrame(fadeAnimationRef.current);
-    }
-
-    // Показываем оверлей загрузки
-    transitionTimer.current = setTimeout(() => {
-      setTransitioning(true);
-    }, 300);
-
+    if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
+    transitionTimer.current = setTimeout(() => setTransitioning(true), 300);
     setCurrentApartmentIndex(index);
-    
     setHasInteracted(true);
     setShowSwipeHint(false);
   };
 
   const showUITemporarily = () => {
     setUiVisible(true);
-    
-    if (hideUITimerRef.current) {
-      clearTimeout(hideUITimerRef.current);
-    }
-    
+    if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
     if (fullscreenMode) {
-      hideUITimerRef.current = setTimeout(() => {
-        setUiVisible(false);
-      }, 3000);
+      hideUITimerRef.current = setTimeout(() => setUiVisible(false), 3000);
     }
   };
 
-  /* ===============================
-     DETECT MOBILE
-  =============================== */
-
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  /* ===============================
-     HEADER MODE
-  =============================== */
-
+  // Header observer
   useEffect(() => {
     if (!sectionRef.current) return;
-
     const id = 'panorama';
-
     const observer = new IntersectionObserver(
       ([entry]) => {
+        console.log('[PanoramaViewer] IntersectionObserver entry.isIntersecting:', entry.isIntersecting);
         if (entry.isIntersecting) {
           register(id, { mode: 'apartment', priority: 2 });
         } else {
@@ -143,18 +98,12 @@ export default function PanoramaViewer() {
       },
       { threshold: 0.4 }
     );
-
     observer.observe(sectionRef.current);
-
     return () => {
       observer.disconnect();
       unregister(id);
     };
   }, [register, unregister]);
-
-  /* ===============================
-     БЛОКИРОВКА СКРОЛЛА В FULLSCREEN
-  =============================== */
 
   useEffect(() => {
     if (fullscreenMode && isMobile) {
@@ -162,34 +111,28 @@ export default function PanoramaViewer() {
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [fullscreenMode, isMobile]);
-
-  /* ===============================
-     PRELOAD ФУНКЦИЯ
-  =============================== */
 
   const preloadTexture = (index: number) => {
     if (!panoramas[index] || preloadedTextures.current[index]) return;
-
     const loader = new THREE.TextureLoader();
     loader.load(panoramas[index].image, texture => {
       texture.colorSpace = THREE.SRGBColorSpace;
       preloadedTextures.current[index] = texture;
+      console.log('[PanoramaViewer] preloaded texture for index', index, panoramas[index].image);
     });
   };
 
-  /* ===============================
-     INIT THREE SCENE
-  =============================== */
-
+  // Init Three
   useEffect(() => {
-    if (!containerRef.current || panoramas.length === 0) return;
+    if (!containerRef.current || panoramas.length === 0) {
+      console.log('[PanoramaViewer] No container or panoramas, skipping Three init');
+      return;
+    }
+    console.log('[PanoramaViewer] Initializing Three scene');
     const container = containerRef.current;
 
-    // Очищаем предыдущую сцену если есть
     if (rendererRef.current && rendererRef.current.domElement.parentNode === container) {
       container.removeChild(rendererRef.current.domElement);
       rendererRef.current.dispose();
@@ -219,77 +162,51 @@ export default function PanoramaViewer() {
 
     const loader = new THREE.TextureLoader();
 
-    // Предзагружаем все текстуры
-    panoramas.forEach((_, index) => {
-      preloadTexture(index);
-    });
+    panoramas.forEach((_, index) => preloadTexture(index));
 
-    // Загружаем первую текстуру
     const loadFirstTexture = () => {
       const cached = preloadedTextures.current[0];
       if (cached) {
-        const material = new THREE.MeshBasicMaterial({
-          map: cached,
-          transparent: true,
-          opacity: 1,
-        });
-
+        const material = new THREE.MeshBasicMaterial({ map: cached, transparent: true, opacity: 1 });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         currentMeshRef.current = mesh;
         setLoading(false);
         setTransitioning(false);
+        console.log('[PanoramaViewer] First texture loaded from cache');
       } else {
         loader.load(panoramas[0].image, texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[0] = texture;
-
-          const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            transparent: true,
-            opacity: 1,
-          });
-
+          const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
           const mesh = new THREE.Mesh(geometry, material);
           scene.add(mesh);
           currentMeshRef.current = mesh;
           setLoading(false);
           setTransitioning(false);
+          console.log('[PanoramaViewer] First texture loaded from loader');
+        }, undefined, (err) => {
+          console.error('[PanoramaViewer] Failed to load first texture:', err);
+          setLoading(false);
         });
       }
     };
-
     loadFirstTexture();
 
-    let lon = 0;
-    let lat = 0;
-    let targetLon = 0;
-    let targetLat = 0;
+    let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
     let isUserInteracting = false;
-
-    let startX = 0;
-    let startY = 0;
-    let startLon = 0;
-    let startLat = 0;
-
-    // Для мобильных устройств
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchStartLon = 0;
-    let touchStartLat = 0;
+    let startX = 0, startY = 0, startLon = 0, startLat = 0;
+    let touchStartX = 0, touchStartY = 0, touchStartLon = 0, touchStartLat = 0;
     let isDragging = false;
     const SWIPE_THRESHOLD = 50;
-
     const ROTATION_SPEED = 0.15;
     const TOUCH_ROTATION_SPEED = 0.12;
     const DAMPING_FACTOR_MOBILE = 0.12;
     const DAMPING_FACTOR_DESKTOP = 0.08;
     const AUTO_ROTATE_SPEED = 0.008;
 
-    // Обработчики pointer (десктоп)
     const onPointerDown = (e: PointerEvent) => {
       if (isMobile) return;
-      
       isUserInteracting = true;
       setHintAllowed(false);
       startX = e.clientX;
@@ -297,28 +214,19 @@ export default function PanoramaViewer() {
       startLon = targetLon;
       startLat = targetLat;
     };
-
     const onPointerMove = (e: PointerEvent) => {
       if (!isUserInteracting || isMobile) return;
-      
       targetLon = startLon - (e.clientX - startX) * ROTATION_SPEED;
       targetLat = startLat + (e.clientY - startY) * ROTATION_SPEED;
       targetLat = Math.max(-30, Math.min(30, targetLat));
     };
+    const onPointerUp = () => { if (!isMobile) isUserInteracting = false; };
 
-    const onPointerUp = () => {
-      if (isMobile) return;
-      isUserInteracting = false;
-    };
-
-    // Обработчики touch для мобильных
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
-      
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
-      
       if (fullscreenMode) {
         isUserInteracting = true;
         touchStartLon = targetLon;
@@ -328,51 +236,36 @@ export default function PanoramaViewer() {
       } else {
         isDragging = false;
       }
-      
       showUITemporarily();
     };
-
     const handleTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
-      
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;
-      
       if (fullscreenMode) {
         e.preventDefault();
-        
         if (isUserInteracting) {
           targetLon = touchStartLon - deltaX * TOUCH_ROTATION_SPEED;
           targetLat = touchStartLat + deltaY * TOUCH_ROTATION_SPEED * 0.5;
           targetLat = Math.max(-30, Math.min(30, targetLat));
         }
       } else {
-        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-          isDragging = true;
-        }
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) isDragging = true;
       }
     };
-
     const handleTouchEnd = (e: TouchEvent) => {
       if (fullscreenMode) {
         isUserInteracting = false;
         return;
       }
-      
       if (!isDragging) return;
-      
       const touch = e.changedTouches[0];
       if (!touch) return;
-      
       const deltaX = touch.clientX - touchStartX;
-      
       if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-        if (deltaX > 0) {
-          changePanorama(prevIndex);
-        } else {
-          changePanorama(nextIndex);
-        }
+        if (deltaX > 0) changePanorama(prevIndex);
+        else changePanorama(nextIndex);
         setHasInteracted(true);
         setShowSwipeHint(false);
       }
@@ -381,7 +274,6 @@ export default function PanoramaViewer() {
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    
     if (isMobile) {
       container.addEventListener('touchstart', handleTouchStart, { passive: false });
       container.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -390,141 +282,96 @@ export default function PanoramaViewer() {
 
     const animate = () => {
       requestAnimationFrame(animate);
-
       if (!isUserInteracting && !isHoverRef.current && !fullscreenMode) {
         targetLon += AUTO_ROTATE_SPEED;
       }
-
       const dampingFactor = isMobile ? DAMPING_FACTOR_MOBILE : DAMPING_FACTOR_DESKTOP;
       lon += (targetLon - lon) * dampingFactor;
       lat += (targetLat - lat) * dampingFactor;
-
       const phi = THREE.MathUtils.degToRad(90 - lat);
       const theta = THREE.MathUtils.degToRad(lon);
-
       camera.lookAt(
         500 * Math.sin(phi) * Math.cos(theta),
         500 * Math.cos(phi),
         500 * Math.sin(phi) * Math.sin(theta)
       );
-
       renderer.render(scene, camera);
     };
-
     const animationId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(animationId);
-      
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      
       if (isMobile) {
         container.removeEventListener('touchstart', handleTouchStart);
         container.removeEventListener('touchmove', handleTouchMove);
         container.removeEventListener('touchend', handleTouchEnd);
       }
-      
-      // Безопасное удаление renderer
       if (rendererRef.current) {
         try {
           if (rendererRef.current.domElement.parentNode === container) {
             container.removeChild(rendererRef.current.domElement);
           }
-        } catch (e) {
-          console.warn('Error removing renderer:', e);
-        }
+        } catch (e) { console.warn(e); }
         rendererRef.current.dispose();
         rendererRef.current = null;
       }
-
-      // Очищаем сцену
       if (sceneRef.current) {
-        while(sceneRef.current.children.length > 0) {
-          sceneRef.current.remove(sceneRef.current.children[0]);
-        }
+        while(sceneRef.current.children.length > 0) sceneRef.current.remove(sceneRef.current.children[0]);
         sceneRef.current = null;
       }
     };
   }, [isMobile, fullscreenMode, panoramas]);
 
-  /* ===============================
-     ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ
-  =============================== */
-
+  // Texture switching
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current || panoramas.length === 0) return;
-
+    console.log('[PanoramaViewer] Switching to index', currentApartmentIndex, 'image:', panoramas[currentApartmentIndex]?.image);
     const geometry = currentMeshRef.current.geometry;
-
-    // Отменяем предыдущую анимацию
-    if (fadeAnimationRef.current) {
-      cancelAnimationFrame(fadeAnimationRef.current);
-    }
+    if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
 
     const applyTexture = (texture: THREE.Texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
-
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        opacity: 0,
-      });
-
+      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
       const nextMesh = new THREE.Mesh(geometry, material);
       sceneRef.current!.add(nextMesh);
       nextMeshRef.current = nextMesh;
-
       let opacity = 0;
-
       const fade = () => {
         opacity += 0.04;
         material.opacity = Math.min(opacity, 1);
-
         if (currentMeshRef.current) {
           const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-          if (oldMaterial.map) {
-            oldMaterial.opacity = 1 - material.opacity;
-          }
+          if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
         }
-
         if (opacity < 1) {
           fadeAnimationRef.current = requestAnimationFrame(fade);
         } else {
-          // Убираем старый меш
           if (currentMeshRef.current && sceneRef.current) {
             sceneRef.current.remove(currentMeshRef.current);
             const oldMat = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-            if (oldMat.map) {
-              oldMat.map.dispose();
-            }
+            if (oldMat.map) oldMat.map.dispose();
             oldMat.dispose();
           }
-          
           currentMeshRef.current = nextMesh;
           nextMeshRef.current = null;
-
-          // Предзагружаем следующую текстуру
           preloadTexture((currentApartmentIndex + 1) % panoramas.length);
-
-          // Убираем оверлей загрузки
           if (transitionTimer.current) {
             clearTimeout(transitionTimer.current);
             transitionTimer.current = null;
           }
           setTransitioning(false);
-          
           fadeAnimationRef.current = null;
         }
       };
-
       fade();
     };
 
     const cached = preloadedTextures.current[currentApartmentIndex];
-
     if (cached) {
+      console.log('[PanoramaViewer] Using cached texture');
       if (transitionTimer.current) {
         clearTimeout(transitionTimer.current);
         transitionTimer.current = null;
@@ -532,8 +379,11 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
+      console.log('[PanoramaViewer] Loading texture from loader');
       const loader = new THREE.TextureLoader();
-      loader.load(panoramas[currentApartmentIndex].image, applyTexture);
+      loader.load(panoramas[currentApartmentIndex].image, applyTexture, undefined, (err) => {
+        console.error('[PanoramaViewer] Failed to load texture:', err);
+      });
     }
 
     return () => {
@@ -544,168 +394,62 @@ export default function PanoramaViewer() {
     };
   }, [currentApartmentIndex, panoramas]);
 
-  /* ===============================
-     LOADING STATE
-  =============================== */
-
   if (panoramasLoading) {
-    return (
-      <div className="panorama-section panorama-loading">
-        <div className="panorama-loader">
-          <span />
-          <span />
-          <span />
-          <p style={{ marginLeft: '12px', color: '#fff', fontSize: '14px' }}>Загрузка панорам...</p>
-        </div>
-      </div>
-    );
+    return <div className="panorama-section panorama-loading"><div className="panorama-loader"><span/><span/><span/><p>Загрузка панорам...</p></div></div>;
   }
 
   if (panoramas.length === 0) {
-    return (
-      <div className="panorama-section panorama-loading">
-        <div className="panorama-loader">
-          <p style={{ color: '#fff', fontSize: '14px' }}>Нет доступных панорам</p>
-        </div>
-      </div>
-    );
+    return <div className="panorama-section panorama-loading"><div className="panorama-loader"><p>Нет доступных панорам</p></div></div>;
   }
 
-  /* ===============================
-     JSX
-  =============================== */
-
   return (
-    <section 
-      id="panorama" 
-      ref={sectionRef} 
-      className={`panorama-section ${fullscreenMode ? 'fullscreen-mode' : ''}`}
-    >
+    <section id="panorama" ref={sectionRef} className={`panorama-section ${fullscreenMode ? 'fullscreen-mode' : ''}`}>
       <div
         ref={containerRef}
         className="panorama-canvas"
-        onMouseEnter={() => {
-          isHoverRef.current = true;
-          setIsHover(true);
-        }}
-        onMouseLeave={() => {
-          isHoverRef.current = false;
-          setIsHover(false);
-        }}
-        onClick={() => {
-          if (isMobile && fullscreenMode) {
-            showUITemporarily();
-          }
-        }}
+        onMouseEnter={() => { isHoverRef.current = true; setIsHover(true); }}
+        onMouseLeave={() => { isHoverRef.current = false; setIsHover(false); }}
+        onClick={() => { if (isMobile && fullscreenMode) showUITemporarily(); }}
       />
-
       <div className="panorama-overlay" />
-
       {transitioning && (
         <div className="panorama-loading-overlay light">
           <div className="panorama-loading-content">
             <div className="panorama-loading-spinner" />
-            <p className="panorama-loading-title">
-              Загружаем панораму...
-            </p>
+            <p className="panorama-loading-title">Загружаем панораму...</p>
           </div>
         </div>
       )}
-
-      {/* Левая информация */}
-      <div className={`panorama-info 
-        ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}
-      `}>
-        <div
-          className={`panorama-info-inner ${
-            effectsActive ? 'animate-in' : ''
-          }`}
-          key={`${currentApartmentIndex}-${effectsActive}`}
-        >
-          <span className="panorama-info-eyebrow">
-            Lifestyle · Luxury
-          </span>
-
-          <h2 className="panorama-info-title">
-            {cleanTitle(panoramas[currentApartmentIndex].title)}
-          </h2>
-
-          <p className="panorama-info-description">
-            Просторные премиальные апартаменты с панорамным видом
-            на Чёрное море.
-          </p>
-
+      <div className={`panorama-info ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}`}>
+        <div className={`panorama-info-inner ${effectsActive ? 'animate-in' : ''}`} key={`${currentApartmentIndex}-${effectsActive}`}>
+          <span className="panorama-info-eyebrow">Lifestyle · Luxury</span>
+          <h2 className="panorama-info-title">{cleanTitle(panoramas[currentApartmentIndex].title)}</h2>
+          <p className="panorama-info-description">Просторные премиальные апартаменты с панорамным видом на Чёрное море.</p>
           <ul className="panorama-info-meta">
-            {panoramas[currentApartmentIndex]?.meta?.map((item: string, i: number) => (
-              <li key={i}>{item}</li>
-            ))}
+            {panoramas[currentApartmentIndex]?.meta?.map((item: string, i: number) => <li key={i}>{item}</li>)}
           </ul>
-
-          {/* КНОПКИ НА ДЕСКТОПЕ */}
           {!isMobile && currentApartment && (
             <div className="panorama-desktop-actions">
-              <Link
-                href={`/apartments/${currentApartment.id}`}
-                className="panorama-desktop-btn primary"
-              >
-                Перейти в апартамент
-              </Link>
-
-              <motion.button
-                layoutId="photo-modal-desktop"
-                className="panorama-desktop-btn secondary"
-                onClick={() => {
-                  if (!currentApartment) return;
-                  // Загружаем фото апартамента
-                  fetch(`/api/apartments/${currentApartment.id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.images && data.images.length > 0) {
-                        open(data.images, 0);
-                      } else {
-                        alert('Фото временно недоступны');
-                      }
-                    })
-                    .catch(() => {
-                      alert('Ошибка загрузки фото');
-                    });
-                }}
-              >
-                Смотреть фото
-              </motion.button>
+              <Link href={`/apartments/${currentApartment.id}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
+              <motion.button layoutId="photo-modal-desktop" className="panorama-desktop-btn secondary" onClick={() => {
+                fetch(`/api/apartments/${currentApartment.id}`).then(res => res.json()).then(data => {
+                  if (data.images?.length) open(data.images, 0); else alert('Фото временно недоступны');
+                }).catch(() => alert('Ошибка загрузки фото'));
+              }}>Смотреть фото</motion.button>
             </div>
           )}
         </div>
       </div>
-
       {loading && (
-        <div className="panorama-loader">
-          <span />
-          <span />
-          <span />
-        </div>
+        <div className="panorama-loader"><span/><span/><span/></div>
       )}
-
-      {/* Мобильный интерфейс */}
       {isMobile && (
         <>
-          {/* Подсказка для свайпа */}
           {!fullscreenMode && showSwipeHint && !hasInteracted && (
-            <div className="panorama-swipe-hint">
-              Свайп для переключения
-            </div>
+            <div className="panorama-swipe-hint">Свайп для переключения</div>
           )}
-
-          {/* Кнопка fullscreen */}
           <div className={`panorama-fullscreen-wrapper ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
-            <button 
-              className={`fullscreen-btn ${fullscreenMode ? 'active' : ''}`}
-              onClick={() => {
-                setFullscreenMode(!fullscreenMode);
-                setUiVisible(true);
-              }}
-              aria-label={fullscreenMode ? "Выйти из полноэкранного режима" : "На весь экран"}
-            >
+            <button className={`fullscreen-btn ${fullscreenMode ? 'active' : ''}`} onClick={() => { setFullscreenMode(!fullscreenMode); setUiVisible(true); }}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 {fullscreenMode ? (
                   <path d="M5 15L9 11M11 9L15 5M5 5L9 9M11 11L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -715,81 +459,36 @@ export default function PanoramaViewer() {
               </svg>
             </button>
           </div>
-
-          {/* Нижний ряд: кнопки действий */}
           <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
             {currentApartment && (
-              <Link
-                href={`/apartments/${currentApartment.id}`}
-                className="panorama-action-btn primary"
-              >
-                Перейти в апартамент
-              </Link>
+              <Link href={`/apartments/${currentApartment.id}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
             )}
-
-            <motion.button
-              layoutId="photo-modal"
-              className="panorama-action-btn secondary"
-              onClick={() => {
-                if (!currentApartment) return;
-                fetch(`/api/apartments/${currentApartment.id}`)
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.images && data.images.length > 0) {
-                      open(data.images, 0);
-                    } else {
-                      alert('Фото временно недоступны');
-                    }
-                  })
-                  .catch(() => {
-                    alert('Ошибка загрузки фото');
-                  });
-              }}
-            >
-              Смотреть фото
-            </motion.button>
+            <motion.button layoutId="photo-modal" className="panorama-action-btn secondary" onClick={() => {
+              fetch(`/api/apartments/${currentApartment?.id}`).then(res => res.json()).then(data => {
+                if (data.images?.length) open(data.images, 0); else alert('Фото временно недоступны');
+              }).catch(() => alert('Ошибка загрузки фото'));
+            }}>Смотреть фото</motion.button>
           </div>
         </>
       )}
-
-      {/* Десктоп UI */}
       {!isMobile && (
         <div className="panorama-ui">
-          <button
-            className="panorama-arrow left"
-            onClick={() => changePanorama(prevIndex)}
-          >
+          <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
             <span className="arrow-icon">←</span>
-            <span className="arrow-label">
-              {cleanTitle(panoramas[prevIndex].title)}
-            </span>
+            <span className="arrow-label">{cleanTitle(panoramas[prevIndex].title)}</span>
           </button>
-
           <div className="panorama-center">
             <div className="panorama-tiles">
               {panoramas.map((_, i) => (
-                <span
-                  key={i}
-                  className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
-                  onClick={() => changePanorama(i)}
-                />
+                <span key={i} className={`tile ${i === currentApartmentIndex ? 'active' : ''}`} onClick={() => changePanorama(i)} />
               ))}
             </div>
-
             {hintAllowed && isHover && (
-              <div className="panorama-hint">
-                Нажмите и потяните, чтобы осмотреться
-              </div>
+              <div className="panorama-hint">Нажмите и потяните, чтобы осмотреться</div>
             )}
           </div>
-
-          <button
-            className="panorama-arrow right"
-            onClick={() => changePanorama(nextIndex)}
-          >
-            <span className="arrow-label">
-              {cleanTitle(panoramas[nextIndex].title)}
-            </span>
+          <button className="panorama-arrow right" onClick={() => changePanorama(nextIndex)}>
+            <span className="arrow-label">{cleanTitle(panoramas[nextIndex].title)}</span>
             <span className="arrow-icon">→</span>
           </button>
         </div>
