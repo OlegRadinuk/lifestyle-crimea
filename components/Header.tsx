@@ -35,7 +35,7 @@ export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
-  const { currentApartment } = useApartment(); // currentApartment из контекста
+  const { currentApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -60,9 +60,10 @@ export default function Header({ onBurgerClick }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем цену апартамента из БД для текущего активного апартамента
+  // Загружаем цену апартамента из БД
   useEffect(() => {
     if (!currentApartment?.id) {
+      console.log('No current apartment, price = 0');
       setApartmentPrice(0);
       return;
     }
@@ -70,20 +71,28 @@ export default function Header({ onBurgerClick }: Props) {
     const fetchPrice = async () => {
       setLoadingPrice(true);
       try {
-        console.log('Fetching price for apartment:', currentApartment.id);
+        console.log('🔍 Fetching price for apartment:', currentApartment.id);
+        console.log('Current apartment from context:', currentApartment);
+        
         const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        console.log('API response status:', res.status);
+        
         if (!res.ok) {
-          throw new Error('Failed to fetch apartment');
+          throw new Error(`API returned ${res.status}`);
         }
+        
         const data = await res.json();
-        console.log('Received price data:', data);
+        console.log('✅ API response data:', data);
+        console.log('💰 Price from API:', data.price_base);
+        
         setApartmentPrice(data.price_base || 8000);
       } catch (error) {
-        console.error('Error fetching apartment price:', error);
-        // Если API недоступен, используем цену из currentApartment если она есть
-        // @ts-ignore - price_base может быть в currentApartment если это полные данные
-        const fallbackPrice = currentApartment?.price_base;
-        setApartmentPrice(fallbackPrice || 8000);
+        console.error('❌ Error fetching apartment price:', error);
+        // Если API недоступен, используем цену из контекста если она есть
+        // @ts-ignore - проверим есть ли цена в currentApartment
+        const contextPrice = currentApartment?.price_base;
+        console.log('Using context price fallback:', contextPrice);
+        setApartmentPrice(contextPrice || 8000);
       } finally {
         setLoadingPrice(false);
       }
@@ -91,6 +100,11 @@ export default function Header({ onBurgerClick }: Props) {
 
     fetchPrice();
   }, [currentApartment?.id]);
+
+  // Логируем когда цена меняется
+  useEffect(() => {
+    console.log('💰 Apartment price updated to:', apartmentPrice);
+  }, [apartmentPrice]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
