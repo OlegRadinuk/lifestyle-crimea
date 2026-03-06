@@ -3,10 +3,9 @@ import { db } from '@/lib/db';
 
 export async function GET() {
   try {
-    // Получаем апартаменты, у которых есть панорама
-    // Предполагаем, что в таблице apartments есть поле panorama_image
+    // Получаем апартаменты, у которых есть панорама + добавляем price_base
     const apartments = db.prepare(`
-      SELECT id, title, panorama_image, max_guests
+      SELECT id, title, panorama_image, max_guests, price_base
       FROM apartments 
       WHERE is_active = 1 AND panorama_image IS NOT NULL AND panorama_image != ''
       ORDER BY sort_order
@@ -29,7 +28,7 @@ export async function GET() {
         title: apt.title,
         image: imagePath,
         maxGuests: apt.max_guests,
-        // Мета-информация для отображения
+        price_base: apt.price_base, // ← ДОБАВИЛИ
         meta: [
           `До ${apt.max_guests} гостей`,
           'Вид на море',
