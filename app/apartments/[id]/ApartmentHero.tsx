@@ -130,34 +130,17 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           </ul>
 
           {/* КНОПКИ ИЛИ СООБЩЕНИЕ О НЕДОСТУПНОСТИ */}
-          {!loading && (
-            <div className="panorama-desktop-actions">
-              {isActive ? (
-                <>
-                  <Link
-                    href={`/booking/${apartment.id}`}
-                    className="panorama-desktop-btn primary"
-                  >
-                    Забронировать · {apartment.priceBase.toLocaleString()} ₽/ночь
-                  </Link>
-
-                  <motion.button
-                    layoutId="photo-modal-desktop"
-                    className="panorama-desktop-btn secondary"
-                    onClick={() => open(apartment.images, 0)}
-                  >
-                    Смотреть фото
-                  </motion.button>
-                </>
-              ) : (
-                <div className="panorama-unavailable-message">
-                  <span className="unavailable-text">
-                    Апартамент временно недоступен для бронирования
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+{!loading && (
+  <div className="panorama-desktop-actions">
+    {!isActive && (
+      <div className="panorama-unavailable-message">
+        <span className="unavailable-text">
+          Апартамент временно недоступен для бронирования
+        </span>
+      </div>
+    )}
+  </div>
+)}
         </div>
       </div>
 
