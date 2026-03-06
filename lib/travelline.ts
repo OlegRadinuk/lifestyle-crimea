@@ -76,77 +76,87 @@ class TravellineService {
   }
 
   async getRoomTypes() {
-    const token = await this.getToken();
-    const response = await fetch(
-      `https://partner.tlintegration.com/content/v1/properties/${this.propertyId}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    try {
+      const token = await this.getToken();
+      const response = await fetch(
+        `https://partner.tlintegration.com/content/v1/properties/${this.propertyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    if (!response.ok) {
-      console.error(`Failed to fetch property data: ${response.status}`);
+      if (!response.ok) {
+        console.error(`Failed to fetch property data: ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      return data.roomTypes || [];
+    } catch (error) {
+      console.error('Error fetching room types:', error);
       return null;
     }
-
-    const data = await response.json();
-    return data.roomTypes || [];
   }
 
   async syncBookings() {
     console.log('🔄 Starting Travelline sync...');
     
-    const token = await this.getToken();
-    let continueToken: string | undefined;
-    let hasMore = true;
-    let syncedCount = 0;
-    let page = 0;
+    try {
+      const token = await this.getToken();
+      let continueToken: string | undefined;
+      let hasMore = true;
+      let syncedCount = 0;
+      let page = 0;
 
-    while (hasMore && page < 10) {
-      page++;
-      const url = new URL(`https://partner.tlintegration.com/reservation/v1/properties/${this.propertyId}/bookings`);
-      
-      if (continueToken) {
-        url.searchParams.set('continueToken', continueToken);
-      }
-
-      const response = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        console.error(`Travelline API error: ${response.status}`);
-        if (response.status === 429) {
-          const retryAfter = response.headers.get('retry-after');
-          const wait = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
-          console.log(`Rate limited, waiting ${wait}ms...`);
-          await new Promise(resolve => setTimeout(resolve, wait));
-          continue;
+      while (hasMore && page < 10) {
+        page++;
+        const url = new URL(`https://partner.tlintegration.com/reservation/v1/properties/${this.propertyId}/bookings`);
+        
+        if (continueToken) {
+          url.searchParams.set('continueToken', continueToken);
         }
-        break;
-      }
 
-      const data = await response.json() as TravellineBookingsResponse;
-      
-      for (const summary of data.bookingSummaries) {
-        try {
-          await this.processBooking(summary.number);
-          syncedCount++;
-        } catch (error) {
-          console.error(`Error processing booking ${summary.number}:`, error);
+        const response = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          console.error(`Travelline API error: ${response.status}`);
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('retry-after');
+            const wait = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
+            console.log(`Rate limited, waiting ${wait}ms...`);
+            await new Promise(resolve => setTimeout(resolve, wait));
+            continue;
+          }
+          break;
         }
+
+        const data = await response.json() as TravellineBookingsResponse;
+        
+        for (const summary of data.bookingSummaries) {
+          try {
+            await this.processBooking(summary.number);
+            syncedCount++;
+          } catch (error) {
+            console.error(`Error processing booking ${summary.number}:`, error);
+          }
+        }
+
+        continueToken = data.continueToken;
+        hasMore = data.hasMoreData;
       }
 
-      continueToken = data.continueToken;
-      hasMore = data.hasMoreData;
+      // Записываем время синхронизации
+      db.prepare(`
+        INSERT INTO sync_log (source, last_sync, status, message)
+        VALUES (?, ?, ?, ?)
+      `).run('travelline', new Date().toISOString(), 'success', `Synced ${syncedCount} bookings`);
+
+      console.log(`✅ Travelline sync completed: ${syncedCount} bookings`);
+      return syncedCount;
+    } catch (error) {
+      console.error('Sync failed:', error);
+      throw error;
     }
-
-    // Записываем время синхронизации
-    db.prepare(`
-      INSERT INTO sync_log (source, last_sync, status, message)
-      VALUES (?, ?, ?, ?)
-    `).run('travelline', new Date().toISOString(), 'success', `Synced ${syncedCount} bookings`);
-
-    console.log(`✅ Travelline sync completed: ${syncedCount} bookings`);
-    return syncedCount;
   }
 
   private async processBooking(bookingNumber: string) {
@@ -165,16 +175,24 @@ class TravellineService {
     if (booking.status !== 'Confirmed') return;
 
     for (const roomStay of booking.roomStays) {
-      // Пока используем заглушку - потом заменим на реальный маппинг
-      const apartmentId = null; // TODO: roomType.id → apartment_id
-
-      console.log(`📅 Booking ${bookingNumber}:`, {
-        roomTypeId: roomStay.roomType.id,
-        checkIn: roomStay.arrivalDateTime.split('T')[0],
-        checkOut: roomStay.departureDateTime.split('T')[0],
-        adults: roomStay.adults,
-        children: roomStay.children || 0,
-      });
+      // Проверяем, не сохраняли ли уже это бронирование
+      const existing = db.prepare('SELECT id FROM blocked_dates WHERE booking_number = ?').get(booking.number);
+      
+      if (!existing) {
+        console.log(`📅 New booking ${bookingNumber}:`, {
+          roomTypeId: roomStay.roomType.id,
+          checkIn: roomStay.arrivalDateTime.split('T')[0],
+          checkOut: roomStay.departureDateTime.split('T')[0],
+          adults: roomStay.adults,
+          children: roomStay.children || 0,
+        });
+        
+        // TODO: добавить сохранение в БД после настройки маппинга
+        // db.prepare(`
+        //   INSERT INTO blocked_dates (apartment_id, start_date, end_date, source, booking_number)
+        //   VALUES (?, ?, ?, ?, ?)
+        // `).run(apartmentId, checkIn, checkOut, 'travelline', booking.number);
+      }
     }
   }
 }

@@ -21,7 +21,6 @@ export async function POST() {
   }
 }
 
-// GET для ручного запуска через браузер (опционально)
 export async function GET() {
   return POST();
 }

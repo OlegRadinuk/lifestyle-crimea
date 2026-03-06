@@ -1,6 +1,5 @@
-// scripts/travelline-sync.js
-const { travellineService } = require('../lib/travelline');
-const { db } = require('../lib/db');
+import { travellineService } from '../lib/travelline';
+import { db } from '../lib/db';
 
 async function run() {
   console.log('🔄 Running Travelline sync at', new Date().toISOString());
@@ -12,12 +11,11 @@ async function run() {
   } catch (error) {
     console.error('❌ Sync failed:', error);
     
-    // Логируем ошибку в БД
     try {
       db.prepare(`
         INSERT INTO sync_log (source, last_sync, status, message)
         VALUES (?, ?, ?, ?)
-      `).run('travelline', new Date().toISOString(), 'error', error.message || String(error));
+      `).run('travelline', new Date().toISOString(), 'error', error instanceof Error ? error.message : String(error));
     } catch (e) {
       console.error('Failed to log error:', e);
     }
