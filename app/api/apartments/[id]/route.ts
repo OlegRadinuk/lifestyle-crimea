@@ -8,16 +8,14 @@ export async function GET(
   const { id } = await params;
 
   try {
+    // Убираем условие is_active = 1
     const apartment = db.prepare(`
-      SELECT * FROM apartments WHERE id = ? AND is_active = 1
+      SELECT * FROM apartments WHERE id = ?
     `).get(id) as any;
 
     if (!apartment) {
       return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
-
-    // Проверяем, есть ли поле panorama_image, если нет - используем заглушку
-    const panoramaImage = apartment.panorama_image || null;
 
     // Получаем изображения апартамента из отдельной таблицы (если есть)
     let images = [];
@@ -51,7 +49,7 @@ export async function GET(
       has_terrace: Boolean(apartment.has_terrace),
       features: apartment.features ? JSON.parse(apartment.features) : [],
       images: images,
-      panorama_image: panoramaImage, // Добавляем поле для панорамы
+      panorama_image: apartment.panorama_image || null,
       is_active: Boolean(apartment.is_active),
     };
 

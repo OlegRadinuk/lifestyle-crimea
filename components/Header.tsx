@@ -40,6 +40,7 @@ export default function Header({ onBurgerClick }: Props) {
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [apartmentPrice, setApartmentPrice] = useState(0);
+  const [isActive, setIsActive] = useState(true);
   const [loadingPrice, setLoadingPrice] = useState(false);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -60,51 +61,39 @@ export default function Header({ onBurgerClick }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем цену апартамента из БД
+  // Загружаем данные апартамента из БД
   useEffect(() => {
     if (!currentApartment?.id) {
-      console.log('No current apartment, price = 0');
       setApartmentPrice(0);
+      setIsActive(false);
       return;
     }
     
-    const fetchPrice = async () => {
+    const fetchApartmentData = async () => {
       setLoadingPrice(true);
       try {
-        console.log('🔍 Fetching price for apartment:', currentApartment.id);
-        console.log('Current apartment from context:', currentApartment);
-        
         const res = await fetch(`/api/apartments/${currentApartment.id}`);
-        console.log('API response status:', res.status);
         
-        if (!res.ok) {
-          throw new Error(`API returned ${res.status}`);
+        if (res.ok) {
+          const data = await res.json();
+          setApartmentPrice(data.price_base || 0);
+          setIsActive(data.is_active === true);
+        } else {
+          // Если 404 или другая ошибка, значит апартамент неактивен или не существует
+          setApartmentPrice(0);
+          setIsActive(false);
         }
-        
-        const data = await res.json();
-        console.log('✅ API response data:', data);
-        console.log('💰 Price from API:', data.price_base);
-        
-        setApartmentPrice(data.price_base || 8000);
       } catch (error) {
-        console.error('❌ Error fetching apartment price:', error);
-        // Если API недоступен, используем цену из контекста если она есть
-        // @ts-ignore - проверим есть ли цена в currentApartment
-        const contextPrice = currentApartment?.price_base;
-        console.log('Using context price fallback:', contextPrice);
-        setApartmentPrice(contextPrice || 8000);
+        console.error('❌ Error fetching apartment data:', error);
+        setApartmentPrice(0);
+        setIsActive(false);
       } finally {
         setLoadingPrice(false);
       }
     };
 
-    fetchPrice();
+    fetchApartmentData();
   }, [currentApartment?.id]);
-
-  // Логируем когда цена меняется
-  useEffect(() => {
-    console.log('💰 Apartment price updated to:', apartmentPrice);
-  }, [apartmentPrice]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -242,43 +231,43 @@ export default function Header({ onBurgerClick }: Props) {
           </>
         )}
 
-        {/* В режиме apartment */}
-{mode === 'apartment' && currentApartment && (
-  <div className="header__booking-wrapper is-apartment">
-    <div className="header__booking-action" style={{ position: 'relative' }}>
-      <button
-        className="header__booking with-apartment"
-        onClick={() => setCalendarOpen(prev => !prev)}
-        disabled={loadingPrice}
-      >
-        <span className="header__booking-label">Проверить доступность</span>
-        <span className="header__booking-apartment">
-          {currentApartment.title.replace(/^LS\s*/i, '')}
-        </span>
-      </button>
+        {/* В режиме apartment - показываем только для активных апартаментов */}
+        {mode === 'apartment' && currentApartment && isActive && (
+          <div className="header__booking-wrapper is-apartment">
+            <div className="header__booking-action" style={{ position: 'relative' }}>
+              <button
+                className="header__booking with-apartment"
+                onClick={() => setCalendarOpen(prev => !prev)}
+                disabled={loadingPrice}
+              >
+                <span className="header__booking-label">Проверить доступность</span>
+                <span className="header__booking-apartment">
+                  {currentApartment.title.replace(/^LS\s*/i, '')}
+                </span>
+              </button>
 
-      <AnimatePresence>
-        {calendarOpen && mode === 'apartment' && (
-          <div ref={popoverRef} className="header__calendar-popover">
-            <ApartmentAvailabilityCalendar
-              key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
-              blockedDates={blockedDates}
-              position="right"
-              onConfirm={(range) => {
-                setSelectedRange(range);
-                setCalendarOpen(false);
-                setBookingModalOpen(true);
-              }}
-              onClose={() => setCalendarOpen(false)}
-              showPrice={true}
-              apartmentPrice={apartmentPrice}
-            />
+              <AnimatePresence>
+                {calendarOpen && mode === 'apartment' && (
+                  <div ref={popoverRef} className="header__calendar-popover">
+                    <ApartmentAvailabilityCalendar
+                      key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
+                      blockedDates={blockedDates}
+                      position="right"
+                      onConfirm={(range) => {
+                        setSelectedRange(range);
+                        setCalendarOpen(false);
+                        setBookingModalOpen(true);
+                      }}
+                      onClose={() => setCalendarOpen(false)}
+                      showPrice={true}
+                      apartmentPrice={apartmentPrice}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         )}
-      </AnimatePresence>
-    </div>
-  </div>
-)}
 
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
@@ -293,7 +282,7 @@ export default function Header({ onBurgerClick }: Props) {
         />
       )}
 
-      {bookingModalOpen && currentApartment && selectedRange && (
+      {bookingModalOpen && currentApartment && selectedRange && isActive && (
         <BookingModal
           apartment={{
             id: currentApartment.id,
