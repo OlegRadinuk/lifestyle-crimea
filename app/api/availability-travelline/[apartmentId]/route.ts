@@ -32,11 +32,12 @@ export async function GET(
 
     // Иначе возвращаем все заблокированные даты из Travelline
     const blockedDates = db.prepare(`
-      SELECT start_date as start, end_date as end, source
-      FROM blocked_dates
-      WHERE apartment_id = ?
-      ORDER BY start_date
-    `).all(apartmentId);
+  SELECT start_date as start, end_date as end, source
+  FROM blocked_dates
+  WHERE apartment_id = ?
+  AND end_date >= date('now')  -- только будущие и текущие
+  ORDER BY start_date
+`).all(apartmentId);
 
     return NextResponse.json({
       apartmentId,

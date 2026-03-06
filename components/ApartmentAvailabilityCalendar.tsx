@@ -49,22 +49,29 @@ export default function ApartmentAvailabilityCalendar({
 
   // Критически важно: день выезда (end) НЕ добавляется в заблокированные
   const disabledDays = useMemo(() => {
-    const disabled: ({ before: Date } | Date)[] = [{ before: today }];
+  console.log('🔥🔥🔥 CALCULATING disabledDays with:', blockedDates);
+  
+  const disabled: ({ before: Date } | Date)[] = [{ before: today }];
+  
+  blockedDates.forEach(blocked => {
+    console.log('  Processing blocked:', blocked);
+    const start = new Date(blocked.start);
+    const end = new Date(blocked.end);
     
-    blockedDates.forEach(blocked => {
-      const start = new Date(blocked.start);
-      const end = new Date(blocked.end);
-      
-      // Добавляем все дни от start ДО end (не включая end)
-      let current = new Date(start);
-      while (current < end) {
-        disabled.push(new Date(current));
-        current = addDays(current, 1);
-      }
-    });
-    
-    return disabled;
-  }, [blockedDates, today]);
+    let current = new Date(start);
+    while (current < end) {
+      console.log('    Adding disabled day:', current.toISOString().split('T')[0]);
+      disabled.push(new Date(current));
+      current = addDays(current, 1);
+    }
+  });
+  
+  console.log('🏁 Final disabled days:', disabled.map(d => 
+    d instanceof Date ? d.toISOString().split('T')[0] : 'before today'
+  ));
+  
+  return disabled;
+}, [blockedDates, today]);
 
   const nights = range?.from && range?.to
     ? differenceInCalendarDays(range.to, range.from)
@@ -100,6 +107,7 @@ export default function ApartmentAvailabilityCalendar({
   return (
     <AnimatePresence>
       <motion.div
+        data-testid="availability-calendar"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
