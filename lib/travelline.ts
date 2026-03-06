@@ -42,10 +42,49 @@ type TravellineBookingDetails = {
 };
 
 // Маппинг ID комнат Travelline на ID наших апартаментов
-// Заполни на основе данных из Content API
 const ROOM_TYPE_MAPPING: Record<string, string> = {
-  // Пример: '244430': 'ls-art-crystal-blue',
-  // TODO: добавить все соответствия
+  // Дизайнерские студии
+  '278023': 'ls-space',                    // LS-SPACE
+  '243734': 'ls-coffee-ice-cream',          // LS-COFFEE ICE CREAM
+  '263391': 'ls-summer-emotions',           // LS-SUMMER EMOTIONS
+  '330325': 'ls-black-strong',              // LS-BLACK STRONG
+  '274922': 'ls-deep-music',                // LS-DEEP MUSIC
+  '348222': 'ls-dream-vacation',            // LS-DREAM VACATION
+  '279273': 'ls-econom-studio',             // LS-ECONOM STUDIO
+  '277347': 'ls-family-comfort',            // LS-FAMILY COMFORT
+  '272228': 'ls-in-the-moment',             // LS-IN THE MOMENT
+  '345796': 'ls-lux-flower-kiss',           // LS-LUX-FLOWER KISS
+  '289889': 'ls-relax-time',                // LS-RELAX TIME
+  '269778': 'ls-sweet-summer',              // LS-SWEET SUMMER
+  '243739': 'ls-lux-sweet-caramel',         // LS-LUX-SWEET CARAMEL
+  '274610': 'ls-steel-love',                // LS-STEEL LOVE
+  '244430': 'ls-art-crystal-blue',          // LS-ART-CRYSTAL BLUE
+  '243321': 'ls-art-olive',                 // LS-ART-OLIVE
+  '265649': 'ls-blue-curacao',              // LS-BLUE CURACAO
+  '244425': 'ls-blueberry',                  // LS-BLUEBERRY
+  '269609': 'ls-cool-lemonade',              // LS-COOL LEMONADE
+  '243319': 'ls-green',                      // LS-GREEN
+  '291460': 'ls-hi-tech-emotion',            // LS-HI-TECH EMOTION
+  '291417': 'ls-hi-tech-relax',              // LS-HI-TECH RELAX
+  '272288': 'ls-lux-only-you',               // LS-LUX-ONLY YOU
+  '373007': 'ls-lux-fly-sky',                // LS-LUX-FLY SKY
+  '348227': 'ls-lux-beautiful-days',         // LS-LUX-BEAUTIFUL DAYS
+  '361602': 'ls-lux-fly-mood',               // LS-LUX-FLY MOOD
+  '337183': 'ls-lux-sun-rays',               // LS-LUX-SUN RAYS
+  '348223': 'ls-lux-sunny-mood',             // LS-LUX-SUNNY MOOD
+  '373006': 'ls-lux-fly-blue-light',         // LS-LUX-FLY BLUE LIGHT
+  '337185': 'ls-lux-sunshine',               // LS-LUX-SUNSHINE
+
+  // Апартаменты с отдельной спальней
+  '278010': 'ls-diamond-green',              // LS-DIAMOND GREEN
+  '348218': 'ls-mountain-retreat',           // LS-MOUNTAIN RETREAT
+  '264854': 'ls-wine-and-sunset',            // LS-WINE AND SUNSET
+  '264995': 'ls-lux-white-sands',            // LS-LUX-WHITE SANDS
+  '244426': 'ls-lux-orange',                 // LS-LUX-ORANGE
+  '243517': 'ls-lux-soft-blue',              // LS-LUX-SOFT BLUE
+  '363094': 'ls-lux-fly-birds',              // LS-LUX-FLY BIRDS
+  '280610': 'ls-deep-forest',                // LS-DEEP FOREST
+  '281311': 'ls-flowers-tea',                // LS-FLOWERS TEA
 };
 
 class TravellineService {
