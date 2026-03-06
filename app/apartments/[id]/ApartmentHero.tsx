@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
+import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
+import { motion } from "framer-motion";
+import Link from 'next/link';
 import './apartment.css';
 
 type Props = {
@@ -24,6 +27,7 @@ type Props = {
 
 export default function ApartmentHero({ apartment, loading = false }: Props) {
   const { register, unregister } = useHeader();
+  const { open } = usePhotoModal();
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -48,6 +52,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   if (!apartment.images?.length) {
     return <div>Нет изображений</div>;
   }
+
+  const isActive = apartment.isActive !== false;
 
   return (
     <section
@@ -122,6 +128,36 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
               <li key={i}>{item}</li>
             ))}
           </ul>
+
+          {/* КНОПКИ ИЛИ СООБЩЕНИЕ О НЕДОСТУПНОСТИ */}
+          {!loading && (
+            <div className="panorama-desktop-actions">
+              {isActive ? (
+                <>
+                  <Link
+                    href={`/booking/${apartment.id}`}
+                    className="panorama-desktop-btn primary"
+                  >
+                    Забронировать · {apartment.priceBase.toLocaleString()} ₽/ночь
+                  </Link>
+
+                  <motion.button
+                    layoutId="photo-modal-desktop"
+                    className="panorama-desktop-btn secondary"
+                    onClick={() => open(apartment.images, 0)}
+                  >
+                    Смотреть фото
+                  </motion.button>
+                </>
+              ) : (
+                <div className="panorama-unavailable-message">
+                  <span className="unavailable-text">
+                    Апартамент временно недоступен для бронирования
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

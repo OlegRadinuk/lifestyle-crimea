@@ -53,4 +53,61 @@
   color: #fff;
 }
 
+/* Добавить в конец файла */
 
+.panorama-desktop-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  pointer-events: auto;
+}
+
+.panorama-desktop-btn {
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.panorama-desktop-btn.primary {
+  background: #139ab6;
+  color: white;
+}
+
+.panorama-desktop-btn.primary:hover {
+  background: #0f7a91;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(19, 154, 182, 0.4);
+}
+
+.panorama-desktop-btn.secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.panorama-desktop-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.panorama-unavailable-message {
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.unavailable-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
