@@ -473,44 +473,44 @@ export default function PanoramaViewer() {
 
           {/* КНОПКИ НА ДЕСКТОПЕ */}
           {!isMobile && (
-            <div className="panorama-desktop-actions">
-              {isCurrentApartmentActive && currentApartmentData ? (
-                <>
-                  <Link
-                    href={`/apartments/${currentApartmentData.id}`}
-                    className="panorama-desktop-btn primary"
-                  >
-                    Перейти в апартамент
-                  </Link>
+  <div className="panorama-desktop-actions">
+    {isCurrentApartmentActive ? (
+      <>
+        <Link
+          href={`/apartments/${currentPano.id}`}
+          className="panorama-desktop-btn primary"
+        >
+          Перейти в апартамент
+        </Link>
 
-                  <motion.button
-                    layoutId="photo-modal-desktop"
-                    className="panorama-desktop-btn secondary"
-                    onClick={() => {
-                      fetch(`/api/apartments/${currentApartmentData.id}`)
-                        .then(res => res.json())
-                        .then(data => {
-                          if (data.images?.length) {
-                            open(data.images, 0);
-                          } else {
-                            alert('Фото временно недоступны');
-                          }
-                        })
-                        .catch(() => alert('Ошибка загрузки фото'));
-                    }}
-                  >
-                    Смотреть фото
-                  </motion.button>
-                </>
-              ) : (
-                <div className="panorama-unavailable-message">
-                  <span className="unavailable-text">
-                    Апартамент временно недоступен для бронирования
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+        <motion.button
+          layoutId="photo-modal-desktop"
+          className="panorama-desktop-btn secondary"
+          onClick={() => {
+            fetch(`/api/apartments/${currentPano.id}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.images?.length) {
+                  open(data.images, 0);
+                } else {
+                  alert('Фото временно недоступны');
+                }
+              })
+              .catch(() => alert('Ошибка загрузки фото'));
+          }}
+        >
+          Смотреть фото
+        </motion.button>
+      </>
+    ) : (
+      <div className="panorama-unavailable-message">
+        <span className="unavailable-text">
+          Апартамент временно недоступен для бронирования
+        </span>
+      </div>
+    )}
+  </div>
+)}
         </div>
       </div>
 
@@ -545,40 +545,40 @@ export default function PanoramaViewer() {
           </div>
 
           <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
-            {isCurrentApartmentActive && currentApartmentData ? (
-              <>
-                <Link
-                  href={`/apartments/${currentApartmentData.id}`}
-                  className="panorama-action-btn primary"
-                >
-                  Перейти в апартамент
-                </Link>
+  {isCurrentApartmentActive ? (
+    <>
+      <Link
+        href={`/apartments/${currentPano.id}`}
+        className="panorama-action-btn primary"
+      >
+        Перейти в апартамент
+      </Link>
 
-                <motion.button
-                  layoutId="photo-modal"
-                  className="panorama-action-btn secondary"
-                  onClick={() => {
-                    fetch(`/api/apartments/${currentApartmentData.id}`)
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.images?.length) {
-                          open(data.images, 0);
-                        } else {
-                          alert('Фото временно недоступны');
-                        }
-                      })
-                      .catch(() => alert('Ошибка загрузки фото'));
-                  }}
-                >
-                  Смотреть фото
-                </motion.button>
-              </>
-            ) : (
-              <div className="panorama-unavailable-message mobile">
-                <span>Временно недоступно</span>
-              </div>
-            )}
-          </div>
+      <motion.button
+        layoutId="photo-modal"
+        className="panorama-action-btn secondary"
+        onClick={() => {
+          fetch(`/api/apartments/${currentPano.id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.images?.length) {
+                open(data.images, 0);
+              } else {
+                alert('Фото временно недоступны');
+              }
+            })
+            .catch(() => alert('Ошибка загрузки фото'));
+        }}
+      >
+        Смотреть фото
+      </motion.button>
+    </>
+  ) : (
+    <div className="panorama-unavailable-message mobile">
+      <span>Временно недоступно</span>
+    </div>
+  )}
+</div>
         </>
       )}
 
