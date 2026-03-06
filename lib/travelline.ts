@@ -166,7 +166,7 @@ class TravellineService {
 
     for (const roomStay of booking.roomStays) {
       // Пока используем заглушку - потом заменим на реальный маппинг
-      const apartmentId = null; // TODO: маппинг roomType.id → apartment_id
+      const apartmentId = null; // TODO: roomType.id → apartment_id
 
       console.log(`📅 Booking ${bookingNumber}:`, {
         roomTypeId: roomStay.roomType.id,
