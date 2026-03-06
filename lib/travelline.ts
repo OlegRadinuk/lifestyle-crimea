@@ -274,3 +274,6 @@ class TravellineService {
 }
 
 export const travellineService = new TravellineService();
+
+// Для CommonJS совместимости
+module.exports = { travellineService };
