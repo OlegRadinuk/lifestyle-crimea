@@ -55,6 +55,16 @@ export default function PanoramaViewer() {
   const currentApartmentData = currentPano ? 
     activeApartmentsMap.get(currentPano.id) : null;
 
+      // ОТЛАДКА - посмотреть что происходит
+  console.log('🔥 PanoramaViewer debug:', {
+    currentApartmentIndex,
+    currentPanoId: currentPano?.id,
+    dbPanoramasCount: dbPanoramas?.length,
+    dbPanoramasIds: dbPanoramas?.map(p => p.id),
+    isInMap: activeApartmentsMap.has(currentPano?.id || ''),
+    isActive: isCurrentApartmentActive
+  });
+
   // THREE REFS
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
