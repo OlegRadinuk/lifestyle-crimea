@@ -167,51 +167,58 @@ export default function PanoramaViewer() {
 
   const { open } = usePhotoModal();
 
-  // --- УЛУЧШЕННАЯ ПРЕДЗАГРУЗКА ДЛЯ МОБИЛЬНЫХ ---
-  const preloadTextures = (startIndex: number) => {
-    const indicesToPreload = [];
-    
-    // Для мобильных грузим только следующие 2 (чтобы не перегружать)
-    if (isMobile) {
-      indicesToPreload.push(
-        (startIndex + 1) % panoramas.length,
-        (startIndex + 2) % panoramas.length
-      );
-    } else {
-      // Для десктопа грузим все
-      for (let i = 0; i < panoramas.length; i++) {
-        if (i !== startIndex && !preloadedTextures.current[i]) {
-          indicesToPreload.push(i);
-        }
+  // --- УЛУЧШЕННАЯ ПРЕДЗАГРУЗКА ---
+const preloadTextures = (startIndex: number) => {
+  const indicesToPreload = [];
+  
+  // Для мобильных грузим следующие 3 (включая текущую + 2 вперед и 1 назад)
+  if (isMobile) {
+    indicesToPreload.push(
+      (startIndex + 1) % panoramas.length,
+      (startIndex + 2) % panoramas.length,
+      (startIndex - 1 + panoramas.length) % panoramas.length // предыдущая
+    );
+  } else {
+    // Для десктопа грузим все
+    for (let i = 0; i < panoramas.length; i++) {
+      if (!preloadedTextures.current[i]) {
+        indicesToPreload.push(i);
       }
     }
+  }
 
-    const loader = new THREE.TextureLoader();
+  console.log(`📦 Preloading indices:`, indicesToPreload);
+
+  const loader = new THREE.TextureLoader();
+  
+  indicesToPreload.forEach(index => {
+    if (preloadedTextures.current[index]) {
+      console.log(`⏭️ Texture ${index} already cached`);
+      return;
+    }
     
-    indicesToPreload.forEach(index => {
-      if (preloadedTextures.current[index]) return;
-      
-      loader.load(
-        panoramas[index].image,
-        texture => {
-          texture.colorSpace = THREE.SRGBColorSpace;
-          preloadedTextures.current[index] = texture;
-          console.log(`✅ Preloaded texture ${index}`);
-        },
-        undefined,
-        error => {
-          console.error(`❌ Failed to preload texture ${index}:`, error);
-          // Пробуем еще раз через секунду
-          setTimeout(() => {
-            loader.load(panoramas[index].image, texture => {
-              texture.colorSpace = THREE.SRGBColorSpace;
-              preloadedTextures.current[index] = texture;
-            });
-          }, 1000);
-        }
-      );
-    });
-  };
+    loader.load(
+      panoramas[index].image,
+      texture => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        preloadedTextures.current[index] = texture;
+        console.log(`✅ Preloaded texture ${index}`);
+      },
+      undefined,
+      error => {
+        console.error(`❌ Failed to preload texture ${index}:`, error);
+        // Пробуем еще раз через секунду
+        setTimeout(() => {
+          loader.load(panoramas[index].image, texture => {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            preloadedTextures.current[index] = texture;
+            console.log(`✅ Retry success for texture ${index}`);
+          });
+        }, 1000);
+      }
+    );
+  });
+};
 
   // --- Инициализация THREE.js сцены ---
   useEffect(() => {
