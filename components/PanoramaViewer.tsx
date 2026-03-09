@@ -37,6 +37,14 @@ export default function PanoramaViewer() {
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
 
+  // Состояние для вращения (чтобы не терялось при ререндерах)
+  const rotationState = useRef({
+    targetLon: 0,
+    targetLat: 0,
+    lon: 0,
+    lat: 0
+  });
+
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
 
@@ -70,8 +78,11 @@ export default function PanoramaViewer() {
 
   const changePanorama = (index: number) => {
     if (index === currentApartmentIndex) return;
+    console.log(`🔄 changePanorama called: ${currentApartmentIndex} -> ${index}`);
+    
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
     if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
+    
     transitionTimer.current = setTimeout(() => setTransitioning(true), 300);
     setCurrentApartmentIndex(index);
     setHasInteracted(true);
@@ -228,11 +239,10 @@ export default function PanoramaViewer() {
       }
     );
 
-    // --- Логика вращения (без изменений) ---
-    let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
+    // --- Логика вращения ---
     let isUserInteracting = false;
     let startX = 0, startY = 0, startLon = 0, startLat = 0;
-    let touchStartX = 0, touchStartY = 0, touchStartLon = 0, touchStartLat = 0;
+    let touchStartX = 0, touchStartY = 0;
     let isDragging = false;
     const SWIPE_THRESHOLD = 50;
     const ROTATION_SPEED = 0.15;
@@ -241,79 +251,110 @@ export default function PanoramaViewer() {
     const DAMPING_FACTOR_DESKTOP = 0.08;
     const AUTO_ROTATE_SPEED = 0.008;
 
+    // Обработчики pointer (десктоп)
     const onPointerDown = (e: PointerEvent) => {
       if (isMobile) return;
       isUserInteracting = true;
       setHintAllowed(false);
       startX = e.clientX;
       startY = e.clientY;
-      startLon = targetLon;
-      startLat = targetLat;
+      startLon = rotationState.current.targetLon;
+      startLat = rotationState.current.targetLat;
     };
 
     const onPointerMove = (e: PointerEvent) => {
       if (!isUserInteracting || isMobile) return;
-      targetLon = startLon - (e.clientX - startX) * ROTATION_SPEED;
-      targetLat = startLat + (e.clientY - startY) * ROTATION_SPEED;
-      targetLat = Math.max(-30, Math.min(30, targetLat));
+      rotationState.current.targetLon = startLon - (e.clientX - startX) * ROTATION_SPEED;
+      rotationState.current.targetLat = startLat + (e.clientY - startY) * ROTATION_SPEED;
+      rotationState.current.targetLat = Math.max(-30, Math.min(30, rotationState.current.targetLat));
     };
 
     const onPointerUp = () => { if (!isMobile) isUserInteracting = false; };
 
+    // Обработчики touch для мобильных
     const handleTouchStart = (e: TouchEvent) => {
+      console.log('👆 Touch start');
       const touch = e.touches[0];
       if (!touch) return;
+      
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
+      
       if (fullscreenMode) {
         isUserInteracting = true;
-        touchStartLon = targetLon;
-        touchStartLat = targetLat;
         setHintAllowed(false);
         e.preventDefault();
       } else {
         isDragging = false;
       }
+      
       showUITemporarily();
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
+      
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;
+      
       if (fullscreenMode) {
         e.preventDefault();
         if (isUserInteracting) {
-          targetLon = touchStartLon - deltaX * TOUCH_ROTATION_SPEED;
-          targetLat = touchStartLat + deltaY * TOUCH_ROTATION_SPEED * 0.5;
-          targetLat = Math.max(-30, Math.min(30, targetLat));
+          rotationState.current.targetLon -= deltaX * TOUCH_ROTATION_SPEED;
+          rotationState.current.targetLat += deltaY * TOUCH_ROTATION_SPEED * 0.5;
+          rotationState.current.targetLat = Math.max(-30, Math.min(30, rotationState.current.targetLat));
         }
       } else {
-        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) isDragging = true;
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+          isDragging = true;
+        }
       }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
+      console.log('👆 Touch end, isDragging:', isDragging);
+      
       if (fullscreenMode) {
         isUserInteracting = false;
         return;
       }
-      if (!isDragging) return;
+      
+      if (!isDragging) {
+        console.log('⏭️ Not a swipe, ignoring');
+        return;
+      }
+      
       const touch = e.changedTouches[0];
       if (!touch) return;
+      
       const deltaX = touch.clientX - touchStartX;
-      if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-        if (deltaX > 0) changePanorama(prevIndex);
-        else changePanorama(nextIndex);
+      const deltaY = touch.clientY - touchStartY;
+      console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
+      
+      // Горизонтальный свайп важнее вертикального
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        console.log('✅ Valid horizontal swipe detected');
+        
+        if (deltaX > 0) {
+          console.log('➡️ Swipe right -> PREV panorama (index', prevIndex, ')');
+          changePanorama(prevIndex);
+        } else {
+          console.log('⬅️ Swipe left -> NEXT panorama (index', nextIndex, ')');
+          changePanorama(nextIndex);
+        }
+        
         setHasInteracted(true);
         setShowSwipeHint(false);
+      } else {
+        console.log('❌ Not a valid horizontal swipe');
       }
     };
 
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    
     if (isMobile) {
       container.addEventListener('touchstart', handleTouchStart, { passive: false });
       container.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -322,19 +363,24 @@ export default function PanoramaViewer() {
 
     const animate = () => {
       requestAnimationFrame(animate);
+      
       if (!isUserInteracting && !isHoverRef.current && !fullscreenMode) {
-        targetLon += AUTO_ROTATE_SPEED;
+        rotationState.current.targetLon += AUTO_ROTATE_SPEED;
       }
+
       const dampingFactor = isMobile ? DAMPING_FACTOR_MOBILE : DAMPING_FACTOR_DESKTOP;
-      lon += (targetLon - lon) * dampingFactor;
-      lat += (targetLat - lat) * dampingFactor;
-      const phi = THREE.MathUtils.degToRad(90 - lat);
-      const theta = THREE.MathUtils.degToRad(lon);
+      rotationState.current.lon += (rotationState.current.targetLon - rotationState.current.lon) * dampingFactor;
+      rotationState.current.lat += (rotationState.current.targetLat - rotationState.current.lat) * dampingFactor;
+
+      const phi = THREE.MathUtils.degToRad(90 - rotationState.current.lat);
+      const theta = THREE.MathUtils.degToRad(rotationState.current.lon);
+
       camera.lookAt(
         500 * Math.sin(phi) * Math.cos(theta),
         500 * Math.cos(phi),
         500 * Math.sin(phi) * Math.sin(theta)
       );
+
       renderer.render(scene, camera);
     };
     const animationId = requestAnimationFrame(animate);
@@ -458,7 +504,7 @@ export default function PanoramaViewer() {
     };
   }, [currentApartmentIndex]);
 
-  // --- Рендер (без изменений, остаётся как был) ---
+  // --- Рендер ---
   return (
     <section
       id="panorama"
