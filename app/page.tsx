@@ -1,3 +1,4 @@
+// app/page.tsx - оптимизированная версия
 'use client';
 
 import { useEffect } from 'react';
@@ -9,7 +10,6 @@ import Reviews from '@/components/reviews';
 import Footer from '@/components/Footer';
 
 export default function HomePage() {
-
   return (
     <main className="frame">
       <section className="layer layer--hero">
