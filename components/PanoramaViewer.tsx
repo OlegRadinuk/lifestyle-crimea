@@ -167,18 +167,49 @@ export default function PanoramaViewer() {
 
   const { open } = usePhotoModal();
 
-  // --- Предзагрузка ВСЕХ текстур сразу (решение проблемы 3+ слайда) ---
-  const preloadAllTextures = () => {
+  // --- УЛУЧШЕННАЯ ПРЕДЗАГРУЗКА ДЛЯ МОБИЛЬНЫХ ---
+  const preloadTextures = (startIndex: number) => {
+    const indicesToPreload = [];
+    
+    // Для мобильных грузим только следующие 2 (чтобы не перегружать)
+    if (isMobile) {
+      indicesToPreload.push(
+        (startIndex + 1) % panoramas.length,
+        (startIndex + 2) % panoramas.length
+      );
+    } else {
+      // Для десктопа грузим все
+      for (let i = 0; i < panoramas.length; i++) {
+        if (i !== startIndex && !preloadedTextures.current[i]) {
+          indicesToPreload.push(i);
+        }
+      }
+    }
+
     const loader = new THREE.TextureLoader();
-    panoramas.forEach((_, index) => {
-      if (!preloadedTextures.current[index]) {
-        loader.load(panoramas[index].image, texture => {
+    
+    indicesToPreload.forEach(index => {
+      if (preloadedTextures.current[index]) return;
+      
+      loader.load(
+        panoramas[index].image,
+        texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[index] = texture;
-        }, undefined, (err) => {
-          console.error(`Error preloading texture ${index}:`, err);
-        });
-      }
+          console.log(`✅ Preloaded texture ${index}`);
+        },
+        undefined,
+        error => {
+          console.error(`❌ Failed to preload texture ${index}:`, error);
+          // Пробуем еще раз через секунду
+          setTimeout(() => {
+            loader.load(panoramas[index].image, texture => {
+              texture.colorSpace = THREE.SRGBColorSpace;
+              preloadedTextures.current[index] = texture;
+            });
+          }, 1000);
+        }
+      );
     });
   };
 
@@ -214,39 +245,36 @@ export default function PanoramaViewer() {
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
 
-    // Предзагружаем ВСЕ текстуры сразу
-    preloadAllTextures();
-
-    const loadFirstTexture = () => {
-      const cached = preloadedTextures.current[0];
-      if (cached) {
-        const material = new THREE.MeshBasicMaterial({ map: cached, transparent: true, opacity: 1 });
+    // Загружаем первую текстуру
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      panoramas[0].image,
+      texture => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        preloadedTextures.current[0] = texture;
+        
+        const material = new THREE.MeshBasicMaterial({ 
+          map: texture, 
+          transparent: true, 
+          opacity: 1 
+        });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         currentMeshRef.current = mesh;
         setLoading(false);
         setTransitioning(false);
-      } else {
-        const loader = new THREE.TextureLoader();
-        loader.load(panoramas[0].image, texture => {
-          texture.colorSpace = THREE.SRGBColorSpace;
-          preloadedTextures.current[0] = texture;
-          const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
-          const mesh = new THREE.Mesh(geometry, material);
-          scene.add(mesh);
-          currentMeshRef.current = mesh;
-          setLoading(false);
-          setTransitioning(false);
-        }, undefined, (err) => {
-          console.error('Error loading first texture:', err);
-          setLoading(false);
-        });
+        
+        // Начинаем предзагрузку остальных
+        preloadTextures(0);
+      },
+      undefined,
+      err => {
+        console.error('Error loading first texture:', err);
+        setLoading(false);
       }
-    };
+    );
 
-    loadFirstTexture();
-
-    // --- Логика вращения камеры ---
+    // --- Логика вращения камеры (без изменений) ---
     let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
     let isUserInteracting = false;
     let startX = 0, startY = 0, startLon = 0, startLat = 0;
@@ -383,7 +411,7 @@ export default function PanoramaViewer() {
     };
   }, [isMobile, fullscreenMode]);
 
-  // --- Плавное переключение панорам ---
+  // --- ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ С ИСПОЛЬЗОВАНИЕМ ПРЕДЗАГРУЖЕННЫХ ТЕКСТУР ---
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
@@ -430,6 +458,9 @@ export default function PanoramaViewer() {
           }
           setTransitioning(false);
           fadeAnimationRef.current = null;
+          
+          // Предзагружаем следующие текстуры
+          preloadTextures(currentApartmentIndex);
         }
       };
       fade();
@@ -444,10 +475,20 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
+      // Если текстура не предзагружена, грузим сейчас
       const loader = new THREE.TextureLoader();
-      loader.load(panoramas[currentApartmentIndex].image, applyTexture, undefined, (err) => {
-        console.error('Error loading texture:', err);
-      });
+      loader.load(
+        panoramas[currentApartmentIndex].image,
+        texture => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          preloadedTextures.current[currentApartmentIndex] = texture;
+          applyTexture(texture);
+        },
+        undefined,
+        err => {
+          console.error('Error loading texture:', err);
+        }
+      );
     }
 
     return () => {
@@ -484,7 +525,7 @@ export default function PanoramaViewer() {
         </div>
       )}
 
-      {/* ========== ИНФОРМАЦИОННЫЙ БЛОК ========== */}
+      {/* Информационный блок */}
       {!fullscreenMode && (
         <div className={`panorama-info ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}`}>
           <div className="panorama-info-inner">
@@ -536,10 +577,10 @@ export default function PanoramaViewer() {
         </div>
       )}
 
-      {/* ========== МОБИЛЬНЫЙ ИНТЕРФЕЙС ========== */}
+      {/* Мобильный интерфейс */}
       {isMobile && (
         <>
-          {/* Подсказка для свайпа (перелистывание слайдов) */}
+          {/* Подсказка для свайпа */}
           <AnimatePresence>
             {!fullscreenMode && showSwipeHint && !hasInteracted && (
               <motion.div
@@ -556,7 +597,7 @@ export default function PanoramaViewer() {
             )}
           </AnimatePresence>
 
-          {/* Кнопка входа в fullscreen (только иконка с дыханием) */}
+          {/* Кнопка входа в fullscreen */}
           {!fullscreenMode && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -571,7 +612,7 @@ export default function PanoramaViewer() {
             </motion.button>
           )}
 
-          {/* Кнопка выхода из fullscreen (на том же месте, что и вход) */}
+          {/* Кнопка выхода из fullscreen */}
           {fullscreenMode && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -586,7 +627,7 @@ export default function PanoramaViewer() {
             </motion.button>
           )}
 
-          {/* Нижние кнопки для мобильных */}
+          {/* Нижние кнопки */}
           {!fullscreenMode && (
             <div className="panorama-actions-bottom">
               {isActive ? (
@@ -621,7 +662,7 @@ export default function PanoramaViewer() {
         </>
       )}
 
-      {/* ========== ДЕСКТОПНЫЙ UI ========== */}
+      {/* Десктопный UI */}
       {!isMobile && !fullscreenMode && (
         <div className="panorama-ui">
           <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
