@@ -313,43 +313,49 @@ export default function PanoramaViewer() {
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      console.log('👆 Touch end, isDragging:', isDragging);
-      
-      if (fullscreenMode) {
-        isUserInteracting = false;
-        return;
-      }
-      
-      if (!isDragging) {
-        console.log('⏭️ Not a swipe, ignoring');
-        return;
-      }
-      
-      const touch = e.changedTouches[0];
-      if (!touch) return;
-      
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-      console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
-      
-      // Горизонтальный свайп важнее вертикального
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
-        console.log('✅ Valid horizontal swipe detected');
-        
-        if (deltaX > 0) {
-          console.log('➡️ Swipe right -> PREV panorama (index', prevIndex, ')');
-          changePanorama(prevIndex);
-        } else {
-          console.log('⬅️ Swipe left -> NEXT panorama (index', nextIndex, ')');
-          changePanorama(nextIndex);
-        }
-        
-        setHasInteracted(true);
-        setShowSwipeHint(false);
-      } else {
-        console.log('❌ Not a valid horizontal swipe');
-      }
-    };
+  console.log('👆 Touch end, isDragging:', isDragging);
+  
+  if (fullscreenMode) {
+    isUserInteracting = false;
+    return;
+  }
+  
+  if (!isDragging) {
+    console.log('⏭️ Not a swipe, ignoring');
+    return;
+  }
+  
+  const touch = e.changedTouches[0];
+  if (!touch) return;
+  
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
+  console.log('📊 Current index:', currentApartmentIndex);
+  
+  // Вычисляем индексы на основе ТЕКУЩЕГО currentApartmentIndex
+  const prevIdx = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
+  const nextIdx = (currentApartmentIndex + 1) % panoramas.length;
+  console.log('🧮 Prev index:', prevIdx, 'Next index:', nextIdx);
+  
+  // Горизонтальный свайп важнее вертикального
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+    console.log('✅ Valid horizontal swipe detected');
+    
+    if (deltaX > 0) {
+      console.log('➡️ Swipe right -> PREV panorama (index', prevIdx, ')');
+      changePanorama(prevIdx);
+    } else {
+      console.log('⬅️ Swipe left -> NEXT panorama (index', nextIdx, ')');
+      changePanorama(nextIdx);
+    }
+    
+    setHasInteracted(true);
+    setShowSwipeHint(false);
+  } else {
+    console.log('❌ Not a valid horizontal swipe');
+  }
+};
 
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
