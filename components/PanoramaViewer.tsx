@@ -37,14 +37,12 @@ export default function PanoramaViewer() {
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
 
-  // Используем данные из panoramas.ts
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
 
-  // --- Загрузка статуса активности ---
+  // --- Загрузка статуса ---
   useEffect(() => {
     if (!currentPano?.id) return;
-
     const checkStatus = async () => {
       setCheckingStatus(true);
       try {
@@ -65,7 +63,6 @@ export default function PanoramaViewer() {
     checkStatus();
   }, [currentPano?.id]);
 
-  // --- Навигация ---
   const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
   const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
@@ -73,17 +70,14 @@ export default function PanoramaViewer() {
 
   const changePanorama = (index: number) => {
     if (index === currentApartmentIndex) return;
-
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
     if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
-
     transitionTimer.current = setTimeout(() => setTransitioning(true), 300);
     setCurrentApartmentIndex(index);
     setHasInteracted(true);
     setShowSwipeHint(false);
   };
 
-  // --- UI управление ---
   const showUITemporarily = () => {
     setUiVisible(true);
     if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
@@ -99,9 +93,7 @@ export default function PanoramaViewer() {
     if (newMode) {
       showUITemporarily();
     } else {
-      if (hideUITimerRef.current) {
-        clearTimeout(hideUITimerRef.current);
-      }
+      if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
       setUiVisible(true);
     }
     setHasInteracted(true);
@@ -109,12 +101,9 @@ export default function PanoramaViewer() {
   };
 
   const handleCanvasClick = () => {
-    if (isMobile && fullscreenMode) {
-      showUITemporarily();
-    }
+    if (isMobile && fullscreenMode) showUITemporarily();
   };
 
-  // --- Мобильность ---
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -122,7 +111,6 @@ export default function PanoramaViewer() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // --- Header ---
   useEffect(() => {
     if (!sectionRef.current) return;
     const id = 'panorama';
@@ -143,7 +131,6 @@ export default function PanoramaViewer() {
     };
   }, [register, unregister]);
 
-  // --- Блокировка скролла ---
   useEffect(() => {
     if (fullscreenMode && isMobile) {
       document.body.style.overflow = 'hidden';
@@ -164,15 +151,11 @@ export default function PanoramaViewer() {
 
   const { open } = usePhotoModal();
 
-  // --- Предзагрузка с защитой от дублей ---
+  // Предзагрузка с защитой
   const preloadTexture = (index: number) => {
-    if (preloadedTextures.current[index] || loadingTextures.current[index]) {
-      return;
-    }
-
+    if (preloadedTextures.current[index] || loadingTextures.current[index]) return;
     loadingTextures.current[index] = true;
     const loader = new THREE.TextureLoader();
-    
     loader.load(
       panoramas[index].image,
       texture => {
@@ -189,7 +172,7 @@ export default function PanoramaViewer() {
     );
   };
 
-  // --- Инициализация сцены ---
+  // Инициализация сцены
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -221,26 +204,19 @@ export default function PanoramaViewer() {
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
 
-    // Загружаем первую текстуру
     const loader = new THREE.TextureLoader();
     loader.load(
       panoramas[0].image,
       texture => {
         texture.colorSpace = THREE.SRGBColorSpace;
         preloadedTextures.current[0] = texture;
-        
-        const material = new THREE.MeshBasicMaterial({ 
-          map: texture, 
-          transparent: true, 
-          opacity: 1 
-        });
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         currentMeshRef.current = mesh;
         setLoading(false);
         setTransitioning(false);
-        
-        // Предзагружаем остальные
+        // Предзагружаем все остальные
         for (let i = 1; i < panoramas.length; i++) {
           preloadTexture(i);
         }
@@ -389,9 +365,13 @@ export default function PanoramaViewer() {
     };
   }, [isMobile, fullscreenMode]);
 
-  // --- Переключение панорам ---
+  // --- Переключение панорам с диагностикой ---
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
+
+    console.log(`🔄 Switching to panorama ${currentApartmentIndex}, checking cache...`);
+    console.log(`📦 Cache keys: ${Object.keys(preloadedTextures.current).join(', ')}`);
+    console.log(`🔍 Cache for index ${currentApartmentIndex}:`, preloadedTextures.current[currentApartmentIndex] ? 'FOUND' : 'NOT FOUND');
 
     const geometry = currentMeshRef.current.geometry;
 
@@ -400,6 +380,7 @@ export default function PanoramaViewer() {
     }
 
     const applyTexture = (texture: THREE.Texture) => {
+      console.log(`🎨 Applying texture for index ${currentApartmentIndex}`);
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
@@ -452,11 +433,12 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
-      console.log(`⚠️ Loading texture ${currentApartmentIndex} on demand`);
+      console.log(`⚠️ Texture ${currentApartmentIndex} not in cache, loading now...`);
       const loader = new THREE.TextureLoader();
       loader.load(
         panoramas[currentApartmentIndex].image,
         texture => {
+          console.log(`✅ Loaded texture ${currentApartmentIndex} on demand`);
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[currentApartmentIndex] = texture;
           applyTexture(texture);
@@ -476,7 +458,7 @@ export default function PanoramaViewer() {
     };
   }, [currentApartmentIndex]);
 
-  // --- Рендер ---
+  // --- Рендер (без изменений, остаётся как был) ---
   return (
     <section
       id="panorama"
@@ -511,7 +493,6 @@ export default function PanoramaViewer() {
             <p className="panorama-info-description">Просторные премиальные апартаменты с панорамным видом на Чёрное море.</p>
             <ul className="panorama-info-meta">{currentPano.meta.map((item, i) => (<li key={i}>{item}</li>))}</ul>
 
-            {/* Кнопки на десктопе */}
             {!isMobile && !checkingStatus && (
               <div className="panorama-desktop-actions">
                 {isActive ? (
@@ -547,17 +528,14 @@ export default function PanoramaViewer() {
         </div>
       )}
 
-      {/* Индикатор начальной загрузки */}
       {loading && (
         <div className="panorama-loader">
           <span /><span /><span />
         </div>
       )}
 
-      {/* Мобильный интерфейс */}
       {isMobile && (
         <>
-          {/* Подсказка для свайпа */}
           <AnimatePresence>
             {!fullscreenMode && showSwipeHint && !hasInteracted && (
               <motion.div
@@ -574,7 +552,6 @@ export default function PanoramaViewer() {
             )}
           </AnimatePresence>
 
-          {/* Кнопка входа в fullscreen */}
           {!fullscreenMode && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -589,7 +566,6 @@ export default function PanoramaViewer() {
             </motion.button>
           )}
 
-          {/* Кнопка выхода из fullscreen */}
           {fullscreenMode && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -604,7 +580,6 @@ export default function PanoramaViewer() {
             </motion.button>
           )}
 
-          {/* Нижние кнопки */}
           {!fullscreenMode && (
             <div className="panorama-actions-bottom">
               {isActive ? (
@@ -639,7 +614,6 @@ export default function PanoramaViewer() {
         </>
       )}
 
-      {/* Десктопный UI */}
       {!isMobile && !fullscreenMode && (
         <div className="panorama-ui">
           <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
