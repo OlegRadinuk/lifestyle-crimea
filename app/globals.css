@@ -5388,20 +5388,6 @@ a {
   background: #000;
 }
 
-/* Затемнение */
-.hero::after {
-  pointer-events: none;
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.25) 0%,
-    rgba(0, 0, 0, 0.55) 100%
-  );
-  z-index: 1;
-}
-
 /* Слайды */
 .hero-slides {
   position: absolute;
@@ -5766,5 +5752,185 @@ a {
 @media (max-width: 768px) {
   .hero-frame-svg {
     display: none !important;
+  }
+}
+
+/* =========================================
+   PANORAMA MOBILE - ВЫРАВНИВАНИЕ ИНТЕРФЕЙСА
+   ========================================= */
+@media (max-width: 768px) {
+  /* Подсказка свайпа */
+  .panorama-swipe-hint {
+    bottom: 140px !important; /* поднял на 20px (было 120px) */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    white-space: nowrap !important;
+    z-index: 45 !important;
+    text-align: center !important;
+  }
+
+  /* Контейнер для fullscreen кнопки */
+  .panorama-fullscreen-wrapper {
+    bottom: 133px !important; /* поднял на 20px (было 113px) */
+    left: auto !important;
+    right: 16px !important;
+    z-index: 45 !important;
+  }
+
+  /* Нижний ряд кнопок */
+  .panorama-actions-bottom {
+    bottom: 64px !important; /* поднял на 20px (было 44px) */
+    left: 16px !important;
+    right: 16px !important;
+    display: flex !important;
+    gap: 12px !important;
+    z-index: 40 !important;
+  }
+
+  /* Сами кнопки - одинаковые размеры */
+  .panorama-action-btn {
+    flex: 1 !important;
+    padding: 14px 12px !important; /* одинаковые отступы */
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    border-radius: 30px !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* Основная кнопка */
+  .panorama-action-btn.primary {
+    background: rgba(19, 154, 182, 0.9) !important;
+    color: white !important;
+  }
+
+  /* Вторичная кнопка */
+  .panorama-action-btn.secondary {
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+  }
+
+  /* Информационный блок */
+  .panorama-info {
+    bottom: 200px !important; /* поднял на 20px (было 180px) */
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .panorama-info-inner {
+    gap: 8px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .panorama-info-title {
+    font-size: 28px !important;
+    text-align: center !important;
+  }
+
+  .panorama-info-description {
+    font-size: 14px !important;
+    max-width: 280px !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+  }
+
+  .panorama-info-meta {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+/* Для маленьких экранов (до 480px) */
+@media (max-width: 480px) {
+  .panorama-swipe-hint {
+    bottom: 130px !important;
+    font-size: 12px !important;
+    padding: 10px 20px !important;
+  }
+
+  .panorama-fullscreen-wrapper {
+    bottom: 123px !important;
+  }
+
+  .panorama-actions-bottom {
+    bottom: 54px !important;
+    gap: 8px !important;
+  }
+
+  .panorama-action-btn {
+    padding: 12px 10px !important;
+    font-size: 13px !important;
+  }
+
+  .panorama-info {
+    bottom: 180px !important;
+  }
+
+  .panorama-info-title {
+    font-size: 24px !important;
+  }
+
+  .panorama-info-description {
+    font-size: 13px !important;
+    max-width: 240px !important;
+  }
+}
+
+/* Для средних экранов (481px - 640px) */
+@media (min-width: 481px) and (max-width: 640px) {
+  .panorama-swipe-hint {
+    bottom: 150px !important;
+  }
+
+  .panorama-fullscreen-wrapper {
+    bottom: 143px !important;
+  }
+
+  .panorama-actions-bottom {
+    bottom: 70px !important;
+  }
+
+  .panorama-info {
+    bottom: 210px !important;
+  }
+}
+
+/* Для планшетов (641px - 768px) */
+@media (min-width: 641px) and (max-width: 768px) {
+  .panorama-swipe-hint {
+    bottom: 160px !important;
+  }
+
+  .panorama-fullscreen-wrapper {
+    bottom: 153px !important;
+  }
+
+  .panorama-actions-bottom {
+    bottom: 80px !important;
+  }
+
+  .panorama-action-btn {
+    padding: 16px 20px !important;
+    font-size: 15px !important;
+  }
+
+  .panorama-info {
+    bottom: 230px !important;
+    max-width: 400px !important;
+    margin: 0 auto !important;
   }
 }
