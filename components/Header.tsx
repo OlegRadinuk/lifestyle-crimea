@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useApartment } from '@/components/ApartmentContext';
 import { useSearch } from '@/components/SearchContext';
@@ -12,60 +12,56 @@ import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCal
 import BookingModal from '@/components/BookingModal';
 import MobileBookingSheet from '@/components/MobileBookingSheet';
 
-type DateRange = { from: Date; to: Date } | null;
+type Props = {
+  onBurgerClick: () => void;
+};
 
-function formatDateForDisplay(dateStr: string) {
+type DateRange = {
+  from: Date;
+  to: Date;
+} | null;
+
+function formatDateForInput(dateStr: string) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 }
 
-export default function Header({ onBurgerClick }: { onBurgerClick: () => void }) {
+export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
   const { currentApartment } = useApartment();
-  const { blockedDates } = useAvailability(currentApartment?.id || null);
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<DateRange>(null);
   const [apartmentPrice, setApartmentPrice] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [loadingPrice, setLoadingPrice] = useState(false);
 
-  // Hero state
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<DateRange>(null);
+
+  const { blockedDates } = useAvailability(currentApartment?.id || null);
+
+  /* ---------- HERO STATE ---------- */
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
   const [formError, setFormError] = useState('');
 
-  const popoverRef = useRef<HTMLDivElement>(null);
+  /* ---------- MOBILE SHEET ---------- */
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // Проверка мобильного устройства
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Отслеживание скролла
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  // Загрузка данных апартамента
+  // Загружаем данные апартамента из БД
   useEffect(() => {
     if (!currentApartment?.id) {
       setApartmentPrice(0);
@@ -77,16 +73,18 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
       setLoadingPrice(true);
       try {
         const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        
         if (res.ok) {
           const data = await res.json();
           setApartmentPrice(data.price_base || 0);
           setIsActive(data.is_active === true);
         } else {
+          // Если 404 или другая ошибка, значит апартамент неактивен или не существует
           setApartmentPrice(0);
           setIsActive(false);
         }
       } catch (error) {
-        console.error('Error fetching apartment data:', error);
+        console.error('❌ Error fetching apartment data:', error);
         setApartmentPrice(0);
         setIsActive(false);
       } finally {
@@ -97,7 +95,20 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
     fetchApartmentData();
   }, [currentApartment?.id]);
 
-  // Закрытие календаря при клике вне
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   useEffect(() => {
     if (!calendarOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -111,7 +122,7 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
 
   const handleHeroSearch = () => {
     if (!checkIn || !checkOut) {
-      setFormError('Выберите даты заезда и выезда');
+      setFormError('Пожалуйста, выберите даты заезда и выезда');
       return;
     }
     setFormError('');
@@ -126,7 +137,14 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
 
   return (
     <>
-      <header className={`header header--${mode} ${scrolled ? 'scrolled' : ''}`}>
+      <header
+        className={`
+          header
+          header--${mode}
+          ${scrolled ? 'scrolled' : ''}
+          ${isMobile ? 'header--mobile' : ''}
+        `}
+      >
         <button className="header__burger" onClick={onBurgerClick}>
           <div className="burger-icon">
             <span />
@@ -136,33 +154,32 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
           <span className="burger-text">Меню</span>
         </button>
 
-        {/* Hero Mode */}
         {mode === 'hero' && (
           <>
             {!isMobile ? (
               <div className="header__booking-wrapper">
                 <div className="header__booking-fields">
-                  <div 
-                    className="booking-field" 
+                  <div
+                    className="booking-field calendar-trigger"
                     onClick={() => setCalendarOpen(true)}
                   >
                     <label>Заезд</label>
                     <input
                       type="text"
                       placeholder="ДД.ММ.ГГГГ"
-                      value={formatDateForDisplay(checkIn)}
+                      value={formatDateForInput(checkIn)}
                       readOnly
                     />
                   </div>
-                  <div 
-                    className="booking-field" 
+                  <div
+                    className="booking-field calendar-trigger"
                     onClick={() => setCalendarOpen(true)}
                   >
                     <label>Выезд</label>
                     <input
                       type="text"
                       placeholder="ДД.ММ.ГГГГ"
-                      value={formatDateForDisplay(checkOut)}
+                      value={formatDateForInput(checkOut)}
                       readOnly
                     />
                   </div>
@@ -187,7 +204,7 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
 
                 <AnimatePresence>
                   {calendarOpen && mode === 'hero' && (
-                    <div ref={popoverRef} className="availability-calendar position-left">
+                    <div ref={popoverRef} className="header__calendar-popover hero-calendar">
                       <ApartmentAvailabilityCalendar
                         blockedDates={[]}
                         position="left"
@@ -214,10 +231,10 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
           </>
         )}
 
-        {/* Apartment Mode */}
+        {/* В режиме apartment - показываем только для активных апартаментов */}
         {mode === 'apartment' && currentApartment && isActive && (
           <div className="header__booking-wrapper is-apartment">
-            <div className="header__booking-action relative">
+            <div className="header__booking-action" style={{ position: 'relative' }}>
               <button
                 className="header__booking with-apartment"
                 onClick={() => setCalendarOpen(prev => !prev)}
@@ -231,7 +248,7 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
 
               <AnimatePresence>
                 {calendarOpen && mode === 'apartment' && (
-                  <div ref={popoverRef} className="availability-calendar position-right">
+                  <div ref={popoverRef} className="header__calendar-popover">
                     <ApartmentAvailabilityCalendar
                       key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
                       blockedDates={blockedDates}
@@ -252,11 +269,9 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
           </div>
         )}
 
-        {/* Dark Mode */}
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
 
-      {/* Mobile Sheet */}
       {mobileSheetOpen && (
         <MobileBookingSheet
           isOpen={mobileSheetOpen}
@@ -267,15 +282,17 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
         />
       )}
 
-      {/* Booking Modal */}
       {bookingModalOpen && currentApartment && selectedRange && isActive && (
         <BookingModal
-          apartment={{ id: currentApartment.id, title: currentApartment.title }}
+          apartment={{
+            id: currentApartment.id,
+            title: currentApartment.title,
+          }}
           initialRange={selectedRange}
           initialGuests={guests}
           onClose={() => setBookingModalOpen(false)}
           onConfirm={(data) => {
-            console.log('Booking confirmed:', data);
+            console.log('FINAL BOOKING DATA', data);
             setBookingModalOpen(false);
           }}
         />

@@ -40,30 +40,34 @@ const REVIEWS: Review[] = [
 ];
 
 export default function Reviews() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
-  const [index, setIndex] = useState(REVIEWS.length);
+  const [index, setIndex] = useState(REVIEWS.length); // начинаем с первого оригинального
   const [paused, setPaused] = useState(false);
   const [slideWidth, setSlideWidth] = useState(0);
 
-  const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS];
+  const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS]; // зацикливаем
 
-  // Header mode
+  /* ===== HEADER MODE ===== */
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const id = 'reviews';
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          register(id, { mode: 'dark', priority: 3 });
+          register(id, {
+            mode: 'dark',
+            priority: 3,
+          });
         } else {
           unregister(id);
         }
@@ -72,13 +76,14 @@ export default function Reviews() {
     );
 
     observer.observe(sectionRef.current);
+
     return () => {
       observer.disconnect();
       unregister(id);
     };
   }, [register, unregister]);
 
-  // Visibility animation
+  /* ===== VISIBLE ANIMATION ===== */
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -94,13 +99,13 @@ export default function Reviews() {
     return () => observer.disconnect();
   }, []);
 
-  // Calculate slide width
+  /* ===== CALC SLIDE WIDTH ===== */
   useEffect(() => {
     const calculateWidth = () => {
       if (!viewportRef.current) return;
       
       const viewportWidth = viewportRef.current.clientWidth;
-      const gap = 20;
+      const gap = 20; // должно совпадать с gap в CSS
       const slidesPerView = window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3;
       const width = (viewportWidth - (gap * (slidesPerView - 1))) / slidesPerView;
       
@@ -113,7 +118,7 @@ export default function Reviews() {
     return () => window.removeEventListener('resize', calculateWidth);
   }, []);
 
-  // Autoplay
+  /* ===== AUTOPLAY ===== */
   useEffect(() => {
     if (paused) return;
 
@@ -124,44 +129,38 @@ export default function Reviews() {
     return () => clearInterval(id);
   }, [paused]);
 
-  // Translate track
+  /* ===== TRANSLATE ===== */
   useEffect(() => {
     if (!trackRef.current || slideWidth === 0) return;
 
     trackRef.current.style.transform = `translateX(-${index * (slideWidth + 20)}px)`;
 
-    // Infinite loop
+    // бесконечная прокрутка
     if (index >= REVIEWS.length * 2) {
       setTimeout(() => {
-        if (!trackRef.current) return;
-        trackRef.current.style.transition = 'none';
+        trackRef.current!.style.transition = 'none';
         setIndex(REVIEWS.length);
         requestAnimationFrame(() => {
-          if (trackRef.current) {
-            trackRef.current.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-          }
+          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
         });
       }, 600);
     }
 
     if (index <= 0) {
       setTimeout(() => {
-        if (!trackRef.current) return;
-        trackRef.current.style.transition = 'none';
+        trackRef.current!.style.transition = 'none';
         setIndex(REVIEWS.length);
         requestAnimationFrame(() => {
-          if (trackRef.current) {
-            trackRef.current.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-          }
+          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
         });
       }, 600);
     }
   }, [index, slideWidth]);
 
-  // Touch handlers
+  /* ===== TOUCH HANDLERS FOR SWIPE ===== */
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
-    setPaused(true);
+    setPaused(true); // останавливаем автоплей при касании
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -172,19 +171,23 @@ export default function Reviews() {
     if (!touchStartX.current || !touchEndX.current) return;
 
     const diffX = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
+    const minSwipeDistance = 50; // минимальное расстояние для свайпа
 
     if (Math.abs(diffX) > minSwipeDistance) {
       if (diffX > 0) {
+        // свайп влево - следующий отзыв
         setIndex(i => i + 1);
       } else {
+        // свайп вправо - предыдущий отзыв
         setIndex(i => i - 1);
       }
     }
 
+    // сбрасываем значения
     touchStartX.current = null;
     touchEndX.current = null;
     
+    // возобновляем автоплей через небольшую задержку
     setTimeout(() => setPaused(false), 3000);
   };
 
@@ -206,6 +209,7 @@ export default function Reviews() {
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
+          {/* Стрелки скрыты на мобильных через CSS, оставлены для десктопа */}
           <button
             className="reviews__arrow reviews__arrow--left"
             onClick={() => setIndex(i => i - 1)}

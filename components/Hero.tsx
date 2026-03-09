@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
+import Image from 'next/image';
 
 const slides = [
   {
@@ -24,14 +25,17 @@ const slides = [
 export default function Hero() {
   const { register, unregister } = useHeader();
 
-  const heroRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Header mode registration
+  /* ===============================
+     HEADER MODE (HERO)
+  =============================== */
+
   useEffect(() => {
     if (!heroRef.current) return;
 
@@ -40,12 +44,17 @@ export default function Hero() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          register(id, { mode: 'hero', priority: 1 });
+          register(id, {
+            mode: 'hero',
+            priority: 1,
+          });
         } else {
           unregister(id);
         }
       },
-      { threshold: 0.6 }
+      {
+        threshold: 0.6,
+      }
     );
 
     observer.observe(heroRef.current);
@@ -56,7 +65,10 @@ export default function Hero() {
     };
   }, [register, unregister]);
 
-  // Parallax / Tilt effect
+  /* ===============================
+     PARALLAX / TILT
+  =============================== */
+
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -93,10 +105,11 @@ export default function Hero() {
     };
   }, []);
 
-  // Autoplay
-  useEffect(() => {
-    if (isHovered) return;
+  /* ===============================
+     AUTOPLAY
+  =============================== */
 
+  useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       setActive(prev => (prev + 1) % slides.length);
     }, 4000);
@@ -106,31 +119,9 @@ export default function Hero() {
     };
   }, [active, isHovered]);
 
-  const handlePrev = () => {
-    setActive(prev => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
-  const handleNext = () => {
-    setActive(prev => (prev + 1) % slides.length);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-
-    const diff = touchStart - e.changedTouches[0].clientX;
-
-    if (diff > 50) {
-      handleNext();
-    } else if (diff < -50) {
-      handlePrev();
-    }
-
-    setTouchStart(null);
-  };
+  /* ===============================
+     JSX
+  =============================== */
 
   return (
     <section
@@ -138,10 +129,26 @@ export default function Hero() {
       className="hero"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchStart === null) return;
+
+        const diff = touchStart - e.changedTouches[0].clientX;
+
+        if (diff > 50) {
+          setActive(prev => (prev + 1) % slides.length);
+        }
+
+        if (diff < -50) {
+          setActive(prev =>
+            prev === 0 ? slides.length - 1 : prev - 1
+          );
+        }
+
+        setTouchStart(null);
+      }}
     >
-      {/* Slides */}
+      {/* SLIDES */}
       <div className="hero-slides">
         {slides.map((slide, i) => (
           <div
@@ -152,7 +159,7 @@ export default function Hero() {
         ))}
       </div>
 
-      {/* SVG Frame */}
+      {/* SVG FRAME */}
       <svg
         className="hero-frame-svg"
         viewBox="0 0 1900 1300"
@@ -160,31 +167,48 @@ export default function Hero() {
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M 0 0 H 1900 V 580 L 1865 650 L 1900 720 V 1300 H 0 V 720 L 35 650 L 0 580 Z"
+          d="
+            M 0 0
+            H 1900
+            V 580
+            L 1865 650
+            L 1900 720
+            V 1300
+            H 0
+            V 720
+            L 35 650
+            L 0 580
+            Z
+          "
           fill="none"
           stroke="rgba(255,255,255,0.45)"
           strokeWidth="1"
         />
       </svg>
 
-      {/* Arrows */}
       <button
         className="hero-arrow hero-arrow--left"
-        onClick={handlePrev}
-        aria-label="Предыдущий слайд"
+        onClick={() =>
+          setActive(prev =>
+            prev === 0 ? slides.length - 1 : prev - 1
+          )
+        }
       >
         ‹
       </button>
 
       <button
         className="hero-arrow hero-arrow--right"
-        onClick={handleNext}
-        aria-label="Следующий слайд"
+        onClick={() =>
+          setActive(prev => (prev + 1) % slides.length)
+        }
       >
         ›
       </button>
 
-      {/* Content */}
+      <div className="hero-accent-bar" />
+
+      {/* CONTENT */}
       <div className="hero-content">
         <div className="hero-text" key={active}>
           <h1 className="hero-title">
@@ -207,7 +231,7 @@ export default function Hero() {
           </p>
         </div>
 
-        {/* Timeline */}
+        {/* TIMELINE */}
         <div className="hero-timeline">
           {slides.map((_, i) => (
             <button
