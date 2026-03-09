@@ -45,16 +45,59 @@ export default function PanoramaViewer() {
     lat: 0
   });
 
-  // Ref для текущего индекса (чтобы всегда иметь актуальное значение)
+  // Ref для текущего индекса
   const currentIndexRef = useRef(currentApartmentIndex);
   
-  // Обновляем ref при каждом изменении индекса
   useEffect(() => {
     currentIndexRef.current = currentApartmentIndex;
   }, [currentApartmentIndex]);
 
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
+
+  // Маппинг ID -> папка с фото
+  const getPhotoFolder = (id: string): string => {
+    const map: Record<string, string> = {
+      'ls-lux-sweet-caramel': 'sweet-caramel',
+      'ls-lux-flower-kiss': 'flower-kiss',
+      'ls-lux-soft-blue': 'soft-blue',
+      'ls-art-crystal-blue': 'crystal-blue',
+      'ls-lux-sunny-mood': 'sunny-mood',
+      'ls-lux-beautiful-days': 'beautiful-days',
+      'ls-lux-sun-rays': 'sun-rays',
+      'ls-lux-sunshine': 'sunshine',
+      'ls-lux-fly-birds': 'fly-birds',
+      'ls-lux-fly-mood': 'fly-mood',
+      'ls-lux-fly-sky': 'fly-sky',
+      'ls-lux-only-you': 'only-you',
+      'ls-art-dream-vacation': 'dream-vacation',
+    };
+    const folder = map[id] || id;
+    console.log(`🔍 getPhotoFolder(${id}) -> ${folder}`);
+    return folder;
+  };
+
+  // Количество фото
+  const getPhotoCount = (id: string): number => {
+    const map: Record<string, number> = {
+      'ls-lux-sweet-caramel': 1,
+      'ls-lux-flower-kiss': 1,
+      'ls-lux-soft-blue': 3,
+      'ls-art-crystal-blue': 2,
+      'ls-lux-sunny-mood': 3,
+      'ls-lux-beautiful-days': 3,
+      'ls-lux-sun-rays': 3,
+      'ls-lux-sunshine': 2,
+      'ls-lux-fly-birds': 3,
+      'ls-lux-fly-mood': 3,
+      'ls-lux-fly-sky': 3,
+      'ls-lux-only-you': 1,
+      'ls-art-dream-vacation': 3,
+    };
+    const count = map[id] || 3;
+    console.log(`🔢 getPhotoCount(${id}) -> ${count}`);
+    return count;
+  };
 
   // --- Загрузка статуса ---
   useEffect(() => {
@@ -336,7 +379,6 @@ export default function PanoramaViewer() {
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;
       
-      // Используем актуальное значение из ref
       const currentIdx = currentIndexRef.current;
       const prevIdx = (currentIdx - 1 + panoramas.length) % panoramas.length;
       const nextIdx = (currentIdx + 1) % panoramas.length;
@@ -345,7 +387,6 @@ export default function PanoramaViewer() {
       console.log('📊 Current index from ref:', currentIdx);
       console.log('🧮 Prev index:', prevIdx, 'Next index:', nextIdx);
       
-      // Горизонтальный свайп важнее вертикального
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
         console.log('✅ Valid horizontal swipe detected');
         
@@ -424,7 +465,7 @@ export default function PanoramaViewer() {
     };
   }, [isMobile, fullscreenMode]);
 
-  // --- Переключение панорам с диагностикой ---
+  // --- Переключение панорам ---
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
@@ -557,26 +598,40 @@ export default function PanoramaViewer() {
                 {isActive ? (
                   <>
                     <Link href={`/apartments/${currentPano.id}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
-                    <motion.button
-                      layoutId="photo-modal-desktop"
+                    
+                    {/* КНОПКА СМОТРЕТЬ ФОТО С ЛОГАМИ */}
+                    <button
                       className="panorama-desktop-btn secondary"
-                      onClick={async () => {
-                        try {
-                          const res = await fetch(`/api/apartments/${currentPano.id}`);
-                          const data = await res.json();
-                          if (data.images?.length) {
-                            open(data.images, 0);
-                          } else {
-                            alert('Фото для этого апартамента не найдены');
-                          }
-                        } catch (error) {
-                          console.error('Error fetching photos:', error);
-                          alert('Ошибка при загрузке фотографий');
+                      onClick={() => {
+                        console.log('🖱️ Кнопка Смотреть фото нажата');
+                        console.log('📌 Текущий апартамент:', currentPano);
+                        console.log('🆔 ID апартамента:', currentPano.id);
+                        
+                        const folder = getPhotoFolder(currentPano.id);
+                        const count = getPhotoCount(currentPano.id);
+                        
+                        console.log('📁 Название папки из маппинга:', folder);
+                        console.log('🔢 Количество фото:', count);
+                        
+                        const images = [];
+                        for (let i = 1; i <= count; i++) {
+                          const path = `/images/apartments/${folder}/${i}.webp`;
+                          console.log(`📸 Путь ${i}:`, path);
+                          images.push(path);
                         }
+                        
+                        console.log('📦 Итоговый массив фото:', images);
+                        
+                        // Проверим существование первого фото
+                        fetch(images[0], { method: 'HEAD' })
+                          .then(r => console.log(`✅ Первое фото доступно: ${r.status}`))
+                          .catch(e => console.log('❌ Ошибка при проверке фото:', e));
+                        
+                        open(images, 0);
                       }}
                     >
                       Смотреть фото
-                    </motion.button>
+                    </button>
                   </>
                 ) : (
                   <div className="panorama-unavailable-message"><span className="unavailable-text">Апартамент временно недоступен для бронирования</span></div>
@@ -644,26 +699,38 @@ export default function PanoramaViewer() {
               {isActive ? (
                 <>
                   <Link href={`/apartments/${currentPano.id}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
-                  <motion.button
-                    layoutId="photo-modal"
+                  <button
                     className="panorama-action-btn secondary"
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(`/api/apartments/${currentPano.id}`);
-                        const data = await res.json();
-                        if (data.images?.length) {
-                          open(data.images, 0);
-                        } else {
-                          alert('Фото для этого апартамента не найдены');
-                        }
-                      } catch (error) {
-                        console.error('Error fetching photos:', error);
-                        alert('Ошибка при загрузке фотографий');
+                    onClick={() => {
+                      console.log('🖱️ Мобильная кнопка Смотреть фото нажата');
+                      console.log('📌 Текущий апартамент:', currentPano);
+                      console.log('🆔 ID апартамента:', currentPano.id);
+                      
+                      const folder = getPhotoFolder(currentPano.id);
+                      const count = getPhotoCount(currentPano.id);
+                      
+                      console.log('📁 Название папки из маппинга:', folder);
+                      console.log('🔢 Количество фото:', count);
+                      
+                      const images = [];
+                      for (let i = 1; i <= count; i++) {
+                        const path = `/images/apartments/${folder}/${i}.webp`;
+                        console.log(`📸 Путь ${i}:`, path);
+                        images.push(path);
                       }
+                      
+                      console.log('📦 Итоговый массив фото:', images);
+                      
+                      // Проверим существование первого фото
+                      fetch(images[0], { method: 'HEAD' })
+                        .then(r => console.log(`✅ Первое фото доступно: ${r.status}`))
+                        .catch(e => console.log('❌ Ошибка при проверке фото:', e));
+                      
+                      open(images, 0);
                     }}
                   >
                     Смотреть фото
-                  </motion.button>
+                  </button>
                 </>
               ) : (
                 <div className="panorama-unavailable-message mobile"><span>Временно недоступно</span></div>
