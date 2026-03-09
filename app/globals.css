@@ -5820,43 +5820,42 @@ a {
 }
 
 /* =========================================
-   PANORAMA FULLSCREEN MODE
+   PANORAMA FULLSCREEN MODE - ИСПРАВЛЕНО
    ========================================= */
 @media (max-width: 768px) {
   /* В fullscreen режиме скрываем всё, кроме кнопки закрытия */
-  .panorama-section.fullscreen-mode {
-    .panorama-info,
-    .panorama-swipe-icon,
-    .panorama-actions-bottom {
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transition: opacity 0.3s ease !important;
-    }
+  .panorama-section.fullscreen-mode .panorama-info,
+  .panorama-section.fullscreen-mode .panorama-swipe-icon,
+  .panorama-section.fullscreen-mode .panorama-actions-bottom {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease !important;
+  }
 
-    /* Кнопка закрытия всегда видна */
-    .panorama-fullscreen-wrapper {
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
+  /* Кнопка закрытия всегда видна */
+  .panorama-section.fullscreen-mode .panorama-fullscreen-wrapper {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 
-    /* При тапе показываем интерфейс на 3 секунды */
-    .panorama-info.visible,
-    .panorama-actions-bottom:not(.hidden) {
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
+  /* При тапе показываем интерфейс на 3 секунды */
+  .panorama-section.fullscreen-mode .panorama-info.visible,
+  .panorama-section.fullscreen-mode .panorama-actions-bottom:not(.hidden) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 
   /* Стили для кнопки закрытия в fullscreen */
-  .fullscreen-btn.active {
+  .panorama-section.fullscreen-mode .fullscreen-btn {
     background: #139AB6 !important;
     border-color: #139AB6 !important;
     box-shadow: 0 0 20px rgba(19, 154, 182, 0.5) !important;
   }
 
-  /* Крестик закрытия */
-  .fullscreen-btn.active svg path {
-    d: path("M5 15L9 11M11 9L15 5M5 5L9 9M11 11L15 15") !important;
+  /* Крестик закрытия - меняем SVG через filter */
+  .panorama-section.fullscreen-mode .fullscreen-btn svg {
+    transform: rotate(45deg) !important;
+    transition: transform 0.3s ease !important;
   }
 }
 
