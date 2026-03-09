@@ -412,92 +412,100 @@ export default function PanoramaViewer() {
   }, [isMobile, fullscreenMode]);
 
   // --- ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ С ИСПОЛЬЗОВАНИЕМ ПРЕДЗАГРУЖЕННЫХ ТЕКСТУР ---
-  useEffect(() => {
-    if (!sceneRef.current || !currentMeshRef.current) return;
+useEffect(() => {
+  if (!sceneRef.current || !currentMeshRef.current) return;
+  
+  console.log(`🔄 Switching to panorama ${currentApartmentIndex}`);
 
-    const geometry = currentMeshRef.current.geometry;
+  const geometry = currentMeshRef.current.geometry;
 
+  if (fadeAnimationRef.current) {
+    cancelAnimationFrame(fadeAnimationRef.current);
+  }
+
+  const applyTexture = (texture: THREE.Texture) => {
+    console.log(`🎨 Applying texture ${currentApartmentIndex}`);
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+    const nextMesh = new THREE.Mesh(geometry, material);
+    sceneRef.current!.add(nextMesh);
+    nextMeshRef.current = nextMesh;
+
+    let opacity = 0;
+
+    const fade = () => {
+      opacity += 0.04;
+      material.opacity = Math.min(opacity, 1);
+
+      if (currentMeshRef.current) {
+        const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
+        if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
+      }
+
+      if (opacity < 1) {
+        fadeAnimationRef.current = requestAnimationFrame(fade);
+      } else {
+        if (currentMeshRef.current && sceneRef.current) {
+          sceneRef.current.remove(currentMeshRef.current);
+          const oldMat = currentMeshRef.current.material as THREE.MeshBasicMaterial;
+          if (oldMat.map) oldMat.map.dispose();
+          oldMat.dispose();
+        }
+        currentMeshRef.current = nextMesh;
+        nextMeshRef.current = null;
+
+        if (transitionTimer.current) {
+          clearTimeout(transitionTimer.current);
+          transitionTimer.current = null;
+        }
+        setTransitioning(false);
+        fadeAnimationRef.current = null;
+        
+        // Предзагружаем следующие текстуры
+        preloadTextures(currentApartmentIndex);
+      }
+    };
+    fade();
+  };
+
+  // Проверяем, есть ли текстура в кэше
+  const cached = preloadedTextures.current[currentApartmentIndex];
+  
+  if (cached) {
+    console.log(`✅ Using cached texture for ${currentApartmentIndex}`);
+    if (transitionTimer.current) {
+      clearTimeout(transitionTimer.current);
+      transitionTimer.current = null;
+    }
+    setTransitioning(false);
+    applyTexture(cached);
+  } else {
+    console.log(`⚠️ Texture ${currentApartmentIndex} not cached, loading now...`);
+    // Если текстура не предзагружена, грузим сейчас
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      panoramas[currentApartmentIndex].image,
+      texture => {
+        console.log(`✅ Loaded texture ${currentApartmentIndex} on demand`);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        preloadedTextures.current[currentApartmentIndex] = texture;
+        applyTexture(texture);
+      },
+      undefined,
+      err => {
+        console.error(`❌ Error loading texture ${currentApartmentIndex}:`, err);
+      }
+    );
+  }
+
+  return () => {
     if (fadeAnimationRef.current) {
       cancelAnimationFrame(fadeAnimationRef.current);
+      fadeAnimationRef.current = null;
     }
-
-    const applyTexture = (texture: THREE.Texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-
-      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
-      const nextMesh = new THREE.Mesh(geometry, material);
-      sceneRef.current!.add(nextMesh);
-      nextMeshRef.current = nextMesh;
-
-      let opacity = 0;
-
-      const fade = () => {
-        opacity += 0.04;
-        material.opacity = Math.min(opacity, 1);
-
-        if (currentMeshRef.current) {
-          const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-          if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
-        }
-
-        if (opacity < 1) {
-          fadeAnimationRef.current = requestAnimationFrame(fade);
-        } else {
-          if (currentMeshRef.current && sceneRef.current) {
-            sceneRef.current.remove(currentMeshRef.current);
-            const oldMat = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-            if (oldMat.map) oldMat.map.dispose();
-            oldMat.dispose();
-          }
-          currentMeshRef.current = nextMesh;
-          nextMeshRef.current = null;
-
-          if (transitionTimer.current) {
-            clearTimeout(transitionTimer.current);
-            transitionTimer.current = null;
-          }
-          setTransitioning(false);
-          fadeAnimationRef.current = null;
-          
-          // Предзагружаем следующие текстуры
-          preloadTextures(currentApartmentIndex);
-        }
-      };
-      fade();
-    };
-
-    const cached = preloadedTextures.current[currentApartmentIndex];
-    if (cached) {
-      if (transitionTimer.current) {
-        clearTimeout(transitionTimer.current);
-        transitionTimer.current = null;
-      }
-      setTransitioning(false);
-      applyTexture(cached);
-    } else {
-      // Если текстура не предзагружена, грузим сейчас
-      const loader = new THREE.TextureLoader();
-      loader.load(
-        panoramas[currentApartmentIndex].image,
-        texture => {
-          texture.colorSpace = THREE.SRGBColorSpace;
-          preloadedTextures.current[currentApartmentIndex] = texture;
-          applyTexture(texture);
-        },
-        undefined,
-        err => {
-          console.error('Error loading texture:', err);
-        }
-      );
-    }
-
-    return () => {
-      if (fadeAnimationRef.current) {
-        cancelAnimationFrame(fadeAnimationRef.current);
-        fadeAnimationRef.current = null;
-      }
-    };
-  }, [currentApartmentIndex]);
+  };
+}, [currentApartmentIndex]);
 
   // --- Рендер компонента ---
   return (
