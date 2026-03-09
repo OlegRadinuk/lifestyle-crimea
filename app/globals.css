@@ -5703,3 +5703,61 @@ a {
     font-size: 14px;
   }
 }
+
+/* =========================================
+   HERO MOBILE - ВЫРАВНИВАНИЕ ТЕКСТА
+   ========================================= */
+@media (max-width: 768px) {
+  .hero-text {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 140px !important; /* поднял выше */
+    max-width: 90% !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .hero-title {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin: 0 auto 8px auto !important;
+    white-space: normal !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .hero-love {
+    margin-left: 0 !important;
+    font-size: 0.5em !important;
+    display: inline-block !important;
+    text-align: center !important;
+  }
+
+  .hero-description {
+    margin: 0 auto !important;
+    text-align: center !important;
+    white-space: normal !important;
+    max-width: 280px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 480px) {
+  .hero-text {
+    bottom: 120px !important;
+  }
+
+  .hero-title {
+    font-size: clamp(32px, 8vw, 42px) !important;
+  }
+
+  .hero-description {
+    font-size: 13px !important;
+    max-width: 240px !important;
+  }
+}
