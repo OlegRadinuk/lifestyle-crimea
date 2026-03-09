@@ -18,7 +18,6 @@ export default function PanoramaViewer() {
   const {
     currentApartmentIndex,
     setCurrentApartmentIndex,
-    panoramas: dbPanoramas,
   } = useApartment();
 
   const { register, unregister } = useHeader();
@@ -97,18 +96,15 @@ export default function PanoramaViewer() {
   const toggleFullscreen = () => {
     const newMode = !fullscreenMode;
     setFullscreenMode(newMode);
-    setUiVisible(true); // При входе показываем интерфейс на 3 секунды
+    setUiVisible(true);
     if (newMode) {
-      // Если вошли в fullscreen, запускаем таймер на скрытие интерфейса
       showUITemporarily();
     } else {
-      // Если вышли, сразу показываем интерфейс и отменяем таймер
       if (hideUITimerRef.current) {
         clearTimeout(hideUITimerRef.current);
       }
       setUiVisible(true);
     }
-    // Сбрасываем подсказку о свайпе при взаимодействии
     setHasInteracted(true);
     setShowSwipeHint(false);
   };
@@ -171,7 +167,7 @@ export default function PanoramaViewer() {
 
   const { open } = usePhotoModal();
 
-  // --- Улучшенная функция предзагрузки (теперь загружаем все текстуры) ---
+  // --- Предзагрузка ВСЕХ текстур сразу (решение проблемы 3+ слайда) ---
   const preloadAllTextures = () => {
     const loader = new THREE.TextureLoader();
     panoramas.forEach((_, index) => {
@@ -179,6 +175,8 @@ export default function PanoramaViewer() {
         loader.load(panoramas[index].image, texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[index] = texture;
+        }, undefined, (err) => {
+          console.error(`Error preloading texture ${index}:`, err);
         });
       }
     });
@@ -189,7 +187,6 @@ export default function PanoramaViewer() {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    // Очистка предыдущего рендерера
     if (rendererRef.current && rendererRef.current.domElement.parentNode === container) {
       container.removeChild(rendererRef.current.domElement);
       rendererRef.current.dispose();
@@ -230,7 +227,6 @@ export default function PanoramaViewer() {
         setLoading(false);
         setTransitioning(false);
       } else {
-        // Если по какой-то причине первая текстура не загрузилась, загружаем сейчас
         const loader = new THREE.TextureLoader();
         loader.load(panoramas[0].image, texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
@@ -250,7 +246,7 @@ export default function PanoramaViewer() {
 
     loadFirstTexture();
 
-    // --- Логика вращения камеры (без изменений) ---
+    // --- Логика вращения камеры ---
     let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
     let isUserInteracting = false;
     let startX = 0, startY = 0, startLon = 0, startLat = 0;
@@ -385,7 +381,6 @@ export default function PanoramaViewer() {
         sceneRef.current = null;
       }
     };
-  // Добавляем fullscreenMode в зависимости, чтобы обработчики касаний реагировали на изменение режима
   }, [isMobile, fullscreenMode]);
 
   // --- Плавное переключение панорам ---
@@ -426,7 +421,6 @@ export default function PanoramaViewer() {
             if (oldMat.map) oldMat.map.dispose();
             oldMat.dispose();
           }
-
           currentMeshRef.current = nextMesh;
           nextMeshRef.current = null;
 
@@ -435,7 +429,6 @@ export default function PanoramaViewer() {
             transitionTimer.current = null;
           }
           setTransitioning(false);
-
           fadeAnimationRef.current = null;
         }
       };
@@ -451,7 +444,6 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
-      // Если по какой-то причине текстура не была предзагружена, загружаем сейчас
       const loader = new THREE.TextureLoader();
       loader.load(panoramas[currentApartmentIndex].image, applyTexture, undefined, (err) => {
         console.error('Error loading texture:', err);
@@ -493,7 +485,6 @@ export default function PanoramaViewer() {
       )}
 
       {/* ========== ИНФОРМАЦИОННЫЙ БЛОК ========== */}
-      {/* Скрываем его в полноэкранном режиме */}
       {!fullscreenMode && (
         <div className={`panorama-info ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}`}>
           <div className="panorama-info-inner">
@@ -548,25 +539,24 @@ export default function PanoramaViewer() {
       {/* ========== МОБИЛЬНЫЙ ИНТЕРФЕЙС ========== */}
       {isMobile && (
         <>
-          {/* Улучшенная подсказка для свайпа (палец) */}
+          {/* Подсказка для свайпа (перелистывание слайдов) */}
           <AnimatePresence>
             {!fullscreenMode && showSwipeHint && !hasInteracted && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="panorama-swipe-hint-modern"
+                transition={{ duration: 0.5 }}
+                className="panorama-swipe-hint"
               >
-                <svg className="swipe-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 11L12 6L17 11M12 6V18" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <span className="swipe-icon">←</span>
                 <span className="swipe-text">Листайте</span>
+                <span className="swipe-icon">→</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Новая кнопка входа в fullscreen (капля) */}
+          {/* Кнопка входа в fullscreen (только иконка с дыханием) */}
           {!fullscreenMode && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
@@ -575,40 +565,30 @@ export default function PanoramaViewer() {
               className="panorama-fullscreen-button"
               onClick={toggleFullscreen}
             >
-              <span className="button-text">Смотреть панораму</span>
-              <svg className="button-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M3 8L3 3L8 3M12 3L17 3L17 8M17 12L17 17L12 17M8 17L3 17L3 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M4 8L4 4L8 4M16 4L20 4L20 8M20 16L20 20L16 20M8 20L4 20L4 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </motion.button>
           )}
 
-          {/* Кнопка выхода из fullscreen (крестик) и остальной UI */}
+          {/* Кнопка выхода из fullscreen (на том же месте, что и вход) */}
           {fullscreenMode && (
-            <>
-              {/* Кнопка "Назад" / "Выйти" */}
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: uiVisible ? 1 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="panorama-fullscreen-button exit"
-                onClick={toggleFullscreen}
-              >
-                <svg className="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </motion.button>
-
-              {/* Нижние кнопки (переход в апартамент и фото) — скрываем, так как в полноэкранном режиме они не нужны */}
-              {/* Вместо этого можно показать простую подсказку */}
-              <div className={`panorama-fullscreen-hint ${uiVisible ? 'visible' : ''}`}>
-                <span>Нажмите на экран для управления</span>
-              </div>
-            </>
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: uiVisible ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="panorama-fullscreen-button exit"
+              onClick={toggleFullscreen}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </motion.button>
           )}
 
-          {/* Нижние кнопки для мобильных (показываем только если не в полноэкранном режиме) */}
+          {/* Нижние кнопки для мобильных */}
           {!fullscreenMode && (
-            <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
+            <div className="panorama-actions-bottom">
               {isActive ? (
                 <>
                   <Link href={`/apartments/${currentPano.id}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
@@ -642,7 +622,6 @@ export default function PanoramaViewer() {
       )}
 
       {/* ========== ДЕСКТОПНЫЙ UI ========== */}
-      {/* Скрываем его в полноэкранном режиме */}
       {!isMobile && !fullscreenMode && (
         <div className="panorama-ui">
           <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
