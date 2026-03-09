@@ -37,11 +37,11 @@ export default function PanoramaViewer() {
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
 
-  // Используем данные из panoramas.ts для отображения
+  // Используем данные из panoramas.ts
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
 
-  // --- Загрузка статуса активности апартамента из БД ---
+  // --- Загрузка статуса активности ---
   useEffect(() => {
     if (!currentPano?.id) return;
 
@@ -65,7 +65,7 @@ export default function PanoramaViewer() {
     checkStatus();
   }, [currentPano?.id]);
 
-  // --- Переменные и функции для навигации ---
+  // --- Навигация ---
   const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
   const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
@@ -83,7 +83,7 @@ export default function PanoramaViewer() {
     setShowSwipeHint(false);
   };
 
-  // --- Управление скрытием интерфейса в полноэкранном режиме ---
+  // --- UI управление ---
   const showUITemporarily = () => {
     setUiVisible(true);
     if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
@@ -92,7 +92,6 @@ export default function PanoramaViewer() {
     }
   };
 
-  // --- Обработчик переключения полноэкранного режима ---
   const toggleFullscreen = () => {
     const newMode = !fullscreenMode;
     setFullscreenMode(newMode);
@@ -109,14 +108,13 @@ export default function PanoramaViewer() {
     setShowSwipeHint(false);
   };
 
-  // --- Обработчик клика по экрану в полноэкранном режиме ---
   const handleCanvasClick = () => {
     if (isMobile && fullscreenMode) {
       showUITemporarily();
     }
   };
 
-  // --- Определение мобильного устройства ---
+  // --- Мобильность ---
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -124,7 +122,7 @@ export default function PanoramaViewer() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // --- Интеграция с Header ---
+  // --- Header ---
   useEffect(() => {
     if (!sectionRef.current) return;
     const id = 'panorama';
@@ -145,7 +143,7 @@ export default function PanoramaViewer() {
     };
   }, [register, unregister]);
 
-  // --- Блокировка скролла в полноэкранном режиме на мобильных ---
+  // --- Блокировка скролла ---
   useEffect(() => {
     if (fullscreenMode && isMobile) {
       document.body.style.overflow = 'hidden';
@@ -155,72 +153,43 @@ export default function PanoramaViewer() {
     return () => { document.body.style.overflow = ''; };
   }, [fullscreenMode, isMobile]);
 
-  // --- THREE.js текстуры и сцена ---
+  // --- THREE.js ---
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const currentMeshRef = useRef<THREE.Mesh | null>(null);
   const nextMeshRef = useRef<THREE.Mesh | null>(null);
-
-  // КЭШ ТЕКСТУР
   const preloadedTextures = useRef<Record<number, THREE.Texture>>({});
+  const loadingTextures = useRef<Record<number, boolean>>({});
 
   const { open } = usePhotoModal();
 
-  // --- УЛУЧШЕННАЯ ПРЕДЗАГРУЗКА ---
-const preloadTextures = (startIndex: number) => {
-  const indicesToPreload = [];
-  
-  // Для мобильных грузим следующие 3 (включая текущую + 2 вперед и 1 назад)
-  if (isMobile) {
-    indicesToPreload.push(
-      (startIndex + 1) % panoramas.length,
-      (startIndex + 2) % panoramas.length,
-      (startIndex - 1 + panoramas.length) % panoramas.length // предыдущая
-    );
-  } else {
-    // Для десктопа грузим все
-    for (let i = 0; i < panoramas.length; i++) {
-      if (!preloadedTextures.current[i]) {
-        indicesToPreload.push(i);
-      }
-    }
-  }
-
-  console.log(`📦 Preloading indices:`, indicesToPreload);
-
-  const loader = new THREE.TextureLoader();
-  
-  indicesToPreload.forEach(index => {
-    if (preloadedTextures.current[index]) {
-      console.log(`⏭️ Texture ${index} already cached`);
+  // --- Предзагрузка с защитой от дублей ---
+  const preloadTexture = (index: number) => {
+    if (preloadedTextures.current[index] || loadingTextures.current[index]) {
       return;
     }
+
+    loadingTextures.current[index] = true;
+    const loader = new THREE.TextureLoader();
     
     loader.load(
       panoramas[index].image,
       texture => {
         texture.colorSpace = THREE.SRGBColorSpace;
         preloadedTextures.current[index] = texture;
+        loadingTextures.current[index] = false;
         console.log(`✅ Preloaded texture ${index}`);
       },
       undefined,
       error => {
-        console.error(`❌ Failed to preload texture ${index}:`, error);
-        // Пробуем еще раз через секунду
-        setTimeout(() => {
-          loader.load(panoramas[index].image, texture => {
-            texture.colorSpace = THREE.SRGBColorSpace;
-            preloadedTextures.current[index] = texture;
-            console.log(`✅ Retry success for texture ${index}`);
-          });
-        }, 1000);
+        console.error(`❌ Failed to load texture ${index}:`, error);
+        loadingTextures.current[index] = false;
       }
     );
-  });
-};
+  };
 
-  // --- Инициализация THREE.js сцены ---
+  // --- Инициализация сцены ---
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -271,8 +240,10 @@ const preloadTextures = (startIndex: number) => {
         setLoading(false);
         setTransitioning(false);
         
-        // Начинаем предзагрузку остальных
-        preloadTextures(0);
+        // Предзагружаем остальные
+        for (let i = 1; i < panoramas.length; i++) {
+          preloadTexture(i);
+        }
       },
       undefined,
       err => {
@@ -281,7 +252,7 @@ const preloadTextures = (startIndex: number) => {
       }
     );
 
-    // --- Логика вращения камеры (без изменений) ---
+    // --- Логика вращения (без изменений) ---
     let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
     let isUserInteracting = false;
     let startX = 0, startY = 0, startLon = 0, startLat = 0;
@@ -418,103 +389,94 @@ const preloadTextures = (startIndex: number) => {
     };
   }, [isMobile, fullscreenMode]);
 
-  // --- ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ С ИСПОЛЬЗОВАНИЕМ ПРЕДЗАГРУЖЕННЫХ ТЕКСТУР ---
-useEffect(() => {
-  if (!sceneRef.current || !currentMeshRef.current) return;
-  
-  console.log(`🔄 Switching to panorama ${currentApartmentIndex}`);
+  // --- Переключение панорам ---
+  useEffect(() => {
+    if (!sceneRef.current || !currentMeshRef.current) return;
 
-  const geometry = currentMeshRef.current.geometry;
+    const geometry = currentMeshRef.current.geometry;
 
-  if (fadeAnimationRef.current) {
-    cancelAnimationFrame(fadeAnimationRef.current);
-  }
-
-  const applyTexture = (texture: THREE.Texture) => {
-    console.log(`🎨 Applying texture ${currentApartmentIndex}`);
-    texture.colorSpace = THREE.SRGBColorSpace;
-
-    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
-    const nextMesh = new THREE.Mesh(geometry, material);
-    sceneRef.current!.add(nextMesh);
-    nextMeshRef.current = nextMesh;
-
-    let opacity = 0;
-
-    const fade = () => {
-      opacity += 0.04;
-      material.opacity = Math.min(opacity, 1);
-
-      if (currentMeshRef.current) {
-        const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-        if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
-      }
-
-      if (opacity < 1) {
-        fadeAnimationRef.current = requestAnimationFrame(fade);
-      } else {
-        if (currentMeshRef.current && sceneRef.current) {
-          sceneRef.current.remove(currentMeshRef.current);
-          const oldMat = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-          if (oldMat.map) oldMat.map.dispose();
-          oldMat.dispose();
-        }
-        currentMeshRef.current = nextMesh;
-        nextMeshRef.current = null;
-
-        if (transitionTimer.current) {
-          clearTimeout(transitionTimer.current);
-          transitionTimer.current = null;
-        }
-        setTransitioning(false);
-        fadeAnimationRef.current = null;
-        
-        // Предзагружаем следующие текстуры
-        preloadTextures(currentApartmentIndex);
-      }
-    };
-    fade();
-  };
-
-  // Проверяем, есть ли текстура в кэше
-  const cached = preloadedTextures.current[currentApartmentIndex];
-  
-  if (cached) {
-    console.log(`✅ Using cached texture for ${currentApartmentIndex}`);
-    if (transitionTimer.current) {
-      clearTimeout(transitionTimer.current);
-      transitionTimer.current = null;
-    }
-    setTransitioning(false);
-    applyTexture(cached);
-  } else {
-    console.log(`⚠️ Texture ${currentApartmentIndex} not cached, loading now...`);
-    // Если текстура не предзагружена, грузим сейчас
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      panoramas[currentApartmentIndex].image,
-      texture => {
-        console.log(`✅ Loaded texture ${currentApartmentIndex} on demand`);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        preloadedTextures.current[currentApartmentIndex] = texture;
-        applyTexture(texture);
-      },
-      undefined,
-      err => {
-        console.error(`❌ Error loading texture ${currentApartmentIndex}:`, err);
-      }
-    );
-  }
-
-  return () => {
     if (fadeAnimationRef.current) {
       cancelAnimationFrame(fadeAnimationRef.current);
-      fadeAnimationRef.current = null;
     }
-  };
-}, [currentApartmentIndex]);
 
-  // --- Рендер компонента ---
+    const applyTexture = (texture: THREE.Texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+      const nextMesh = new THREE.Mesh(geometry, material);
+      sceneRef.current!.add(nextMesh);
+      nextMeshRef.current = nextMesh;
+
+      let opacity = 0;
+
+      const fade = () => {
+        opacity += 0.04;
+        material.opacity = Math.min(opacity, 1);
+
+        if (currentMeshRef.current) {
+          const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
+          if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
+        }
+
+        if (opacity < 1) {
+          fadeAnimationRef.current = requestAnimationFrame(fade);
+        } else {
+          if (currentMeshRef.current && sceneRef.current) {
+            sceneRef.current.remove(currentMeshRef.current);
+            const oldMat = currentMeshRef.current.material as THREE.MeshBasicMaterial;
+            if (oldMat.map) oldMat.map.dispose();
+            oldMat.dispose();
+          }
+          currentMeshRef.current = nextMesh;
+          nextMeshRef.current = null;
+
+          if (transitionTimer.current) {
+            clearTimeout(transitionTimer.current);
+            transitionTimer.current = null;
+          }
+          setTransitioning(false);
+          fadeAnimationRef.current = null;
+        }
+      };
+      fade();
+    };
+
+    const cached = preloadedTextures.current[currentApartmentIndex];
+    
+    if (cached) {
+      console.log(`✅ Using cached texture for ${currentApartmentIndex}`);
+      if (transitionTimer.current) {
+        clearTimeout(transitionTimer.current);
+        transitionTimer.current = null;
+      }
+      setTransitioning(false);
+      applyTexture(cached);
+    } else {
+      console.log(`⚠️ Loading texture ${currentApartmentIndex} on demand`);
+      const loader = new THREE.TextureLoader();
+      loader.load(
+        panoramas[currentApartmentIndex].image,
+        texture => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          preloadedTextures.current[currentApartmentIndex] = texture;
+          applyTexture(texture);
+        },
+        undefined,
+        err => {
+          console.error(`❌ Error loading texture ${currentApartmentIndex}:`, err);
+        }
+      );
+    }
+
+    return () => {
+      if (fadeAnimationRef.current) {
+        cancelAnimationFrame(fadeAnimationRef.current);
+        fadeAnimationRef.current = null;
+      }
+    };
+  }, [currentApartmentIndex]);
+
+  // --- Рендер ---
   return (
     <section
       id="panorama"
