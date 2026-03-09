@@ -5642,7 +5642,7 @@ a {
 
   .hero-timeline {
     right: 50%;
-    bottom: 40px;
+    bottom: 80px;
     transform: translateX(50%);
     flex-direction: row;
     gap: 24px;
