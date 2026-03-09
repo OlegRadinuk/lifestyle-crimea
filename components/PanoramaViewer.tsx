@@ -37,13 +37,21 @@ export default function PanoramaViewer() {
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
 
-  // Состояние для вращения (чтобы не терялось при ререндерах)
+  // Состояние для вращения
   const rotationState = useRef({
     targetLon: 0,
     targetLat: 0,
     lon: 0,
     lat: 0
   });
+
+  // Ref для текущего индекса (чтобы всегда иметь актуальное значение)
+  const currentIndexRef = useRef(currentApartmentIndex);
+  
+  // Обновляем ref при каждом изменении индекса
+  useEffect(() => {
+    currentIndexRef.current = currentApartmentIndex;
+  }, [currentApartmentIndex]);
 
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
@@ -70,9 +78,6 @@ export default function PanoramaViewer() {
     };
     checkStatus();
   }, [currentPano?.id]);
-
-  const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
-  const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
   const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '').trim();
 
@@ -313,49 +318,51 @@ export default function PanoramaViewer() {
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-  console.log('👆 Touch end, isDragging:', isDragging);
-  
-  if (fullscreenMode) {
-    isUserInteracting = false;
-    return;
-  }
-  
-  if (!isDragging) {
-    console.log('⏭️ Not a swipe, ignoring');
-    return;
-  }
-  
-  const touch = e.changedTouches[0];
-  if (!touch) return;
-  
-  const deltaX = touch.clientX - touchStartX;
-  const deltaY = touch.clientY - touchStartY;
-  console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
-  console.log('📊 Current index:', currentApartmentIndex);
-  
-  // Вычисляем индексы на основе ТЕКУЩЕГО currentApartmentIndex
-  const prevIdx = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
-  const nextIdx = (currentApartmentIndex + 1) % panoramas.length;
-  console.log('🧮 Prev index:', prevIdx, 'Next index:', nextIdx);
-  
-  // Горизонтальный свайп важнее вертикального
-  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
-    console.log('✅ Valid horizontal swipe detected');
-    
-    if (deltaX > 0) {
-      console.log('➡️ Swipe right -> PREV panorama (index', prevIdx, ')');
-      changePanorama(prevIdx);
-    } else {
-      console.log('⬅️ Swipe left -> NEXT panorama (index', nextIdx, ')');
-      changePanorama(nextIdx);
-    }
-    
-    setHasInteracted(true);
-    setShowSwipeHint(false);
-  } else {
-    console.log('❌ Not a valid horizontal swipe');
-  }
-};
+      console.log('👆 Touch end, isDragging:', isDragging);
+      
+      if (fullscreenMode) {
+        isUserInteracting = false;
+        return;
+      }
+      
+      if (!isDragging) {
+        console.log('⏭️ Not a swipe, ignoring');
+        return;
+      }
+      
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      
+      // Используем актуальное значение из ref
+      const currentIdx = currentIndexRef.current;
+      const prevIdx = (currentIdx - 1 + panoramas.length) % panoramas.length;
+      const nextIdx = (currentIdx + 1) % panoramas.length;
+      
+      console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
+      console.log('📊 Current index from ref:', currentIdx);
+      console.log('🧮 Prev index:', prevIdx, 'Next index:', nextIdx);
+      
+      // Горизонтальный свайп важнее вертикального
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        console.log('✅ Valid horizontal swipe detected');
+        
+        if (deltaX > 0) {
+          console.log('➡️ Swipe right -> PREV panorama (index', prevIdx, ')');
+          setCurrentApartmentIndex(prevIdx);
+        } else {
+          console.log('⬅️ Swipe left -> NEXT panorama (index', nextIdx, ')');
+          setCurrentApartmentIndex(nextIdx);
+        }
+        
+        setHasInteracted(true);
+        setShowSwipeHint(false);
+      } else {
+        console.log('❌ Not a valid horizontal swipe');
+      }
+    };
 
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
@@ -668,9 +675,15 @@ export default function PanoramaViewer() {
 
       {!isMobile && !fullscreenMode && (
         <div className="panorama-ui">
-          <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
+          <button 
+            className="panorama-arrow left" 
+            onClick={() => {
+              const prev = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
+              changePanorama(prev);
+            }}
+          >
             <span className="arrow-icon">←</span>
-            <span className="arrow-label">{cleanTitle(panoramas[prevIndex].title)}</span>
+            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
           </button>
 
           <div className="panorama-center">
@@ -688,8 +701,14 @@ export default function PanoramaViewer() {
             )}
           </div>
 
-          <button className="panorama-arrow right" onClick={() => changePanorama(nextIndex)}>
-            <span className="arrow-label">{cleanTitle(panoramas[nextIndex].title)}</span>
+          <button 
+            className="panorama-arrow right" 
+            onClick={() => {
+              const next = (currentApartmentIndex + 1) % panoramas.length;
+              changePanorama(next);
+            }}
+          >
+            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
             <span className="arrow-icon">→</span>
           </button>
         </div>
