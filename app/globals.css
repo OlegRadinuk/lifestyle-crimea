@@ -5761,3 +5761,10 @@ a {
     max-width: 240px !important;
   }
 }
+
+/* Скрываем SVG рамку на мобильных */
+@media (max-width: 768px) {
+  .hero-frame-svg {
+    display: none !important;
+  }
+}
