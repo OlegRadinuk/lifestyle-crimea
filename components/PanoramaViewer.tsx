@@ -537,12 +537,16 @@ export default function PanoramaViewer() {
       {/* Мобильный интерфейс */}
       {isMobile && (
         <>
-          {!fullscreenMode && showSwipeHint && !hasInteracted && (
-            <div className="panorama-swipe-hint">
-              <span className="swipe-icon" />
-    <span>Нажми на кнопку для просмотра</span>
-  </div>
-          )}
+    {/* Новая анимированная иконка свайпа - только вне fullscreen */}
+    {!fullscreenMode && showSwipeHint && !hasInteracted && (
+      <div className="panorama-swipe-icon">
+        <div className="swipe-hand" />
+        <div className="swipe-wave">
+          <span /><span /><span />
+        </div>
+        <span className="swipe-text">Листайте в стороны</span>
+      </div>
+    )}
 
           <div className={`panorama-fullscreen-wrapper ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
             <button 
