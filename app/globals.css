@@ -5934,3 +5934,186 @@ a {
     margin: 0 auto !important;
   }
 }
+
+/* =========================================
+   PANORAMA MOBILE - УЛУЧШЕННЫЙ UX
+   ========================================= */
+
+/* Поднимаем всё на 30px */
+@media (max-width: 768px) {
+  /* Информационный блок */
+  .panorama-info {
+    bottom: 210px !important; /* +30px (было 180px) */
+  }
+
+  /* Fullscreen кнопка */
+  .panorama-fullscreen-wrapper {
+    bottom: 143px !important; /* +30px (было 113px) */
+  }
+
+  /* Нижние кнопки */
+  .panorama-actions-bottom {
+    bottom: 74px !important; /* +30px (было 44px) */
+  }
+
+  /* Анимированная иконка свайпа */
+  .panorama-swipe-hint {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    bottom: 150px !important; /* +30px (было 120px) */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    padding: 10px 20px !important;
+    border-radius: 40px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    font-size: 14px !important;
+    letter-spacing: 0.3px !important;
+    z-index: 50 !important;
+    white-space: nowrap !important;
+    animation: hintPulse 2s infinite ease-in-out !important;
+  }
+
+  /* Иконка свайпа */
+  .swipe-icon {
+    display: inline-block !important;
+    width: 24px !important;
+    height: 24px !important;
+    position: relative !important;
+    animation: swipeMove 1.5s infinite ease-in-out !important;
+  }
+
+  .swipe-icon::before,
+  .swipe-icon::after {
+    content: '' !important;
+    position: absolute !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-left: 2px solid white !important;
+    border-bottom: 2px solid white !important;
+    transform: rotate(45deg) !important;
+    left: 0 !important;
+    top: 6px !important;
+  }
+
+  .swipe-icon::after {
+    left: 8px !important;
+    opacity: 0.6 !important;
+    animation: swipeFade 1.5s infinite ease-in-out !important;
+  }
+
+  @keyframes swipeMove {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(8px); }
+  }
+
+  @keyframes swipeFade {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* Анимация пульсации подсказки */
+  @keyframes hintPulse {
+    0%, 100% {
+      background: rgba(0, 0, 0, 0.4);
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      background: rgba(19, 154, 182, 0.6);
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 0 20px rgba(19, 154, 182, 0.4);
+    }
+  }
+
+  /* Анимация для fullscreen кнопки */
+  .fullscreen-btn {
+    animation: btnPulse 2.5s infinite ease-in-out !important;
+  }
+
+  @keyframes btnPulse {
+    0%, 100% {
+      background: rgba(0, 0, 0, 0.5);
+      transform: scale(1);
+    }
+    50% {
+      background: rgba(19, 154, 182, 0.8);
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(19, 154, 182, 0.6);
+    }
+  }
+
+  /* Анимация для нижних кнопок */
+  .panorama-action-btn.primary {
+    animation: primaryBtnPulse 2.5s infinite ease-in-out !important;
+  }
+
+  @keyframes primaryBtnPulse {
+    0%, 100% {
+      background: rgba(19, 154, 182, 0.9);
+      transform: translateY(0);
+    }
+    50% {
+      background: #139AB6;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(19, 154, 182, 0.5);
+    }
+  }
+}
+
+/* Для маленьких экранов */
+@media (max-width: 480px) {
+  .panorama-info {
+    bottom: 190px !important;
+  }
+
+  .panorama-fullscreen-wrapper {
+    bottom: 133px !important;
+  }
+
+  .panorama-actions-bottom {
+    bottom: 64px !important;
+  }
+
+  .panorama-swipe-hint {
+    bottom: 140px !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+
+  .swipe-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .swipe-icon::before,
+  .swipe-icon::after {
+    width: 10px !important;
+    height: 10px !important;
+  }
+}
+
+/* Для планшетов */
+@media (min-width: 641px) and (max-width: 768px) {
+  .panorama-info {
+    bottom: 230px !important;
+  }
+
+  .panorama-fullscreen-wrapper {
+    bottom: 163px !important;
+  }
+
+  .panorama-actions-bottom {
+    bottom: 94px !important;
+  }
+
+  .panorama-swipe-hint {
+    bottom: 170px !important;
+    padding: 12px 24px !important;
+    font-size: 15px !important;
+  }
+}

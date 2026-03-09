@@ -538,7 +538,10 @@ export default function PanoramaViewer() {
       {isMobile && (
         <>
           {!fullscreenMode && showSwipeHint && !hasInteracted && (
-            <div className="panorama-swipe-hint">Свайп для переключения</div>
+            <div className="panorama-swipe-hint">
+              <span className="swipe-icon" />
+    <span>Нажми на кнопку для просмотра</span>
+  </div>
           )}
 
           <div className={`panorama-fullscreen-wrapper ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
