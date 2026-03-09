@@ -34,26 +34,6 @@
 }
 
 /* =========================================
-   CUSTOM UTILITIES (то, что нельзя выразить через Tailwind)
-   ========================================= */
-@layer utilities {
-  /* Адаптивные контейнеры */
-  .container-padding {
-    @apply px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12;
-  }
-
-  /* Адаптивные отступы между секциями */
-  .section-spacer {
-    @apply h-[15vh] sm:h-[20vh] lg:h-[25vh] xl:h-[30vh];
-  }
-
-  /* Скругления, которые масштабируются */
-  .radius-responsive {
-    @apply rounded-2xl sm:rounded-3xl lg:rounded-[28px] xl:rounded-[32px];
-  }
-}
-
-/* =========================================
    LAYOUT SYSTEM (STICKY SECTIONS)
    ========================================= */
 @layer components {
@@ -63,10 +43,6 @@
 
   .layer {
     @apply sticky top-0 w-full h-screen overflow-hidden;
-  }
-
-  .layer-spacer {
-    @apply section-spacer;
   }
 
   .layer--hero {
@@ -83,128 +59,6 @@
 }
 
 /* =========================================
-   BURGER MENU (кастомные стили, которые сложно выразить через Tailwind)
-   ========================================= */
-@layer components {
-  .burger-overlay {
-    @apply fixed inset-0 z-burger
-           bg-black/35 backdrop-blur-md
-           flex items-center justify-center
-           animate-fade-in;
-  }
-
-  .burger-card {
-    @apply w-[95%] max-w-[1600px] h-[90vh]
-           bg-white/90 backdrop-blur-md
-           radius-responsive
-           shadow-[0_40px_120px_rgba(0,0,0,0.25)]
-           relative overflow-hidden;
-  }
-
-  .burger-close {
-    @apply absolute top-3 right-4 sm:top-5 sm:right-6 lg:top-6 lg:right-8
-           w-10 h-10 lg:w-12 lg:h-12
-           bg-white/90 rounded-full border-0
-           text-xl lg:text-2xl text-[#222]
-           cursor-pointer z-20
-           transition-all hover:rotate-90 hover:scale-110;
-  }
-
-  .burger-layout {
-    @apply grid grid-cols-1 lg:grid-cols-[32%_68%] h-full;
-  }
-
-  .burger-menu {
-    @apply p-8 sm:p-10 lg:p-12 xl:p-16
-           list-none flex flex-col gap-6 lg:gap-8;
-  }
-
-  .burger-menu li {
-    @apply text-xl sm:text-2xl lg:text-3xl
-           text-[#1f2a33] cursor-pointer
-           relative pl-6
-           transition-colors hover:text-tealPremium;
-  }
-
-  .burger-menu li::before {
-    @apply content-[''] absolute left-0 top-1/2 -translate-y-1/2
-           w-1.5 h-1.5 bg-tealPremium rounded-full
-           scale-0 transition-transform hover:scale-100;
-  }
-
-  .burger-menu li.active {
-    @apply text-tealPremium;
-  }
-
-  .burger-menu li.active::before {
-    @apply scale-100;
-  }
-
-  .burger-preview {
-    @apply relative overflow-hidden bg-[#eaeef2] hidden lg:block;
-  }
-
-  .preview-media {
-    @apply absolute inset-0 bg-cover bg-bottom;
-  }
-
-  .burger-contacts {
-    @apply mt-auto p-8 sm:p-10 lg:p-12 xl:p-16
-           text-xs sm:text-sm text-[#343a40];
-  }
-
-  .burger-booking {
-    @apply mt-6 px-6 py-3 lg:px-8 lg:py-4
-           text-xs sm:text-sm font-medium tracking-wider uppercase
-           text-white no-underline
-           bg-gradient-to-r from-tealPremium to-[#17b6d6]
-           backdrop-blur-md rounded-full border-0
-           transition-all hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(19,154,182,0.55)];
-  }
-}
-
-/* =========================================
-   CALENDAR & BOOKING MODAL
-   ========================================= */
-@layer components {
-  .availability-calendar {
-    @apply absolute top-[calc(100%+8px)] right-0
-           bg-white rounded-xl sm:rounded-2xl
-           p-4 sm:p-5 lg:p-6
-           w-[300px] sm:w-[320px] lg:w-[340px]
-           shadow-[0_15px_35px_rgba(0,0,0,0.2)]
-           z-modal animate-calendar-fade;
-  }
-
-  .booking-modal-overlay {
-    @apply fixed inset-0 z-modal-overlay
-           bg-[#0f172a]/45 backdrop-blur-md
-           flex items-center justify-center;
-  }
-
-  .booking-modal {
-    @apply w-[95%] max-w-[1000px] max-h-[90vh]
-           bg-[#f9fbfb]/85 backdrop-blur-xl
-           rounded-2xl overflow-hidden
-           shadow-[0_40px_80px_rgba(0,0,0,0.3)]
-           flex flex-col;
-  }
-
-  .booking-modal__header {
-    @apply flex justify-between items-center
-           px-4 sm:px-5 lg:px-6 py-4
-           bg-white/70 backdrop-blur-sm
-           border-b border-[#e2ecf2];
-  }
-
-  .booking-modal__content {
-    @apply grid grid-cols-1 lg:grid-cols-[2fr_1fr]
-           gap-4 sm:gap-5 lg:gap-6
-           p-4 sm:p-5 lg:p-6 overflow-y-auto;
-  }
-}
-
-/* =========================================
    HERO SLIDER (специфичные анимации)
    ========================================= */
 @keyframes heroZoom {
@@ -215,55 +69,3 @@
 .hero-slide {
   animation: heroZoom 16s linear infinite;
 }
-
-/* =========================================
-   ADAPTIVE UTILITIES
-   ========================================= */
-@layer utilities {
-  /* Адаптивный текст */
-  .text-hero-title {
-    @apply text-[clamp(32px,8vw,72px)] font-medium leading-[1.1];
-  }
-  
-  .text-hero-love {
-    @apply inline-block ml-2 lg:ml-3
-           text-[0.5em] font-light italic text-white/80;
-  }
-  
-  .text-section-title {
-    @apply text-[clamp(24px,4vw,42px)] font-medium;
-  }
-  
-  .text-card-title {
-    @apply text-[clamp(18px,3vw,28px)] font-medium;
-  }
-
-  /* Адаптивные отступы */
-  .section-padding {
-    @apply py-16 sm:py-20 lg:py-24 xl:py-32;
-  }
-  
-  .content-padding {
-    @apply px-4 sm:px-6 lg:px-8 xl:px-12;
-  }
-
-  /* Адаптивные размеры */
-  .hero-timeline-item {
-    @apply text-sm sm:text-base tracking-[0.18em]
-           text-white/40 cursor-pointer
-           transition-all duration-400
-           hover:text-white/80;
-  }
-  
-  .hero-timeline-item.active {
-    @apply text-white scale-110 lg:-translate-x-2;
-  }
-}
-
-/* =========================================
-   ADMIN PANEL STYLES (оставляем как есть)
-   ========================================= */
-.admin-layout { @apply flex min-h-screen bg-[#f5f7fa]; }
-.admin-sidebar { @apply w-[260px] bg-[#1a2634] text-white transition-all; }
-.admin-sidebar.collapsed { @apply w-[70px]; }
-/* ... остальные админ-стили остаются без изменений ... */

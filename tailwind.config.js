@@ -6,6 +6,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        montserrat: ['var(--font-montserrat)', 'sans-serif'],
+      },
       colors: {
         tealPremium: '#139AB6',
       },
@@ -30,7 +33,7 @@ module.exports = {
       },
 
       /* =========================
-         NEW: Animation Keyframes
+         Animation Keyframes
       ========================= */
       keyframes: {
         fadeUp: {
@@ -61,7 +64,7 @@ module.exports = {
       },
 
       /* =========================
-         NEW: Animations
+         Animations
       ========================= */
       animation: {
         'fade-up': 'fadeUp 0.8s ease forwards',
@@ -74,7 +77,7 @@ module.exports = {
       },
 
       /* =========================
-         NEW: Z-index scale
+         Z-index scale
       ========================= */
       zIndex: {
         '1': '1',
@@ -84,30 +87,6 @@ module.exports = {
         'burger': '9999',
         'modal': '2000',
         'modal-overlay': '2001',
-      },
-
-      /* =========================
-         NEW: Font sizes with clamp
-      ========================= */
-      fontSize: {
-        'responsive-xs': 'clamp(10px, 2vw, 12px)',
-        'responsive-sm': 'clamp(12px, 2.5vw, 14px)',
-        'responsive-base': 'clamp(14px, 3vw, 16px)',
-        'responsive-lg': 'clamp(16px, 4vw, 18px)',
-        'responsive-xl': 'clamp(18px, 5vw, 20px)',
-        'responsive-2xl': 'clamp(20px, 6vw, 24px)',
-        'responsive-3xl': 'clamp(24px, 7vw, 32px)',
-        'responsive-4xl': 'clamp(28px, 8vw, 42px)',
-        'responsive-5xl': 'clamp(32px, 10vw, 72px)',
-      },
-
-      /* =========================
-         NEW: Spacing scale
-      ========================= */
-      spacing: {
-        'section-sm': 'clamp(2rem, 5vh, 4rem)',
-        'section-md': 'clamp(3rem, 8vh, 6rem)',
-        'section-lg': 'clamp(4rem, 10vh, 8rem)',
       },
     },
   },
