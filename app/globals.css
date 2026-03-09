@@ -52,53 +52,6 @@ body {
   cursor: pointer;
 }
 
-/* HERO */
-.hero {
-  position: relative;
-  height: 100vh;
-  padding-top: 80px;
-  overflow: hidden;
-}
-
-/* ФОН */
-.hero__bg {
-  position: absolute;
-  inset: 0;
-  background: url('/images/hero.webp') center / cover no-repeat;
-  transform: scale(1.05);
-}
-
-/* затемнение */
-.hero__bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-/* КОНТЕНТ */
-.hero__content {
-  position: relative;
-  z-index: 2;
-  height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #fff;
-}
-
-.hero__content h1 {
-  font-size: 72px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-.hero__content p {
-  font-size: 22px;
-  opacity: 0.9;
-}
 
 /* =========================
    BURGER MENU — LUXURY LIGHT
@@ -662,94 +615,12 @@ body {
   opacity: 0.7;
 }
 
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.hero-bg {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background-image: url('/images/hero/hero.jpg'); /* пока картинка */
-  background-size: cover;
-  background-position: center bottom;
-  animation: heroZoom 12s ease forwards;
-  pointer-events: none;
-}
-
-.hero-bg::after {
-  pointer-events: none;
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.3),
-    rgba(0,0,0,0.55)
-  );
-}
-
-@keyframes heroZoom {
-  from { transform: scale(1.05); }
-  to { transform: scale(1); }
-}
-
-.hero-content h1 {
-  font-size: clamp(48px, 6vw, 86px);
-  font-weight: 500;
-}
-
-.hero-content p {
-  margin-top: 20px;
-  font-size: 20px;
-  max-width: 480px;
-  opacity: 0.9;
-}
-
-.hero-btn {
-  margin-top: 36px;
-  padding: 14px 38px;
-  font-size: 16px;
-  background: #139ab6;
-  border: none;
-  color: white;
-  border-radius: 999px;
-  cursor: pointer;
-  width: fit-content;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.hero-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(19,154,182,0.45);
-}
-
-.hero-scroll {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 22px;
-  opacity: 0.8;
-  animation: scrollPulse 2s infinite;
-}
-
 @keyframes scrollPulse {
   0% { transform: translate(-50%, 0); }
   50% { transform: translate(-50%, 8px); }
   100% { transform: translate(-50%, 0); }
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-  .hero-content {
-    padding: 0 24px;
-    align-items: center;
-    text-align: center;
-  }
-}
 
 /* =========================
    HEADER
@@ -908,294 +779,6 @@ a {
   color: inherit;
 }
 
-/* =========================
-   HERO
-========================= */
-
-.hero {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-
-  background-image: url("/images/hero.webp");
-  background-size: cover;
-  background-position: center;
-
-  overflow: hidden;
-}
-
-/* лёгкое затемнение */
-.hero::after {
-  pointer-events: none;
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.25) 0%,
-    rgba(0, 0, 0, 0.55) 100%
-  );
-  z-index: 1;
-}
-
-/* =========================
-   HERO CONTENT
-========================= */
-
-.hero__content {
-  position: absolute;
-  left: 40px;
-  bottom: 48px;
-  z-index: 2;
-
-  max-width: 520px;
-  color: #fff;
-}
-
-.hero__title {
-  font-size: clamp(34px, 4.5vw, 58px);
-  font-weight: 500;
-  line-height: 1.1;
-}
-
-.hero__subtitle {
-  margin-top: 14px;
-  font-size: 16px;
-  line-height: 1.5;
-  opacity: 0.85;
-}
-
-/* =========================
-   MOBILE HERO
-========================= */
-
-@media (max-width: 768px) {
-  .hero__content {
-    left: 20px;
-    bottom: 32px;
-  }
-
-  .hero__subtitle {
-    font-size: 14px;
-  }
-}
-
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* декоративная рамка */
-.hero-frame {
-  position: absolute;
-  inset: 24px; /* ВАЖНО: отступ внутрь */
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.hero-frame-svg {
-  position: absolute;
-  inset: 24px;
-  width: calc(100% - 48px);
-  height: calc(100% - 48px);
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* === HERO SLIDER === */
-
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* SLIDES */
-.hero-slides {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.hero-slide {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center bottom;
-  opacity: 0;
-  transform: scale(1.05);
-  transition:
-    opacity 0.9s ease,
-    transform 6s ease;
-}
-
-.hero-slide.active {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.hero-slide::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.25),
-      rgba(0, 0, 0, 0.10),
-      rgba(0, 0, 0, 0)
-    ),
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.15),
-      rgba(0, 0, 0, 0)
-    );
-}
-
-/* SVG FRAME */
-.hero-frame-svg {
-  position: absolute;
-  inset: 24px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* CONTENT */
-
-.hero-content h1 {
-  font-size: clamp(42px, 6vw, 72px);
-  font-weight: 500;
-}
-
-.hero-content p {
-  margin-top: 16px;
-  font-size: 20px;
-  opacity: 0.9;
-}
-
-/* HERO SLIDER ARROWS — MINIMAL */
-
-.hero-arrow { 
-  position: absolute; 
-  top: 49.5%; transform: 
-  translateY(-50%); 
-  background: none; 
-  border: none; 
-  padding: 0; 
-  font-size: 44px; 
-  font-weight: 100; 
-  line-height: 1; 
-  color: rgba(255, 255, 255, 0.75); 
-  cursor: pointer; 
-  z-index: 56; 
-  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease; }
-
-/* увеличенная зона клика */
-.hero-arrow::after {
-  content: '';
-  position: absolute;
-  inset: -30px -15px; /* ↑ расширяем вокруг кнопки */
-}
-
-.hero-arrow:hover {
-  color: #ffffff;
-}
-
-/* LEFT */
-.hero-arrow--left {
-  left: 24px;
-}
-
-.hero-arrow--left:hover {
-  transform: translate(-6px, -50%);
-}
-
-/* RIGHT */
-.hero-arrow--right {
-  right: 24px;
-}
-
-.hero-arrow--right:hover {
-  transform: translate(6px, -50%);
-}
-
-/* КОНТЕЙНЕР ТЕКСТА */
-.hero-content {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-}
-
-/* ЗАГОЛОВОК — ЛЕВЫЙ НИЖНИЙ */
-.hero-title {
-  position: absolute;
-  left: 64px;
-  bottom: 64px;
-
-  font-size: clamp(44px, 5vw, 72px);
-  font-weight: 500;
-  line-height: 1.1;
-  color: #139AB6;
-
-  margin: 0;
-  padding: 0;
-}
-
-/* ПОДПИСЬ — ПРАВЫЙ НИЖНИЙ */
-.hero-subtitle {
-  position: absolute;
-  right: 64px;
-  bottom: 64px;
-
-  font-size: 14px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
-
-  margin: 0;
-  padding: 0;
-}
-
-.hero-content {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-}
-
-.hero-title {
-  position: absolute;
-  left: -3px;
-  bottom: 44px;
-
-  font-size: clamp(44px, 5vw, 72px);
-  font-weight: 500;
-  line-height: 1.1;
-  color: #ffffff;
-
-  margin: 0;
-}
-
-.hero-subtitle {
-  position: absolute;
-  right: 64px;
-  bottom: 64px;
-
-  font-size: 14px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.75);
-
-  margin: 0;
-}
-
 .header__booking {
   position: relative;
   padding: 15.5px 44px;
@@ -1243,208 +826,6 @@ a {
   opacity: 1;
 }
 
-.hero-content {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-  background: #000;
-}
-
-/* === SLIDES === */
-.hero-slides {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-slide {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-
-  opacity: 0;
-  transform: scale(1.05);
-  transition:
-    opacity 1.2s ease,
-    transform 1.6s ease;
-}
-
-.hero-slide.active {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.hero-content {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.hero-text {
-  position: absolute;
-  left: 60px;
-  bottom: 60px;
-  max-width: 100%;
-  color: #fff;
-  pointer-events: auto;
-}
-
-.hero-description {
-  white-space: nowrap;
-}
-
-.hero-text h1 {
-  font-size: clamp(44px, 5vw, 72px);
-  font-weight: 500;
-  line-height: 1.05;
-  margin-bottom: 14px;
-}
-
-.hero-text p {
-  font-size: 17px;
-  line-height: 1.6;
-  opacity: 0.85;
-}
-
-.hero-timeline {
-  position: absolute;
-  right: 60px;
-  bottom: 60px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  pointer-events: auto;
-}
-
-.hero-timeline-item {
-  background: none;
-  border: none;
-
-  font-size: 16px;
-  letter-spacing: 0.14em;
-  color: rgba(255,255,255,0.45);
-
-  cursor: pointer;
-  transition:
-    color 0.3s ease,
-    transform 0.3s ease;
-}
-
-.hero-timeline-item:hover {
-  color: rgba(255,255,255,0.8);
-}
-
-.hero-timeline-item.active {
-  color: #139AB6;
-  transform: translateX(-6px);
-}
-
-@media (max-width: 768px) {
-  .hero-text {
-    left: 24px;
-    bottom: 100px;
-    max-width: 90%;
-  }
-
-  .hero-arrow {
-    display: none;
-  }
-
-  .hero-timeline {
-    right: 50%;
-    bottom: 40px;
-    transform: translateX(50%);
-
-    flex-direction: row;
-    gap: 24px;
-  }
-
-  .hero-timeline-item.active {
-    transform: translateY(-4px);
-  }
-}
-
-.hero-text {
-  animation: heroTextIn 1.5s ease both;
-}
-
-@keyframes heroTextIn {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero-timeline-item {
-  background: none;
-  border: none;
-
-  font-size: 15.5px;
-  letter-spacing: 0.18em;
-
-  color: rgba(255,255,255,0.4);
-  cursor: pointer;
-
-  transition:
-    color 0.4s ease,
-    transform 0.4s ease,
-    opacity 0.4s ease;
-
-  opacity: 0.6;
-}
-
-.hero-timeline-item.active {
-  color: #ffffff;
-  opacity: 1;
-  transform: translateX(-8px) scale(1.1);
-}
-
-.hero-slides {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.hero-slide {
-  position: absolute;
-  inset: 0;
-
-  background-size: cover;
-  background-position: center;
-
-  opacity: 0;
-  transition: opacity 1.2s ease-in-out;
-
-  transform: scale(1.15);
-  animation: heroZoom 16s linear infinite;
-}
-
-.hero-slide.active {
-  opacity: 1;
-}
-
-@keyframes heroZoom {
-  0% {
-    transform: scale(1.15);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
 
 .header__burger {
   position: relative;
@@ -1589,24 +970,6 @@ a {
   }
 }
 
-.hero-timeline-item:nth-child(1) {
-  animation-delay: 0.6s;
-}
-
-.hero-timeline-item:nth-child(2) {
-  animation-delay: 0.75s;
-}
-
-.hero-timeline-item:nth-child(3) {
-  animation-delay: 0.9s;
-}
-
-.hero-timeline-item {
-  opacity: 0;
-  transform: translateY(12px);
-  animation: timelineReveal 0.6s ease-out forwards;
-}
-
 @keyframes timelineReveal {
   to {
     opacity: 1;
@@ -1614,116 +977,10 @@ a {
   }
 }
 
-.hero-title {
-  display: flex;               /* ключевое */
-  align-items: baseline;       /* чтобы текст сидел ровно */
-  gap: 18px;
-
-  font-size: clamp(48px, 6vw, 88px);
-  font-weight: 500;
-  line-height: 1;              /* убирает наезд */
-  white-space: nowrap;         /* запрещает перенос */
-
-  color: #139AB6;
-}
-.hero-description {
-  margin-top: 14px;
-
-  font-size: 14px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-
-  color: rgba(255,255,255,0.65);
-}
-
-.hero-title .hero-love {
-  font-size: 0.7em;
-  font-style: italic;
-  font-weight: 300;
-  color: #fff;
-
-  opacity: 0.8;
-  line-height: 1;
-}
-
-.hero-love {
-  font-style: italic;
-  font-size: 0.5em;
-  margin-left: 12px;
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  vertical-align: baseline;
-}
-
-.hero-love-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(4px);
-  animation: letterIn 0.4s ease forwards;
-}
-
 @keyframes letterIn {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-.hero {
-  position: relative;
-  overflow: hidden;
-}
-
-.hero {
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-
-  background: linear-gradient(
-    120deg,
-    rgba(19, 154, 182, 0.55),
-    rgba(19, 154, 182, 0.25),
-    rgba(255, 255, 255, 0.05),
-    rgba(19, 154, 182, 0.4)
-  );
-
-  background-size: 300% 300%;
-  animation: heroGradient 10s ease-in-out infinite;
-
-  pointer-events: none;
-}
-
-@keyframes heroGradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.hero::before {
-  animation:
-    heroGradient 8s ease-in-out infinite,
-    heroGlow 5s ease-in-out infinite;
-}
-
-@keyframes heroGlow {
-  0%, 100% {
-    opacity: 0.9;
-  }
-  50% {
-    opacity: 1;
   }
 }
 
@@ -1746,61 +1003,6 @@ a {
     font-size: 14px;
     margin: 24px;
   }
-}
-
-@media (max-width: 768px) {
-.hero-content {
-  position: relative;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-}
-
-.hero-text {
-  max-width: 92%;
-  margin: 0 auto;
-}
-
-.hero-title {
-  font-size: clamp(36px, 6vw, 72px);
-  font-weight: 500;
-  line-height: 1.15;
-
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-
-  gap: 0.35em;
-  margin: 11;
-}
-
-.hero-description {
-  margin-top: 16px;
-  margin: 25;
-  font-size: clamp(14px, 2vw, 18px);
-  opacity: 0.85;
-  white-space: normal;
-}
-}
-
-@media (max-width: 768px) {
-  .hero-title {
-    flex-direction: column;
-    gap: 5px;
-    top: -200px;
-  }
-
-  .hero-love {
-    font-size: 0.6em;
-  }
-
-  .hero-accent-bar {
-  display: none;
-}
 }
 
 .burger-booking {
@@ -6173,3 +5375,360 @@ a {
   font-size: 14px;
 }
 
+/* =========================================
+   HERO - ЧИСТЫЙ БЛОК (только используемые стили)
+   ========================================= */
+
+/* Основной контейнер */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Затемнение */
+.hero::after {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  z-index: 1;
+}
+
+/* Градиентная анимация поверх */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    120deg,
+    rgba(19, 154, 182, 0.55),
+    rgba(19, 154, 182, 0.25),
+    rgba(255, 255, 255, 0.05),
+    rgba(19, 154, 182, 0.4)
+  );
+  background-size: 300% 300%;
+  animation: heroGradient 10s ease-in-out infinite, heroGlow 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes heroGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes heroGlow {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* Слайды */
+.hero-slides {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+  transform: scale(1.15);
+  animation: heroZoom 16s linear infinite;
+}
+
+.hero-slide.active {
+  opacity: 1;
+}
+
+@keyframes heroZoom {
+  0% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.hero-slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.10),
+      rgba(0, 0, 0, 0)
+    ),
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0)
+    );
+}
+
+/* SVG рамка */
+.hero-frame-svg {
+  position: absolute;
+  inset: 24px;
+  width: calc(100% - 48px);
+  height: calc(100% - 48px);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Стрелки */
+.hero-arrow {
+  position: absolute;
+  top: 49.5%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 44px;
+  font-weight: 100;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  z-index: 56;
+  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.hero-arrow::after {
+  content: '';
+  position: absolute;
+  inset: -30px -15px;
+}
+
+.hero-arrow:hover {
+  color: #ffffff;
+}
+
+.hero-arrow--left {
+  left: 24px;
+}
+
+.hero-arrow--left:hover {
+  transform: translate(-6px, -50%);
+}
+
+.hero-arrow--right {
+  right: 24px;
+}
+
+.hero-arrow--right:hover {
+  transform: translate(6px, -50%);
+}
+
+/* Контент */
+.hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hero-text {
+  position: absolute;
+  left: 60px;
+  bottom: 60px;
+  max-width: 100%;
+  color: #fff;
+  pointer-events: auto;
+  animation: heroTextIn 1.5s ease both;
+}
+
+@keyframes heroTextIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Заголовок */
+.hero-title {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  font-size: clamp(48px, 6vw, 88px);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: #139AB6;
+  margin: 0 0 14px 0;
+}
+
+/* Акцент "с любовью..." */
+.hero-love {
+  font-style: italic;
+  font-size: 0.5em;
+  margin-left: 12px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: baseline;
+  color: #fff;
+  opacity: 0.8;
+  line-height: 1;
+}
+
+.hero-love-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(4px);
+  animation: letterIn 0.4s ease forwards;
+}
+
+@keyframes letterIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Описание */
+.hero-description {
+  margin-top: 14px;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+
+/* Таймлайн */
+.hero-timeline {
+  position: absolute;
+  right: 60px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.hero-timeline-item {
+  background: none;
+  border: none;
+  font-size: 15.5px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
+  opacity: 0.6;
+  animation: timelineReveal 0.6s ease-out forwards;
+}
+
+.hero-timeline-item:nth-child(1) { animation-delay: 0.6s; }
+.hero-timeline-item:nth-child(2) { animation-delay: 0.75s; }
+.hero-timeline-item:nth-child(3) { animation-delay: 0.9s; }
+
+@keyframes timelineReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-timeline-item:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-timeline-item.active {
+  color: #ffffff;
+  opacity: 1;
+  transform: translateX(-8px) scale(1.1);
+}
+
+/* ===== МОБИЛЬНЫЕ СТИЛИ ДЛЯ HERO ===== */
+@media (max-width: 768px) {
+  .hero-text {
+    left: 24px;
+    bottom: 100px;
+    max-width: 90%;
+  }
+
+  .hero-arrow {
+    display: none;
+  }
+
+  .hero-timeline {
+    right: 50%;
+    bottom: 40px;
+    transform: translateX(50%);
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .hero-timeline-item.active {
+    transform: translateY(-4px);
+  }
+
+  .hero-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero-text {
+    max-width: 92%;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.15;
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35em;
+    flex-direction: column;
+    gap: 5px;
+    top: -200px;
+  }
+
+  .hero-love {
+    font-size: 0.6em;
+  }
+
+  .hero-description {
+    margin-top: 16px;
+    font-size: clamp(14px, 2vw, 18px);
+    white-space: normal;
+  }
+
+  .hero-accent-bar {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(32px, 8vw, 42px);
+  }
+  
+  .hero-description {
+    font-size: 14px;
+  }
+}
