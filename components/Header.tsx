@@ -1,4 +1,3 @@
-// components/Header.tsx - оптимизированная версия
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -37,6 +36,9 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
+  const [apartmentPrice, setApartmentPrice] = useState(0);
+  const [isActive, setIsActive] = useState(true);
+  const [loadingPrice, setLoadingPrice] = useState(false);
 
   // Hero state
   const [checkIn, setCheckIn] = useState('');
@@ -62,6 +64,38 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Загрузка данных апартамента
+  useEffect(() => {
+    if (!currentApartment?.id) {
+      setApartmentPrice(0);
+      setIsActive(false);
+      return;
+    }
+    
+    const fetchApartmentData = async () => {
+      setLoadingPrice(true);
+      try {
+        const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setApartmentPrice(data.price_base || 0);
+          setIsActive(data.is_active === true);
+        } else {
+          setApartmentPrice(0);
+          setIsActive(false);
+        }
+      } catch (error) {
+        console.error('Error fetching apartment data:', error);
+        setApartmentPrice(0);
+        setIsActive(false);
+      } finally {
+        setLoadingPrice(false);
+      }
+    };
+
+    fetchApartmentData();
+  }, [currentApartment?.id]);
 
   // Закрытие календаря при клике вне
   useEffect(() => {
@@ -108,7 +142,10 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
             {!isMobile ? (
               <div className="header__booking-wrapper">
                 <div className="header__booking-fields">
-                  <div className="booking-field" onClick={() => setCalendarOpen(true)}>
+                  <div 
+                    className="booking-field" 
+                    onClick={() => setCalendarOpen(true)}
+                  >
                     <label>Заезд</label>
                     <input
                       type="text"
@@ -117,7 +154,10 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
                       readOnly
                     />
                   </div>
-                  <div className="booking-field" onClick={() => setCalendarOpen(true)}>
+                  <div 
+                    className="booking-field" 
+                    onClick={() => setCalendarOpen(true)}
+                  >
                     <label>Выезд</label>
                     <input
                       type="text"
@@ -146,8 +186,8 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
                 </div>
 
                 <AnimatePresence>
-                  {calendarOpen && (
-                    <div ref={popoverRef} className="header__calendar-popover hero-calendar">
+                  {calendarOpen && mode === 'hero' && (
+                    <div ref={popoverRef} className="availability-calendar position-left">
                       <ApartmentAvailabilityCalendar
                         blockedDates={[]}
                         position="left"
@@ -175,12 +215,13 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
         )}
 
         {/* Apartment Mode */}
-        {mode === 'apartment' && currentApartment && (
+        {mode === 'apartment' && currentApartment && isActive && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action relative">
               <button
                 className="header__booking with-apartment"
                 onClick={() => setCalendarOpen(prev => !prev)}
+                disabled={loadingPrice}
               >
                 <span className="header__booking-label">Проверить доступность</span>
                 <span className="header__booking-apartment">
@@ -189,10 +230,10 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
               </button>
 
               <AnimatePresence>
-                {calendarOpen && (
-                  <div ref={popoverRef} className="header__calendar-popover">
+                {calendarOpen && mode === 'apartment' && (
+                  <div ref={popoverRef} className="availability-calendar position-right">
                     <ApartmentAvailabilityCalendar
-                      key={`calendar-${currentApartment.id}-${blockedDates.length}`}
+                      key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
                       blockedDates={blockedDates}
                       position="right"
                       onConfirm={(range) => {
@@ -202,6 +243,7 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
                       }}
                       onClose={() => setCalendarOpen(false)}
                       showPrice={true}
+                      apartmentPrice={apartmentPrice}
                     />
                   </div>
                 )}
@@ -226,7 +268,7 @@ export default function Header({ onBurgerClick }: { onBurgerClick: () => void })
       )}
 
       {/* Booking Modal */}
-      {bookingModalOpen && currentApartment && selectedRange && (
+      {bookingModalOpen && currentApartment && selectedRange && isActive && (
         <BookingModal
           apartment={{ id: currentApartment.id, title: currentApartment.title }}
           initialRange={selectedRange}
