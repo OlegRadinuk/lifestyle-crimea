@@ -5819,223 +5819,173 @@ a {
 }
 }
 
-/* ===== FULLSCREEN HINT (Кнопка-капля с подсказкой) ===== */
-.fullscreen-hint {
+/* ===== НОВЫЙ МОБИЛЬНЫЙ ИНТЕРФЕЙС ДЛЯ ПАНОРАМЫ ===== */
+
+/* Стили для полноэкранного режима (прячем всё, кроме кнопок, которые нам нужны) */
+.panorama-section.fullscreen-mode .panorama-info,
+.panorama-section.fullscreen-mode .panorama-ui,
+.panorama-section.fullscreen-mode .panorama-actions-bottom {
+  display: none !important;
+}
+
+/* Современная подсказка для свайпа (палец) */
+.panorama-swipe-hint-modern {
   position: absolute;
-  bottom: 180px;
+  bottom: 30%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 8px 16px 8px 24px;
-  border-radius: 60px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-  z-index: 50;
-  animation: hintAppear 0.5s ease;
-}
-
-.fullscreen-hint-text {
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-}
-
-.fullscreen-droplet-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #139AB6;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(19, 154, 182, 0.4);
-}
-
-.fullscreen-droplet-btn:hover {
-  transform: scale(1.1);
-  background: #1bb6d6;
-  box-shadow: 0 6px 20px rgba(19, 154, 182, 0.6);
-}
-
-@keyframes hintAppear {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 20px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-/* ===== SWIPE HINT ===== */
-.panorama-swipe-hint {
-  position: absolute;
-  bottom: 250px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 55;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8px;
+  z-index: 50;
   pointer-events: none;
-}
-
-.swipe-icon-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   padding: 12px 24px;
   border-radius: 60px;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.swipe-icon-container svg {
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  animation: swipeAnimation 2s infinite ease-in-out;
+.panorama-swipe-hint-modern .swipe-icon {
+  width: 48px;
+  height: 48px;
+  stroke: white;
+  stroke-width: 1.5;
+  animation: swipe-hand 1.8s infinite ease-in-out;
 }
 
-.swipe-icon-container span {
-  color: white;
+@keyframes swipe-hand {
+  0%, 100% { transform: translateX(-5px); }
+  50% { transform: translateX(15px); }
+}
+
+.panorama-swipe-hint-modern .swipe-text {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
   opacity: 0.9;
 }
 
-@keyframes swipeAnimation {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(10px);
-  }
-}
-
-/* ===== DESKTOP FULLSCREEN BUTTON ===== */
-.desktop-fullscreen-btn {
+/* Новая кнопка входа в fullscreen (в стиле "капли") */
+.panorama-fullscreen-button {
   position: absolute;
-  bottom: 30px;
-  right: 30px;
-  z-index: 100;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  cursor: pointer;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  gap: 12px;
+  padding: 14px 28px;
+  background: rgba(19, 154, 182, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 100px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  z-index: 45;
+  box-shadow: 0 8px 25px rgba(19, 154, 182, 0.3);
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
-.desktop-fullscreen-btn:hover {
-  background: rgba(19, 154, 182, 0.8);
-  transform: scale(1.1);
+.panorama-fullscreen-button .button-text {
+  font-size: 15px;
+  font-weight: 500;
 }
 
-/* ===== FULLSCREEN MODE STYLES ===== */
-.panorama-section.fullscreen-mode .panorama-info {
+.panorama-fullscreen-button .button-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.panorama-fullscreen-button:hover {
+  background: #139ab6;
+  transform: translateX(-50%) scale(1.05);
+  box-shadow: 0 12px 35px rgba(19, 154, 182, 0.5);
+}
+
+/* Кнопка выхода из fullscreen (крестик) */
+.panorama-fullscreen-button.exit {
+  bottom: auto;
+  top: 30px;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.panorama-fullscreen-button.exit .button-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.panorama-fullscreen-button.exit:hover {
+  background: rgba(19, 154, 182, 0.9);
+  transform: translateX(-50%) scale(1.1);
+}
+
+/* Подсказка в полноэкранном режиме */
+.panorama-fullscreen-hint {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: opacity 0.3s ease;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  z-index: 40;
 }
 
-.panorama-section.fullscreen-mode .panorama-info.visible {
+.panorama-fullscreen-hint.visible {
   opacity: 1;
-  pointer-events: auto;
 }
 
-.panorama-section.fullscreen-mode .panorama-ui {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-/* Показываем UI только при uiVisible */
-.panorama-section.fullscreen-mode .panorama-actions-bottom,
-.panorama-section.fullscreen-mode .panorama-fullscreen-wrapper {
-  transition: opacity 0.3s ease;
-}
-
-.panorama-section.fullscreen-mode .panorama-actions-bottom.hidden,
-.panorama-section.fullscreen-mode .panorama-fullscreen-wrapper.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Корректировка позиций для мобильных */
+/* Адаптация для мобильных устройств */
 @media (max-width: 768px) {
-  .fullscreen-hint {
-    bottom: 150px;
-    padding: 6px 12px 6px 18px;
+  .panorama-fullscreen-button {
+    bottom: 140px;
+    padding: 12px 24px;
   }
 
-  .fullscreen-hint-text {
-    font-size: 12px;
+  .panorama-fullscreen-button .button-text {
+    font-size: 14px;
   }
 
-  .fullscreen-droplet-btn {
+  .panorama-swipe-hint-modern {
+    bottom: 25%;
+    padding: 10px 20px;
+  }
+
+  .panorama-swipe-hint-modern .swipe-icon {
     width: 40px;
     height: 40px;
   }
 
-  .panorama-swipe-hint {
-    bottom: 200px;
-  }
-
-  .swipe-icon-container {
-    padding: 8px 16px;
-  }
-
-  .swipe-icon-container span {
+  .panorama-swipe-hint-modern .swipe-text {
     font-size: 12px;
-  }
-
-  .swipe-icon-container svg {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .fullscreen-hint {
-    bottom: 140px;
-    padding: 4px 10px 4px 14px;
-  }
-
-  .fullscreen-hint-text {
-    font-size: 11px;
-  }
-
-  .fullscreen-droplet-btn {
-    width: 36px;
-    height: 36px;
-  }
-
-  .fullscreen-droplet-btn svg {
-    width: 18px;
-    height: 18px;
   }
 }

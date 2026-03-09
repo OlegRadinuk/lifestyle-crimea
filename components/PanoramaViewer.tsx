@@ -34,20 +34,18 @@ export default function PanoramaViewer() {
   const [transitioning, setTransitioning] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [checkingStatus, setCheckingStatus] = useState(false);
-  const [showFullscreenHint, setShowFullscreenHint] = useState(true); // подсказка для fullscreen
 
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
-  const swipeHintTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Используем данные из panoramas.ts для отображения
   const panoramas = PANORAMAS;
   const currentPano = panoramas[currentApartmentIndex];
 
-  // Загружаем статус активности напрямую из БД
+  // --- Загрузка статуса активности апартамента из БД ---
   useEffect(() => {
     if (!currentPano?.id) return;
-    
+
     const checkStatus = async () => {
       setCheckingStatus(true);
       try {
@@ -65,33 +63,103 @@ export default function PanoramaViewer() {
         setCheckingStatus(false);
       }
     };
-
     checkStatus();
   }, [currentPano?.id]);
 
-  // Скрываем подсказку свайпа через 5 секунд, если пользователь не взаимодействовал
-  useEffect(() => {
-    if (!isMobile || hasInteracted || !showSwipeHint) return;
+  // --- Переменные и функции для навигации ---
+  const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
+  const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
 
-    swipeHintTimerRef.current = setTimeout(() => {
-      setShowSwipeHint(false);
-    }, 5000);
+  const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '').trim();
 
-    return () => {
-      if (swipeHintTimerRef.current) {
-        clearTimeout(swipeHintTimerRef.current);
-      }
-    };
-  }, [isMobile, hasInteracted, showSwipeHint]);
+  const changePanorama = (index: number) => {
+    if (index === currentApartmentIndex) return;
 
-  // Скрываем подсказку fullscreen при входе в режим
-  useEffect(() => {
+    if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
+
+    transitionTimer.current = setTimeout(() => setTransitioning(true), 300);
+    setCurrentApartmentIndex(index);
+    setHasInteracted(true);
+    setShowSwipeHint(false);
+  };
+
+  // --- Управление скрытием интерфейса в полноэкранном режиме ---
+  const showUITemporarily = () => {
+    setUiVisible(true);
+    if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
     if (fullscreenMode) {
-      setShowFullscreenHint(false);
+      hideUITimerRef.current = setTimeout(() => setUiVisible(false), 3000);
     }
-  }, [fullscreenMode]);
+  };
 
-  // THREE REFS
+  // --- Обработчик переключения полноэкранного режима ---
+  const toggleFullscreen = () => {
+    const newMode = !fullscreenMode;
+    setFullscreenMode(newMode);
+    setUiVisible(true); // При входе показываем интерфейс на 3 секунды
+    if (newMode) {
+      // Если вошли в fullscreen, запускаем таймер на скрытие интерфейса
+      showUITemporarily();
+    } else {
+      // Если вышли, сразу показываем интерфейс и отменяем таймер
+      if (hideUITimerRef.current) {
+        clearTimeout(hideUITimerRef.current);
+      }
+      setUiVisible(true);
+    }
+    // Сбрасываем подсказку о свайпе при взаимодействии
+    setHasInteracted(true);
+    setShowSwipeHint(false);
+  };
+
+  // --- Обработчик клика по экрану в полноэкранном режиме ---
+  const handleCanvasClick = () => {
+    if (isMobile && fullscreenMode) {
+      showUITemporarily();
+    }
+  };
+
+  // --- Определение мобильного устройства ---
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // --- Интеграция с Header ---
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    const id = 'panorama';
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          register(id, { mode: 'apartment', priority: 2 });
+        } else {
+          unregister(id);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(sectionRef.current);
+    return () => {
+      observer.disconnect();
+      unregister(id);
+    };
+  }, [register, unregister]);
+
+  // --- Блокировка скролла в полноэкранном режиме на мобильных ---
+  useEffect(() => {
+    if (fullscreenMode && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [fullscreenMode, isMobile]);
+
+  // --- THREE.js текстуры и сцена ---
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -103,97 +171,25 @@ export default function PanoramaViewer() {
 
   const { open } = usePhotoModal();
 
-  const prevIndex = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
-  const nextIndex = (currentApartmentIndex + 1) % panoramas.length;
-
-  const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '').trim();
-
-  const changePanorama = (index: number) => {
-    if (index === currentApartmentIndex) return;
-    
-    if (transitionTimer.current) clearTimeout(transitionTimer.current);
-    if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
-
-    transitionTimer.current = setTimeout(() => setTransitioning(true), 300);
-    setCurrentApartmentIndex(index);
-    setHasInteracted(true);
-    setShowSwipeHint(false);
-    setShowFullscreenHint(false);
-  };
-
-  const showUITemporarily = () => {
-    setUiVisible(true);
-    if (hideUITimerRef.current) clearTimeout(hideUITimerRef.current);
-    if (fullscreenMode) {
-      hideUITimerRef.current = setTimeout(() => setUiVisible(false), 3000);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    setFullscreenMode(!fullscreenMode);
-    setUiVisible(true);
-    if (!fullscreenMode) {
-      // Если входим в fullscreen, показываем UI ненадолго
-      hideUITimerRef.current = setTimeout(() => setUiVisible(false), 3000);
-    }
-  };
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // HEADER MODE
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    const id = 'panorama';
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          register(id, { mode: 'apartment', priority: 2 });
-        } else {
-          unregister(id);
-        }
-      },
-      { threshold: 0.4 }
-    );
-
-    observer.observe(sectionRef.current);
-
-    return () => {
-      observer.disconnect();
-      unregister(id);
-    };
-  }, [register, unregister]);
-
-  useEffect(() => {
-    if (fullscreenMode && isMobile) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [fullscreenMode, isMobile]);
-
-  const preloadTexture = (index: number) => {
-    if (!panoramas[index] || preloadedTextures.current[index]) return;
-
+  // --- Улучшенная функция предзагрузки (теперь загружаем все текстуры) ---
+  const preloadAllTextures = () => {
     const loader = new THREE.TextureLoader();
-    loader.load(panoramas[index].image, texture => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      preloadedTextures.current[index] = texture;
+    panoramas.forEach((_, index) => {
+      if (!preloadedTextures.current[index]) {
+        loader.load(panoramas[index].image, texture => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          preloadedTextures.current[index] = texture;
+        });
+      }
     });
   };
 
-  // INIT THREE SCENE (без изменений, оставляем как есть)
+  // --- Инициализация THREE.js сцены ---
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
+    // Очистка предыдущего рендерера
     if (rendererRef.current && rendererRef.current.domElement.parentNode === container) {
       container.removeChild(rendererRef.current.domElement);
       rendererRef.current.dispose();
@@ -221,11 +217,8 @@ export default function PanoramaViewer() {
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
 
-    const loader = new THREE.TextureLoader();
-
-    panoramas.forEach((_, index) => {
-      preloadTexture(index);
-    });
+    // Предзагружаем ВСЕ текстуры сразу
+    preloadAllTextures();
 
     const loadFirstTexture = () => {
       const cached = preloadedTextures.current[0];
@@ -237,6 +230,8 @@ export default function PanoramaViewer() {
         setLoading(false);
         setTransitioning(false);
       } else {
+        // Если по какой-то причине первая текстура не загрузилась, загружаем сейчас
+        const loader = new THREE.TextureLoader();
         loader.load(panoramas[0].image, texture => {
           texture.colorSpace = THREE.SRGBColorSpace;
           preloadedTextures.current[0] = texture;
@@ -255,6 +250,7 @@ export default function PanoramaViewer() {
 
     loadFirstTexture();
 
+    // --- Логика вращения камеры (без изменений) ---
     let lon = 0, lat = 0, targetLon = 0, targetLat = 0;
     let isUserInteracting = false;
     let startX = 0, startY = 0, startLon = 0, startLat = 0;
@@ -389,9 +385,10 @@ export default function PanoramaViewer() {
         sceneRef.current = null;
       }
     };
+  // Добавляем fullscreenMode в зависимости, чтобы обработчики касаний реагировали на изменение режима
   }, [isMobile, fullscreenMode]);
 
-  // ПЕРЕКЛЮЧЕНИЕ ПАНОРАМ
+  // --- Плавное переключение панорам ---
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
@@ -429,27 +426,23 @@ export default function PanoramaViewer() {
             if (oldMat.map) oldMat.map.dispose();
             oldMat.dispose();
           }
-          
+
           currentMeshRef.current = nextMesh;
           nextMeshRef.current = null;
-
-          preloadTexture((currentApartmentIndex + 1) % panoramas.length);
 
           if (transitionTimer.current) {
             clearTimeout(transitionTimer.current);
             transitionTimer.current = null;
           }
           setTransitioning(false);
-          
+
           fadeAnimationRef.current = null;
         }
       };
-
       fade();
     };
 
     const cached = preloadedTextures.current[currentApartmentIndex];
-
     if (cached) {
       if (transitionTimer.current) {
         clearTimeout(transitionTimer.current);
@@ -458,6 +451,7 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
+      // Если по какой-то причине текстура не была предзагружена, загружаем сейчас
       const loader = new THREE.TextureLoader();
       loader.load(panoramas[currentApartmentIndex].image, applyTexture, undefined, (err) => {
         console.error('Error loading texture:', err);
@@ -472,31 +466,11 @@ export default function PanoramaViewer() {
     };
   }, [currentApartmentIndex]);
 
-  // Исправленная функция открытия фото
-  const handleOpenPhotos = async () => {
-    try {
-      const res = await fetch(`/api/apartments/${currentPano.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.images?.length) {
-          open(data.images, 0);
-        } else {
-          // Если нет фото из БД, используем заглушку
-          open(['/images/placeholder.jpg'], 0);
-        }
-      } else {
-        open(['/images/placeholder.jpg'], 0);
-      }
-    } catch (error) {
-      console.error('Error loading photos:', error);
-      open(['/images/placeholder.jpg'], 0);
-    }
-  };
-
+  // --- Рендер компонента ---
   return (
-    <section 
-      id="panorama" 
-      ref={sectionRef} 
+    <section
+      id="panorama"
+      ref={sectionRef}
       className={`panorama-section ${fullscreenMode ? 'fullscreen-mode' : ''}`}
     >
       <div
@@ -504,7 +478,7 @@ export default function PanoramaViewer() {
         className="panorama-canvas"
         onMouseEnter={() => { isHoverRef.current = true; setIsHover(true); }}
         onMouseLeave={() => { isHoverRef.current = false; setIsHover(false); }}
-        onClick={() => { if (isMobile && fullscreenMode) showUITemporarily(); }}
+        onClick={handleCanvasClick}
       />
 
       <div className="panorama-overlay" />
@@ -518,222 +492,184 @@ export default function PanoramaViewer() {
         </div>
       )}
 
-      {/* Левая информация - скрываем в fullscreen на мобильных */}
-      <div className={`panorama-info 
-        ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}
-        ${!isMobile && fullscreenMode ? 'fullscreen' : ''}
-      `}>
-        <div className="panorama-info-inner">
-          <span className="panorama-info-eyebrow">Lifestyle · Luxury</span>
+      {/* ========== ИНФОРМАЦИОННЫЙ БЛОК ========== */}
+      {/* Скрываем его в полноэкранном режиме */}
+      {!fullscreenMode && (
+        <div className={`panorama-info ${isMobile && fullscreenMode ? (uiVisible ? 'visible' : 'hidden') : ''}`}>
+          <div className="panorama-info-inner">
+            <span className="panorama-info-eyebrow">Lifestyle · Luxury</span>
+            <h2 className="panorama-info-title">{cleanTitle(currentPano.title)}</h2>
+            <p className="panorama-info-description">Просторные премиальные апартаменты с панорамным видом на Чёрное море.</p>
+            <ul className="panorama-info-meta">{currentPano.meta.map((item, i) => (<li key={i}>{item}</li>))}</ul>
 
-          <h2 className="panorama-info-title">
-            {cleanTitle(currentPano.title)}
-          </h2>
-
-          <p className="panorama-info-description">
-            Просторные премиальные апартаменты с панорамным видом на Чёрное море.
-          </p>
-
-          <ul className="panorama-info-meta">
-            {currentPano.meta.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-
-          {/* КНОПКИ НА ДЕСКТОПЕ */}
-          {!isMobile && !checkingStatus && (
-            <div className="panorama-desktop-actions">
-              {isActive ? (
-                <>
-                  <Link
-                    href={`/apartments/${currentPano.id}`}
-                    className="panorama-desktop-btn primary"
-                  >
-                    Перейти в апартамент
-                  </Link>
-
-                  <motion.button
-                    layoutId="photo-modal-desktop"
-                    className="panorama-desktop-btn secondary"
-                    onClick={handleOpenPhotos}
-                  >
-                    Смотреть фото
-                  </motion.button>
-                </>
-              ) : (
-                <div className="panorama-unavailable-message">
-                  <span className="unavailable-text">
-                    Апартамент временно недоступен для бронирования
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {loading && (
-        <div className="panorama-loader">
-          <span />
-          <span />
-          <span />
+            {/* Кнопки на десктопе */}
+            {!isMobile && !checkingStatus && (
+              <div className="panorama-desktop-actions">
+                {isActive ? (
+                  <>
+                    <Link href={`/apartments/${currentPano.id}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
+                    <motion.button
+                      layoutId="photo-modal-desktop"
+                      className="panorama-desktop-btn secondary"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/apartments/${currentPano.id}`);
+                          const data = await res.json();
+                          if (data.images?.length) {
+                            open(data.images, 0);
+                          } else {
+                            alert('Фото для этого апартамента не найдены');
+                          }
+                        } catch (error) {
+                          console.error('Error fetching photos:', error);
+                          alert('Ошибка при загрузке фотографий');
+                        }
+                      }}
+                    >
+                      Смотреть фото
+                    </motion.button>
+                  </>
+                ) : (
+                  <div className="panorama-unavailable-message"><span className="unavailable-text">Апартамент временно недоступен для бронирования</span></div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Мобильный интерфейс */}
+      {/* Индикатор начальной загрузки */}
+      {loading && (
+        <div className="panorama-loader">
+          <span /><span /><span />
+        </div>
+      )}
+
+      {/* ========== МОБИЛЬНЫЙ ИНТЕРФЕЙС ========== */}
       {isMobile && (
         <>
-          {/* Анимированная подсказка для свайпа */}
+          {/* Улучшенная подсказка для свайпа (палец) */}
           <AnimatePresence>
             {!fullscreenMode && showSwipeHint && !hasInteracted && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5 }}
-                className="panorama-swipe-hint"
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="panorama-swipe-hint-modern"
               >
-                <div className="swipe-icon-container">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M6 12L18 12M18 12L13 7M18 12L13 17"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                  </svg>
-                  <span>Листайте</span>
-                </div>
-                <div className="swipe-arrow pulse"></div>
+                <svg className="swipe-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 11L12 6L17 11M12 6V18" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="swipe-text">Листайте</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Кнопка fullscreen с подсказкой (капля) */}
-          <AnimatePresence>
-            {!fullscreenMode && showFullscreenHint && !hasInteracted && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="fullscreen-hint"
-              >
-                <span className="fullscreen-hint-text">Перейти в режим просмотра</span>
-                <button
-                  className="fullscreen-droplet-btn"
-                  onClick={toggleFullscreen}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M15 3H21V9M3 15V21H9M21 15V21H15M3 9V3H9"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Контейнер для кнопки fullscreen (всегда видим) */}
-          <div className={`panorama-fullscreen-wrapper ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
-            <button 
-              className={`fullscreen-btn ${fullscreenMode ? 'active' : ''}`}
+          {/* Новая кнопка входа в fullscreen (капля) */}
+          {!fullscreenMode && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="panorama-fullscreen-button"
               onClick={toggleFullscreen}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                {fullscreenMode ? (
-                  <path d="M5 15L9 11M11 9L15 5M5 5L9 9M11 11L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                ) : (
-                  <path d="M3 8L3 3L8 3M12 3L17 3L17 8M17 12L17 17L12 17M8 17L3 17L3 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                )}
+              <span className="button-text">Смотреть панораму</span>
+              <svg className="button-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 8L3 3L8 3M12 3L17 3L17 8M17 12L17 17L12 17M8 17L3 17L3 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
-            </button>
-          </div>
+            </motion.button>
+          )}
 
-          {/* Нижние кнопки действий */}
-          <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
-            {isActive ? (
-              <>
-                <Link
-                  href={`/apartments/${currentPano.id}`}
-                  className="panorama-action-btn primary"
-                >
-                  Перейти в апартамент
-                </Link>
+          {/* Кнопка выхода из fullscreen (крестик) и остальной UI */}
+          {fullscreenMode && (
+            <>
+              {/* Кнопка "Назад" / "Выйти" */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: uiVisible ? 1 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="panorama-fullscreen-button exit"
+                onClick={toggleFullscreen}
+              >
+                <svg className="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </motion.button>
 
-                <motion.button
-                  layoutId="photo-modal"
-                  className="panorama-action-btn secondary"
-                  onClick={handleOpenPhotos}
-                >
-                  Смотреть фото
-                </motion.button>
-              </>
-            ) : (
-              <div className="panorama-unavailable-message mobile">
-                <span>Временно недоступно</span>
+              {/* Нижние кнопки (переход в апартамент и фото) — скрываем, так как в полноэкранном режиме они не нужны */}
+              {/* Вместо этого можно показать простую подсказку */}
+              <div className={`panorama-fullscreen-hint ${uiVisible ? 'visible' : ''}`}>
+                <span>Нажмите на экран для управления</span>
               </div>
-            )}
-          </div>
+            </>
+          )}
+
+          {/* Нижние кнопки для мобильных (показываем только если не в полноэкранном режиме) */}
+          {!fullscreenMode && (
+            <div className={`panorama-actions-bottom ${fullscreenMode && !uiVisible ? 'hidden' : ''}`}>
+              {isActive ? (
+                <>
+                  <Link href={`/apartments/${currentPano.id}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
+                  <motion.button
+                    layoutId="photo-modal"
+                    className="panorama-action-btn secondary"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/apartments/${currentPano.id}`);
+                        const data = await res.json();
+                        if (data.images?.length) {
+                          open(data.images, 0);
+                        } else {
+                          alert('Фото для этого апартамента не найдены');
+                        }
+                      } catch (error) {
+                        console.error('Error fetching photos:', error);
+                        alert('Ошибка при загрузке фотографий');
+                      }
+                    }}
+                  >
+                    Смотреть фото
+                  </motion.button>
+                </>
+              ) : (
+                <div className="panorama-unavailable-message mobile"><span>Временно недоступно</span></div>
+              )}
+            </div>
+          )}
         </>
       )}
 
-      {/* Десктоп UI */}
-      {!isMobile && (
-        <>
-          {/* Кнопка fullscreen для десктопа (маленькая) */}
-          <button
-            className="desktop-fullscreen-btn"
-            onClick={toggleFullscreen}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              {fullscreenMode ? (
-                <path d="M5 15L9 11M11 9L15 5M5 5L9 9M11 11L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              ) : (
-                <path d="M3 8L3 3L8 3M12 3L17 3L17 8M17 12L17 17L12 17M8 17L3 17L3 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              )}
-            </svg>
+      {/* ========== ДЕСКТОПНЫЙ UI ========== */}
+      {/* Скрываем его в полноэкранном режиме */}
+      {!isMobile && !fullscreenMode && (
+        <div className="panorama-ui">
+          <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
+            <span className="arrow-icon">←</span>
+            <span className="arrow-label">{cleanTitle(panoramas[prevIndex].title)}</span>
           </button>
 
-          <div className="panorama-ui">
-            <button className="panorama-arrow left" onClick={() => changePanorama(prevIndex)}>
-              <span className="arrow-icon">←</span>
-              <span className="arrow-label">{cleanTitle(panoramas[prevIndex].title)}</span>
-            </button>
-
-            <div className="panorama-center">
-              <div className="panorama-tiles">
-                {panoramas.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
-                    onClick={() => changePanorama(i)}
-                  />
-                ))}
-              </div>
-
-              {hintAllowed && isHover && (
-                <div className="panorama-hint">Нажмите и потяните, чтобы осмотреться</div>
-              )}
+          <div className="panorama-center">
+            <div className="panorama-tiles">
+              {panoramas.map((_, i) => (
+                <span
+                  key={i}
+                  className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
+                  onClick={() => changePanorama(i)}
+                />
+              ))}
             </div>
-
-            <button className="panorama-arrow right" onClick={() => changePanorama(nextIndex)}>
-              <span className="arrow-label">{cleanTitle(panoramas[nextIndex].title)}</span>
-              <span className="arrow-icon">→</span>
-            </button>
+            {hintAllowed && isHover && (
+              <div className="panorama-hint">Нажмите и потяните, чтобы осмотреться</div>
+            )}
           </div>
-        </>
+
+          <button className="panorama-arrow right" onClick={() => changePanorama(nextIndex)}>
+            <span className="arrow-label">{cleanTitle(panoramas[nextIndex].title)}</span>
+            <span className="arrow-icon">→</span>
+          </button>
+        </div>
       )}
     </section>
   );
