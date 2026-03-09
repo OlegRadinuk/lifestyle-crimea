@@ -5402,35 +5402,6 @@ a {
   z-index: 1;
 }
 
-/* Градиентная анимация поверх */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    120deg,
-    rgba(19, 154, 182, 0.55),
-    rgba(19, 154, 182, 0.25),
-    rgba(255, 255, 255, 0.05),
-    rgba(19, 154, 182, 0.4)
-  );
-  background-size: 300% 300%;
-  animation: heroGradient 10s ease-in-out infinite, heroGlow 5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes heroGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes heroGlow {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 1; }
-}
-
 /* Слайды */
 .hero-slides {
   position: absolute;
