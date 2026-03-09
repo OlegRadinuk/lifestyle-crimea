@@ -5642,7 +5642,7 @@ a {
 
   .hero-timeline {
     right: 50%;
-    bottom: 80px;
+    bottom: 93px;
     transform: translateX(50%);
     flex-direction: row;
     gap: 24px;
@@ -5711,7 +5711,7 @@ a {
   .hero-text {
     left: 50% !important;
     transform: translateX(-50%) !important;
-    bottom: 140px !important; /* поднял выше */
+    bottom: 160px !important; /* поднял на 20px выше (было 140px) */
     max-width: 90% !important;
     text-align: center !important;
     width: 100% !important;
@@ -5749,7 +5749,7 @@ a {
 /* Для совсем маленьких экранов */
 @media (max-width: 480px) {
   .hero-text {
-    bottom: 120px !important;
+    bottom: 140px !important; /* поднял на 20px выше (было 120px) */
   }
 
   .hero-title {
