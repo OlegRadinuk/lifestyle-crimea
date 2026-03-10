@@ -24,10 +24,18 @@ function formatDate(date: string): string {
 }
 
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
+  // ========== МАКСИМАЛЬНОЕ ЛОГИРОВАНИЕ ==========
+  console.log('%c🚀🚀🚀 APARTMENTS CLIENT MOUNTED', 'font-size: 24px; color: red; font-weight: bold;');
+  console.log('📦 initialApartments count:', initialApartments.length);
+  console.log('📦 initialApartments IDs:', initialApartments.map(a => a.id));
+  console.log('📦 first apartment:', initialApartments[0]);
+
   const { open } = usePhotoModal();
   const router = useRouter();
   const { search } = useSearch();
   const { register, unregister } = useHeader();
+
+  console.log('🔍 search from context:', search);
 
   const [bookingApartment, setBookingApartment] = useState<{
     id: string;
@@ -39,26 +47,23 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [loadingAvailability, setLoadingAvailability] = useState(true);
   const [apartments] = useState(initialApartments);
 
-  // ЛОГ 1: Инициализация компонента
-  console.log('🚀 COMPONENT MOUNTED');
-  console.log('📦 initialApartments count:', initialApartments.length);
-  console.log('📦 initialApartments IDs:', initialApartments.map(a => a.id));
-
   useEffect(() => {
+    console.log('📝 Registering header effect');
     register('apartments-page', {
       mode: 'dark',
       priority: 20,
     });
 
     return () => {
+      console.log('🧹 Unregistering header');
       unregister('apartments-page');
     };
   }, [register, unregister]);
 
   // Проверка доступности всех апартаментов
   useEffect(() => {
-    console.log('🔄 useEffect triggered');
-    console.log('🔍 search object:', search);
+    console.log('🔄 CHECK AVAILABILITY EFFECT TRIGGERED');
+    console.log('🔍 search object:', JSON.stringify(search, null, 2));
     console.log('🏢 apartments array:', apartments.map(a => ({ id: a.id, title: a.title })));
 
     const checkAllAvailability = async () => {
@@ -209,7 +214,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     );
   }
 
-  console.log('✅ Rendering apartments list');
+  console.log('✅ Rendering apartments list with', filteredApartments.length, 'apartments');
   
   return (
     <>
