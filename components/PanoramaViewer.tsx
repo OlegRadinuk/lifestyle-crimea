@@ -252,7 +252,11 @@ export default function PanoramaViewer() {
     );
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true, 
+      powerPreference: "high-performance",
+      alpha: false
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -260,7 +264,7 @@ export default function PanoramaViewer() {
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    const geometry = new THREE.SphereGeometry(500, 64, 64);
     geometry.scale(-1, 1, 1);
 
     const loader = new THREE.TextureLoader();
@@ -268,8 +272,17 @@ export default function PanoramaViewer() {
       panoramas[0].image,
       texture => {
         texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        
         preloadedTextures.current[0] = texture;
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 });
+        const material = new THREE.MeshBasicMaterial({ 
+          map: texture, 
+          transparent: true, 
+          opacity: 1,
+          side: THREE.BackSide
+        });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         currentMeshRef.current = mesh;
@@ -287,168 +300,248 @@ export default function PanoramaViewer() {
       }
     );
 
-    // --- Логика вращения ---
+    // --- ПРЕМИУМ ЛОГИКА ВРАЩЕНИЯ ---
     let isUserInteracting = false;
-    let startX = 0, startY = 0, startLon = 0, startLat = 0;
-    let touchStartX = 0, touchStartY = 0;
-    let isDragging = false;
-    const SWIPE_THRESHOLD = 50;
-    const ROTATION_SPEED = 0.15;
-    const TOUCH_ROTATION_SPEED = 0.12;
-    const DAMPING_FACTOR_MOBILE = 0.12;
-    const DAMPING_FACTOR_DESKTOP = 0.08;
-    const AUTO_ROTATE_SPEED = 0.008;
+    let isTouching = false;
+    
+    // Для инерции
+    let velocityLon = 0;
+    let velocityLat = 0;
+    let lastLon = 0;
+    let lastLat = 0;
+    let lastTime = 0;
+    
+    // Для позиционирования
+    let startX = 0, startY = 0;
+    let startLon = 0, startLat = 0;
+    
+    // Параметры для идеального UX
+    const SENSITIVITY = 0.002; // Чувствительность в радианах на пиксель
+    const VERTICAL_LIMIT = 0.5; // Ограничение вертикального угла (радианы) ~30 градусов
+    const INERTIA_DAMPING = 0.92; // Затухание инерции
+    const AUTO_ROTATE_SPEED = 0.0005; // Скорость автовращения
+    const SMOOTHING_FACTOR = 0.1; // Фактор сглаживания движения
+    
+    // Преобразуем начальные градусы в радианы для THREE
+    const toRad = (deg: number) => deg * Math.PI / 180;
+    const toDeg = (rad: number) => rad * 180 / Math.PI;
+    
+    // Устанавливаем начальные значения
+    rotationState.current.lon = 0;
+    rotationState.current.lat = 0;
+    rotationState.current.targetLon = 0;
+    rotationState.current.targetLat = 0;
 
-    // Обработчики pointer (десктоп)
-    const onPointerDown = (e: PointerEvent) => {
-      if (isMobile) return;
+    // Единый обработчик начала взаимодействия
+    const onInteractionStart = (x: number, y: number) => {
       isUserInteracting = true;
+      isTouching = true;
       setHintAllowed(false);
-      startX = e.clientX;
-      startY = e.clientY;
+      
+      startX = x;
+      startY = y;
+      
+      // Сохраняем текущие целевые углы
       startLon = rotationState.current.targetLon;
       startLat = rotationState.current.targetLat;
+      
+      // Сбрасываем скорость инерции
+      velocityLon = 0;
+      velocityLat = 0;
+      
+      lastLon = startLon;
+      lastLat = startLat;
+      lastTime = performance.now();
+    };
+
+    // Единый обработчик движения
+    const onInteractionMove = (x: number, y: number) => {
+      if (!isUserInteracting) return;
+      
+      const currentTime = performance.now();
+      const deltaTime = Math.min(32, currentTime - lastTime);
+      
+      // Вычисляем смещение в радианах
+      const deltaX = (x - startX) * SENSITIVITY;
+      const deltaY = (y - startY) * SENSITIVITY * 0.6; // Вертикальное вращение медленнее
+      
+      // Обновляем целевые углы
+      const newLon = startLon - deltaX;
+      let newLat = startLat + deltaY;
+      
+      // Ограничиваем вертикальный угол
+      newLat = Math.max(-VERTICAL_LIMIT, Math.min(VERTICAL_LIMIT, newLat));
+      
+      rotationState.current.targetLon = newLon;
+      rotationState.current.targetLat = newLat;
+      
+      // Вычисляем скорость для инерции
+      if (deltaTime > 0) {
+        velocityLon = ((newLon - lastLon) / deltaTime) * 0.5;
+        velocityLat = ((newLat - lastLat) / deltaTime) * 0.5;
+      }
+      
+      lastLon = newLon;
+      lastLat = newLat;
+      lastTime = currentTime;
+    };
+
+    // Единый обработчик окончания
+    const onInteractionEnd = () => {
+      isUserInteracting = false;
+      
+      // Не сбрасываем isTouching сразу, чтобы инерция продолжалась
+      setTimeout(() => {
+        if (!isUserInteracting) {
+          isTouching = false;
+        }
+      }, 100);
+    };
+
+    // Pointer события (десктоп)
+    const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
+      onInteractionStart(e.clientX, e.clientY);
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!isUserInteracting || isMobile) return;
-      rotationState.current.targetLon = startLon - (e.clientX - startX) * ROTATION_SPEED;
-      rotationState.current.targetLat = startLat + (e.clientY - startY) * ROTATION_SPEED;
-      rotationState.current.targetLat = Math.max(-30, Math.min(30, rotationState.current.targetLat));
+      onInteractionMove(e.clientX, e.clientY);
     };
 
-    const onPointerUp = () => { if (!isMobile) isUserInteracting = false; };
+    const onPointerUp = () => {
+      onInteractionEnd();
+    };
 
-    // Обработчики touch для мобильных
-    const handleTouchStart = (e: TouchEvent) => {
-      console.log('👆 Touch start');
+    // Touch события (мобильные)
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
-      
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      
-      if (fullscreenMode) {
-        isUserInteracting = true;
-        setHintAllowed(false);
-        e.preventDefault();
-      } else {
-        isDragging = false;
-      }
-      
+      onInteractionStart(touch.clientX, touch.clientY);
       showUITemporarily();
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
+      onInteractionMove(touch.clientX, touch.clientY);
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      onInteractionEnd();
       
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-      
-      if (fullscreenMode) {
-        e.preventDefault();
-        if (isUserInteracting) {
-          rotationState.current.targetLon -= deltaX * TOUCH_ROTATION_SPEED;
-          rotationState.current.targetLat += deltaY * TOUCH_ROTATION_SPEED * 0.5;
-          rotationState.current.targetLat = Math.max(-30, Math.min(30, rotationState.current.targetLat));
-        }
-      } else {
-        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-          isDragging = true;
+      // Проверяем свайп для переключения панорамы (только не в fullscreen)
+      if (!fullscreenMode && !isUserInteracting) {
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        const SWIPE_THRESHOLD = 50;
+        
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+          const currentIdx = currentIndexRef.current;
+          if (deltaX > 0) {
+            setCurrentApartmentIndex((currentIdx - 1 + panoramas.length) % panoramas.length);
+          } else {
+            setCurrentApartmentIndex((currentIdx + 1) % panoramas.length);
+          }
+          setHasInteracted(true);
+          setShowSwipeHint(false);
         }
       }
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
-      console.log('👆 Touch end, isDragging:', isDragging);
-      
-      if (fullscreenMode) {
-        isUserInteracting = false;
-        return;
-      }
-      
-      if (!isDragging) {
-        console.log('⏭️ Not a swipe, ignoring');
-        return;
-      }
-      
-      const touch = e.changedTouches[0];
-      if (!touch) return;
-      
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-      
-      const currentIdx = currentIndexRef.current;
-      const prevIdx = (currentIdx - 1 + panoramas.length) % panoramas.length;
-      const nextIdx = (currentIdx + 1) % panoramas.length;
-      
-      console.log('📐 Delta X:', deltaX, 'Delta Y:', deltaY);
-      console.log('📊 Current index from ref:', currentIdx);
-      console.log('🧮 Prev index:', prevIdx, 'Next index:', nextIdx);
-      
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
-        console.log('✅ Valid horizontal swipe detected');
-        
-        if (deltaX > 0) {
-          console.log('➡️ Swipe right -> PREV panorama (index', prevIdx, ')');
-          setCurrentApartmentIndex(prevIdx);
-        } else {
-          console.log('⬅️ Swipe left -> NEXT panorama (index', nextIdx, ')');
-          setCurrentApartmentIndex(nextIdx);
-        }
-        
-        setHasInteracted(true);
-        setShowSwipeHint(false);
-      } else {
-        console.log('❌ Not a valid horizontal swipe');
-      }
-    };
-
+    // Добавляем обработчики
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    
-    if (isMobile) {
-      container.addEventListener('touchstart', handleTouchStart, { passive: false });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    }
+    window.addEventListener('pointercancel', onPointerUp);
 
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: false });
+    container.addEventListener('touchcancel', onTouchEnd, { passive: false });
+
+    // Анимационный цикл
     const animate = () => {
       requestAnimationFrame(animate);
       
-      if (!isUserInteracting && !isHoverRef.current && !fullscreenMode) {
+      // Автовращение (когда нет взаимодействия и не наведена мышь)
+      if (!isUserInteracting && !isTouching && !isHoverRef.current) {
         rotationState.current.targetLon += AUTO_ROTATE_SPEED;
       }
-
-      const dampingFactor = isMobile ? DAMPING_FACTOR_MOBILE : DAMPING_FACTOR_DESKTOP;
-      rotationState.current.lon += (rotationState.current.targetLon - rotationState.current.lon) * dampingFactor;
-      rotationState.current.lat += (rotationState.current.targetLat - rotationState.current.lat) * dampingFactor;
-
-      const phi = THREE.MathUtils.degToRad(90 - rotationState.current.lat);
-      const theta = THREE.MathUtils.degToRad(rotationState.current.lon);
-
-      camera.lookAt(
-        500 * Math.sin(phi) * Math.cos(theta),
-        500 * Math.cos(phi),
-        500 * Math.sin(phi) * Math.sin(theta)
-      );
-
+      
+      // Применяем инерцию после отпускания
+      if (!isUserInteracting && isTouching) {
+        rotationState.current.targetLon += velocityLon;
+        rotationState.current.targetLat += velocityLat;
+        
+        // Затухание
+        velocityLon *= INERTIA_DAMPING;
+        velocityLat *= INERTIA_DAMPING;
+        
+        // Ограничиваем вертикальный угол
+        rotationState.current.targetLat = Math.max(-VERTICAL_LIMIT, Math.min(VERTICAL_LIMIT, rotationState.current.targetLat));
+        
+        // Останавливаем инерцию когда скорость мала
+        if (Math.abs(velocityLon) < 0.0001 && Math.abs(velocityLat) < 0.0001) {
+          isTouching = false;
+        }
+      }
+      
+      // Плавное сглаживание движения (smooth follow)
+      rotationState.current.lon += (rotationState.current.targetLon - rotationState.current.lon) * SMOOTHING_FACTOR;
+      rotationState.current.lat += (rotationState.current.targetLat - rotationState.current.lat) * SMOOTHING_FACTOR;
+      
+      // Конвертируем в сферические координаты для камеры
+      // В THREE.js камера смотрит из центра наружу, поэтому используем BackSide материал
+      const phi = Math.PI / 2 - rotationState.current.lat; // 90° - lat
+      const theta = rotationState.current.lon;
+      
+      // Вычисляем направление взгляда
+      const lookAtX = 500 * Math.sin(phi) * Math.cos(theta);
+      const lookAtY = 500 * Math.cos(phi);
+      const lookAtZ = 500 * Math.sin(phi) * Math.sin(theta);
+      
+      camera.lookAt(lookAtX, lookAtY, lookAtZ);
+      
       renderer.render(scene, camera);
     };
+    
     const animationId = requestAnimationFrame(animate);
+
+    // Обработка ресайза
+    const handleResize = () => {
+      if (!container || !camera || !renderer) return;
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      
+      renderer.setSize(width, height);
+    };
+    
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', handleResize);
+      
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      if (isMobile) {
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-        container.removeEventListener('touchend', handleTouchEnd);
-      }
+      window.removeEventListener('pointercancel', onPointerUp);
+      
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+      container.removeEventListener('touchcancel', onTouchEnd);
+      
       if (rendererRef.current) {
         try {
           if (rendererRef.current.domElement.parentNode === container) {
@@ -458,6 +551,7 @@ export default function PanoramaViewer() {
         rendererRef.current.dispose();
         rendererRef.current = null;
       }
+      
       if (sceneRef.current) {
         while(sceneRef.current.children.length > 0) sceneRef.current.remove(sceneRef.current.children[0]);
         sceneRef.current = null;
@@ -470,8 +564,6 @@ export default function PanoramaViewer() {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
     console.log(`🔄 Switching to panorama ${currentApartmentIndex}, checking cache...`);
-    console.log(`📦 Cache keys: ${Object.keys(preloadedTextures.current).join(', ')}`);
-    console.log(`🔍 Cache for index ${currentApartmentIndex}:`, preloadedTextures.current[currentApartmentIndex] ? 'FOUND' : 'NOT FOUND');
 
     const geometry = currentMeshRef.current.geometry;
 
@@ -482,8 +574,16 @@ export default function PanoramaViewer() {
     const applyTexture = (texture: THREE.Texture) => {
       console.log(`🎨 Applying texture for index ${currentApartmentIndex}`);
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
 
-      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+      const material = new THREE.MeshBasicMaterial({ 
+        map: texture, 
+        transparent: true, 
+        opacity: 0,
+        side: THREE.BackSide
+      });
+      
       const nextMesh = new THREE.Mesh(geometry, material);
       sceneRef.current!.add(nextMesh);
       nextMeshRef.current = nextMesh;
@@ -491,12 +591,12 @@ export default function PanoramaViewer() {
       let opacity = 0;
 
       const fade = () => {
-        opacity += 0.04;
+        opacity += 0.03;
         material.opacity = Math.min(opacity, 1);
 
         if (currentMeshRef.current) {
           const oldMaterial = currentMeshRef.current.material as THREE.MeshBasicMaterial;
-          if (oldMaterial.map) oldMaterial.opacity = 1 - material.opacity;
+          oldMaterial.opacity = 1 - material.opacity;
         }
 
         if (opacity < 1) {
@@ -540,6 +640,8 @@ export default function PanoramaViewer() {
         texture => {
           console.log(`✅ Loaded texture ${currentApartmentIndex} on demand`);
           texture.colorSpace = THREE.SRGBColorSpace;
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
           preloadedTextures.current[currentApartmentIndex] = texture;
           applyTexture(texture);
         },
@@ -599,33 +701,19 @@ export default function PanoramaViewer() {
                   <>
                     <Link href={`/apartments/${currentPano.id}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
                     
-                    {/* КНОПКА СМОТРЕТЬ ФОТО С ЛОГАМИ */}
                     <button
                       className="panorama-desktop-btn secondary"
                       onClick={() => {
                         console.log('🖱️ Кнопка Смотреть фото нажата');
-                        console.log('📌 Текущий апартамент:', currentPano);
-                        console.log('🆔 ID апартамента:', currentPano.id);
                         
                         const folder = getPhotoFolder(currentPano.id);
                         const count = getPhotoCount(currentPano.id);
                         
-                        console.log('📁 Название папки из маппинга:', folder);
-                        console.log('🔢 Количество фото:', count);
-                        
                         const images = [];
                         for (let i = 1; i <= count; i++) {
                           const path = `/images/apartments/${folder}/${i}.webp`;
-                          console.log(`📸 Путь ${i}:`, path);
                           images.push(path);
                         }
-                        
-                        console.log('📦 Итоговый массив фото:', images);
-                        
-                        // Проверим существование первого фото
-                        fetch(images[0], { method: 'HEAD' })
-                          .then(r => console.log(`✅ Первое фото доступно: ${r.status}`))
-                          .catch(e => console.log('❌ Ошибка при проверке фото:', e));
                         
                         open(images, 0);
                       }}
@@ -703,28 +791,15 @@ export default function PanoramaViewer() {
                     className="panorama-action-btn secondary"
                     onClick={() => {
                       console.log('🖱️ Мобильная кнопка Смотреть фото нажата');
-                      console.log('📌 Текущий апартамент:', currentPano);
-                      console.log('🆔 ID апартамента:', currentPano.id);
                       
                       const folder = getPhotoFolder(currentPano.id);
                       const count = getPhotoCount(currentPano.id);
                       
-                      console.log('📁 Название папки из маппинга:', folder);
-                      console.log('🔢 Количество фото:', count);
-                      
                       const images = [];
                       for (let i = 1; i <= count; i++) {
                         const path = `/images/apartments/${folder}/${i}.webp`;
-                        console.log(`📸 Путь ${i}:`, path);
                         images.push(path);
                       }
-                      
-                      console.log('📦 Итоговый массив фото:', images);
-                      
-                      // Проверим существование первого фото
-                      fetch(images[0], { method: 'HEAD' })
-                        .then(r => console.log(`✅ Первое фото доступно: ${r.status}`))
-                        .catch(e => console.log('❌ Ошибка при проверке фото:', e));
                       
                       open(images, 0);
                     }}
