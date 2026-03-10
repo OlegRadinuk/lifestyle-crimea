@@ -24,22 +24,20 @@ function formatDate(date: string): string {
 }
 
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
-  // ========== МАКСИМАЛЬНОЕ ЛОГИРОВАНИЕ ==========
-  console.log('%c🚀🚀🚀 APARTMENTS CLIENT MOUNTED', 'font-size: 24px; color: red; font-weight: bold;');
-  console.log('📦 initialApartments count:', initialApartments.length);
-  console.log('📦 initialApartments IDs:', initialApartments.map(a => a.id));
-  console.log('📦 first apartment:', initialApartments[0]);
+  // ========== МИНИМАЛЬНОЕ ЛОГИРОВАНИЕ ==========
+  console.log('🚀 ApartmentsClient mounted, apartments:', initialApartments.length);
 
   const { open } = usePhotoModal();
   const router = useRouter();
   const { search } = useSearch();
   const { register, unregister } = useHeader();
 
-  console.log('🔍 search from context:', search);
+  console.log('🔍 Search params:', search);
 
   const [bookingApartment, setBookingApartment] = useState<{
     id: string;
     title: string;
+    price_base?: number;
   } | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
@@ -48,128 +46,87 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [apartments] = useState(initialApartments);
 
   useEffect(() => {
-    console.log('📝 Registering header effect');
     register('apartments-page', {
       mode: 'dark',
       priority: 20,
     });
 
     return () => {
-      console.log('🧹 Unregistering header');
       unregister('apartments-page');
     };
   }, [register, unregister]);
 
   // Проверка доступности всех апартаментов
   useEffect(() => {
-    console.log('🔄 CHECK AVAILABILITY EFFECT TRIGGERED');
-    console.log('🔍 search object:', JSON.stringify(search, null, 2));
-    console.log('🏢 apartments array:', apartments.map(a => ({ id: a.id, title: a.title })));
-
     const checkAllAvailability = async () => {
-      console.log('⚡ checkAllAvailability STARTED');
-      
       if (!search) {
-        console.log('⛔ No search parameters, setting loading=false');
         setLoadingAvailability(false);
         return;
       }
 
-      console.log('📅 Проверяем доступность для дат:', {
-        checkIn: search.checkIn,
-        checkOut: search.checkOut,
-        guests: search.guests
-      });
-      
+      console.log('📅 Checking availability for:', search);
       setLoadingAvailability(true);
       const unavailable = new Set<string>();
-      const results: Record<string, any> = {};
-
-      console.log(`🔍 Начинаем проверку ${apartments.length} апартаментов...`);
 
       await Promise.all(
         apartments.map(async (apt) => {
           try {
-            const url = `/api/availability-travelline/${apt.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`;
-            console.log(`📡 [${apt.id}] Запрос: ${url}`);
-            
-            const response = await fetch(url);
-            console.log(`📡 [${apt.id}] Response status:`, response.status);
-            
+            const response = await fetch(
+              `/api/availability-travelline/${apt.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`
+            );
             const data = await response.json();
-            console.log(`📡 [${apt.id}] Response data:`, data);
-            
-            results[apt.id] = data;
             
             if (!data.isAvailable) {
-              console.log(`❌ [${apt.id}] НЕ доступен`);
+              console.log(`❌ ${apt.id} unavailable`);
               unavailable.add(apt.id);
-            } else {
-              console.log(`✅ [${apt.id}] доступен`);
             }
           } catch (error) {
-            console.error(`🔥 [${apt.id}] Ошибка:`, error);
+            console.error(`Error checking ${apt.id}:`, error);
           }
         })
       );
 
-      console.log('📊 Все результаты проверки:', results);
-      console.log('🚫 Недоступные апартаменты:', Array.from(unavailable));
-      console.log('✅ Доступные апартаменты:', apartments.length - unavailable.size);
-      
+      console.log('🏁 Unavailable:', unavailable.size, 'apartments');
       setUnavailableIds(unavailable);
       setLoadingAvailability(false);
-      console.log('⚡ checkAllAvailability FINISHED');
     };
 
     checkAllAvailability();
 
-    const handleBookingCompleted = (event: Event) => {
-      console.log('🎉 Booking completed event received:', event);
+    const handleBookingCompleted = () => {
       checkAllAvailability();
     };
 
     window.addEventListener('booking-completed', handleBookingCompleted);
-    return () => {
-      console.log('🧹 Cleaning up useEffect');
-      window.removeEventListener('booking-completed', handleBookingCompleted);
-    };
+    return () => window.removeEventListener('booking-completed', handleBookingCompleted);
   }, [search, apartments]);
 
   const handleBookingClick = async (apartment: ApartmentClient) => {
-    console.log('🖱️ handleBookingClick called for:', apartment.id, apartment.title);
+    console.log('🖱️ Booking clicked:', apartment.id);
     
-    if (!search) {
-      console.log('⛔ No search data');
-      return;
-    }
+    if (!search) return;
 
     setCheckingId(apartment.id);
 
     try {
-      const url = `/api/availability-travelline/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`;
-      console.log(`📡 [CLICK] Checking availability: ${url}`);
-      
-      const response = await fetch(url);
-      console.log(`📡 [CLICK] Response status:`, response.status);
-      
+      const response = await fetch(
+        `/api/availability-travelline/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&t=${Date.now()}`
+      );
       const data = await response.json();
-      console.log(`📡 [CLICK] Response data:`, data);
 
       if (data.isAvailable) {
-        console.log(`✅ [CLICK] Apartment available, opening booking modal`);
         setBookingApartment({
           id: apartment.id,
           title: apartment.title,
+          price_base: apartment.price_base, // Передаем цену в модалку
         });
         setBookingOpen(true);
       } else {
-        console.log(`❌ [CLICK] Apartment NOT available`);
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
         setUnavailableIds(prev => new Set(prev).add(apartment.id));
       }
     } catch (error) {
-      console.error('🔥 [CLICK] Error checking availability:', error);
+      console.error('Error checking availability:', error);
       alert('Ошибка при проверке доступности');
     } finally {
       setCheckingId(null);
@@ -177,7 +134,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   };
 
   if (!search) {
-    console.log('⛔ Rendering empty state (no search)');
     return (
       <section className="ap-empty">
         <h1>Нет параметров поиска</h1>
@@ -190,23 +146,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   }
 
   // Фильтруем апартаменты по гостям и доступности
-  console.log('🔍 Filtering apartments...');
-  console.log('📊 Before filter - total:', apartments.length);
-  console.log('📊 Unavailable IDs:', Array.from(unavailableIds));
-  
   const filteredApartments = apartments.filter(
-    (apt) => {
-      const meetsGuests = apt.max_guests >= search.guests;
-      const isAvailable = !unavailableIds.has(apt.id);
-      console.log(`🔎 ${apt.id}: meetsGuests=${meetsGuests}, isAvailable=${isAvailable}, max_guests=${apt.max_guests}, guests=${search.guests}`);
-      return meetsGuests && isAvailable;
-    }
+    (apt) => apt.max_guests >= search.guests && !unavailableIds.has(apt.id)
   );
 
-  console.log('📊 After filter - available:', filteredApartments.length);
+  console.log('📊 Available apartments:', filteredApartments.length);
 
   if (loadingAvailability) {
-    console.log('⏳ Rendering loading state');
     return (
       <section className="ap-page">
         <div className="ap-loading">Загрузка доступных апартаментов...</div>
@@ -214,8 +160,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     );
   }
 
-  console.log('✅ Rendering apartments list with', filteredApartments.length, 'apartments');
-  
   return (
     <>
       <section className="ap-page">

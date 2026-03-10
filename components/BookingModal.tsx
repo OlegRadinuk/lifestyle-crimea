@@ -35,6 +35,7 @@ type Props = {
   apartment: {
     id: string;
     title: string;
+    price_base?: number; // Добавляем цену из базы
   };
   initialRange: DateRange | null;
   initialGuests: number;
@@ -50,23 +51,17 @@ function getNights(from: Date, to: Date) {
   return Math.max(1, Math.round((to.getTime() - from.getTime()) / MS_PER_DAY));
 }
 
-function getSeasonPrice(date: Date) {
-  const month = date.getMonth() + 1;
-  if (month >= 6 && month <= 9) return 15000;
-  if (month === 5 || month === 10) return 11000;
-  return 8000;
-}
-
+// Исправлено: используем реальную цену из базы
 function calculatePrice(params: {
   from: Date;
   to: Date;
   guests: number;
   meals: Meals;
+  basePricePerNight: number; // Добавляем цену из пропсов
 }) {
-  const { from, to, guests, meals } = params;
+  const { from, to, guests, meals, basePricePerNight } = params;
   const nights = getNights(from, to);
-  const basePerNight = getSeasonPrice(from);
-  const baseTotal = basePerNight * nights;
+  const baseTotal = basePricePerNight * nights;
 
   let mealPerGuest = 0;
   if (meals === 'breakfast') mealPerGuest = 1000;
@@ -76,7 +71,7 @@ function calculatePrice(params: {
 
   return {
     nights,
-    basePerNight,
+    basePerNight: basePricePerNight,
     baseTotal,
     mealsTotal,
     total: baseTotal + mealsTotal,
@@ -125,6 +120,9 @@ export default function BookingModal({
   const [guests, setGuests] = useState(initialGuests);
   const [meals, setMeals] = useState<Meals>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Если цена не передана, используем заглушку для обратной совместимости
+  const basePrice = apartment.price_base || 8000;
 
   const [guestInfo, setGuestInfo] = useState({
     firstName: '',
@@ -140,8 +138,9 @@ export default function BookingModal({
       to: dates.to,
       guests,
       meals,
+      basePricePerNight: basePrice,
     });
-  }, [dates, guests, meals]);
+  }, [dates, guests, meals, basePrice]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -177,9 +176,9 @@ export default function BookingModal({
       const checkInStr = `${dates.from.getFullYear()}-${String(dates.from.getMonth() + 1).padStart(2, '0')}-${String(dates.from.getDate()).padStart(2, '0')}`;
       const checkOutStr = `${dates.to.getFullYear()}-${String(dates.to.getMonth() + 1).padStart(2, '0')}-${String(dates.to.getDate()).padStart(2, '0')}`;
 
-      // Проверка доступности перед отправкой
+      // ИСПРАВЛЕНО: используем правильный API для проверки доступности
       const checkResponse = await fetch(
-        `/api/availability/${apartment.id}?checkIn=${checkInStr}&checkOut=${checkOutStr}`
+        `/api/availability-travelline/${apartment.id}?checkIn=${checkInStr}&checkOut=${checkOutStr}`
       );
       const checkData = await checkResponse.json();
 
@@ -296,6 +295,9 @@ export default function BookingModal({
             <section>
               <h3>Апартамент</h3>
               <p className="booking-apartment-title">{apartment.title}</p>
+              {apartment.price_base && (
+                <p className="booking-price-info">Базовая цена: {apartment.price_base.toLocaleString()} ₽/ночь</p>
+              )}
             </section>
 
             <section>
