@@ -647,7 +647,7 @@ export default function PanoramaViewer() {
                 className="panorama-swipe-hint"
               >
                 <span className="swipe-icon">←</span>
-                <span className="swipe-text">Листайте</span>
+                <span className="swipe-text">swipe</span>
                 <span className="swipe-icon">→</span>
               </motion.div>
             )}
