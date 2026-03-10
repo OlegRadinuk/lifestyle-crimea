@@ -283,20 +283,21 @@ export default function Header({ onBurgerClick }: Props) {
       )}
 
       {bookingModalOpen && currentApartment && selectedRange && isActive && (
-        <BookingModal
-          apartment={{
-            id: currentApartment.id,
-            title: currentApartment.title,
-          }}
-          initialRange={selectedRange}
-          initialGuests={guests}
-          onClose={() => setBookingModalOpen(false)}
-          onConfirm={(data) => {
-            console.log('FINAL BOOKING DATA', data);
-            setBookingModalOpen(false);
-          }}
-        />
-      )}
+  <BookingModal
+    apartment={{
+      id: currentApartment.id,
+      title: currentApartment.title,
+      price_base: apartmentPrice  // Добавляем цену из состояния
+    }}
+    initialRange={selectedRange}
+    initialGuests={guests}
+    onClose={() => setBookingModalOpen(false)}
+    onConfirm={(data) => {
+      console.log('FINAL BOOKING DATA', data);
+      setBookingModalOpen(false);
+    }}
+  />
+)}
     </>
   );
 }
