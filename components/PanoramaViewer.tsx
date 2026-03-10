@@ -415,7 +415,7 @@ export default function PanoramaViewer() {
       requestAnimationFrame(animate);
       
       // Автовращение
-        if (!isUserInteracting && !isHoverRef.current && !fullscreenMode) {
+        if (!isUserInteracting && !isHoverRef.current) {
     rotationState.current.targetLon += AUTO_ROTATE_SPEED;
   }
 
