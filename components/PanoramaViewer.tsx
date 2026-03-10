@@ -72,9 +72,7 @@ export default function PanoramaViewer() {
       'ls-lux-only-you': 'only-you',
       'ls-art-dream-vacation': 'dream-vacation',
     };
-    const folder = map[id] || id;
-    console.log(`🔍 getPhotoFolder(${id}) -> ${folder}`);
-    return folder;
+    return map[id] || id;
   };
 
   // Количество фото
@@ -94,9 +92,7 @@ export default function PanoramaViewer() {
       'ls-lux-only-you': 1,
       'ls-art-dream-vacation': 3,
     };
-    const count = map[id] || 3;
-    console.log(`🔢 getPhotoCount(${id}) -> ${count}`);
-    return count;
+    return map[id] || 3;
   };
 
   // --- Загрузка статуса ---
@@ -126,7 +122,6 @@ export default function PanoramaViewer() {
 
   const changePanorama = (index: number) => {
     if (index === currentApartmentIndex) return;
-    console.log(`🔄 changePanorama called: ${currentApartmentIndex} -> ${index}`);
     
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
     if (fadeAnimationRef.current) cancelAnimationFrame(fadeAnimationRef.current);
@@ -219,6 +214,8 @@ export default function PanoramaViewer() {
       panoramas[index].image,
       texture => {
         texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         preloadedTextures.current[index] = texture;
         loadingTextures.current[index] = false;
         console.log(`✅ Preloaded texture ${index}`);
@@ -236,22 +233,26 @@ export default function PanoramaViewer() {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    if (rendererRef.current && rendererRef.current.domElement.parentNode === container) {
-      container.removeChild(rendererRef.current.domElement);
-      rendererRef.current.dispose();
+    // Очищаем контейнер
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
     }
 
+    // Создаем сцену
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
+    // Создаем камеру (помещаем в центр сферы)
     const camera = new THREE.PerspectiveCamera(
       75,
       container.clientWidth / container.clientHeight,
-      1,
-      1100
+      0.1,
+      1000
     );
+    camera.position.set(0, 0, 0);
     cameraRef.current = camera;
 
+    // Создаем рендерер
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
       powerPreference: "high-performance",
@@ -259,14 +260,16 @@ export default function PanoramaViewer() {
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.setClearColor(0x000000); // Черный фон пока грузится
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
+    // Создаем геометрию сферы (большой радиус, инвертированная)
     const geometry = new THREE.SphereGeometry(500, 64, 64);
+    // Инвертируем геометрию, чтобы камера была внутри
     geometry.scale(-1, 1, 1);
 
+    // Загружаем первую текстуру
     const loader = new THREE.TextureLoader();
     loader.load(
       panoramas[0].image,
@@ -274,20 +277,23 @@ export default function PanoramaViewer() {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
         
         preloadedTextures.current[0] = texture;
+        
         const material = new THREE.MeshBasicMaterial({ 
           map: texture, 
-          transparent: true, 
-          opacity: 1,
-          side: THREE.BackSide
+          side: THREE.BackSide, // Важно! Рисуем внутреннюю сторону сферы
         });
+        
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         currentMeshRef.current = mesh;
+        
         setLoading(false);
         setTransitioning(false);
+        
         // Предзагружаем все остальные
         for (let i = 1; i < panoramas.length; i++) {
           preloadTexture(i);
@@ -300,7 +306,7 @@ export default function PanoramaViewer() {
       }
     );
 
-    // --- ПРЕМИУМ ЛОГИКА ВРАЩЕНИЯ ---
+    // --- Логика вращения ---
     let isUserInteracting = false;
     let isTouching = false;
     
@@ -315,67 +321,48 @@ export default function PanoramaViewer() {
     let startX = 0, startY = 0;
     let startLon = 0, startLat = 0;
     
-    // Параметры для идеального UX
-    const SENSITIVITY = 0.002; // Чувствительность в радианах на пиксель
-    const VERTICAL_LIMIT = 0.5; // Ограничение вертикального угла (радианы) ~30 градусов
-    const INERTIA_DAMPING = 0.92; // Затухание инерции
-    const AUTO_ROTATE_SPEED = 0.0005; // Скорость автовращения
-    const SMOOTHING_FACTOR = 0.1; // Фактор сглаживания движения
-    
-    // Преобразуем начальные градусы в радианы для THREE
-    const toRad = (deg: number) => deg * Math.PI / 180;
-    const toDeg = (rad: number) => rad * 180 / Math.PI;
-    
-    // Устанавливаем начальные значения
-    rotationState.current.lon = 0;
-    rotationState.current.lat = 0;
-    rotationState.current.targetLon = 0;
-    rotationState.current.targetLat = 0;
+    // Параметры
+    const SENSITIVITY = 0.005;
+    const VERTICAL_LIMIT = 0.5;
+    const INERTIA_DAMPING = 0.95;
+    const AUTO_ROTATE_SPEED = 0.002;
+    const SMOOTHING_FACTOR = 0.1;
 
-    // Единый обработчик начала взаимодействия
-    const onInteractionStart = (x: number, y: number) => {
+    // Обработчики событий
+    const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
       isUserInteracting = true;
       isTouching = true;
       setHintAllowed(false);
       
-      startX = x;
-      startY = y;
-      
-      // Сохраняем текущие целевые углы
+      startX = e.clientX;
+      startY = e.clientY;
       startLon = rotationState.current.targetLon;
       startLat = rotationState.current.targetLat;
       
-      // Сбрасываем скорость инерции
       velocityLon = 0;
       velocityLat = 0;
-      
       lastLon = startLon;
       lastLat = startLat;
       lastTime = performance.now();
     };
 
-    // Единый обработчик движения
-    const onInteractionMove = (x: number, y: number) => {
+    const onPointerMove = (e: PointerEvent) => {
       if (!isUserInteracting) return;
       
       const currentTime = performance.now();
       const deltaTime = Math.min(32, currentTime - lastTime);
       
-      // Вычисляем смещение в радианах
-      const deltaX = (x - startX) * SENSITIVITY;
-      const deltaY = (y - startY) * SENSITIVITY * 0.6; // Вертикальное вращение медленнее
+      const deltaX = (e.clientX - startX) * SENSITIVITY;
+      const deltaY = (e.clientY - startY) * SENSITIVITY * 0.5;
       
-      // Обновляем целевые углы
       const newLon = startLon - deltaX;
       let newLat = startLat + deltaY;
-      
-      // Ограничиваем вертикальный угол
       newLat = Math.max(-VERTICAL_LIMIT, Math.min(VERTICAL_LIMIT, newLat));
       
       rotationState.current.targetLon = newLon;
       rotationState.current.targetLat = newLat;
       
-      // Вычисляем скорость для инерции
       if (deltaTime > 0) {
         velocityLon = ((newLon - lastLon) / deltaTime) * 0.5;
         velocityLat = ((newLat - lastLat) / deltaTime) * 0.5;
@@ -386,11 +373,8 @@ export default function PanoramaViewer() {
       lastTime = currentTime;
     };
 
-    // Единый обработчик окончания
-    const onInteractionEnd = () => {
+    const onPointerUp = () => {
       isUserInteracting = false;
-      
-      // Не сбрасываем isTouching сразу, чтобы инерция продолжалась
       setTimeout(() => {
         if (!isUserInteracting) {
           isTouching = false;
@@ -398,42 +382,66 @@ export default function PanoramaViewer() {
       }, 100);
     };
 
-    // Pointer события (десктоп)
-    const onPointerDown = (e: PointerEvent) => {
-      e.preventDefault();
-      onInteractionStart(e.clientX, e.clientY);
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      onInteractionMove(e.clientX, e.clientY);
-    };
-
-    const onPointerUp = () => {
-      onInteractionEnd();
-    };
-
-    // Touch события (мобильные)
+    // Touch события
     const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
-      onInteractionStart(touch.clientX, touch.clientY);
+      
+      isUserInteracting = true;
+      isTouching = true;
+      setHintAllowed(false);
+      
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startLon = rotationState.current.targetLon;
+      startLat = rotationState.current.targetLat;
+      
+      velocityLon = 0;
+      velocityLat = 0;
+      lastLon = startLon;
+      lastLat = startLat;
+      lastTime = performance.now();
+      
       showUITemporarily();
     };
 
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
+      if (!isUserInteracting) return;
+      
       const touch = e.touches[0];
       if (!touch) return;
-      onInteractionMove(touch.clientX, touch.clientY);
+      
+      const currentTime = performance.now();
+      const deltaTime = Math.min(32, currentTime - lastTime);
+      
+      const deltaX = (touch.clientX - startX) * SENSITIVITY;
+      const deltaY = (touch.clientY - startY) * SENSITIVITY * 0.5;
+      
+      const newLon = startLon - deltaX;
+      let newLat = startLat + deltaY;
+      newLat = Math.max(-VERTICAL_LIMIT, Math.min(VERTICAL_LIMIT, newLat));
+      
+      rotationState.current.targetLon = newLon;
+      rotationState.current.targetLat = newLat;
+      
+      if (deltaTime > 0) {
+        velocityLon = ((newLon - lastLon) / deltaTime) * 0.5;
+        velocityLat = ((newLat - lastLat) / deltaTime) * 0.5;
+      }
+      
+      lastLon = newLon;
+      lastLat = newLat;
+      lastTime = currentTime;
     };
 
     const onTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
-      onInteractionEnd();
+      isUserInteracting = false;
       
-      // Проверяем свайп для переключения панорамы (только не в fullscreen)
-      if (!fullscreenMode && !isUserInteracting) {
+      // Проверяем свайп для переключения панорамы
+      if (!fullscreenMode) {
         const touch = e.changedTouches[0];
         if (!touch) return;
         
@@ -452,6 +460,12 @@ export default function PanoramaViewer() {
           setShowSwipeHint(false);
         }
       }
+      
+      setTimeout(() => {
+        if (!isUserInteracting) {
+          isTouching = false;
+        }
+      }, 100);
     };
 
     // Добавляем обработчики
@@ -469,44 +483,35 @@ export default function PanoramaViewer() {
     const animate = () => {
       requestAnimationFrame(animate);
       
-      // Автовращение (когда нет взаимодействия и не наведена мышь)
+      // Автовращение
       if (!isUserInteracting && !isTouching && !isHoverRef.current) {
         rotationState.current.targetLon += AUTO_ROTATE_SPEED;
       }
       
-      // Применяем инерцию после отпускания
+      // Инерция
       if (!isUserInteracting && isTouching) {
         rotationState.current.targetLon += velocityLon;
         rotationState.current.targetLat += velocityLat;
         
-        // Затухание
         velocityLon *= INERTIA_DAMPING;
         velocityLat *= INERTIA_DAMPING;
         
-        // Ограничиваем вертикальный угол
         rotationState.current.targetLat = Math.max(-VERTICAL_LIMIT, Math.min(VERTICAL_LIMIT, rotationState.current.targetLat));
         
-        // Останавливаем инерцию когда скорость мала
         if (Math.abs(velocityLon) < 0.0001 && Math.abs(velocityLat) < 0.0001) {
           isTouching = false;
         }
       }
       
-      // Плавное сглаживание движения (smooth follow)
+      // Плавное движение
       rotationState.current.lon += (rotationState.current.targetLon - rotationState.current.lon) * SMOOTHING_FACTOR;
       rotationState.current.lat += (rotationState.current.targetLat - rotationState.current.lat) * SMOOTHING_FACTOR;
       
-      // Конвертируем в сферические координаты для камеры
-      // В THREE.js камера смотрит из центра наружу, поэтому используем BackSide материал
-      const phi = Math.PI / 2 - rotationState.current.lat; // 90° - lat
-      const theta = rotationState.current.lon;
-      
-      // Вычисляем направление взгляда
-      const lookAtX = 500 * Math.sin(phi) * Math.cos(theta);
-      const lookAtY = 500 * Math.cos(phi);
-      const lookAtZ = 500 * Math.sin(phi) * Math.sin(theta);
-      
-      camera.lookAt(lookAtX, lookAtY, lookAtZ);
+      // Поворачиваем камеру (так как камера в центре, мы вращаем сцену или камеру)
+      // Проще всего вращать камеру вокруг своей оси
+      camera.rotation.x = rotationState.current.lat;
+      camera.rotation.y = rotationState.current.lon;
+      camera.rotation.z = 0;
       
       renderer.render(scene, camera);
     };
@@ -515,7 +520,7 @@ export default function PanoramaViewer() {
 
     // Обработка ресайза
     const handleResize = () => {
-      if (!container || !camera || !renderer) return;
+      if (!camera || !renderer || !container) return;
       
       const width = container.clientWidth;
       const height = container.clientHeight;
@@ -543,18 +548,11 @@ export default function PanoramaViewer() {
       container.removeEventListener('touchcancel', onTouchEnd);
       
       if (rendererRef.current) {
-        try {
-          if (rendererRef.current.domElement.parentNode === container) {
-            container.removeChild(rendererRef.current.domElement);
-          }
-        } catch (e) { console.warn(e); }
         rendererRef.current.dispose();
+        if (rendererRef.current.domElement.parentNode === container) {
+          container.removeChild(rendererRef.current.domElement);
+        }
         rendererRef.current = null;
-      }
-      
-      if (sceneRef.current) {
-        while(sceneRef.current.children.length > 0) sceneRef.current.remove(sceneRef.current.children[0]);
-        sceneRef.current = null;
       }
     };
   }, [isMobile, fullscreenMode]);
@@ -563,8 +561,6 @@ export default function PanoramaViewer() {
   useEffect(() => {
     if (!sceneRef.current || !currentMeshRef.current) return;
 
-    console.log(`🔄 Switching to panorama ${currentApartmentIndex}, checking cache...`);
-
     const geometry = currentMeshRef.current.geometry;
 
     if (fadeAnimationRef.current) {
@@ -572,16 +568,17 @@ export default function PanoramaViewer() {
     }
 
     const applyTexture = (texture: THREE.Texture) => {
-      console.log(`🎨 Applying texture for index ${currentApartmentIndex}`);
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
 
       const material = new THREE.MeshBasicMaterial({ 
         map: texture, 
+        side: THREE.BackSide,
         transparent: true, 
-        opacity: 0,
-        side: THREE.BackSide
+        opacity: 0
       });
       
       const nextMesh = new THREE.Mesh(geometry, material);
@@ -625,7 +622,6 @@ export default function PanoramaViewer() {
     const cached = preloadedTextures.current[currentApartmentIndex];
     
     if (cached) {
-      console.log(`✅ Using cached texture for ${currentApartmentIndex}`);
       if (transitionTimer.current) {
         clearTimeout(transitionTimer.current);
         transitionTimer.current = null;
@@ -633,15 +629,15 @@ export default function PanoramaViewer() {
       setTransitioning(false);
       applyTexture(cached);
     } else {
-      console.log(`⚠️ Texture ${currentApartmentIndex} not in cache, loading now...`);
       const loader = new THREE.TextureLoader();
       loader.load(
         panoramas[currentApartmentIndex].image,
         texture => {
-          console.log(`✅ Loaded texture ${currentApartmentIndex} on demand`);
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.minFilter = THREE.LinearFilter;
           texture.magFilter = THREE.LinearFilter;
+          texture.wrapS = THREE.ClampToEdgeWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
           preloadedTextures.current[currentApartmentIndex] = texture;
           applyTexture(texture);
         },
@@ -704,8 +700,6 @@ export default function PanoramaViewer() {
                     <button
                       className="panorama-desktop-btn secondary"
                       onClick={() => {
-                        console.log('🖱️ Кнопка Смотреть фото нажата');
-                        
                         const folder = getPhotoFolder(currentPano.id);
                         const count = getPhotoCount(currentPano.id);
                         
@@ -790,8 +784,6 @@ export default function PanoramaViewer() {
                   <button
                     className="panorama-action-btn secondary"
                     onClick={() => {
-                      console.log('🖱️ Мобильная кнопка Смотреть фото нажата');
-                      
                       const folder = getPhotoFolder(currentPano.id);
                       const count = getPhotoCount(currentPano.id);
                       
