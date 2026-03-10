@@ -42,6 +42,7 @@ export default function AdminLayout({
     { href: '/admin', label: 'Дашборд', icon: '📊' },
     { href: '/admin/apartments', label: 'Апартаменты', icon: '🏢' },
     { href: '/admin/bookings', label: 'Бронирования', icon: '📋' },
+    { href: '/admin/travelline-bookings', label: 'Брони (Travelline)', icon: '🔄' },
     { href: '/admin/calendar', label: 'Календарь', icon: '📅' },
     { href: '/admin/settings', label: 'Настройки', icon: '⚙️' },
   ];

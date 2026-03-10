@@ -12,6 +12,11 @@ type DashboardStats = {
   totalRevenue: number;
   apartmentsCount: number;
   activeSources: number;
+  // Добавляем новое поле
+  bySource?: {
+    website: number;
+    travelline: number;
+  };
 };
 
 export default function AdminDashboard() {
@@ -84,6 +89,29 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Добавляем секцию с источниками */}
+      {stats?.bySource && (
+        <div className="sources-section">
+          <h2>Распределение по источникам</h2>
+          <div className="sources-grid">
+            <div className="source-card website">
+              <div className="source-icon">🌐</div>
+              <div className="source-content">
+                <div className="source-label">Сайт</div>
+                <div className="source-value">{stats.bySource.website}</div>
+              </div>
+            </div>
+            <div className="source-card travelline">
+              <div className="source-icon">🔄</div>
+              <div className="source-content">
+                <div className="source-label">Travelline</div>
+                <div className="source-value">{stats.bySource.travelline}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="dashboard-sections">
         <div className="dashboard-section">
           <h2>Последние бронирования</h2>
@@ -134,6 +162,46 @@ export default function AdminDashboard() {
         .stat-label {
           color: #64748b;
           font-size: 14px;
+        }
+        .sources-section {
+          margin-bottom: 30px;
+        }
+        .sources-section h2 {
+          font-size: 18px;
+          margin-bottom: 16px;
+          color: #1e293b;
+        }
+        .sources-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+        }
+        .source-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .source-card.website {
+          border-left: 4px solid #139ab6;
+        }
+        .source-card.travelline {
+          border-left: 4px solid #8b5cf6;
+        }
+        .source-icon {
+          font-size: 28px;
+        }
+        .source-label {
+          color: #64748b;
+          font-size: 14px;
+        }
+        .source-value {
+          font-size: 24px;
+          font-weight: 600;
+          color: #1a2634;
         }
         .dashboard-sections {
           display: grid;

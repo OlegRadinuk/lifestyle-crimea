@@ -6177,3 +6177,47 @@ a {
   }
 }
 
+.admin-stats-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-mini-card {
+  background: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.stat-mini-card .stat-label {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.stat-mini-card .stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a2634;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.booking-id {
+  font-family: monospace;
+  font-size: 13px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
