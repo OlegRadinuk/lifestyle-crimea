@@ -416,8 +416,11 @@ export default function PanoramaViewer() {
       
       // Автовращение
         if (!isUserInteracting && !isHoverRef.current) {
+  // В полноэкранном режиме не вращаемся
+  if (!fullscreenMode) {
     rotationState.current.targetLon += AUTO_ROTATE_SPEED;
   }
+}
 
       // ПЛАВНОЕ ДВИЖЕНИЕ - теперь используем smoothing factor
       const dampingFactor = isMobile ? TOUCH_DAMPING_FACTOR : DAMPING_FACTOR;

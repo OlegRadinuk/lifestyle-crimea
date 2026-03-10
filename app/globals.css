@@ -6192,12 +6192,20 @@ a {
 
 /* ===== ОТЗЫВЫ И ФУТЕР КАК ОДИН ЭКРАН ===== */
 @media (max-width: 768px) {
+  /* Убираем возможные отступы у body и html на мобильных */
+  body, html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
   /* Контейнер для двух секций */
   .reviews {
-    height: auto; /* убираем фиксированную высоту */
-    min-height: 50vh; /* минимальная высота */
+    height: auto;
+    min-height: auto; /* убираем min-height */
     max-height: none;
-    padding: 80px 20px 30px; /* добавляем отступ сверху для бургера */
+    margin: 0; /* убираем внешние отступы */
+    padding: 80px 20px 0 20px; /* убираем нижний padding */
     display: flex;
     flex-direction: column;
     background: linear-gradient(180deg, #ffffff, #f4fbfd);
@@ -6208,14 +6216,12 @@ a {
   .reviews__title {
     display: block;
     font-size: 22px;
-    margin: 0 0 20px 0; /* убираем верхний отступ, добавляем нижний */
-    padding: 0 10px;
+    margin: 0 0 15px 0;
+    padding: 0;
     text-align: center;
     font-weight: 500;
     color: #139ab6;
     line-height: 1.3;
-    flex-shrink: 0;
-    /* защита от наезда бургера */
     position: relative;
     z-index: 5;
   }
@@ -6225,7 +6231,7 @@ a {
     flex: 1 1 auto;
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+    margin: 0 0 15px 0; /* только нижний отступ */
     min-height: 0;
     width: 100%;
     position: relative;
@@ -6236,7 +6242,9 @@ a {
     height: 100%;
     overflow: hidden;
     cursor: grab;
-    min-height: 200px; /* минимальная высота для слайдера */
+    min-height: 180px;
+    margin: 0;
+    padding: 0;
   }
 
   .reviews__track {
@@ -6244,13 +6252,15 @@ a {
     align-items: center;
     transition: transform 0.3s ease-out;
     display: flex;
+    margin: 0;
+    padding: 0;
   }
 
   /* Карточка отзыва */
   .review-card {
     flex: 0 0 calc(100% - 40px);
     margin: 0 20px;
-    padding: 24px 22px;
+    padding: 20px 20px;
     background: #ffffff;
     border-radius: 24px;
     box-shadow: 0 15px 35px rgba(19, 154, 182, 0.15);
@@ -6258,28 +6268,29 @@ a {
     flex-direction: column;
     justify-content: center;
     border: 1px solid rgba(19, 154, 182, 0.2);
-    min-height: 180px; /* минимальная высота карточки */
+    min-height: 150px;
     box-sizing: border-box;
   }
 
   .review-card__text {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.5;
-    margin-bottom: 16px;
+    margin: 0 0 12px 0;
     overflow-y: auto;
-    max-height: 200px;
-    padding-right: 4px;
+    max-height: 180px;
+    padding: 0;
     color: #1a2a33;
     flex: 1 1 auto;
   }
 
   .review-card__author {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     color: #139ab6;
     text-align: right;
     border-top: 1px solid rgba(19, 154, 182, 0.2);
-    padding-top: 12px;
+    padding: 10px 0 0 0;
+    margin: 0;
     letter-spacing: 0.5px;
     flex-shrink: 0;
   }
@@ -6287,9 +6298,9 @@ a {
   /* Кнопка Яндекс */
   .reviews__yandex {
     display: inline-block;
-    margin: 10px auto 0;
-    padding: 14px 32px;
-    font-size: 15px;
+    margin: 0 auto 0 auto; /* убираем нижний отступ */
+    padding: 12px 28px;
+    font-size: 14px;
     font-weight: 600;
     background: #139ab6;
     color: white;
@@ -6306,8 +6317,8 @@ a {
 
   /* ===== FOOTER ===== */
   .footer {
-    min-height: auto;
-    padding: 30px 20px 30px;
+    margin: 0; /* убираем внешние отступы */
+    padding: 25px 20px 25px 20px; /* равномерные отступы */
     background: linear-gradient(180deg, #1c2226, #0f1419);
     display: flex;
     flex-direction: column;
@@ -6318,79 +6329,92 @@ a {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 24px 22px;
+    padding: 22px 20px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 24px;
     gap: 16px;
     max-width: 100%;
+    margin: 0;
     box-sizing: border-box;
   }
 
   .footer__info {
     display: flex;
     flex-direction: column;
+    margin: 0;
+    padding: 0;
   }
 
   .footer__title {
-    font-size: 22px;
-    margin: 0 0 12px 0;
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    padding: 0;
     color: #139ab6;
     line-height: 1.3;
   }
 
   .footer__text {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
-    margin: 0 0 16px 0;
+    margin: 0 0 14px 0;
+    padding: 0;
     opacity: 0.9;
     max-width: 100%;
   }
 
-  /* Контакты в одну строку с переносом */
   .footer__contacts {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px 16px;
-    margin: 0 0 16px 0;
+    gap: 10px 14px;
+    margin: 0 0 14px 0;
+    padding: 0;
   }
 
   .footer__contacts a {
-    font-size: 15px;
+    font-size: 14px;
     color: #139ab6;
     text-decoration: none;
     white-space: nowrap;
     font-weight: 500;
+    margin: 0;
+    padding: 0;
   }
 
   .footer__contacts span {
-    font-size: 14px;
+    font-size: 13px;
     color: #a0b3c0;
-    width: 100%; /* адрес на новой строке */
-    margin-top: 4px;
+    width: 100%;
+    margin: 2px 0 0 0;
+    padding: 0;
     line-height: 1.4;
   }
 
   .footer__map {
-    min-height: 160px;
+    min-height: 140px;
     height: auto;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
+    margin: 0;
+    padding: 0;
   }
 
   .footer__map iframe {
     width: 100%;
     height: 100%;
-    min-height: 160px;
+    min-height: 140px;
     filter: grayscale(0.8) brightness(0.8);
+    margin: 0;
+    padding: 0;
+    display: block; /* убирает возможный отступ у iframe */
   }
 
   .footer__copy {
-    margin-top: 16px;
-    padding-top: 12px;
+    margin: 12px 0 0 0;
+    padding: 10px 0 0 0;
     font-size: 12px;
     text-align: left;
     opacity: 0.6;
@@ -6401,92 +6425,27 @@ a {
 /* ===== АДАПТАЦИЯ ДЛЯ КОРОТКИХ ЭКРАНОВ (до 700px высоты) ===== */
 @media (max-width: 768px) and (max-height: 700px) {
   .reviews {
-    padding: 70px 20px 20px;
+    padding: 70px 20px 0 20px;
   }
 
   .reviews__title {
     font-size: 20px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
 
   .review-card {
-    padding: 18px 20px;
-    min-height: 150px;
+    padding: 18px 18px;
+    min-height: 140px;
   }
 
   .review-card__text {
     font-size: 14px;
-    margin-bottom: 12px;
-    max-height: 150px;
+    margin-bottom: 10px;
+    max-height: 140px;
   }
 
   .review-card__author {
     font-size: 15px;
-    padding-top: 10px;
-  }
-
-  .reviews__yandex {
-    padding: 12px 28px;
-    font-size: 14px;
-    margin-top: 5px;
-  }
-
-  .footer {
-    padding: 20px 20px 25px;
-  }
-
-  .footer__inner {
-    padding: 18px 20px;
-    gap: 12px;
-  }
-
-  .footer__title {
-    font-size: 20px;
-    margin-bottom: 8px;
-  }
-
-  .footer__text {
-    font-size: 13px;
-    margin-bottom: 12px;
-  }
-
-  .footer__map {
-    min-height: 130px;
-  }
-
-  .footer__contacts a {
-    font-size: 14px;
-  }
-
-  .footer__contacts span {
-    font-size: 13px;
-  }
-}
-
-/* ===== АДАПТАЦИЯ ДЛЯ ОЧЕНЬ КОРОТКИХ ЭКРАНОВ (до 600px высоты) ===== */
-@media (max-width: 768px) and (max-height: 600px) {
-  .reviews {
-    padding: 60px 20px 15px;
-  }
-
-  .reviews__title {
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-
-  .review-card {
-    padding: 15px 18px;
-    min-height: 130px;
-  }
-
-  .review-card__text {
-    font-size: 13px;
-    margin-bottom: 10px;
-    max-height: 120px;
-  }
-
-  .review-card__author {
-    font-size: 14px;
     padding-top: 8px;
   }
 
@@ -6496,12 +6455,72 @@ a {
   }
 
   .footer {
-    padding: 15px 20px 20px;
+    padding: 20px 20px 20px 20px;
   }
 
   .footer__inner {
-    padding: 15px 18px;
-    gap: 8px;
+    padding: 18px 18px;
+    gap: 12px;
+  }
+
+  .footer__title {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+
+  .footer__text {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .footer__map {
+    min-height: 120px;
+  }
+
+  .footer__contacts a {
+    font-size: 13px;
+  }
+}
+
+/* ===== АДАПТАЦИЯ ДЛЯ ОЧЕНЬ КОРОТКИХ ЭКРАНОВ (до 600px высоты) ===== */
+@media (max-width: 768px) and (max-height: 600px) {
+  .reviews {
+    padding: 60px 20px 0 20px;
+  }
+
+  .reviews__title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .review-card {
+    padding: 15px 16px;
+    min-height: 120px;
+  }
+
+  .review-card__text {
+    font-size: 13px;
+    margin-bottom: 8px;
+    max-height: 110px;
+  }
+
+  .review-card__author {
+    font-size: 14px;
+    padding-top: 6px;
+  }
+
+  .reviews__yandex {
+    padding: 8px 22px;
+    font-size: 12px;
+  }
+
+  .footer {
+    padding: 15px 20px 15px 20px;
+  }
+
+  .footer__inner {
+    padding: 15px 16px;
+    gap: 10px;
   }
 
   .footer__title {
@@ -6510,52 +6529,51 @@ a {
   }
 
   .footer__text {
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 10px;
     line-height: 1.4;
   }
 
   .footer__contacts {
-    gap: 8px 12px;
+    gap: 8px 10px;
     margin-bottom: 10px;
   }
 
   .footer__contacts a {
-    font-size: 13px;
-  }
-
-  .footer__contacts span {
     font-size: 12px;
   }
 
+  .footer__contacts span {
+    font-size: 11px;
+  }
+
   .footer__map {
-    min-height: 110px;
+    min-height: 100px;
   }
 
   .footer__copy {
-    margin-top: 10px;
-    padding-top: 8px;
-    font-size: 11px;
+    margin-top: 8px;
+    padding-top: 6px;
+    font-size: 10px;
   }
 }
 
 /* ===== АДАПТАЦИЯ ДЛЯ ШИРОКИХ МОБИЛЬНЫХ (Pixel 7 и подобные) ===== */
 @media (max-width: 768px) and (min-aspect-ratio: 9/16) {
   .reviews {
-    padding: 80px 20px 25px;
+    padding: 80px 20px 0 20px;
   }
 
   .review-card {
-    min-height: 160px;
-    padding: 22px 20px;
+    min-height: 140px;
   }
 
   .footer__inner {
-    padding: 22px 20px;
+    padding: 20px 20px;
   }
 
   .footer__map {
-    min-height: 150px;
+    min-height: 130px;
   }
 }
 
@@ -6567,7 +6585,7 @@ a {
     }
 
     .footer {
-      padding-bottom: calc(30px + env(safe-area-inset-bottom));
+      padding-bottom: calc(25px + env(safe-area-inset-bottom));
     }
   }
 }
