@@ -27,18 +27,28 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Отслеживаем прогресс скролла только на десктопе
+  // Отслеживаем прогресс скролла (всегда включено, но используем только на десктопе)
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"],
-    enabled: !isMobile // Отключаем на мобильных
+    offset: ["start start", "end end"]
   });
 
-  // Преобразуем прогресс в индекс секции (0, 1, 2) - только для десктопа
+  // Преобразуем прогресс в индекс секции (0, 1, 2)
   const sectionIndex = useTransform(scrollYProgress, 
     [0, 0.33, 0.34, 0.66, 0.67, 1], 
     [0, 0, 1, 1, 2, 2]
   );
+
+  // Создаем отдельные значения для мобильных и десктопа
+  const desktopOpacity = useTransform(sectionIndex, [0, 0.5], [1, 0]);
+  const desktopScale = useTransform(sectionIndex, [0, 1], [1, 0.95]);
+  const desktopBlur = useTransform(sectionIndex, [0, 1], ['blur(0px)', 'blur(4px)']);
+  
+  const panoramaOpacity = useTransform(sectionIndex, [0.33, 0.5, 0.66], [0, 1, 1]);
+  const panoramaScale = useTransform(sectionIndex, [0.5, 1.5], [0.95, 1]);
+  
+  const reviewsOpacity = useTransform(sectionIndex, [0.66, 0.8, 1], [0, 1, 1]);
+  const reviewsScale = useTransform(sectionIndex, [0.8, 2], [0.95, 1]);
 
   return (
     <>
@@ -53,22 +63,26 @@ export default function HomePage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 2.3, ease: [0.22, 1, 0.36, 1] }}
         style={{ 
-          height: isMobile ? 'auto' : '300vh', // На мобильных высота авто
+          height: isMobile ? 'auto' : '300vh',
           position: 'relative'
         }}
       >
         {/* Hero Section */}
         <motion.section 
           className="layer layer--hero"
-          style={isMobile ? {} : {
+          style={isMobile ? {
+            position: 'relative',
+            height: '100vh',
+            width: '100%'
+          } : {
             position: 'fixed',
             top: 0,
             left: 0,
             width: '100%',
             height: '100vh',
-            opacity: useTransform(sectionIndex, [0, 0.5], [1, 0]),
-            scale: useTransform(sectionIndex, [0, 1], [1, 0.95]),
-            filter: useTransform(sectionIndex, [0, 1], ['blur(0px)', 'blur(4px)']),
+            opacity: desktopOpacity,
+            scale: desktopScale,
+            filter: desktopBlur,
             pointerEvents: useTransform(sectionIndex, (v) => v === 0 ? 'auto' : 'none'),
             zIndex: 3
           }}
@@ -79,14 +93,18 @@ export default function HomePage() {
         {/* Panorama Section */}
         <motion.section 
           className="layer layer--apartments"
-          style={isMobile ? {} : {
+          style={isMobile ? {
+            position: 'relative',
+            height: '100vh',
+            width: '100%'
+          } : {
             position: 'fixed',
             top: 0,
             left: 0,
             width: '100%',
             height: '100vh',
-            opacity: useTransform(sectionIndex, [0.33, 0.5, 0.66], [0, 1, 1]),
-            scale: useTransform(sectionIndex, [0.5, 1.5], [0.95, 1]),
+            opacity: panoramaOpacity,
+            scale: panoramaScale,
             filter: useTransform(sectionIndex, (v) => 
               v === 1 ? 'blur(0px)' : 'blur(4px)'
             ),
@@ -100,14 +118,18 @@ export default function HomePage() {
         {/* Reviews + Footer Section */}
         <motion.section 
           className="layer layer--reviews"
-          style={isMobile ? {} : {
+          style={isMobile ? {
+            position: 'relative',
+            height: '100vh',
+            width: '100%'
+          } : {
             position: 'fixed',
             top: 0,
             left: 0,
             width: '100%',
             height: '100vh',
-            opacity: useTransform(sectionIndex, [0.66, 0.8, 1], [0, 1, 1]),
-            scale: useTransform(sectionIndex, [0.8, 2], [0.95, 1]),
+            opacity: reviewsOpacity,
+            scale: reviewsScale,
             pointerEvents: useTransform(sectionIndex, (v) => v === 2 ? 'auto' : 'none'),
             zIndex: useTransform(sectionIndex, (v) => v >= 2 ? 4 : 1),
             overflowY: useTransform(sectionIndex, (v) => v === 2 ? 'auto' : 'hidden')
