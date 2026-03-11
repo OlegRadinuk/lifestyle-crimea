@@ -39,12 +39,13 @@ export default function AdminLayout({
   }
 
   const menuItems = [
-    { href: '/admin', label: 'Дашборд', icon: '📊' },
-    { href: '/admin/apartments', label: 'Апартаменты', icon: '🏢' },
-    { href: '/admin/bookings', label: 'Бронирования', icon: '📋' },
-    { href: '/admin/travelline-bookings', label: 'Брони (Travelline)', icon: '🔄' },
-    { href: '/admin/calendar', label: 'Календарь', icon: '📅' },
-    { href: '/admin/settings', label: 'Настройки', icon: '⚙️' },
+     { href: '/admin', label: 'Дашборд', icon: '📊' },
+  { href: '/admin/apartments', label: 'Апартаменты', icon: '🏢' },
+  { href: '/admin/bookings', label: 'Брони (сайт)', icon: '📋' },
+  { href: '/admin/travelline-bookings', label: 'Брони (Travelline)', icon: '🔄' },
+  { href: '/admin/sync-logs', label: 'Логи синхронизации', icon: '📝' }, // НОВЫЙ ПУНКТ
+  { href: '/admin/calendar', label: 'Календарь', icon: '📅' },
+  { href: '/admin/settings', label: 'Настройки', icon: '⚙️' },
   ];
 
   const handleLogout = () => {
