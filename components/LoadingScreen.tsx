@@ -165,7 +165,7 @@ export function LoadingScreen() {
               animate={{ opacity: [0.3, 0.8, 0.3] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              подготовка к просмотру
+              Проходим на ресепшн
             </motion.p>
           </div>
 

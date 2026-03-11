@@ -27,7 +27,7 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Отслеживаем прогресс скролла (всегда включено, но используем только на десктопе)
+  // Отслеживаем прогресс скролла
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -39,16 +39,15 @@ export default function HomePage() {
     [0, 0, 1, 1, 2, 2]
   );
 
-  // Создаем отдельные значения для мобильных и десктопа
-  const desktopOpacity = useTransform(sectionIndex, [0, 0.5], [1, 0]);
-  const desktopScale = useTransform(sectionIndex, [0, 1], [1, 0.95]);
-  const desktopBlur = useTransform(sectionIndex, [0, 1], ['blur(0px)', 'blur(4px)']);
+  // Создаем отдельные значения для анимаций
+  const heroOpacity = useTransform(sectionIndex, [0, 0.3], [1, 0]);
+  const heroScale = useTransform(sectionIndex, [0, 0.3], [1, 0.95]);
+  const heroBlur = useTransform(sectionIndex, [0, 0.3], ['blur(0px)', 'blur(4px)']);
   
-  const panoramaOpacity = useTransform(sectionIndex, [0.33, 0.5, 0.66], [0, 1, 1]);
-  const panoramaScale = useTransform(sectionIndex, [0.5, 1.5], [0.95, 1]);
+  const panoramaOpacity = useTransform(sectionIndex, [0.2, 0.4, 0.6], [0, 1, 1]);
+  const panoramaScale = useTransform(sectionIndex, [0.4, 0.6], [0.95, 1]);
   
-  const reviewsOpacity = useTransform(sectionIndex, [0.66, 0.8, 1], [0, 1, 1]);
-  const reviewsScale = useTransform(sectionIndex, [0.8, 2], [0.95, 1]);
+  const reviewsOpacity = useTransform(sectionIndex, [0.6, 0.8, 1], [0, 1, 1]);
 
   return (
     <>
@@ -62,102 +61,24 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 2.3, ease: [0.22, 1, 0.36, 1] }}
-        style={{ 
-          height: isMobile ? 'auto' : '300vh',
-          position: 'relative'
-        }}
       >
-        {/* Hero Section */}
-        <motion.section 
-          className="layer layer--hero"
-          style={isMobile ? {
-            position: 'relative',
-            height: '100vh',
-            width: '100%'
-          } : {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100vh',
-            opacity: desktopOpacity,
-            scale: desktopScale,
-            filter: desktopBlur,
-            pointerEvents: useTransform(sectionIndex, (v) => v === 0 ? 'auto' : 'none'),
-            zIndex: 3
-          }}
-        >
+        {/* Hero Section - всегда видна первой */}
+        <section className="layer layer--hero">
           <Hero />
-        </motion.section>
+        </section>
 
-        {/* Panorama Section */}
-        <motion.section 
-          className="layer layer--apartments"
-          style={isMobile ? {
-            position: 'relative',
-            height: '100vh',
-            width: '100%'
-          } : {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100vh',
-            opacity: panoramaOpacity,
-            scale: panoramaScale,
-            filter: useTransform(sectionIndex, (v) => 
-              v === 1 ? 'blur(0px)' : 'blur(4px)'
-            ),
-            pointerEvents: useTransform(sectionIndex, (v) => v === 1 ? 'auto' : 'none'),
-            zIndex: useTransform(sectionIndex, (v) => v >= 1 ? 2 : 1)
-          }}
-        >
+        {/* Panorama Section - появляется при скролле */}
+        <section className="layer layer--apartments">
           <PanoramaViewer />
-        </motion.section>
+        </section>
 
-        {/* Reviews + Footer Section */}
-        <motion.section 
-          className="layer layer--reviews"
-          style={isMobile ? {
-            position: 'relative',
-            height: '100vh',
-            width: '100%'
-          } : {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100vh',
-            opacity: reviewsOpacity,
-            scale: reviewsScale,
-            pointerEvents: useTransform(sectionIndex, (v) => v === 2 ? 'auto' : 'none'),
-            zIndex: useTransform(sectionIndex, (v) => v >= 2 ? 4 : 1),
-            overflowY: useTransform(sectionIndex, (v) => v === 2 ? 'auto' : 'hidden')
-          }}
-        >
-          <div style={{ 
-            height: '100%', 
-            overflowY: isMobile ? 'visible' : 'auto',
-            WebkitOverflowScrolling: 'touch'
-          }}>
+        {/* Reviews + Footer Section - появляется последней */}
+        <section className="layer layer--reviews">
+          <div className="reviews-footer-container">
             <Reviews />
             <Footer />
           </div>
-        </motion.section>
-
-        {/* Мобильный индикатор прокрутки */}
-        {isMobile && (
-          <motion.div 
-            className="mobile-scroll-indicator"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.8, duration: 0.5 }}
-          >
-            <span className="scroll-dot" />
-            <span className="scroll-dot" />
-            <span className="scroll-dot" />
-          </motion.div>
-        )}
+        </section>
       </motion.main>
     </>
   );
