@@ -88,19 +88,8 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     return () => window.removeEventListener('keydown', esc);
   }, [onClose]);
 
-  useEffect(() => {
-    if (activeItem.type !== 'slider' || !activeItem.images) return;
-
-    const timer = setInterval(() => {
-      setSlideIndex((prev) => {
-        const next = (prev + 1) % activeItem.images!.length;
-        slideMemory.current[activeItem.title] = next;
-        return next;
-      });
-    }, 4500);
-
-    return () => clearInterval(timer);
-  }, [activeItem]);
+  // Убираем автоплей - теперь слайдер не листается автоматически
+  // useEffect для автоплея удален
 
   const nextSlide = () => {
     if (!activeItem.images) return;
