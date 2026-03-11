@@ -7,26 +7,21 @@ export function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Ждем загрузки всех ресурсов
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
-
+    const timer = setTimeout(() => setIsLoading(false), 2500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Анимация для букв
+  // Правильные варианты анимации для Framer Motion
   const letterVariants = {
     hidden: { opacity: 0, y: 50 },
-    visible: (i: number) => ({
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
       transition: {
-        delay: i * 0.08,
         duration: 0.6,
         ease: [0.22, 1, 0.36, 1]
       }
-    })
+    }
   };
 
   // Разбиваем текст на буквы
@@ -41,17 +36,11 @@ export function LoadingScreen() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
-          style={{
-            background: 'radial-gradient(circle at 30% 30%, #0B2A35, #051015)'
-          }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center loading-screen"
         >
           {/* Анимированные волны на фоне */}
           <motion.div
-            className="absolute inset-0 opacity-20"
-            style={{
-              background: 'radial-gradient(circle at 50% 50%, #139AB6 0%, transparent 70%)'
-            }}
+            className="absolute inset-0 opacity-20 loading-bg-wave"
             animate={{
               scale: [1, 1.2, 1],
               opacity: [0.2, 0.3, 0.2]
@@ -74,16 +63,16 @@ export function LoadingScreen() {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 0.2
               }}
-              className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-[#139AB6] to-[#0D6B7F] flex items-center justify-center shadow-2xl shadow-[#139AB6]/30"
+              className="loading-logo"
             >
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M4 8L4 4L8 4M16 4L20 4L20 8M20 16L20 20L16 20M8 20L4 20L4 16" strokeLinecap="round"/>
-                <circle cx="12" cy="12" r="3" fill="white" fillOpacity="0.2" stroke="white"/>
+                <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" stroke="currentColor"/>
               </svg>
             </motion.div>
 
             {/* Заголовок по буквам */}
-            <div className="mb-4">
+            <div className="loading-title-container">
               {title.map((letter, index) => (
                 <motion.span
                   key={index}
@@ -91,12 +80,8 @@ export function LoadingScreen() {
                   variants={letterVariants}
                   initial="hidden"
                   animate="visible"
-                  className="text-5xl md:text-6xl font-light inline-block"
-                  style={{ 
-                    color: '#fff',
-                    textShadow: '0 0 20px rgba(19,154,182,0.5)',
-                    marginRight: letter === ' ' ? '0.3em' : '0.05em'
-                  }}
+                  transition={{ delay: index * 0.08 }}
+                  className="loading-letter"
                 >
                   {letter}
                 </motion.span>
@@ -105,7 +90,7 @@ export function LoadingScreen() {
 
             {/* Подзаголовок по буквам */}
             <motion.div 
-              className="mb-12"
+              className="loading-subtitle-container"
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.8 }}
               transition={{ delay: 0.8, duration: 0.5 }}
@@ -113,12 +98,7 @@ export function LoadingScreen() {
               {subtitle.map((letter, index) => (
                 <motion.span
                   key={index}
-                  className="text-sm md:text-base uppercase tracking-[0.3em] inline-block"
-                  style={{ 
-                    color: '#fff',
-                    opacity: 0.7,
-                    marginRight: letter === ' ' ? '0.5em' : '0.1em'
-                  }}
+                  className="loading-subtitle-letter"
                   animate={{
                     opacity: [0.5, 1, 0.5],
                   }}
@@ -135,15 +115,11 @@ export function LoadingScreen() {
             </motion.div>
 
             {/* Индикатор загрузки */}
-            <div className="flex justify-center items-center gap-3">
+            <div className="loading-dots">
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="w-3 h-3 rounded-full"
-                  style={{ 
-                    background: i === 1 ? '#139AB6' : 'rgba(255,255,255,0.3)',
-                    boxShadow: i === 1 ? '0 0 20px #139AB6' : 'none'
-                  }}
+                  className="loading-dot"
                   animate={{
                     scale: [1, 1.3, 1],
                     opacity: [0.5, 1, 0.5],
@@ -160,13 +136,13 @@ export function LoadingScreen() {
 
             {/* Прогресс-бар */}
             <motion.div 
-              className="mt-8 w-48 h-[2px] mx-auto bg-white/10 rounded-full overflow-hidden"
+              className="loading-progress-container"
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: '12rem', opacity: 1 }}
+              animate={{ width: "12rem", opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
               <motion.div
-                className="h-full bg-gradient-to-r from-[#139AB6] to-[#4FD0E8]"
+                className="loading-progress-bar"
                 initial={{ width: '0%' }}
                 animate={{ width: '100%' }}
                 transition={{ 
@@ -179,7 +155,7 @@ export function LoadingScreen() {
 
             {/* Текст "загрузка" */}
             <motion.p
-              className="text-white/40 text-xs mt-4 tracking-[0.3em] uppercase"
+              className="loading-text"
               animate={{ opacity: [0.3, 0.8, 0.3] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -189,7 +165,7 @@ export function LoadingScreen() {
 
           {/* Декоративные элементы */}
           <motion.div
-            className="absolute bottom-10 left-10 w-20 h-20 border border-white/5 rounded-full"
+            className="loading-decoration-circle loading-decoration-circle-1"
             animate={{
               scale: [1, 1.2, 1],
               rotate: [0, 180, 360],
@@ -198,7 +174,7 @@ export function LoadingScreen() {
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute top-20 right-20 w-32 h-32 border border-white/5 rounded-full"
+            className="loading-decoration-circle loading-decoration-circle-2"
             animate={{
               scale: [1, 1.3, 1],
               rotate: [360, 180, 0],

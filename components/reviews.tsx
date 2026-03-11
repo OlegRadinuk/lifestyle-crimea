@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useHeader } from '@/components/HeaderContext';
 
 type Review = {
@@ -42,21 +41,9 @@ const REVIEWS: Review[] = [
 
 export default function Reviews() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-
   const { register, unregister } = useHeader();
-
   const [visible, setVisible] = useState(false);
-  const [index, setIndex] = useState(REVIEWS.length); // начинаем с первого оригинального
-  const [paused, setPaused] = useState(false);
-  const [slideWidth, setSlideWidth] = useState(0);
 
-  const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS]; // зацикливаем
-
-  /* ===== HEADER MODE ===== */
   useEffect(() => {
     if (!sectionRef.current) return;
 
@@ -65,10 +52,8 @@ export default function Reviews() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          register(id, {
-            mode: 'dark',
-            priority: 3,
-          });
+          register(id, { mode: 'dark', priority: 3 });
+          setVisible(true);
         } else {
           unregister(id);
         }
@@ -77,196 +62,40 @@ export default function Reviews() {
     );
 
     observer.observe(sectionRef.current);
-
     return () => {
       observer.disconnect();
       unregister(id);
     };
   }, [register, unregister]);
 
-  /* ===== VISIBLE ANIMATION ===== */
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  /* ===== CALC SLIDE WIDTH ===== */
-  useEffect(() => {
-    const calculateWidth = () => {
-      if (!viewportRef.current) return;
-      
-      const viewportWidth = viewportRef.current.clientWidth;
-      const gap = 20; // должно совпадать с gap в CSS
-      const slidesPerView = window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3;
-      const width = (viewportWidth - (gap * (slidesPerView - 1))) / slidesPerView;
-      
-      setSlideWidth(width);
-    };
-
-    calculateWidth();
-    window.addEventListener('resize', calculateWidth);
-    
-    return () => window.removeEventListener('resize', calculateWidth);
-  }, []);
-
-  /* ===== AUTOPLAY ===== */
-  useEffect(() => {
-    if (paused) return;
-
-    const id = setInterval(() => {
-      setIndex(i => i + 1);
-    }, 5000);
-
-    return () => clearInterval(id);
-  }, [paused]);
-
-  /* ===== TRANSLATE ===== */
-  useEffect(() => {
-    if (!trackRef.current || slideWidth === 0) return;
-
-    trackRef.current.style.transform = `translateX(-${index * (slideWidth + 20)}px)`;
-
-    // бесконечная прокрутка
-    if (index >= REVIEWS.length * 2) {
-      setTimeout(() => {
-        trackRef.current!.style.transition = 'none';
-        setIndex(REVIEWS.length);
-        requestAnimationFrame(() => {
-          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-        });
-      }, 600);
-    }
-
-    if (index <= 0) {
-      setTimeout(() => {
-        trackRef.current!.style.transition = 'none';
-        setIndex(REVIEWS.length);
-        requestAnimationFrame(() => {
-          trackRef.current!.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-        });
-      }, 600);
-    }
-  }, [index, slideWidth]);
-
-  /* ===== TOUCH HANDLERS FOR SWIPE ===== */
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    setPaused(true); // останавливаем автоплей при касании
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-
-    const diffX = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50; // минимальное расстояние для свайпа
-
-    if (Math.abs(diffX) > minSwipeDistance) {
-      if (diffX > 0) {
-        // свайп влево - следующий отзыв
-        setIndex(i => i + 1);
-      } else {
-        // свайп вправо - предыдущий отзыв
-        setIndex(i => i - 1);
-      }
-    }
-
-    // сбрасываем значения
-    touchStartX.current = null;
-    touchEndX.current = null;
-    
-    // возобновляем автоплей через небольшую задержку
-    setTimeout(() => setPaused(false), 3000);
-  };
-
   return (
-    <section
-      ref={sectionRef}
-      className={`reviews ${visible ? 'is-visible' : ''}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="reviews__mobile-content">
+    <section ref={sectionRef} className="reviews">
+      <div className="reviews__content">
         <h2 className="reviews__title">
-          Отзывы гостей о комплексе апартаментов «Стиль Жизни»
+          Отзывы гостей
         </h2>
 
-        <div
-          className="reviews__outer"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          {/* Стрелки скрыты на мобильных через CSS, оставлены для десктопа */}
-          <button
-            className="reviews__arrow reviews__arrow--left"
-            onClick={() => setIndex(i => i - 1)}
-            aria-label="Предыдущие отзывы"
-          >
-            ‹
-          </button>
-
-          <div className="reviews__viewport" ref={viewportRef}>
-            <div className="reviews__track" ref={trackRef}>
-              {slides.map((review, i) => (
-                <motion.div
-                  key={`${review.author}-${i}`}
-                  className="review-card"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ 
-                    duration: 0.7, 
-                    delay: (i % REVIEWS.length) * 0.1,
-                    ease: [0.22, 1, 0.36, 1]
-                  }}
-                  whileHover={{ 
-                    y: -8,
-                    boxShadow: '0 25px 40px rgba(19, 154, 182, 0.25)',
-                    transition: { duration: 0.3 }
-                  }}
-                >
-                  <p className="review-card__text">{review.text}</p>
-                  <div className="review-card__author">{review.author}</div>
-                </motion.div>
-              ))}
+        <div className="reviews__grid">
+          {REVIEWS.map((review, i) => (
+            <div 
+              key={i} 
+              className="review-card"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              <p className="review-card__text">{review.text}</p>
+              <div className="review-card__author">{review.author}</div>
             </div>
-          </div>
-
-          <button
-            className="reviews__arrow reviews__arrow--right"
-            onClick={() => setIndex(i => i + 1)}
-            aria-label="Следующие отзывы"
-          >
-            ›
-          </button>
+          ))}
         </div>
 
-        <motion.a
-          className="reviews__yandex"
-          href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
-          target="_blank"
-          rel="noreferrer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          whileHover={{ scale: 1.05, boxShadow: '0 15px 30px rgba(19, 154, 182, 0.4)' }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Смотреть все отзывы на Яндекс Картах
-        </motion.a>
+        <a
+  className="reviews__yandex"
+  href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Все отзывы на Яндекс Картах
+</a>
       </div>
     </section>
   );
