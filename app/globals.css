@@ -6221,3 +6221,75 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ===== МОБИЛЬНЫЕ ПЛАВНЫЕ ПЕРЕКЛЮЧЕНИЯ ===== */
+@media (max-width: 768px) {
+  /* Отключаем sticky на мобильных */
+  .layer {
+    position: relative !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+    top: 0 !important;
+  }
+
+  /* Убираем спейсеры на мобильных */
+  .layer-spacer {
+    display: none !important;
+  }
+
+  /* Добавляем плавные переходы */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Улучшаем производительность скролла */
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Добавляем визуальный индикатор переключения */
+  .layer {
+    transition: opacity 0.4s ease;
+    position: relative;
+  }
+
+  .layer::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.03));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .layer:not(:last-child)::after {
+    opacity: 1;
+  }
+
+  /* Затемнение при скролле */
+  .layer--hero {
+    background: #000;
+  }
+}
+
+/* Анимация для точек загрузки */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+}

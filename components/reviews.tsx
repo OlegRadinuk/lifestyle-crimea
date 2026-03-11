@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useHeader } from '@/components/HeaderContext';
 
 type Review = {
@@ -221,10 +222,25 @@ export default function Reviews() {
           <div className="reviews__viewport" ref={viewportRef}>
             <div className="reviews__track" ref={trackRef}>
               {slides.map((review, i) => (
-                <div className="review-card" key={`${review.author}-${i}`}>
+                <motion.div
+                  key={`${review.author}-${i}`}
+                  className="review-card"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                  transition={{ 
+                    duration: 0.7, 
+                    delay: (i % REVIEWS.length) * 0.1,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  whileHover={{ 
+                    y: -8,
+                    boxShadow: '0 25px 40px rgba(19, 154, 182, 0.25)',
+                    transition: { duration: 0.3 }
+                  }}
+                >
                   <p className="review-card__text">{review.text}</p>
                   <div className="review-card__author">{review.author}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -238,14 +254,19 @@ export default function Reviews() {
           </button>
         </div>
 
-        <a
+        <motion.a
           className="reviews__yandex"
           href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
           target="_blank"
           rel="noreferrer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ scale: 1.05, boxShadow: '0 15px 30px rgba(19, 154, 182, 0.4)' }}
+          whileTap={{ scale: 0.98 }}
         >
           Смотреть все отзывы на Яндекс Картах
-        </a>
+        </motion.a>
       </div>
     </section>
   );
