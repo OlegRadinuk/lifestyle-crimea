@@ -111,13 +111,18 @@ async function getModifiedBookings(lastSyncTime) {
     page++;
     const url = new URL(`https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings`);
     url.searchParams.set('count', '1000');
-    url.searchParams.set('lastModification', lastSyncTime.toISOString());
+    
+    // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ:
+    // Передаём lastModification ТОЛЬКО на первой странице
+    if (!continueToken) {
+      url.searchParams.set('lastModification', lastSyncTime.toISOString());
+    }
     
     if (continueToken) {
       url.searchParams.set('continueToken', continueToken);
     }
 
-    console.log(`\n📄 Fetching page ${page} (changes since ${lastSyncTime.toISOString()})...`);
+    console.log(`\n📄 Fetching page ${page}...`);
     
     const response = await fetchWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
