@@ -163,10 +163,9 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                   key={item.title}
                   className={activeItem.title === item.title ? 'active' : ''}
                   onMouseEnter={() => {
-                    setHoveredItem(item);
-                    setSlideIndex(slideMemory.current[item.title] ?? 0);
-                  }}
-                  onMouseLeave={() => setHoveredItem(null)}
+  setHoveredItem(item);
+  setSlideIndex(slideMemory.current[item.title] ?? 0);
+}}
                   onClick={() => handleNavigation(item)}
                   style={{ whiteSpace: 'pre-line' }}
                 >
@@ -189,10 +188,12 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
 
           {/* RIGHT */}
           <div
-            className="burger-preview"
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-          >
+  className="burger-preview"
+  onMouseEnter={() => {}} // ничего не делаем, просто держим текущий hoveredItem
+  onMouseLeave={() => setHoveredItem(null)} // сбрасываем только когда мышь ушла с правой панели
+  onTouchStart={onTouchStart}
+  onTouchEnd={onTouchEnd}
+>
             {activeItem.type === 'image' && activeItem.image && (
               <div
                 key={activeItem.image}
