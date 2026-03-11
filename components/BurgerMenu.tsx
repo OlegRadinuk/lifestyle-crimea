@@ -73,7 +73,6 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   const slideMemory = useRef<Record<string, number>>({});
   const touchStartX = useRef<number | null>(null);
 
-  /* ✅ ИСПРАВЛЕНО: useMemo теперь всегда вызывается в одном и том же порядке */
   const baseActiveItem = useMemo(() => {
     const found = menuItems.find(
       (item) => item.href.split('#')[0] === pathname
@@ -81,17 +80,14 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     return found ?? menuItems[0];
   }, [pathname]);
 
-  // Активный элемент: либо hovered, либо baseActiveItem
   const activeItem = hoveredItem ?? baseActiveItem;
 
-  /* ESC */
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [onClose]);
 
-  /* автослайд */
   useEffect(() => {
     if (activeItem.type !== 'slider' || !activeItem.images) return;
 
@@ -163,9 +159,9 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                   key={item.title}
                   className={activeItem.title === item.title ? 'active' : ''}
                   onMouseEnter={() => {
-  setHoveredItem(item);
-  setSlideIndex(slideMemory.current[item.title] ?? 0);
-}}
+                    setHoveredItem(item);
+                    setSlideIndex(slideMemory.current[item.title] ?? 0);
+                  }}
                   onClick={() => handleNavigation(item)}
                   style={{ whiteSpace: 'pre-line' }}
                 >
@@ -188,12 +184,12 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
 
           {/* RIGHT */}
           <div
-  className="burger-preview"
-  onMouseEnter={() => {}} // ничего не делаем, просто держим текущий hoveredItem
-  onMouseLeave={() => setHoveredItem(null)} // сбрасываем только когда мышь ушла с правой панели
-  onTouchStart={onTouchStart}
-  onTouchEnd={onTouchEnd}
->
+            className="burger-preview"
+            onMouseEnter={() => {}}
+            onMouseLeave={() => setHoveredItem(null)}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             {activeItem.type === 'image' && activeItem.image && (
               <div
                 key={activeItem.image}
@@ -203,27 +199,29 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
             )}
 
             {activeItem.type === 'slider' && activeItem.images && (
-              <div className="slider">
-                <div
-                  key={slideIndex}
-                  className="preview-media zoom"
-                  style={{
-                    backgroundImage: `url(${activeItem.images[slideIndex]})`,
-                  }}
+              <div className="burger__slider">
+                <div 
+                  className="burger__slide" 
+                  style={{ backgroundImage: `url(${activeItem.images[slideIndex]})` }}
                 />
-
-                <div className="slider-controls">
-                  <button onClick={prevSlide} aria-label="Предыдущий слайд">‹</button>
-                  <div className="dots">
-                    {activeItem.images.map((_, i) => (
-                      <span
-                        key={i}
-                        className={i === slideIndex ? 'active' : ''}
-                        onClick={() => setSlideIndex(i)}
-                      />
-                    ))}
-                  </div>
-                  <button onClick={nextSlide} aria-label="Следующий слайд">›</button>
+                <button 
+                  className="burger__nav burger__nav--left" 
+                  onClick={prevSlide} 
+                  aria-label="Предыдущий слайд"
+                />
+                <button 
+                  className="burger__nav burger__nav--right" 
+                  onClick={nextSlide} 
+                  aria-label="Следующий слайд"
+                />
+                <div className="burger__dots">
+                  {activeItem.images.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`burger__dot ${i === slideIndex ? 'active' : ''}`}
+                      onClick={() => setSlideIndex(i)}
+                    />
+                  ))}
                 </div>
               </div>
             )}

@@ -3577,7 +3577,7 @@ body {
   }
 }
 
-/* ===== ПИЗДАТЫЙ СКРОЛЛ С ПРИЛИПАНИЕМ ===== */
+/* ===== ВОССТАНАВЛИВАЕМ РАБОЧИЙ СКРОЛЛ ===== */
 .frame {
   position: relative;
   width: 100%;
@@ -3593,7 +3593,7 @@ body {
   height: 100vh;
   width: 100%;
   overflow: hidden;
-  will-change: transform, opacity, filter;
+  will-change: transform;
 }
 
 .layer-spacer {
@@ -3616,6 +3616,7 @@ body {
   overflow-y: auto;
 }
 
+/* Эффект затемнения при скролле */
 .layer--hero::after {
   content: '';
   position: absolute;
@@ -3639,7 +3640,7 @@ body {
   transform: translateY(-40px);
 }
 
-/* ===== БУРГЕР НА МОБИЛКЕ - ТОЛЬКО ТЕКСТ ===== */
+/* ===== БУРГЕР НА МОБИЛКЕ (ТОЛЬКО ТЕКСТ) ===== */
 @media (max-width: 768px) {
   .burger-layout {
     grid-template-columns: 1fr !important;
@@ -3671,10 +3672,6 @@ body {
 
 /* ===== МОБИЛЬНЫЕ ОТЗЫВЫ (60%) И ФУТЕР (40%) ===== */
 @media (max-width: 768px) {
-  .layer--reviews {
-    overflow-y: visible !important;
-  }
-
   .reviews {
     min-height: 60vh !important;
     height: 60vh !important;
