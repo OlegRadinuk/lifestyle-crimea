@@ -3,12 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 
-type Review = {
-  author: string;
-  text: string;
-};
-
-const REVIEWS: Review[] = [
+const REVIEWS = [
   {
     author: 'Татьяна',
     text: 'Приятные апартаменты. Прожили 9 дней, остались в восторге. Красивый вид на море, стильный интерьер и чистота.',
@@ -40,9 +35,9 @@ const REVIEWS: Review[] = [
 ];
 
 export default function Reviews() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -55,10 +50,8 @@ export default function Reviews() {
 
   const slides = [...REVIEWS, ...REVIEWS, ...REVIEWS];
 
-  // Header mode
   useEffect(() => {
     if (!sectionRef.current) return;
-
     const id = 'reviews';
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -71,7 +64,6 @@ export default function Reviews() {
       },
       { threshold: 0.4 }
     );
-
     observer.observe(sectionRef.current);
     return () => {
       observer.disconnect();
@@ -79,40 +71,29 @@ export default function Reviews() {
     };
   }, [register, unregister]);
 
-  // Calculate slide width
   useEffect(() => {
     const calculateWidth = () => {
       if (!viewportRef.current) return;
-      
       const viewportWidth = viewportRef.current.clientWidth;
-      const gap = 20;
+      const gap = 24;
       const slidesPerView = window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3;
       const width = (viewportWidth - (gap * (slidesPerView - 1))) / slidesPerView;
-      
       setSlideWidth(width);
     };
-
     calculateWidth();
     window.addEventListener('resize', calculateWidth);
     return () => window.removeEventListener('resize', calculateWidth);
   }, []);
 
-  // Autoplay
   useEffect(() => {
     if (paused) return;
-
-    const id = setInterval(() => {
-      setIndex(i => i + 1);
-    }, 5000);
-
+    const id = setInterval(() => setIndex(i => i + 1), 5000);
     return () => clearInterval(id);
   }, [paused]);
 
-  // Translate track
   useEffect(() => {
     if (!trackRef.current || slideWidth === 0) return;
-
-    trackRef.current.style.transform = `translateX(-${index * (slideWidth + 20)}px)`;
+    trackRef.current.style.transform = `translateX(-${index * (slideWidth + 24)}px)`;
 
     if (index >= REVIEWS.length * 2) {
       setTimeout(() => {
@@ -141,7 +122,6 @@ export default function Reviews() {
     }
   }, [index, slideWidth]);
 
-  // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     setPaused(true);
@@ -153,16 +133,12 @@ export default function Reviews() {
 
   const handleTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
-
     const diffX = touchStartX.current - touchEndX.current;
     const minSwipeDistance = 50;
 
     if (Math.abs(diffX) > minSwipeDistance) {
-      if (diffX > 0) {
-        setIndex(i => i + 1);
-      } else {
-        setIndex(i => i - 1);
-      }
+      if (diffX > 0) setIndex(i => i + 1);
+      else setIndex(i => i - 1);
     }
 
     touchStartX.current = null;
