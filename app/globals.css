@@ -3577,6 +3577,165 @@ body {
   }
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ===== ВОССТАНАВЛИВАЕМ РАБОЧИЙ СКРОЛЛ ===== */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.layer {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.layer-spacer {
+  height: 30vh;
+  width: 100%;
+  pointer-events: none;
+}
+
+.layer--hero {
+  z-index: 3;
+}
+
+.layer--apartments {
+  z-index: 2;
+  background: #fff;
+}
+
+.layer--reviews {
+  z-index: 1;
+  overflow-y: auto;
+}
+
+/* Эффект затемнения при скролле */
+.layer--hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
+
+.layer--hero.is-behind::after {
+  opacity: 1;
+}
+
+.hero__content {
+  transform: translateY(0);
+  transition: transform 0.6s ease;
+}
+
+.layer--hero.is-behind .hero__content {
+  transform: translateY(-40px);
+}
+
+/* ===== БУРГЕР НА МОБИЛКЕ (ТОЛЬКО ТЕКСТ) ===== */
+@media (max-width: 768px) {
+  .burger-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .burger-preview {
+    display: none !important;
+  }
+
+  .burger-menu {
+    padding: 40px 30px !important;
+  }
+
+  .burger-left {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .burger-contacts {
+    padding: 30px 30px !important;
+  }
+
+  .burger-booking {
+    margin: 20px 30px !important;
+    width: auto !important;
+  }
+}
+
+/* ===== МОБИЛЬНЫЕ ОТЗЫВЫ (60%) И ФУТЕР (40%) ===== */
+@media (max-width: 768px) {
+  .reviews {
+    min-height: 60vh !important;
+    height: 60vh !important;
+    padding: 20px 20px 15px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  .reviews__title {
+    font-size: 24px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .review-card {
+    padding: 20px 20px !important;
+    margin: 0 15px !important;
+  }
+
+  .reviews__yandex {
+    margin-top: 15px !important;
+    padding: 10px 24px !important;
+    font-size: 13px !important;
+  }
+
+  .footer {
+    min-height: 40vh !important;
+    height: 40vh !important;
+    padding: 15px 20px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .footer__inner {
+    padding: 20px !important;
+    gap: 15px !important;
+  }
+
+  .footer__title {
+    font-size: 20px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .footer__text {
+    font-size: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .footer__map {
+    min-height: 120px !important;
+  }
+
+  .footer__contacts {
+    gap: 8px 12px !important;
+  }
+
+  .footer__contacts a,
+  .footer__contacts span {
+    font-size: 12px !important;
+  }
+
+  .footer__copy {
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+    font-size: 11px !important;
+  }
+}

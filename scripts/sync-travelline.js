@@ -13,7 +13,7 @@ const TRAVELLINE_CLIENT_SECRET = 'ohuU3N07mqvSEdHufhpktuqdlXCV5A5I';
 const TRAVELLINE_PROPERTY_ID = '37777';
 
 const REQUEST_DELAY_MS = 1000;        // 1 сек между запросами
-const MAX_PAGES_PER_RUN = 5;          // 5 страниц за запуск
+const MAX_PAGES_PER_RUN = 20;         // 20 страниц за запуск
 const STATE_FILE = path.join(__dirname, '..', 'travelline-state.json');
 const DB_PATH = path.join(__dirname, '..', 'data.sqlite');
 
@@ -26,14 +26,16 @@ let syncState = {
   continueToken: null,
   totalProcessed: 0,
   lastRun: null,
-  isComplete: false
+  isComplete: false,
+  found2026: false,           // Новый флаг - нашли ли уже 2026 год
+  first2026Token: null        // Токен первой брони 2026 года
 };
 
 function loadState() {
   try {
     if (fs.existsSync(STATE_FILE)) {
       const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-      console.log(`📊 Loaded state: processed=${state.totalProcessed}, complete=${state.isComplete}`);
+      console.log(`📊 Loaded state: processed=${state.totalProcessed}, complete=${state.isComplete}, found2026=${state.found2026 || false}`);
       return state;
     }
   } catch (e) {
@@ -43,7 +45,9 @@ function loadState() {
     continueToken: null, 
     totalProcessed: 0, 
     lastRun: null,
-    isComplete: false 
+    isComplete: false,
+    found2026: false,
+    first2026Token: null
   };
 }
 
@@ -186,18 +190,25 @@ const ROOM_TYPE_MAPPING = {
 // ============================================
 async function syncBookings() {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 TRAVELLINE PRODUCTION SYNC v3.0');
+  console.log('🚀 TRAVELLINE PRODUCTION SYNC v4.0 (2026 SEEKER)');
   console.log('='.repeat(70));
   console.log(`Property ID: ${TRAVELLINE_PROPERTY_ID}`);
   console.log(`Time: ${new Date().toLocaleString()}`);
   console.log('='.repeat(70));
 
-  // Загружаем состояние (ВАЖНО!)
+  // Загружаем состояние
   syncState = loadState();
   
-  // Если синхронизация завершена - начинаем сначала
-  if (syncState.isComplete) {
-    console.log('🔄 Previous sync completed, starting new cycle');
+  // Если уже нашли 2026 год - начинаем сразу оттуда
+  if (syncState.found2026 && syncState.first2026Token) {
+    console.log(`🎯 Already found 2026! Starting from token: ${syncState.first2026Token.substring(0, 30)}...`);
+    syncState.continueToken = syncState.first2026Token;
+    syncState.totalProcessed = 0; // Обнуляем счетчик для 2026
+    syncState.isComplete = false;
+  }
+  // Если синхронизация завершена, но 2026 ещё не нашли - начинаем поиск
+  else if (syncState.isComplete && !syncState.found2026) {
+    console.log('🔍 Previous sync completed, searching for 2026 bookings...');
     syncState.continueToken = null;
     syncState.totalProcessed = 0;
     syncState.isComplete = false;
@@ -249,13 +260,33 @@ async function syncBookings() {
       for (let i = 0; i < summaries.length; i++) {
         const summary = summaries[i];
         stats.totalThisRun++;
+        const currentNumber = syncState.totalProcessed + stats.totalThisRun;
 
-        process.stdout.write(`\n   [${syncState.totalProcessed + stats.totalThisRun}] ${summary.number}... `);
+        process.stdout.write(`\n   [${currentNumber}] ${summary.number}... `);
+
+        // === ВАЖНО: Проверяем, не нашли ли мы 2026 год ===
+        if (!syncState.found2026 && summary.number.startsWith('2026')) {
+          console.log(`\n   🎉🎉🎉 FOUND FIRST 2026 BOOKING! 🎉🎉🎉`);
+          console.log(`   Booking: ${summary.number}`);
+          console.log(`   Current token: ${continueToken}`);
+          
+          // Сохраняем токен первой брони 2026 года
+          syncState.found2026 = true;
+          syncState.first2026Token = continueToken;
+          syncState.continueToken = continueToken;
+          syncState.totalProcessed = currentNumber;
+          saveState(syncState);
+          
+          console.log(`   💾 Token saved! Next runs will start from 2026.`);
+          
+          // Завершаем этот запуск, чтобы не тратить лимиты
+          hasMore = false;
+          break;
+        }
 
         try {
           const booking = await getBookingDetails(summary.number);
 
-          // Отменённые
           if (booking.status === 'Cancelled') {
             const deleted = db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
             if (deleted.changes > 0) {
@@ -318,12 +349,21 @@ async function syncBookings() {
       continueToken = data.continueToken;
       hasMore = data.hasMoreData;
 
-      syncState.continueToken = continueToken;
-      syncState.totalProcessed += summaries.length;
-      syncState.isComplete = !hasMore;
-      saveState(syncState);
+      // Сохраняем прогресс (но не перезаписываем found2026)
+      if (!syncState.found2026) {
+        syncState.continueToken = continueToken;
+        syncState.totalProcessed += summaries.length;
+        syncState.isComplete = !hasMore;
+        saveState(syncState);
+      }
       
       console.log(`\n📊 Progress saved. Total processed: ${syncState.totalProcessed}`);
+      
+      // Если нашли 2026 - выходим
+      if (syncState.found2026) {
+        console.log(`\n🎯 Found 2026, stopping this run. Next runs will start from 2026.`);
+        break;
+      }
     }
 
     console.log('\n' + '='.repeat(70));
@@ -338,7 +378,9 @@ async function syncBookings() {
     console.log(`💥 Errors:              ${stats.errors}`);
     console.log('='.repeat(70));
     
-    if (hasMore) {
+    if (syncState.found2026) {
+      console.log(`\n🎉🎉🎉 SUCCESS: Found 2026 bookings! Future runs will start from 2026. 🎉🎉🎉`);
+    } else if (hasMore) {
       console.log(`\n⏸️  Paused. Next run will continue from token.`);
     } else {
       console.log(`\n🎉 ALL BOOKINGS SYNCED! Total: ${syncState.totalProcessed}`);

@@ -47,22 +47,23 @@ export function LoadingScreen() {
 
           {/* Основной контент */}
           <div className="relative z-10 text-center">
-            {/* Логотип или иконка */}
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                duration: 0.8, 
-                ease: [0.22, 1, 0.36, 1],
-                delay: 0.2
-              }}
-              className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-[#139AB6] to-[#0D6B7F] flex items-center justify-center shadow-2xl shadow-[#139AB6]/30 text-white"
-            >
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M4 8L4 4L8 4M16 4L20 4L20 8M20 16L20 20L16 20M8 20L4 20L4 16" strokeLinecap="round"/>
-                <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" stroke="currentColor"/>
-              </svg>
-            </motion.div>
+            {/* Логотип */}
+<motion.div
+  initial={{ scale: 0, rotate: -180 }}
+  animate={{ scale: 1, rotate: 0 }}
+  transition={{ 
+    duration: 0.8, 
+    ease: [0.22, 1, 0.36, 1],
+    delay: 0.2
+  }}
+  className="w-24 h-24 mx-auto mb-8"
+>
+  <img 
+    src="/images/logo/logo-white.webp"
+    alt="Life Style Crimea"
+    className="w-full h-full object-contain"
+  />
+</motion.div>
 
             {/* Заголовок по буквам */}
             <div className="mb-4 flex justify-center flex-wrap">

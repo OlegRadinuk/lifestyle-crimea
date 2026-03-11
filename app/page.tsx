@@ -24,21 +24,26 @@ export default function HomePage() {
       </AnimatePresence>
 
       <main className="frame">
+        {/* Сцена 1 - Hero */}
         <section className="layer layer--hero">
           <Hero />
         </section>
 
         <div className="layer-spacer" />
 
+        {/* Сцена 2 - Panorama */}
         <section className="layer layer--apartments">
           <PanoramaViewer />
         </section>
 
         <div className="layer-spacer" />
 
+        {/* Сцена 3 - Reviews + Footer вместе */}
         <section className="layer layer--reviews">
-          <Reviews />
-          <Footer />
+          <div className="reviews-footer-container">
+            <Reviews />
+            <Footer />
+          </div>
         </section>
       </main>
     </>
