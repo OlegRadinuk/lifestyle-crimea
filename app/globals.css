@@ -6603,90 +6603,61 @@ a {
 .frame {
   position: relative;
   width: 100%;
-  background: #000;
 }
 
-/* Десктоп - sticky слои */
-@media (min-width: 769px) {
-  .layer {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .layer--hero {
-    z-index: 3;
-  }
-
-  .layer--apartments {
-    z-index: 2;
-  }
-
-  .layer--reviews {
-    z-index: 1;
-    overflow-y: auto;
-  }
-
-  .reviews-footer-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .reviews-footer-container > *:first-child {
-    flex: 1 1 auto;
-  }
+.layer {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
 }
 
-/* Мобильные - нативный скролл */
-@media (max-width: 768px) {
-  .frame {
-    height: auto !important;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .layer {
-    position: relative !important;
-    height: 100vh !important;
-    width: 100% !important;
-    overflow: hidden !important;
-  }
-
-  .layer--reviews {
-    overflow-y: auto !important;
-  }
-
-  .reviews-footer-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .reviews-footer-container > *:first-child {
-    flex: 1 1 auto;
-  }
+.layer-spacer {
+  height: 30vh;
 }
 
-/* ===== REVIEWS - ОРИГИНАЛЬНЫЙ СЛАЙДЕР ===== */
+/* Порядок наложения */
+.layer--hero {
+  z-index: 3;
+}
+
+.layer--apartments {
+  z-index: 2;
+  background: #fff;
+}
+
+.layer--reviews {
+  z-index: 1;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #ffffff, #f4fbfd);
+}
+
+/* ===== REVIEWS - ОРИГИНАЛЬНЫЙ РАБОЧИЙ СЛАЙДЕР ===== */
 .reviews {
   padding: 60px 40px;
   background: linear-gradient(180deg, #ffffff, #f4fbfd);
   overflow: hidden;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
 }
 
 .reviews__title {
   text-align: center;
   max-width: 900px;
-  margin: 0 auto 40px;
+  margin: 0 auto 50px;
   font-size: 42px;
   font-weight: 500;
+  opacity: 0;
+  transform: translateY(24px);
+  animation: fadeUp 0.8s ease forwards;
   color: #139AB6;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .reviews__outer {
@@ -6695,24 +6666,17 @@ a {
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
-  min-height: 0;
 }
 
 .reviews__viewport {
   width: 100%;
   overflow: hidden;
-  cursor: grab;
-}
-
-.reviews__viewport:active {
-  cursor: grabbing;
 }
 
 .reviews__track {
   display: flex;
   gap: 20px;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
@@ -6722,13 +6686,23 @@ a {
   border-radius: 24px;
   padding: 36px;
   border: 1px solid rgba(19, 154, 182, 0.14);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: cardIn 0.6s ease forwards;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .review-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 20px 40px rgba(19, 154, 182, 0.15);
+}
+
+@keyframes cardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .review-card__text {
@@ -6742,6 +6716,8 @@ a {
   font-weight: 600;
   color: #139ab6;
   text-align: right;
+  border-top: 1px solid rgba(19, 154, 182, 0.14);
+  padding-top: 16px;
 }
 
 .reviews__arrow {
@@ -6760,6 +6736,7 @@ a {
   align-items: center;
   justify-content: center;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .reviews__arrow:hover {
@@ -6768,16 +6745,16 @@ a {
 }
 
 .reviews__arrow--left {
-  margin-right: 20px;
+  margin-right: 24px;
 }
 
 .reviews__arrow--right {
-  margin-left: 20px;
+  margin-left: 24px;
 }
 
 .reviews__yandex {
   display: block;
-  margin: 40px auto 0;
+  margin: 60px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
@@ -6796,51 +6773,6 @@ a {
   transform: translateY(-2px);
 }
 
-/* Мобильные отзывы */
-@media (max-width: 768px) {
-  .reviews {
-    padding: 40px 20px;
-  }
-
-  .reviews__title {
-    font-size: 28px;
-    margin-bottom: 30px;
-  }
-
-  .review-card {
-    flex: 0 0 calc(100% - 40px);
-    padding: 24px;
-  }
-
-  .reviews__arrow {
-    display: none;
-  }
-
-  .reviews__track {
-    gap: 15px;
-  }
-
-  .reviews__yandex {
-    margin-top: 30px;
-    font-size: 14px;
-    padding: 10px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .reviews__title {
-    font-size: 24px;
-  }
-
-  .review-card {
-    padding: 20px;
-  }
-
-  .review-card__text {
-    font-size: 14px;
-  }
-}
-
 /* ===== FOOTER ===== */
 .footer {
   background: linear-gradient(180deg, #1c2226, #161b1f);
@@ -6857,6 +6789,7 @@ a {
   background: rgba(255, 255, 255, 0.02);
   border-radius: 28px;
   padding: 40px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .footer__title {
@@ -6911,7 +6844,40 @@ a {
   filter: grayscale(1) contrast(1.1) brightness(0.9);
 }
 
+/* ===== MOBILE ===== */
 @media (max-width: 768px) {
+  .layer-spacer {
+    display: none;
+  }
+
+  .layer {
+    position: relative !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .layer--reviews {
+    overflow-y: auto !important;
+  }
+
+  .reviews {
+    padding: 40px 20px;
+  }
+
+  .reviews__title {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+
+  .review-card {
+    flex: 0 0 100%;
+    padding: 24px;
+  }
+
+  .reviews__arrow {
+    display: none;
+  }
+
   .footer {
     padding: 30px 20px;
   }

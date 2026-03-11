@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useHeader } from '@/components/HeaderContext';
 
 type Review = {
@@ -115,7 +114,6 @@ export default function Reviews() {
 
     trackRef.current.style.transform = `translateX(-${index * (slideWidth + 20)}px)`;
 
-    // Infinite scroll
     if (index >= REVIEWS.length * 2) {
       setTimeout(() => {
         if (!trackRef.current) return;
@@ -123,10 +121,10 @@ export default function Reviews() {
         setIndex(REVIEWS.length);
         requestAnimationFrame(() => {
           if (trackRef.current) {
-            trackRef.current.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+            trackRef.current.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
           }
         });
-      }, 500);
+      }, 600);
     }
 
     if (index <= 0) {
@@ -136,10 +134,10 @@ export default function Reviews() {
         setIndex(REVIEWS.length);
         requestAnimationFrame(() => {
           if (trackRef.current) {
-            trackRef.current.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+            trackRef.current.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
           }
         });
-      }, 500);
+      }, 600);
     }
   }, [index, slideWidth]);
 
@@ -200,20 +198,14 @@ export default function Reviews() {
         <div className="reviews__viewport" ref={viewportRef}>
           <div className="reviews__track" ref={trackRef}>
             {slides.map((review, i) => (
-              <motion.div
+              <div
                 key={`${review.author}-${i}`}
                 className="review-card"
-                initial={{ opacity: 0, y: 30 }}
-                animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{ 
-                  duration: 0.7,
-                  delay: (i % REVIEWS.length) * 0.1,
-                  ease: [0.22, 1, 0.36, 1]
-                }}
+                style={{ animationDelay: `${(i % REVIEWS.length) * 0.1}s` }}
               >
                 <p className="review-card__text">{review.text}</p>
                 <div className="review-card__author">{review.author}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
