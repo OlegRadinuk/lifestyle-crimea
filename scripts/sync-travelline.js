@@ -11,9 +11,8 @@ const TRAVELLINE_CLIENT_ID = 'api_connection_cd609_643b0e0b30';
 const TRAVELLINE_CLIENT_SECRET = 'ohuU3N07mqvSEdHufhpktuqdlXCV5A5I';
 const TRAVELLINE_PROPERTY_ID = '37777';
 
-// Лимиты: не более 1 запроса в секунду (60 в минуту)
-const REQUEST_DELAY_MS = 1000;
-const MAX_PAGES = 50; // ограничим, чтобы не уйти в бесконечность
+const REQUEST_DELAY_MS = 200; // 200ms = 5 запросов в секунду (ниже лимита)
+const MAX_PAGES = 20; // Максимум страниц за один запуск
 
 let token = null;
 let tokenExpiry = 0;
@@ -26,6 +25,28 @@ const db = new Database(dbPath);
 // ============================================
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Получение времени последней синхронизации
+function getLastSyncTime() {
+  try {
+    const lastSync = db.prepare(`
+      SELECT last_sync FROM sync_log 
+      WHERE source = 'travelline' 
+      ORDER BY last_sync DESC LIMIT 1
+    `).get();
+    
+    if (lastSync) {
+      return new Date(lastSync.last_sync);
+    }
+  } catch (error) {
+    console.log('ℹ️ No previous sync found');
+  }
+  
+  // Первый запуск - берём брони за последние 60 дней
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+  return sixtyDaysAgo;
 }
 
 async function getToken() {
@@ -51,7 +72,7 @@ async function getToken() {
 
   const data = await response.json();
   token = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000; // 14 минут
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
   console.log('✅ New token obtained');
   return token;
 }
@@ -78,9 +99,9 @@ async function fetchWithRetry(url, options, retries = 3) {
 }
 
 // ============================================
-// ПОЛУЧЕНИЕ ВСЕХ СТРАНИЦ БРОНЕЙ
+// ПОЛУЧЕНИЕ ТОЛЬКО ИЗМЕНЁННЫХ БРОНЕЙ
 // ============================================
-async function getAllBookingSummaries() {
+async function getModifiedBookings(lastSyncTime) {
   const token = await getToken();
   let continueToken = null;
   let page = 0;
@@ -89,12 +110,15 @@ async function getAllBookingSummaries() {
   do {
     page++;
     const url = new URL(`https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings`);
-    url.searchParams.set('count', '1000'); // максимум на страницу
+    url.searchParams.set('count', '1000');
+    url.searchParams.set('lastModification', lastSyncTime.toISOString());
+    
     if (continueToken) {
       url.searchParams.set('continueToken', continueToken);
     }
 
-    console.log(`\n📄 Fetching page ${page}...`);
+    console.log(`\n📄 Fetching page ${page} (changes since ${lastSyncTime.toISOString()})...`);
+    
     const response = await fetchWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -136,7 +160,7 @@ async function getBookingDetails(bookingNumber) {
 }
 
 // ============================================
-// МАППИНГ ID КОМНАТ (ваш существующий)
+// МАППИНГ ID КОМНАТ
 // ============================================
 const ROOM_TYPE_MAPPING = {
   '278023': 'ls-space',
@@ -185,15 +209,17 @@ const ROOM_TYPE_MAPPING = {
 // ============================================
 async function syncBookings() {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 TRAVELLINE FULL SYNC (FUTURE-ONLY)');
+  console.log('🚀 TRAVELLINE INCREMENTAL SYNC');
   console.log('='.repeat(70));
   console.log(`Property ID: ${TRAVELLINE_PROPERTY_ID}`);
   console.log(`Time: ${new Date().toLocaleString()}`);
   console.log('='.repeat(70));
 
+  const lastSync = getLastSyncTime();
+  console.log(`📅 Last sync: ${lastSync.toLocaleString()}`);
+
   const stats = {
-    totalSummaries: 0,
-    processed: 0,
+    total: 0,
     saved: 0,
     cancelled: 0,
     skippedPast: 0,
@@ -202,25 +228,25 @@ async function syncBookings() {
   };
 
   try {
-    // 1. Получаем ВСЕ summaries (с пагинацией)
-    const summaries = await getAllBookingSummaries();
-    stats.totalSummaries = summaries.length;
-    console.log(`\n📊 Total booking summaries fetched: ${stats.totalSummaries}`);
+    // Получаем ТОЛЬКО изменённые с момента последней синхронизации
+    const summaries = await getModifiedBookings(lastSync);
+    stats.total = summaries.length;
+    console.log(`\n📊 Total modified bookings: ${stats.total}`);
 
-    // 2. Обрабатываем каждую бронь с задержкой
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     for (let i = 0; i < summaries.length; i++) {
       const summary = summaries[i];
-      stats.processed++;
 
       process.stdout.write(`\n[${i + 1}/${summaries.length}] ${summary.number}... `);
 
       try {
-        // Задержка перед каждым запросом деталей (кроме первого, но можно всегда)
         if (i > 0) await sleep(REQUEST_DELAY_MS);
 
         const booking = await getBookingDetails(summary.number);
 
-        // Обработка отменённых
+        // Отменённые - удаляем
         if (booking.status === 'Cancelled') {
           const deleted = db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
           if (deleted.changes > 0) {
@@ -232,9 +258,6 @@ async function syncBookings() {
           continue;
         }
 
-        // Проверяем будущие даты заезда
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         let hasFuture = false;
 
         for (const roomStay of booking.roomStays || []) {
@@ -243,12 +266,12 @@ async function syncBookings() {
 
           const checkInDate = new Date(checkIn);
           checkInDate.setHours(0, 0, 0, 0);
+          
           if (checkInDate < today) {
-            // прошлая дата – пропускаем это roomStay, но может быть несколько roomStay?
-            continue;
+            continue; // пропускаем прошлые
           }
 
-          hasFuture = true; // есть хотя бы один будущий roomStay
+          hasFuture = true;
 
           const roomTypeId = roomStay.roomType?.id;
           const apartmentId = ROOM_TYPE_MAPPING[roomTypeId];
@@ -286,19 +309,6 @@ async function syncBookings() {
       }
     }
 
-    // 3. Итог
-    console.log('\n' + '='.repeat(70));
-    console.log('📊 SYNC SUMMARY');
-    console.log('='.repeat(70));
-    console.log(`📋 Total summaries:      ${stats.totalSummaries}`);
-    console.log(`✅ Processed:            ${stats.processed}`);
-    console.log(`📅 Future bookings saved: ${stats.saved}`);
-    console.log(`❌ Cancelled:            ${stats.cancelled}`);
-    console.log(`⏭️  Skipped (past dates): ${stats.skippedPast}`);
-    console.log(`⚠️ No mapping:           ${stats.noMapping}`);
-    console.log(`💥 Errors:               ${stats.errors}`);
-    console.log('='.repeat(70));
-
     // Логируем успех
     db.prepare(`
       INSERT INTO sync_log (source, last_sync, status, message)
@@ -307,8 +317,19 @@ async function syncBookings() {
       'travelline',
       new Date().toISOString(),
       'success',
-      `Future:${stats.saved}, Cancelled:${stats.cancelled}, Errors:${stats.errors}`
+      `Modified:${stats.total}, Saved:${stats.saved}, Cancelled:${stats.cancelled}`
     );
+
+    console.log('\n' + '='.repeat(70));
+    console.log('📊 SYNC SUMMARY');
+    console.log('='.repeat(70));
+    console.log(`📋 Modified bookings:   ${stats.total}`);
+    console.log(`✅ Saved (future):      ${stats.saved}`);
+    console.log(`❌ Cancelled:           ${stats.cancelled}`);
+    console.log(`⏭️  Skipped (past):      ${stats.skippedPast}`);
+    console.log(`⚠️ No mapping:          ${stats.noMapping}`);
+    console.log(`💥 Errors:              ${stats.errors}`);
+    console.log('='.repeat(70));
 
   } catch (error) {
     console.error('\n❌ SYNC FAILED:', error);
@@ -324,5 +345,4 @@ async function syncBookings() {
   }
 }
 
-// Запуск
 syncBookings();
