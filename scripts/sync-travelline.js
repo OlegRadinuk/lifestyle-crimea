@@ -12,32 +12,41 @@ const TRAVELLINE_CLIENT_ID = 'api_connection_cd609_643b0e0b30';
 const TRAVELLINE_CLIENT_SECRET = 'ohuU3N07mqvSEdHufhpktuqdlXCV5A5I';
 const TRAVELLINE_PROPERTY_ID = '37777';
 
-const REQUEST_DELAY_MS = 1000; // 1 секунда между запросами
+// Настройки производительности
+const REQUEST_DELAY_MS = 1000;        // 1 сек между запросами (безопасно)
+const MAX_PAGES_PER_RUN = 5;          // 5 страниц за запуск (~5000 броней)
+const TOKEN_REFRESH_MARGIN = 120000;   // Обновлять токен за 2 мин до истечения
+
+// Файл состояния
 const STATE_FILE = path.join(__dirname, '..', 'travelline-state.json');
-
-let token = null;
-let tokenExpiry = 0;
-
-const dbPath = path.join(__dirname, '..', 'data.sqlite');
-const db = new Database(dbPath);
 
 // ============================================
 // СОСТОЯНИЕ СИНХРОНИЗАЦИИ
 // ============================================
+let token = null;
+let tokenExpiry = 0;
+let syncState = {
+  continueToken: null,
+  totalProcessed: 0,
+  lastRun: null,
+  isComplete: false
+};
+
 function loadState() {
   try {
     if (fs.existsSync(STATE_FILE)) {
       const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-      console.log(`📅 Last sync token: ${state.continueToken || 'none'}`);
+      console.log(`📊 State loaded: ${state.totalProcessed} processed, complete: ${state.isComplete}`);
       return state;
     }
   } catch (e) {
     console.log('ℹ️ No state file found, starting fresh');
   }
-  return {
-    continueToken: null,
-    processedCount: 0,
-    lastRun: null
+  return { 
+    continueToken: null, 
+    totalProcessed: 0, 
+    lastRun: null,
+    isComplete: false 
   };
 }
 
@@ -47,47 +56,68 @@ function saveState(state) {
 }
 
 // ============================================
+// РАБОТА С ТОКЕНОМ
+// ============================================
+async function getToken(force = false) {
+  const now = Date.now();
+  
+  // Если токен ещё жив и не форсируем
+  if (!force && token && now < tokenExpiry - TOKEN_REFRESH_MARGIN) {
+    return token;
+  }
+
+  console.log('\n🔑 Getting new token...');
+  
+  try {
+    const response = await fetch('https://partner.tlintegration.com/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: TRAVELLINE_CLIENT_ID,
+        client_secret: TRAVELLINE_CLIENT_SECRET,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Auth failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    token = data.access_token;
+    tokenExpiry = now + (data.expires_in - 60) * 1000; // 14 минут (запас 1 мин)
+    
+    console.log(`✅ Token valid until ${new Date(tokenExpiry).toLocaleTimeString()}`);
+    return token;
+  } catch (error) {
+    console.error('❌ Token error:', error.message);
+    throw error;
+  }
+}
+
+// ============================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function getToken() {
-  if (token && Date.now() < tokenExpiry) {
-    console.log('🔑 Using cached token');
-    return token;
-  }
-
-  console.log('🔑 Getting new token...');
-  const response = await fetch('https://partner.tlintegration.com/auth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: TRAVELLINE_CLIENT_ID,
-      client_secret: TRAVELLINE_CLIENT_SECRET,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Auth failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  token = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-  console.log('✅ Token obtained');
-  return token;
-}
-
 async function fetchWithRetry(url, options, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      await sleep(REQUEST_DELAY_MS); // Всегда ждём перед запросом
+      // Задержка перед запросом (кроме первой попытки)
+      if (i > 0) await sleep(REQUEST_DELAY_MS * 2);
       
       const response = await fetch(url, options);
       
+      // Токен истёк
+      if (response.status === 401) {
+        console.log('⚠️ Token expired, refreshing...');
+        options.headers.Authorization = `Bearer ${await getToken(true)}`;
+        continue;
+      }
+      
+      // Rate limit
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
         const wait = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
@@ -95,6 +125,7 @@ async function fetchWithRetry(url, options, retries = 3) {
         await sleep(wait);
         continue;
       }
+      
       return response;
     } catch (err) {
       if (i === retries - 1) throw err;
@@ -114,9 +145,7 @@ async function getBookingDetails(bookingNumber) {
     `https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings/${bookingNumber}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
+  
   const data = await response.json();
   return data.booking;
 }
@@ -164,7 +193,7 @@ const ROOM_TYPE_MAPPING = {
   '363094': 'ls-lux-fly-birds',
   '280610': 'ls-deep-forest',
   '281311': 'ls-flowers-tea',
-  '368602': 'ls-lux-sweet-caramel', // Добавляем!
+  '368602': 'ls-lux-sweet-caramel', // Добавлено
 };
 
 // ============================================
@@ -172,15 +201,29 @@ const ROOM_TYPE_MAPPING = {
 // ============================================
 async function syncBookings() {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 TRAVELLINE PRODUCTION SYNC');
+  console.log('🚀 TRAVELLINE PRODUCTION SYNC v2.0');
   console.log('='.repeat(70));
   console.log(`Property ID: ${TRAVELLINE_PROPERTY_ID}`);
   console.log(`Time: ${new Date().toLocaleString()}`);
+  console.log(`Max pages/run: ${MAX_PAGES_PER_RUN}`);
   console.log('='.repeat(70));
 
-  const state = loadState();
+  // Загружаем состояние
+  syncState = loadState();
+  
+  // Если синхронизация завершена - начинаем сначала
+  if (syncState.isComplete) {
+    console.log('🔄 Previous sync completed, starting new cycle');
+    syncState.continueToken = null;
+    syncState.isComplete = false;
+  }
+
+  const dbPath = path.join(__dirname, '..', 'data.sqlite');
+  const db = new Database(dbPath);
+
   const stats = {
-    total: 0,
+    pageCount: 0,
+    totalThisRun: 0,
     saved: 0,
     cancelled: 0,
     skippedPast: 0,
@@ -189,17 +232,15 @@ async function syncBookings() {
   };
 
   try {
-    const token = await getToken();
-    let continueToken = state.continueToken;
-    let page = 0;
+    await getToken();
+    let continueToken = syncState.continueToken;
     let hasMore = true;
-    let batchCount = 0;
-    const MAX_BATCHES = 5; // Максимум 5 страниц за запуск
 
-    console.log(`\n📡 Resuming from token: ${continueToken || 'start'}`);
+    console.log(`\n📡 Continue token: ${continueToken || 'start'}`);
 
-    while (hasMore && page < MAX_BATCHES) {
-      page++;
+    while (hasMore && stats.pageCount < MAX_PAGES_PER_RUN) {
+      stats.pageCount++;
+      
       const url = new URL(`https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings`);
       url.searchParams.set('count', '1000');
       
@@ -207,15 +248,11 @@ async function syncBookings() {
         url.searchParams.set('continueToken', continueToken);
       }
 
-      console.log(`\n📄 Fetching page ${page}...`);
+      console.log(`\n📄 Page ${stats.pageCount} requesting...`);
       
       const response = await fetchWithRetry(url.toString(), {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch bookings: ${response.status}`);
-      }
 
       const data = await response.json();
       const summaries = data.bookingSummaries || [];
@@ -227,21 +264,18 @@ async function syncBookings() {
 
       for (let i = 0; i < summaries.length; i++) {
         const summary = summaries[i];
-        stats.total++;
+        stats.totalThisRun++;
 
-        process.stdout.write(`\n[${stats.total}] ${summary.number}... `);
+        process.stdout.write(`\n   [${stats.totalThisRun}] ${summary.number}... `);
 
         try {
           const booking = await getBookingDetails(summary.number);
 
+          // Отменённые
           if (booking.status === 'Cancelled') {
             const deleted = db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
-            if (deleted.changes > 0) {
-              console.log('❌ Cancelled (removed)');
-              stats.cancelled++;
-            } else {
-              console.log('⏭️  Cancelled (not in DB)');
-            }
+            console.log(deleted.changes > 0 ? '❌ Cancelled (removed)' : '⏭️  Cancelled (not in DB)');
+            if (deleted.changes > 0) stats.cancelled++;
             continue;
           }
 
@@ -254,9 +288,7 @@ async function syncBookings() {
             const checkInDate = new Date(checkIn);
             checkInDate.setHours(0, 0, 0, 0);
             
-            if (checkInDate < today) {
-              continue;
-            }
+            if (checkInDate < today) continue;
 
             hasFuture = true;
 
@@ -264,7 +296,7 @@ async function syncBookings() {
             const apartmentId = ROOM_TYPE_MAPPING[roomTypeId];
 
             if (!apartmentId) {
-              console.log(`\n   ⚠️ No mapping for roomType ${roomTypeId}`);
+              console.log(`\n      ⚠️ No mapping for roomType ${roomTypeId}`);
               stats.noMapping++;
               continue;
             }
@@ -272,14 +304,14 @@ async function syncBookings() {
             const checkOut = roomStay.stayDates?.departureDateTime?.split('T')[0];
             if (!checkOut) continue;
 
+            // Обновляем запись
             db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
-
             db.prepare(`
               INSERT INTO blocked_dates (apartment_id, start_date, end_date, source, booking_number)
               VALUES (?, ?, ?, ?, ?)
             `).run(apartmentId, checkIn, checkOut, 'travelline', summary.number);
 
-            console.log(`✅ Saved: ${apartmentId} (${checkIn} - ${checkOut})`);
+            console.log(`✅ ${apartmentId} (${checkIn} - ${checkOut})`);
             stats.saved++;
           }
 
@@ -292,39 +324,41 @@ async function syncBookings() {
           console.log(`❌ Error: ${error.message}`);
           stats.errors++;
         }
+
+        // Задержка между бронями
+        await sleep(REQUEST_DELAY_MS);
       }
 
       continueToken = data.continueToken;
       hasMore = data.hasMoreData;
 
-      // Сохраняем прогресс после каждой страницы
-      state.continueToken = continueToken;
-      state.processedCount += summaries.length;
-      saveState(state);
+      // Сохраняем прогресс
+      syncState.continueToken = continueToken;
+      syncState.totalProcessed += summaries.length;
+      syncState.isComplete = !hasMore;
+      saveState(syncState);
       
-      console.log(`\n📊 Progress saved. Processed: ${state.processedCount}`);
-
-      if (!hasMore) {
-        console.log('\n🏁 Reached end of data! Resetting token for next run.');
-        state.continueToken = null;
-        saveState(state);
-      }
+      console.log(`\n📊 Progress saved. Total processed: ${syncState.totalProcessed}`);
     }
 
-    if (hasMore) {
-      console.log(`\n⏸️  Paused. Next run will continue from token: ${continueToken}`);
-    }
-
+    // Итог
     console.log('\n' + '='.repeat(70));
-    console.log('📊 SYNC SUMMARY');
+    console.log('📊 RUN SUMMARY');
     console.log('='.repeat(70));
-    console.log(`📋 Processed this run:  ${stats.total}`);
+    console.log(`📋 Pages this run:     ${stats.pageCount}`);
+    console.log(`📋 Bookings this run:  ${stats.totalThisRun}`);
     console.log(`✅ Saved (future):      ${stats.saved}`);
     console.log(`❌ Cancelled:           ${stats.cancelled}`);
     console.log(`⏭️  Skipped (past):      ${stats.skippedPast}`);
     console.log(`⚠️ No mapping:          ${stats.noMapping}`);
     console.log(`💥 Errors:              ${stats.errors}`);
     console.log('='.repeat(70));
+    
+    if (hasMore) {
+      console.log(`\n⏸️  Paused. Next run will continue from token.`);
+    } else {
+      console.log(`\n🎉 ALL BOOKINGS SYNCED! Next run will start fresh.`);
+    }
 
   } catch (error) {
     console.error('\n❌ SYNC FAILED:', error);
@@ -332,4 +366,5 @@ async function syncBookings() {
   }
 }
 
+// Запуск
 syncBookings();
