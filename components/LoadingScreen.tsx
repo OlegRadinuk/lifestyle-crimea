@@ -13,7 +13,7 @@ export function LoadingScreen() {
 
   // Разбиваем текст на буквы
   const title = "Стиль Жизни".split("");
-  const subtitle = "Lifestyle · Luxury".split("");
+  const subtitle = "Алушта · с любовью".split("");
 
   return (
     <AnimatePresence mode="wait">
@@ -115,30 +115,6 @@ export function LoadingScreen() {
                 </motion.span>
               ))}
             </motion.div>
-
-            {/* Индикатор загрузки */}
-            <div className="flex justify-center items-center gap-3 mb-8">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-3 h-3 rounded-full"
-                  style={{ 
-                    background: i === 1 ? '#139AB6' : 'rgba(255,255,255,0.3)',
-                    boxShadow: i === 1 ? '0 0 20px #139AB6' : 'none'
-                  }}
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    delay: i * 0.2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              ))}
-            </div>
 
             {/* Прогресс-бар */}
             <motion.div 

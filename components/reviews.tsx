@@ -201,8 +201,9 @@ export default function Reviews() {
     >
       <div className="reviews__mobile-content">
         <h2 className="reviews__title">
-          Отзывы гостей о комплексе апартаментов «Стиль Жизни»
-        </h2>
+  Отзывы гостей
+  <span>Комплекс апартаментов «Стиль Жизни» в Алуште</span>
+</h2>
 
         <div
           className="reviews__outer"
