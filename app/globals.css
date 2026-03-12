@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RESET */
+/* ===== RESET ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* BASE */
+/* ===== BASE ===== */
 html, body {
   overscroll-behavior: none;
   font-family: var(--font-montserrat), sans-serif;
@@ -17,11 +17,11 @@ html, body {
   color: #343A40;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* важно: скролл будет только в контейнере */
+  overflow: hidden;
 }
 
 /* =========================
-   СКРОЛЛ-КОНТЕЙНЕР
+   СКРОЛЛ-КОНТЕЙНЕР (ИСПРАВЛЕНО)
 ========================= */
 .main-container {
   position: relative;
@@ -29,66 +29,79 @@ html, body {
   height: 100vh;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
-/* Десктоп: плавный скролл с доводкой */
-.main-container.desktop {
-  scroll-snap-type: y proximity;
+/* ДЕСКТОП — sticky + спейсеры (эффект наплыва) */
+@media (min-width: 769px) {
+  .main-container.desktop {
+    scroll-behavior: smooth;
+  }
+
+  .main-container.desktop .scene {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    width: 100%;
+    overflow: hidden;
+    will-change: transform;
+  }
+
+  .scene-spacer {
+    height: 30vh;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  /* Затемнение при уходе */
+  .scene--hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    opacity: 0;
+  }
+
+  .scene--hero.is-behind::after {
+    opacity: 1;
+  }
 }
 
-/* Мобилка: жёсткий snap */
-.main-container.mobile {
-  scroll-snap-type: y mandatory;
-}
+/* МОБИЛКА — snap с пропорциями 100/100/60/40 */
+@media (max-width: 768px) {
+  .main-container.mobile {
+    scroll-snap-type: y mandatory;
+  }
 
-/* Базовый слой */
-.scene {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
+  .main-container.mobile .scene {
+    position: relative !important;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    width: 100%;
+    overflow: hidden;
+  }
 
-/* Десктоп: все сцены на всю высоту */
-.main-container.desktop .scene {
-  height: 100vh;
-}
+  .main-container.mobile .scene--hero,
+  .main-container.mobile .scene--panorama {
+    height: 100vh !important;
+  }
 
-/* Мобилка: особые высоты */
-.main-container.mobile .scene--hero,
-.main-container.mobile .scene--panorama {
-  height: 100vh;
-}
+  .main-container.mobile .scene--reviews {
+    height: 60vh !important;
+  }
 
-.main-container.mobile .scene--reviews {
-  height: 60vh;
-}
+  .main-container.mobile .scene--footer {
+    height: 40vh !important;
+  }
 
-.main-container.mobile .scene--footer {
-  height: 40vh;
-}
-
-/* Затемнение при уходе */
-.scene::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 5;
-}
-
-.scene.fading::after {
-  opacity: 1;
+  .scene-spacer {
+    display: none;
+  }
 }
 
 /* =========================
-   HEADER
+   HEADER (ПОЛНОСТЬЮ ТВОЙ)
 ========================= */
 .header {
   position: fixed;
@@ -328,10 +341,6 @@ html, body {
   transform: translateY(-1px);
 }
 
-.header__booking:hover::before {
-  opacity: 1;
-}
-
 .header--dark .burger-text {
   color: #e5e7eb;
 }
@@ -388,7 +397,7 @@ html, body {
 }
 
 /* =========================
-   BURGER MENU
+   BURGER MENU (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .burger-overlay {
   position: fixed;
@@ -650,7 +659,7 @@ html, body {
 }
 
 /* =========================
-   HERO
+   HERO (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .hero {
   position: relative;
@@ -853,7 +862,7 @@ html, body {
 }
 
 /* =========================
-   PANORAMA VIEWER
+   PANORAMA VIEWER (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .panorama-section {
   position: relative;
@@ -1247,30 +1256,22 @@ html, body {
 }
 
 /* =========================
-   REVIEWS
+   REVIEWS (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .reviews {
-  padding: 0 40px;
+  padding: 80px 40px;
   background: linear-gradient(180deg, #ffffff, #f4fbfd);
   overflow: hidden;
-  height: 100%;
-  width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.reviews__container {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  position: relative;
-}
-
 .reviews__title {
   text-align: center;
   max-width: 900px;
-  margin: 0 auto 40px;
+  margin: 0 auto 60px;
   font-size: 42px;
   font-weight: 500;
   color: #139AB6;
@@ -1284,27 +1285,32 @@ html, body {
   transform: translateY(0);
 }
 
-.reviews__slider {
+.reviews__outer {
+  max-width: 1400px;
+  margin: 0 auto;
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
   width: 100%;
+}
+
+.reviews__viewport {
+  flex: 1;
   overflow: hidden;
   padding: 20px 0;
 }
 
 .reviews__track {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
-/* Центрирование трека */
-.main-container.desktop .reviews__track {
-  justify-content: center;
-}
-
 .review-card {
-  flex: 0 0 calc((100% - 48px) / 3); /* 3 карточки с gap 24px */
+  flex: 0 0 auto;
+  width: calc((100% - 40px) / 3);
   background: #ffffff;
   border-radius: 24px;
   padding: 36px;
@@ -1355,15 +1361,13 @@ html, body {
 }
 
 .reviews__arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   width: 56px;
   height: 56px;
   border-radius: 50%;
   border: 2px solid rgba(19, 154, 182, 0.25);
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #139ab6;
   font-size: 36px;
   cursor: pointer;
@@ -1371,29 +1375,30 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  flex-shrink: 0;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.reviews__arrow--left {
-  left: -28px;
-}
-
-.reviews__arrow--right {
-  right: -28px;
+  z-index: 10;
 }
 
 .reviews__arrow:hover {
-  transform: translateY(-50%) scale(1.15);
+  transform: scale(1.15);
   border-color: #139ab6;
   background: #139ab6;
   color: white;
   box-shadow: 0 15px 30px rgba(19, 154, 182, 0.3);
 }
 
+.reviews__arrow--left {
+  margin-right: 24px;
+}
+
+.reviews__arrow--right {
+  margin-left: 24px;
+}
+
 .reviews__yandex {
   display: block;
-  margin: 40px auto 0;
+  margin: 60px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
@@ -1405,6 +1410,7 @@ html, body {
   background: rgba(19, 154, 182, 0.08);
   width: fit-content;
   border: 1px solid rgba(19, 154, 182, 0.2);
+  letter-spacing: 0.5px;
 }
 
 .reviews__yandex:hover {
@@ -1416,16 +1422,13 @@ html, body {
 }
 
 /* =========================
-   FOOTER
+   FOOTER (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .footer {
   background: linear-gradient(180deg, #1c2226, #161b1f);
   padding: 60px 40px;
   color: #d6dde3;
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
 }
 
 .footer__inner {
@@ -1438,7 +1441,6 @@ html, body {
   border-radius: 32px;
   padding: 50px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  width: 100%;
 }
 
 .footer__title {
@@ -1508,7 +1510,7 @@ html, body {
 }
 
 /* =========================
-   CALENDAR & BOOKING
+   CALENDAR & BOOKING (ТВОЙ)
 ========================= */
 .availability-calendar {
   position: absolute;
@@ -2193,7 +2195,7 @@ html, body {
 }
 
 /* =========================
-   ADMIN PANEL STYLES
+   ADMIN PANEL STYLES (ТВОЙ)
 ========================= */
 .admin-layout {
   display: flex;
@@ -2870,7 +2872,7 @@ html, body {
 }
 
 /* =========================
-   МОБИЛЬНЫЕ СТИЛИ
+   МОБИЛЬНЫЕ СТИЛИ (ВСЁ ТВОЁ)
 ========================= */
 @media (max-width: 768px) {
   .header {
@@ -2937,17 +2939,6 @@ html, body {
   .header--hero.header--mobile .header__mobile-book-btn:active {
     transform: translateY(-50%) scale(0.98);
     background: rgba(19, 154, 182, 0.28);
-  }
-
-  .header--hero.header--mobile .header__mobile-book-btn::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    opacity: 0;
-    box-shadow: 0 0 40px rgba(19, 154, 182, 0.55);
-    transition: opacity 0.4s ease;
-    pointer-events: none;
   }
 
   .header--apartment.header--mobile .header__booking-wrapper {
