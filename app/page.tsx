@@ -39,13 +39,19 @@ export default function HomePage() {
           <Hero />
         </section>
 
+        {/* Спейсер между Hero и Panorama (только на десктопе) */}
+        {!isMobile && <div className="scene-spacer" />}
+
         {/* Сцена 2 - Panorama */}
         <section className="scene scene--panorama">
           <PanoramaViewer />
         </section>
 
-        {/* Сцена 3 - Отзывы */}
-        <section className="scene scene--reviews">
+        {/* Спейсер между Panorama и Reviews (только на десктопе) */}
+        {!isMobile && <div className="scene-spacer" />}
+
+        {/* Сцена 3 - Отзывы + Футер (ЕДИНАЯ СЦЕНА) */}
+        <section className="scene scene--reviews-footer">
           <Reviews />
         </section>
       </div>

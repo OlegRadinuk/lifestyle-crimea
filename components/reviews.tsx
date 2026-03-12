@@ -40,46 +40,34 @@ const REVIEWS: Review[] = [
   },
 ];
 
-export default function Reviews() {
+export default function ReviewsFinal() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const sliderRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const touchEndY = useRef<number | null>(null);
 
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [cardsPerView, setCardsPerView] = useState(3);
+  const [hovered, setHovered] = useState(false);
 
-  // Определяем количество карточек на экране
+  // Определяем мобилку
   useEffect(() => {
-    const updateCardsPerView = () => {
-      const width = window.innerWidth;
-      if (width <= 768) {
-        setCardsPerView(1);
-        setIsMobile(true);
-      } else if (width <= 1024) {
-        setCardsPerView(2);
-        setIsMobile(false);
-      } else {
-        setCardsPerView(3);
-        setIsMobile(false);
-      }
-    };
-    
-    updateCardsPerView();
-    window.addEventListener('resize', updateCardsPerView);
-    return () => window.removeEventListener('resize', updateCardsPerView);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Регистрация в HeaderContext
   useEffect(() => {
     if (!sectionRef.current) return;
-    const id = 'reviews';
+    const id = 'reviews-final';
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -112,89 +100,161 @@ export default function Reviews() {
     return () => observer.disconnect();
   }, []);
 
-  // Автоплей
+  // Автоплей - отключается при paused или hovered (на десктопе)
   useEffect(() => {
-    if (paused) return;
+    if (paused || (hovered && !isMobile)) return;
     const id = setInterval(() => {
       setCurrentIndex(i => (i + 1) % REVIEWS.length);
     }, 5000);
     return () => clearInterval(id);
-  }, [paused]);
+  }, [paused, hovered, isMobile]);
 
-  // Обработчики свайпа
+  // Обработчики для десктоп ховера
+  const handleMouseEnter = () => setHovered(true);
+  const handleMouseLeave = () => setHovered(false);
+
+  // Обработчики свайпа для мобилок
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
     setPaused(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    const diff = touchStartX.current - touchEndX.current;
+    if (!touchStartX.current || !touchEndX.current || !touchStartY.current || !touchEndY.current) return;
+    
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - touchEndY.current;
     const minSwipe = 50;
     
-    if (Math.abs(diff) > minSwipe) {
-      if (diff > 0) {
-        setCurrentIndex(i => (i + 1) % REVIEWS.length);
-      } else {
-        setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
+    // На мобилке вертикальные свайпы
+    if (isMobile) {
+      if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > minSwipe) {
+        if (diffY > 0) {
+          // Свайп вверх - следующий
+          setCurrentIndex(i => (i + 1) % REVIEWS.length);
+        } else {
+          // Свайп вниз - предыдущий
+          setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
+        }
+      }
+    } else {
+      // На десктопе горизонтальные свайпы (для тачпадов)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipe) {
+        if (diffX > 0) {
+          setCurrentIndex(i => (i + 1) % REVIEWS.length);
+        } else {
+          setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
+        }
       }
     }
     
     touchStartX.current = null;
     touchEndX.current = null;
+    touchStartY.current = null;
+    touchEndY.current = null;
+    
+    // Автоплей возобновится через 3 секунды
+    setTimeout(() => setPaused(false), 3000);
+  };
+
+  // Клик по карточке
+  const handleCardClick = (position: string) => {
+    setPaused(true);
+    if (position === 'prev') {
+      setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
+    } else if (position === 'next') {
+      setCurrentIndex(i => (i + 1) % REVIEWS.length);
+    }
     setTimeout(() => setPaused(false), 3000);
   };
 
   // Получаем видимые карточки
   const getVisibleReviews = () => {
-    const result = [];
-    for (let i = -1; i <= 1; i++) {
-      const index = (currentIndex + i + REVIEWS.length) % REVIEWS.length;
-      result.push(REVIEWS[index]);
+    if (!REVIEWS.length) return [];
+    
+    const total = REVIEWS.length;
+    const prevIndex = (currentIndex - 1 + total) % total;
+    const currIndex = currentIndex;
+    const nextIndex = (currentIndex + 1) % total;
+    
+    if (isMobile) {
+      // На мобилке показываем все отзывы вертикально
+      return REVIEWS;
+    } else {
+      // На десктопе показываем 3: предыдущий, текущий, следующий
+      return [
+        REVIEWS[prevIndex],
+        REVIEWS[currIndex],
+        REVIEWS[nextIndex]
+      ];
     }
-    return result;
   };
 
   const visibleReviews = getVisibleReviews();
 
+  if (!visibleReviews.length) {
+    return null;
+  }
+
   return (
     <section
       ref={sectionRef}
-      className={`reviews ${visible ? 'is-visible' : ''}`}
+      className={`rf-section ${visible ? 'rf-visible' : ''} ${isMobile ? 'rf-mobile' : 'rf-desktop'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="reviews__container">
-        <h2 className="reviews__title">
-          Отзывы гостей
-        </h2>
+      {/* Контейнер отзывов */}
+      <div className={`rf-container ${isMobile ? 'rf-container-mobile' : 'rf-container-desktop'}`}>
+        <h2 className="rf-title">Отзывы гостей</h2>
 
-        <div className="reviews__slider" ref={sliderRef}>
-          <div className="reviews__track" ref={trackRef}>
-            {visibleReviews.map((review, idx) => (
-              <div 
-                className="review-card" 
-                key={`${review.author}-${idx}`}
-                style={{
-                  transform: idx === 1 ? 'scale(1.05)' : 'scale(0.95)',
-                  opacity: idx === 1 ? 1 : 0.7,
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <p className="review-card__text">{review.text}</p>
-                <div className="review-card__author">{review.author}</div>
-              </div>
-            ))}
+        <div className="rf-slider">
+          <div className="rf-track" ref={trackRef}>
+            {visibleReviews.map((review, idx) => {
+              // Определяем позицию карточки
+              let position = 'center';
+              if (!isMobile) {
+                if (idx === 0) position = 'prev';
+                else if (idx === 2) position = 'next';
+              }
+              
+              return (
+                <div 
+                  className={`rf-card ${
+                    isMobile 
+                      ? (idx === currentIndex ? 'rf-card-center' : 'rf-card-side')
+                      : (idx === 1 ? 'rf-card-center' : `rf-card-${position}`)
+                  }`}
+                  key={`${review.author}-${idx}-${currentIndex}`}
+                  onClick={() => {
+                    if (!isMobile && position !== 'center') {
+                      handleCardClick(position);
+                    } else if (isMobile && idx !== currentIndex) {
+                      // На мобилке клик по любой карточке делает её центральной
+                      setCurrentIndex(idx);
+                      setPaused(true);
+                      setTimeout(() => setPaused(false), 3000);
+                    }
+                  }}
+                >
+                  <p className="rf-card-text">{review.text}</p>
+                  <div className="rf-card-author">{review.author}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <a
-          className="reviews__yandex"
+          className="rf-yandex-link"
           href="https://yandex.ru/maps/org/stil_zhizni/82645925123/"
           target="_blank"
           rel="noopener noreferrer"
@@ -203,8 +263,8 @@ export default function Reviews() {
         </a>
       </div>
 
-      {/* Footer ВНУТРИ секции, чтобы CSS работал */}
-      <Footer />
+      {/* Футер */}
+      <Footer isMobile={isMobile} />
     </section>
   );
 }
