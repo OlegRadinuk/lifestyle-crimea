@@ -1,21 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useScroll, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import Hero from '@/components/Hero';
 import PanoramaViewer from '@/components/PanoramaViewer';
 import Reviews from '@/components/reviews';
+import Footer from '@/components/Footer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Прогресс скролла (понадобится для эффектов)
-  const { scrollYProgress } = useScroll({
-    container: containerRef
-  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2500);
@@ -28,16 +24,6 @@ export default function HomePage() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Здесь потом добавим эффекты наплыва
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.onChange((progress) => {
-      // progress от 0 до 1
-      console.log('Scroll progress:', progress);
-    });
-    
-    return () => unsubscribe();
-  }, [scrollYProgress]);
 
   return (
     <>
@@ -59,10 +45,17 @@ export default function HomePage() {
           <PanoramaViewer />
         </section>
 
-        {/* Сцена 3 - Reviews + Footer (Footer внутри Reviews) */}
+        {/* Сцена 3 - Отзывы */}
         <section className="scene scene--reviews">
           <Reviews />
         </section>
+
+        {/* Сцена 4 - Футер (только на мобилке) */}
+        {isMobile && (
+          <section className="scene scene--footer">
+            <Footer />
+          </section>
+        )}
       </div>
     </>
   );
