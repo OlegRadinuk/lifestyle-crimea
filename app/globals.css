@@ -3564,19 +3564,18 @@ body {
 }
 
 /* ===== КРИТИЧЕСКИ ВАЖНО - СТИЛИ ДЛЯ СКРОЛЛА ===== */
+/* ===== ОСНОВНЫЕ СТИЛИ ДЛЯ СКРОЛЛА ===== */
 .frame {
   position: relative;
   width: 100%;
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  height: 300vh; /* 3 секции по 100vh + спейсеры */
+  background: #000;
 }
 
 .layer {
-  position: sticky !important;
-  top: 0 !important;
-  height: 100vh !important;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   width: 100%;
   overflow: hidden;
   will-change: transform;
@@ -3588,6 +3587,7 @@ body {
   pointer-events: none;
 }
 
+/* Порядок наложения */
 .layer--hero {
   z-index: 3;
 }
@@ -3602,6 +3602,7 @@ body {
   overflow-y: auto;
 }
 
+/* Затемнение при скролле */
 .layer--hero::after {
   content: '';
   position: absolute;
@@ -3653,4 +3654,29 @@ body {
     margin: 20px 30px !important;
     width: auto !important;
   }
+}
+
+@media (max-width: 768px) {
+  /* Отключаем sticky на мобильных */
+  .frame {
+    height: auto !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .layer {
+    position: relative !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .layer-spacer {
+    display: none;
+  }
+
+  .layer--reviews {
+    overflow-y: auto !important;
+  }
+
+  /* Остальные мобильные стили... */
 }
