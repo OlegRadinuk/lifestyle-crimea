@@ -186,9 +186,9 @@ export default function Header({ onBurgerClick }: Props) {
                   <div className="booking-field">
                     <label>Гости</label>
                     <select value={guests} onChange={e => setGuests(+e.target.value)}>
-                      {[1, 2, 3, 4, 5, 6].map(n => (
+                      {[1, 2, 3, 4, 5].map(n => (
                         <option key={n} value={n}>
-                          {n} {n === 1 ? 'гость' : 'гостей'}
+                          {n} {n === 1 ? 'гость' : 'гостя'}
                         </option>
                       ))}
                     </select>

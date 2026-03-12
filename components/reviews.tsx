@@ -50,7 +50,7 @@ export default function Reviews() {
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(1); // начинаем со второго (чтобы первая карточка была по центру)
+  const [currentIndex, setCurrentIndex] = useState(1);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [cardsPerView, setCardsPerView] = useState(3);
@@ -203,8 +203,8 @@ export default function Reviews() {
         </a>
       </div>
 
-      {/* Footer только на десктопе */}
-      {!isMobile && <Footer />}
+      {/* Footer ВНУТРИ секции, чтобы CSS работал */}
+      <Footer />
     </section>
   );
 }
