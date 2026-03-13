@@ -30,27 +30,51 @@ export default async function ApartmentsPage() {
     SELECT * FROM apartments WHERE is_active = 1 ORDER BY price_base ASC
   `).all() as ApartmentRow[];
 
-  // Преобразуем JSON строки в массивы
-  const formattedApartments: ApartmentClient[] = apartments.map(apt => ({
-    id: apt.id,
-    title: apt.title,
-    short_description: apt.short_description,
-    description: apt.description,
-    max_guests: apt.max_guests,
-    area: apt.area,
-    price_base: apt.price_base,
-    view: apt.view,
-    has_terrace: Boolean(apt.has_terrace),
-    is_active: Boolean(apt.is_active),
-    features: apt.features ? JSON.parse(apt.features) : [],
-    images: apt.images ? JSON.parse(apt.images) : ['/images/placeholder.jpg'],
-    created_at: apt.created_at,
-    updated_at: apt.updated_at
-  }));
+  // Для каждого апартамента получаем фото из отдельной таблицы
+  const formattedApartments: ApartmentClient[] = await Promise.all(
+    apartments.map(async (apt) => {
+      let images: string[] = [];
+      
+      try {
+        const imageRows = db.prepare(`
+          SELECT url FROM apartment_images 
+          WHERE apartment_id = ? 
+          ORDER BY sort_order
+        `).all(apt.id);
+        
+        images = imageRows.map((img: any) => img.url);
+      } catch (e) {
+        // Если таблицы нет, используем images из JSON поля
+        if (apt.images) {
+          try {
+            images = JSON.parse(apt.images);
+          } catch (e) {
+            images = [];
+          }
+        }
+      }
 
-  // Добавляем timestamp для предотвращения кэширования
+      return {
+        id: apt.id,
+        title: apt.title,
+        short_description: apt.short_description,
+        description: apt.description,
+        max_guests: apt.max_guests,
+        area: apt.area,
+        price_base: apt.price_base,
+        view: apt.view,
+        has_terrace: Boolean(apt.has_terrace),
+        is_active: Boolean(apt.is_active),
+        features: apt.features ? JSON.parse(apt.features) : [],
+        images: images.length > 0 ? images : ['/images/placeholder.jpg'],
+        created_at: apt.created_at,
+        updated_at: apt.updated_at
+      };
+    })
+  );
+
   return <ApartmentsClient 
     initialApartments={formattedApartments} 
-    key={Date.now()} // Это заставит клиентский компонент пересоздаться при изменении данных
+    key={Date.now()}
   />;
 }

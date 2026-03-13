@@ -9,6 +9,7 @@ type Apartment = {
   max_guests: number;
   price_base: number;
   is_active: boolean;
+  images_count?: number;
 };
 
 export default function ApartmentsPage() {
@@ -62,6 +63,7 @@ export default function ApartmentsPage() {
               <th>Название</th>
               <th>Гостей</th>
               <th>Цена (базовая)</th>
+              <th>Фото</th>
               <th>Статус</th>
               <th>Действия</th>
             </tr>
@@ -73,19 +75,38 @@ export default function ApartmentsPage() {
                 <td>{apt.max_guests}</td>
                 <td>{apt.price_base.toLocaleString()} ₽</td>
                 <td>
+                  <span className={`photo-count ${apt.images_count ? 'has-photos' : 'no-photos'}`}>
+                    {apt.images_count || 0} фото
+                  </span>
+                </td>
+                <td>
                   <span className={`status-badge ${apt.is_active ? 'active' : 'inactive'}`}>
                     {apt.is_active ? 'Активен' : 'Неактивен'}
                   </span>
                 </td>
                 <td className="actions">
-                  <Link href={`/admin/apartments/${apt.id}`} className="admin-button small">
-                    Редактировать
+                  <Link
+                    href={`/admin/apartments/${apt.id}`}
+                    className="admin-button small"
+                    title="Редактировать"
+                  >
+                    ✎ Ред.
                   </Link>
+
+                  <Link
+                    href={`/admin/apartments/${apt.id}/images`}
+                    className={`admin-button small photo-btn ${apt.images_count ? '' : 'empty'}`}
+                    title="Управление фото"
+                  >
+                    🖼️ {apt.images_count || 0}
+                  </Link>
+
                   <button
                     onClick={() => toggleActive(apt.id, apt.is_active)}
-                    className="admin-button small warning"
+                    className={`admin-button small ${apt.is_active ? 'warning' : 'success'}`}
+                    title={apt.is_active ? 'Деактивировать' : 'Активировать'}
                   >
-                    {apt.is_active ? 'Деактивировать' : 'Активировать'}
+                    {apt.is_active ? '🔴 Деакт.' : '🟢 Акт.'}
                   </button>
                 </td>
               </tr>

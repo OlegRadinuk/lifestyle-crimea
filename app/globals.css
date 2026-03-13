@@ -4119,7 +4119,7 @@ html, body {
 
 .rf-mobile .rf-yandex-link {
   display: block;
-  margin: 1px auto 0;
+  margin: 15px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
@@ -4428,9 +4428,9 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 100%; /* на всю ширину */
-  margin: 0;
-  padding: 40px 60px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 60px 40px;
   width: 100%;
 }
 
@@ -4439,24 +4439,29 @@ html, body {
   font-size: 42px;
   font-weight: 500;
   color: #139AB6;
-  margin: 0 0 30px 0;
-  opacity: 0;
-  transform: translateY(24px);
+  margin: 0 0 40px 0;
+  opacity: 1; /* ← меняем с 0 на 1 для теста */
+  transform: translateY(0);
   transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.rf-visible .rf-desktop .rf-title {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .rf-desktop .rf-slider {
   position: relative;
   width: 100%;
   overflow: visible;
-  padding: 20px 0;
-  margin: -20px 0;
+  padding: 40px 0;
+  margin: -40px 0;
 }
 
 .rf-desktop .rf-track {
   display: flex;
   justify-content: center;
-  gap: 40px; /* увеличиваем gap между карточками */
+  gap: 40px; /* увеличили gap */
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
   touch-action: pan-x pinch-zoom;
@@ -4465,20 +4470,60 @@ html, body {
   padding: 20px 0;
 }
 
+.rf-desktop .rf-track:active {
+  cursor: grabbing;
+}
+
 .rf-desktop .rf-card {
-  flex: 0 0 500px; /* ширина 500px (примерно 20см на 27" мониторе) */
-  height: 220px; /* высота на 40% меньше чем 280px */
+  flex: 0 0 500px; /* ширина 500px */
+  height: 220px;
   display: flex;
   flex-direction: column;
   background: #ffffff;
   border-radius: 28px;
-  padding: 16px 32px; /* минимальные вертикальные паддинги */
+  padding: 16px 32px;
   border: 1px solid rgba(19, 154, 182, 0.14);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   overflow: hidden;
   will-change: transform, box-shadow;
+}
+
+.rf-desktop .rf-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(19,154,182,0.1) 0%, rgba(19,154,182,0) 70%);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.rf-desktop .rf-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(19, 154, 182, 0);
+  transition: box-shadow 0.6s ease;
+  pointer-events: none;
+}
+
+.rf-desktop .rf-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 40px 60px rgba(19, 154, 182, 0.3);
+  z-index: 10;
+}
+
+.rf-desktop .rf-card:hover::before {
+  opacity: 1;
+}
+
+.rf-desktop .rf-card:hover::after {
+  box-shadow: 0 0 30px rgba(19, 154, 182, 0.4);
 }
 
 /* Центральная карточка чуть больше */
@@ -4497,6 +4542,50 @@ html, body {
   transform: scale(0.98);
   opacity: 0.7;
   cursor: pointer;
+}
+
+.rf-desktop .rf-card-prev:hover,
+.rf-desktop .rf-card-next:hover {
+  transform: scale(0.99) translateY(-3px);
+  opacity: 0.85;
+}
+
+.rf-desktop .rf-card-prev:active,
+.rf-desktop .rf-card-next:active {
+  transform: scale(0.95) translateY(-2px);
+}
+
+.rf-desktop .rf-card-prev::before {
+  content: '←';
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: #139ab6;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-weight: 300;
+  z-index: 5;
+}
+
+.rf-desktop .rf-card-next::before {
+  content: '→';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: #139ab6;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-weight: 300;
+  z-index: 5;
+}
+
+.rf-desktop .rf-card-prev:hover::before,
+.rf-desktop .rf-card-next:hover::before {
+  opacity: 0.8;
 }
 
 .rf-desktop .rf-card-text {
@@ -4535,6 +4624,52 @@ html, body {
   padding-top: 6px;
   font-size: 15px;
   user-select: none;
+}
+
+.rf-desktop .rf-yandex-link {
+  display: block;
+  margin: 40px auto 0;
+  text-align: center;
+  color: #139ab6;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 14px 36px;
+  border-radius: 40px;
+  background: rgba(19, 154, 182, 0.08);
+  width: fit-content;
+  border: 1px solid rgba(19, 154, 182, 0.2);
+  transition: all 0.3s ease;
+}
+
+.rf-desktop .rf-yandex-link:hover {
+  background: #139ab6;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(19, 154, 182, 0.3);
+  border-color: transparent;
+}
+
+/* Очень широкие экраны */
+@media (min-width: 2000px) {
+  .rf-desktop .rf-card {
+    flex: 0 0 600px;
+    height: 240px;
+    padding: 18px 40px;
+  }
+  
+  .rf-desktop .rf-track {
+    gap: 60px;
+  }
+  
+  .rf-desktop .rf-card-text {
+    font-size: 16px;
+    max-height: 140px;
+  }
+  
+  .rf-desktop .rf-card-author {
+    font-size: 16px;
+  }
 }
 
 /* Ховер эффекты */
@@ -4736,7 +4871,7 @@ html, body {
 /* Яндекс ссылка */
 .rf-mobile .rf-yandex-link {
   display: block;
-  margin: 3px auto 0;
+  margin: 1px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
@@ -4788,5 +4923,413 @@ html, body {
   .rf-mobile .rf-mobile-slide-next .rf-card-author {
     font-size: 14px;
     padding-top: 6px;
+  }
+}
+
+/* ===== BURGER MENU MOBILE FIX ===== */
+@media (max-width: 768px) {
+  .burger-overlay {
+    align-items: flex-start;
+    padding: 0; /* убираем отступы */
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  .burger-card {
+    width: 100%; /* на всю ширину */
+    max-width: 100%;
+    height: 100vh; /* на всю высоту */
+    max-height: 100vh;
+    border-radius: 0; /* без скругления */
+    margin: 0;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(10px);
+  }
+  
+  .burger-layout {
+    grid-template-columns: 1fr;
+    height: 100%;
+  }
+  
+  .burger-preview {
+    display: none !important;
+  }
+  
+  .burger-left {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px 20px;
+  }
+  
+  .burger-menu {
+    flex: 1;
+    padding: 40px 20px;
+    gap: 24px;
+    justify-content: center;
+  }
+  
+  .burger-menu li {
+    font-size: 28px; /* крупный текст */
+    font-weight: 500;
+    padding: 8px 0;
+    text-align: center; /* центрируем */
+    border-bottom: 1px solid rgba(19, 154, 182, 0.1);
+  }
+  
+  .burger-menu li:last-child {
+    border-bottom: none;
+  }
+  
+  .burger-menu li.active {
+    color: #139ab6;
+    font-weight: 600;
+  }
+  
+  .burger-menu li.active::after {
+    width: 100%;
+    height: 3px;
+    bottom: -2px;
+  }
+  
+  .burger-booking {
+    margin: 0 20px 20px;
+    padding: 18px 24px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 50px;
+    background: #139ab6;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(19, 154, 182, 0.3);
+  }
+  
+  .burger-contacts {
+    padding: 20px;
+    margin-top: auto;
+    font-size: 15px;
+    border-top: 1px solid rgba(19, 154, 182, 0.15);
+    text-align: center;
+  }
+  
+  .burger-contacts a {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  
+  .burger-address, .burger-time {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 8px;
+  }
+  
+  .burger-close {
+    top: 20px;
+    right: 20px;
+    font-size: 32px;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.8);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Маленькие телефоны */
+@media (max-width: 480px) {
+  .burger-menu li {
+    font-size: 24px;
+  }
+  
+  .burger-booking {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+  
+  .burger-contacts a {
+    font-size: 16px;
+  }
+}
+
+/* Image Uploader */
+.image-uploader {
+  margin: 20px 0;
+}
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background: #f9f9f9;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.upload-area.drag-active {
+  border-color: #139ab6;
+  background: #e6f7ff;
+}
+
+.upload-area.uploading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.upload-label i {
+  font-size: 48px;
+  color: #139ab6;
+  margin-bottom: 16px;
+}
+
+.upload-label h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.upload-label p {
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.upload-label .small {
+  font-size: 12px;
+  color: #999;
+}
+
+.upload-progress {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #139ab6;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #139ab6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Image Gallery */
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: move;
+  transition: transform 0.2s;
+}
+
+.gallery-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.gallery-item.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+}
+
+.gallery-item.drag-over {
+  border: 2px dashed #139ab6;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-container img {
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.gallery-item:hover .image-overlay {
+  opacity: 1;
+}
+
+.drag-handle {
+  color: white;
+  cursor: move;
+  padding: 4px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  height: fit-content;
+}
+
+.delete-btn {
+  background: rgba(255, 59, 48, 0.8);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.delete-btn:hover {
+  background: rgb(255, 59, 48);
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.gallery-empty i {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.gallery-hint {
+  font-size: 14px;
+  color: #666;
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+
+/* ===== PHOTO COUNT BADGE ===== */
+.photo-count {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.photo-count.has-photos {
+  background: #e6f7ff;
+  color: #139ab6;
+  border: 1px solid rgba(19, 154, 182, 0.2);
+}
+
+.photo-count.no-photos {
+  background: #f5f5f5;
+  color: #999;
+  border: 1px solid #e0e0e0;
+}
+
+/* ===== PHOTO BUTTON ===== */
+.admin-button.small.photo-btn {
+  background: #139ab6;
+  color: white;
+  border: none;
+}
+
+.admin-button.small.photo-btn:hover {
+  background: #0f7a91;
+}
+
+.admin-button.small.photo-btn.empty {
+  background: #b0bec5;
+  opacity: 0.8;
+}
+
+.admin-button.small.photo-btn.empty:hover {
+  background: #90a4ae;
+}
+
+/* ===== SUCCESS BUTTON (для активации) ===== */
+.admin-button.small.success {
+  background: #4caf50;
+  color: white;
+  border: none;
+}
+
+.admin-button.small.success:hover {
+  background: #388e3c;
+}
+
+/* ===== ACTION BUTTONS CONTAINER ===== */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 240px;
+}
+
+.actions .admin-button.small {
+  flex: 1;
+  min-width: 70px;
+  text-align: center;
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    gap: 6px;
+    min-width: auto;
+  }
+  
+  .actions .admin-button.small {
+    width: 100%;
+    padding: 8px 12px;
+  }
+  
+  .photo-count {
+    display: inline-block;
+    margin: 4px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-table td {
+    font-size: 13px;
+  }
+  
+  .actions .admin-button.small {
+    font-size: 11px;
+    padding: 6px 4px;
   }
 }
