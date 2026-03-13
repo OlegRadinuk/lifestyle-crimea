@@ -2,36 +2,31 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Оптимизация изображений
-  images: {
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    minimumCacheTTL: 31536000,
-    // Разрешаем локальные изображения из public
-    domains: ['lovelifestyle.ru', 'localhost'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'lovelifestyle.ru',
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lovelifestyle.ru',
-        pathname: '/_next/static/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/images/**',
-      },
-    ],
-    // Добавляем loader для локальных изображений
-    loader: 'default',
-    // Убираем опасные форматы
-    dangerouslyAllowSVG: false,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-  },
+images: {
+  formats: ['image/avif', 'image/webp'],
+  deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+  minimumCacheTTL: 31536000,
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'lovelifestyle.ru',
+      pathname: '/images/**',  // Это разрешает /images/...
+    },
+    {
+      protocol: 'https',
+      hostname: 'lovelifestyle.ru',
+      pathname: '/_next/static/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'lovelifestyle.ru',
+      pathname: '/**',  // Временно добавим для теста
+    },
+  ],
+  loader: 'default',
+  dangerouslyAllowSVG: false,
+  contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+},
 
   // Сжатие
   compress: true,
@@ -66,7 +61,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Добавляем для API
       {
         source: '/api/:path*',
         headers: [
@@ -79,10 +73,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // ✅ Turbopack конфиг
   turbopack: {},
 
-  // ✅ Webpack конфиг
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -97,7 +89,6 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // ✅ Server Actions
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'lovelifestyle.ru'],
