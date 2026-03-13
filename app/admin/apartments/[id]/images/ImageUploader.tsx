@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface ImageUploaderProps {
   apartmentId: string;
@@ -10,11 +10,14 @@ interface ImageUploaderProps {
 export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files?.length) return;
     
     setUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -41,6 +44,7 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
         if (res.ok) {
           const data = await res.json();
           onUpload(data);
+          setUploadProgress(prev => ({ ...prev, current: prev.current + 1 }));
         } else {
           const error = await res.json();
           alert(`Ошибка загрузки ${file.name}: ${error.error}`);
@@ -52,6 +56,9 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
     }
     
     setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -70,6 +77,7 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
         onDrop={handleDrop}
       >
         <input
+          ref={fileInputRef}
           type="file"
           id="file-upload"
           multiple
@@ -86,14 +94,16 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
           </svg>
           <h3>Перетащите фото сюда или кликните для выбора</h3>
           <p>Поддерживаются JPG, PNG, WEBP (до 20MB)</p>
-          <p className="small">Можно выбрать несколько файлов сразу</p>
+          <p className="small">📸 Можно выбрать несколько файлов сразу</p>
         </label>
       </div>
       
       {uploading && (
         <div className="upload-progress">
           <div className="spinner"></div>
-          <span>Загрузка...</span>
+          <span>
+            Загрузка... {uploadProgress.current} из {uploadProgress.total}
+          </span>
         </div>
       )}
 
@@ -152,7 +162,8 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
         
         .upload-label p.small {
           font-size: 13px;
-          color: #64748b;
+          color: #139ab6;
+          font-weight: 500;
           margin-top: 12px;
         }
         

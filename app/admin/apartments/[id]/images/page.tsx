@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ImageUploader from './ImageUploader';
 import ImageGallery from './ImageGallery';
+import ImageCropper from './ImageCropper';
 import RedeployButton from './RedeployButton';
 
 interface Image {
@@ -21,6 +22,8 @@ export default function ApartmentImagesPage() {
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [apartmentTitle, setApartmentTitle] = useState('');
+  const [editingImage, setEditingImage] = useState<Image | null>(null);
+  const [showRedeploy, setShowRedeploy] = useState(false);
 
   useEffect(() => {
     fetchImages();
@@ -51,31 +54,69 @@ export default function ApartmentImagesPage() {
 
   const handleUpload = (newImage: { id: number; url: string }) => {
     setImages(prev => [...prev, { ...newImage, sort_order: prev.length + 1 }]);
-    // Сообщаем клиентской части об обновлении фото
     window.dispatchEvent(new CustomEvent('apartment-images-updated'));
+    setShowRedeploy(true);
   };
 
   const handleDelete = (imageId: number) => {
     setImages(prev => prev.filter(img => img.id !== imageId));
-    // Сообщаем клиентской части об обновлении фото
     window.dispatchEvent(new CustomEvent('apartment-images-updated'));
+    setShowRedeploy(true);
   };
 
   const handleSort = async (sortedImages: Image[]) => {
     setImages(sortedImages);
     
-    // Сохраняем новый порядок
     try {
       await fetch(`/api/admin/apartments/${apartmentId}/images/sort`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ images: sortedImages.map(img => img.id) }),
       });
-      // Сообщаем клиентской части об обновлении фото
       window.dispatchEvent(new CustomEvent('apartment-images-updated'));
+      setShowRedeploy(true);
     } catch (error) {
       console.error('Error saving sort order:', error);
     }
+  };
+
+  const handleEdit = (image: Image) => {
+    setEditingImage(image);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!editingImage) return;
+
+    const formData = new FormData();
+    formData.append('file', croppedBlob, 'cropped.webp');
+
+    try {
+      const res = await fetch(`/api/admin/apartments/${apartmentId}/images`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const newImage = await res.json();
+        
+        // Можно либо добавить как новое, либо заменить существующее
+        // Пока добавляем как новое
+        setImages(prev => [...prev, { ...newImage, sort_order: prev.length + 1 }]);
+        
+        setEditingImage(null);
+        setShowRedeploy(true);
+        window.dispatchEvent(new CustomEvent('apartment-images-updated'));
+      } else {
+        alert('Ошибка при сохранении обрезанного фото');
+      }
+    } catch (error) {
+      console.error('Crop upload error:', error);
+      alert('Ошибка при загрузке обрезанного фото');
+    }
+  };
+
+  const handleCropCancel = () => {
+    setEditingImage(null);
   };
 
   if (loading) {
@@ -83,41 +124,48 @@ export default function ApartmentImagesPage() {
   }
 
   return (
-  <div className="admin-page">
-    <div className="admin-header">
-      <h1 className="admin-title">
-        Фотографии: {apartmentTitle}
-      </h1>
-      <Link href={`/admin/apartments/${apartmentId}`} className="admin-button">
-        ← Назад к апартаменту
-      </Link>
-    </div>
+    <div className="admin-page">
+      <div className="admin-header">
+        <h1 className="admin-title">
+          Фотографии: {apartmentTitle}
+        </h1>
+        <Link href={`/admin/apartments/${apartmentId}`} className="admin-button">
+          ← Назад к апартаменту
+        </Link>
+      </div>
 
-    {/* Добавляем кнопку редеплоя */}
-    <RedeployButton apartmentId={apartmentId} />
+      {/* Кнопка редеплоя появляется только когда нужно */}
+      {showRedeploy && (
+        <RedeployButton apartmentId={apartmentId} />
+      )}
 
-    {/* Остальной контент */}
-    <div className="admin-card">
-      <h2>Загрузить новые фото</h2>
-      <ImageUploader apartmentId={apartmentId} onUpload={handleUpload} />
-    </div>
+      <div className="admin-card">
+        <h2>Загрузить новые фото</h2>
+        <ImageUploader apartmentId={apartmentId} onUpload={handleUpload} />
+      </div>
 
       <div className="admin-card">
         <h2>Галерея</h2>
         <p className="gallery-hint">
           Перетаскивайте фото для изменения порядка. Первое фото будет главным.
+          {images.length > 0 && ' Нажмите на ✂️ чтобы обрезать фото.'}
         </p>
         <ImageGallery 
           images={images} 
           onDelete={handleDelete}
           onSort={handleSort}
+          onEdit={handleEdit}
         />
       </div>
 
-      {/* Добавляем небольшую подсказку */}
-      <div className="admin-note" style={{ marginTop: '20px', padding: '12px', background: '#f0f9ff', borderRadius: '8px', fontSize: '14px', color: '#0369a1' }}>
-        ⚡ Изменения сохраняются автоматически и сразу отображаются на сайте
-      </div>
+      {/* Модалка обрезки */}
+      {editingImage && (
+        <ImageCropper
+          imageUrl={editingImage.url}
+          onCrop={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 }
