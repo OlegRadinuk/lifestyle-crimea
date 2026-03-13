@@ -1230,6 +1230,7 @@ html, body {
     transition: all 0.3s ease;
     border: none;
     text-align: center;
+    white-space: nowrap;
   }
 
   .panorama-desktop-btn.primary {
@@ -3834,12 +3835,12 @@ html, body {
 
 .rf-desktop .rf-card {
   flex: 0 0 380px;
-  height: 380px;
+  height: 280px;
   display: flex;
   flex-direction: column;
   background: #ffffff;
   border-radius: 28px;
-  padding: 32px 28px;
+  padding: 25px 25px;
   border: 1px solid rgba(19, 154, 182, 0.14);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -3915,8 +3916,8 @@ html, body {
 .rf-desktop .rf-card-prev::before {
   content: '← клик';
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  bottom: 18px;
+  left: 410px;
   font-size: 11px;
   color: #139ab6;
   opacity: 0;
@@ -3930,8 +3931,8 @@ html, body {
 .rf-desktop .rf-card-next::before {
   content: 'клик →';
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 18px;
+  right: 300px;
   font-size: 11px;
   color: #139ab6;
   opacity: 0;
@@ -4019,17 +4020,17 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding: 30px 16px 10px 16px;
+  padding: 40px 16px 10px 16px;
   overflow: hidden;
   min-height: 0;
 }
 
 .rf-mobile .rf-title {
   text-align: center;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 500;
   color: #139AB6;
-  margin: 0 0 20px 0;
+  margin: 20px 0 15px 40px;;
   flex-shrink: 0;
 }
 
@@ -4040,53 +4041,70 @@ html, body {
   overflow-x: hidden;
   padding-right: 4px;
   min-height: 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .rf-mobile .rf-track {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding: 4px 0;
 }
 
 .rf-mobile .rf-card {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   background: #ffffff;
-  border-radius: 24px;
-  padding: 28px 24px;
+  border-radius: 20px;
+  padding: 16px 20px;
   border: 1px solid rgba(19, 154, 182, 0.14);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
+  flex-shrink: 0;
+  min-height: auto;
+}
+
+/* Альбомная ориентация - шире чем высота */
+.rf-mobile .rf-card {
+  aspect-ratio: 20/2; /* альбомный формат */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .rf-mobile .rf-card-center {
   border: 2px solid #139ab6;
-  box-shadow: 0 20px 35px rgba(19, 154, 182, 0.25);
-  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(19, 154, 182, 0.25);
+  transform: scale(1);
   background: #ffffff;
 }
 
 .rf-mobile .rf-card-side {
-  opacity: 0.7;
-  transform: scale(0.98);
-  filter: grayscale(0.2);
+  opacity: 0.8;
+  transform: scale(1);
+  filter: none;
+  border: 1px solid rgba(19, 154, 182, 0.1);
 }
 
 .rf-mobile .rf-card-side:active {
-  transform: scale(0.96);
-  opacity: 0.9;
+  transform: scale(0.99);
+  opacity: 1;
 }
 
 .rf-mobile .rf-card-text {
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.4;
   color: #2b3a42;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-style: italic;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* максимум 3 строки */
+  -webkit-box-orient: vertical;
 }
 
 .rf-mobile .rf-card-author {
@@ -4094,19 +4112,20 @@ html, body {
   color: #139ab6;
   text-align: right;
   border-top: 1px solid rgba(19, 154, 182, 0.14);
-  padding-top: 16px;
-  font-size: 18px;
+  padding-top: 8px;
+  font-size: 15px;
+  margin-top: auto;
 }
 
 .rf-mobile .rf-yandex-link {
   display: block;
-  margin: 20px auto 0;
+  margin: 1px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  padding: 12px 28px;
+  padding: 10px 24px;
   border-radius: 30px;
   background: rgba(19, 154, 182, 0.08);
   width: fit-content;
@@ -4117,26 +4136,27 @@ html, body {
 /* Маленькие телефоны */
 @media (max-width: 480px) {
   .rf-mobile .rf-container-mobile {
-    padding: 20px 12px 8px 12px;
+    padding: 40px 16px 10px 16px;
   }
   
   .rf-mobile .rf-title {
     font-size: 24px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   
   .rf-mobile .rf-card {
-    padding: 24px 20px;
+    padding: 14px 16px;
   }
   
   .rf-mobile .rf-card-text {
-    font-size: 15px;
-    margin-bottom: 16px;
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+    margin-bottom: 6px;
   }
   
   .rf-mobile .rf-card-author {
-    font-size: 16px;
-    padding-top: 12px;
+    font-size: 14px;
+    padding-top: 6px;
   }
 }
 
@@ -4169,7 +4189,7 @@ html, body {
   gap: 40px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 28px;
-  padding: 63px;
+  padding: 15px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
@@ -4373,5 +4393,400 @@ html, body {
     .ff-footer-mobile {
       padding-bottom: max(16px, env(safe-area-inset-bottom));
     }
+  }
+}
+
+/* Очень широкие экраны */
+@media (min-width: 2000px) {
+  .rf-desktop .rf-card {
+    flex: 0 0 600px; /* еще шире */
+    height: 240px;
+    padding: 18px 40px;
+  }
+  
+  .rf-desktop .rf-track {
+    gap: 60px;
+  }
+  
+  .rf-desktop .rf-card-text {
+    font-size: 16px;
+    max-height: 140px;
+  }
+  
+  .rf-desktop .rf-card-author {
+    font-size: 16px;
+  }
+}
+
+/* ===== ДЕСКТОП ===== */
+.rf-desktop {
+  touch-action: pan-y pinch-zoom;
+}
+
+.rf-desktop .rf-container-desktop {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 100%; /* на всю ширину */
+  margin: 0;
+  padding: 40px 60px;
+  width: 100%;
+}
+
+.rf-desktop .rf-title {
+  text-align: center;
+  font-size: 42px;
+  font-weight: 500;
+  color: #139AB6;
+  margin: 0 0 30px 0;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.rf-desktop .rf-slider {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  padding: 20px 0;
+  margin: -20px 0;
+}
+
+.rf-desktop .rf-track {
+  display: flex;
+  justify-content: center;
+  gap: 40px; /* увеличиваем gap между карточками */
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  touch-action: pan-x pinch-zoom;
+  cursor: grab;
+  user-select: none;
+  padding: 20px 0;
+}
+
+.rf-desktop .rf-card {
+  flex: 0 0 500px; /* ширина 500px (примерно 20см на 27" мониторе) */
+  height: 220px; /* высота на 40% меньше чем 280px */
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 16px 32px; /* минимальные вертикальные паддинги */
+  border: 1px solid rgba(19, 154, 182, 0.14);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+  will-change: transform, box-shadow;
+}
+
+/* Центральная карточка чуть больше */
+.rf-desktop .rf-card-center {
+  transform: scale(1.02);
+  opacity: 1;
+  box-shadow: 0 30px 50px rgba(19, 154, 182, 0.15);
+  border-color: rgba(19, 154, 182, 0.3);
+  z-index: 5;
+  border: 2px solid #139ab6 !important;
+}
+
+/* Боковые карточки */
+.rf-desktop .rf-card-prev,
+.rf-desktop .rf-card-next {
+  transform: scale(0.98);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.rf-desktop .rf-card-text {
+  flex: 1;
+  font-size: 17px;
+  line-height: 1.4;
+  color: #2b3a42;
+  margin-bottom: 8px;
+  font-style: italic;
+  overflow-y: auto;
+  max-height: 120px;
+  padding-right: 4px;
+  user-select: none;
+}
+
+.rf-desktop .rf-card-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rf-desktop .rf-card-text::-webkit-scrollbar-track {
+  background: rgba(19, 154, 182, 0.05);
+  border-radius: 4px;
+}
+
+.rf-desktop .rf-card-text::-webkit-scrollbar-thumb {
+  background: rgba(19, 154, 182, 0.3);
+  border-radius: 4px;
+}
+
+.rf-desktop .rf-card-author {
+  margin-top: auto;
+  font-weight: 600;
+  color: #139ab6;
+  text-align: right;
+  border-top: 1px solid rgba(19, 154, 182, 0.14);
+  padding-top: 6px;
+  font-size: 15px;
+  user-select: none;
+}
+
+/* Ховер эффекты */
+.rf-desktop .rf-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 30px 50px rgba(19, 154, 182, 0.25);
+  z-index: 10;
+}
+
+.rf-desktop .rf-card-prev:hover,
+.rf-desktop .rf-card-next:hover {
+  transform: scale(0.99) translateY(-3px);
+  opacity: 0.85;
+}
+
+.rf-desktop .rf-yandex-link {
+  display: block;
+  margin: 40px auto 0;
+  text-align: center;
+  color: #139ab6;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 14px 36px;
+  border-radius: 40px;
+  background: rgba(19, 154, 182, 0.08);
+  width: fit-content;
+  border: 1px solid rgba(19, 154, 182, 0.2);
+  transition: all 0.3s ease;
+}
+
+.rf-desktop .rf-yandex-link:hover {
+  background: #139ab6;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(19, 154, 182, 0.3);
+  border-color: transparent;
+}
+
+/* ===== МОБИЛКА - ДВА СЛАЙДА ===== */
+.rf-mobile {
+  touch-action: pan-y pinch-zoom;
+}
+
+.rf-mobile .rf-container-mobile {
+  flex: 0 0 60%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 10px 16px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.rf-mobile .rf-title {
+  text-align: right;
+  font-size: 26px;
+  font-weight: 500;
+  color: #139AB6;
+  margin: 30px 0 15px 40px; /* отступ слева под навигацию */
+  flex-shrink: 0;
+}
+
+/* Лейаут с навигацией */
+.rf-mobile .rf-mobile-layout {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Вертикальная навигация */
+.rf-mobile .rf-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 24px;
+  flex-shrink: 0;
+  
+  /* Центрирование относительно двух слайдов */
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  height: fit-content;
+  margin-top: calc(15px + 2%); /* корректировка с учетом заголовка */
+}
+
+.rf-mobile .rf-mobile-nav-item {
+  width: 4px;
+  height: 24px;
+  background: rgba(19, 154, 182, 0.2);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.rf-mobile .rf-mobile-nav-active {
+  background: #139ab6;
+  height: 40px;
+  width: 6px;
+  box-shadow: 0 0 10px rgba(19, 154, 182, 0.5);
+}
+
+/* Контейнер слайдов */
+.rf-mobile .rf-mobile-slides {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rf-mobile .rf-mobile-slide {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Текущий слайд (сверху) */
+.rf-mobile .rf-mobile-slide-current .rf-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px;
+  border: 2px solid #139ab6;
+  box-shadow: 0 15px 30px rgba(19, 154, 182, 0.25);
+  aspect-ratio: 20/2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.rf-mobile .rf-mobile-slide-current .rf-card-text {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #2b3a42;
+  margin-bottom: 12px;
+  font-style: italic;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.rf-mobile .rf-mobile-slide-current .rf-card-author {
+  font-weight: 600;
+  color: #139ab6;
+  text-align: right;
+  border-top: 1px solid rgba(19, 154, 182, 0.14);
+  padding-top: 12px;
+  font-size: 18px;
+}
+
+/* Следующий слайд (снизу) */
+.rf-mobile .rf-mobile-slide-next .rf-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid rgba(19, 154, 182, 0.3);
+  aspect-ratio: 16/8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.rf-mobile .rf-mobile-slide-next .rf-card:active {
+  transform: scale(0.98);
+  background: #ffffff;
+}
+
+.rf-mobile .rf-mobile-slide-next .rf-card-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #2b3a42;
+  margin-bottom: 8px;
+  font-style: italic;
+  opacity: 0.9;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rf-mobile .rf-mobile-slide-next .rf-card-author {
+  font-weight: 600;
+  color: #139ab6;
+  text-align: right;
+  border-top: 1px solid rgba(19, 154, 182, 0.1);
+  padding-top: 8px;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Яндекс ссылка */
+.rf-mobile .rf-yandex-link {
+  display: block;
+  margin: 3px auto 0;
+  text-align: center;
+  color: #139ab6;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 18px;
+  border-radius: 30px;
+  background: rgba(19, 154, 182, 0.08);
+  width: fit-content;
+  border: 1px solid rgba(19, 154, 182, 0.2);
+  flex-shrink: 0;
+}
+
+/* Маленькие телефоны */
+@media (max-width: 480px) {
+  .rf-mobile .rf-container-mobile {
+    padding: 16px 12px 8px 12px;
+  }
+  
+  .rf-mobile .rf-title {
+    font-size: 24px;
+    white-space: nowrap;
+    margin-bottom: 12px;
+  }
+  
+  .rf-mobile .rf-mobile-slide-current .rf-card {
+    padding: 20px;
+  }
+  
+  .rf-mobile .rf-mobile-slide-current .rf-card-text {
+    font-size: 15px;
+    -webkit-line-clamp: 4;
+  }
+  
+  .rf-mobile .rf-mobile-slide-current .rf-card-author {
+    font-size: 16px;
+    padding-top: 10px;
+  }
+  
+  .rf-mobile .rf-mobile-slide-next .rf-card {
+    padding: 14px;
+  }
+  
+  .rf-mobile .rf-mobile-slide-next .rf-card-text {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+  }
+  
+  .rf-mobile .rf-mobile-slide-next .rf-card-author {
+    font-size: 14px;
+    padding-top: 6px;
   }
 }

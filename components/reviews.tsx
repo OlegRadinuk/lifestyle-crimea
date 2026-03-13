@@ -42,19 +42,12 @@ const REVIEWS: Review[] = [
 
 export default function ReviewsFinal() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const touchEndY = useRef<number | null>(null);
-
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   // Определяем мобилку
   useEffect(() => {
@@ -100,158 +93,126 @@ export default function ReviewsFinal() {
     return () => observer.disconnect();
   }, []);
 
-  // Автоплей - отключается при paused или hovered (на десктопе)
+  // Автоплей - только для мобилки
   useEffect(() => {
-    if (paused || (hovered && !isMobile)) return;
+    if (!isMobile) return;
+    if (paused) return;
+    
     const id = setInterval(() => {
-      setCurrentIndex(i => (i + 1) % REVIEWS.length);
-    }, 5000);
+      setCurrentIndex(prev => (prev + 1) % REVIEWS.length);
+    }, 4000);
+    
     return () => clearInterval(id);
-  }, [paused, hovered, isMobile]);
+  }, [paused, isMobile]);
 
-  // Обработчики для десктоп ховера
-  const handleMouseEnter = () => setHovered(true);
-  const handleMouseLeave = () => setHovered(false);
-
-  // Обработчики свайпа для мобилок
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+  // Переключение слайда
+  const goToSlide = (index: number) => {
+    if (index === currentIndex) return;
     setPaused(true);
+    setCurrentIndex(index);
+    setTimeout(() => setPaused(false), 5000);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-    touchEndY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current || !touchStartY.current || !touchEndY.current) return;
-    
-    const diffX = touchStartX.current - touchEndX.current;
-    const diffY = touchStartY.current - touchEndY.current;
-    const minSwipe = 50;
-    
-    // На мобилке вертикальные свайпы
-    if (isMobile) {
-      if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > minSwipe) {
-        if (diffY > 0) {
-          // Свайп вверх - следующий
-          setCurrentIndex(i => (i + 1) % REVIEWS.length);
-        } else {
-          // Свайп вниз - предыдущий
-          setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
-        }
-      }
-    } else {
-      // На десктопе горизонтальные свайпы (для тачпадов)
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipe) {
-        if (diffX > 0) {
-          setCurrentIndex(i => (i + 1) % REVIEWS.length);
-        } else {
-          setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
-        }
-      }
-    }
-    
-    touchStartX.current = null;
-    touchEndX.current = null;
-    touchStartY.current = null;
-    touchEndY.current = null;
-    
-    // Автоплей возобновится через 3 секунды
-    setTimeout(() => setPaused(false), 3000);
-  };
-
-  // Клик по карточке
-  const handleCardClick = (position: string) => {
+  const nextSlide = () => {
     setPaused(true);
-    if (position === 'prev') {
-      setCurrentIndex(i => (i - 1 + REVIEWS.length) % REVIEWS.length);
-    } else if (position === 'next') {
-      setCurrentIndex(i => (i + 1) % REVIEWS.length);
-    }
-    setTimeout(() => setPaused(false), 3000);
+    setCurrentIndex(prev => (prev + 1) % REVIEWS.length);
+    setTimeout(() => setPaused(false), 5000);
   };
 
-  // Получаем видимые карточки
-  const getVisibleReviews = () => {
-    if (!REVIEWS.length) return [];
-    
-    const total = REVIEWS.length;
-    const prevIndex = (currentIndex - 1 + total) % total;
-    const currIndex = currentIndex;
-    const nextIndex = (currentIndex + 1) % total;
-    
-    if (isMobile) {
-      // На мобилке показываем все отзывы вертикально
-      return REVIEWS;
-    } else {
-      // На десктопе показываем 3: предыдущий, текущий, следующий
-      return [
-        REVIEWS[prevIndex],
-        REVIEWS[currIndex],
-        REVIEWS[nextIndex]
-      ];
-    }
+  const prevSlide = () => {
+    setPaused(true);
+    setCurrentIndex(prev => (prev - 1 + REVIEWS.length) % REVIEWS.length);
+    setTimeout(() => setPaused(false), 5000);
   };
-
-  const visibleReviews = getVisibleReviews();
-
-  if (!visibleReviews.length) {
-    return null;
-  }
 
   return (
     <section
       ref={sectionRef}
       className={`rf-section ${visible ? 'rf-visible' : ''} ${isMobile ? 'rf-mobile' : 'rf-desktop'}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       {/* Контейнер отзывов */}
       <div className={`rf-container ${isMobile ? 'rf-container-mobile' : 'rf-container-desktop'}`}>
-        <h2 className="rf-title">Отзывы гостей</h2>
+        <h2 className="rf-title">Отзывы наших гостей</h2>
 
-        <div className="rf-slider">
-          <div className="rf-track" ref={trackRef}>
-            {visibleReviews.map((review, idx) => {
-              // Определяем позицию карточки
-              let position = 'center';
-              if (!isMobile) {
-                if (idx === 0) position = 'prev';
-                else if (idx === 2) position = 'next';
-              }
-              
-              return (
-                <div 
-                  className={`rf-card ${
-                    isMobile 
-                      ? (idx === currentIndex ? 'rf-card-center' : 'rf-card-side')
-                      : (idx === 1 ? 'rf-card-center' : `rf-card-${position}`)
-                  }`}
-                  key={`${review.author}-${idx}-${currentIndex}`}
-                  onClick={() => {
-                    if (!isMobile && position !== 'center') {
-                      handleCardClick(position);
-                    } else if (isMobile && idx !== currentIndex) {
-                      // На мобилке клик по любой карточке делает её центральной
-                      setCurrentIndex(idx);
-                      setPaused(true);
-                      setTimeout(() => setPaused(false), 3000);
-                    }
-                  }}
-                >
-                  <p className="rf-card-text">{review.text}</p>
-                  <div className="rf-card-author">{review.author}</div>
-                </div>
-              );
-            })}
-          </div>
+        {isMobile ? (
+  /* Мобильная версия - два слайда */
+  <div className="rf-mobile-layout">
+    {/* Вертикальная навигация слева */}
+    <div className="rf-mobile-nav">
+      {REVIEWS.map((_, idx) => (
+        <button
+          key={idx}
+          className={`rf-mobile-nav-item ${idx === currentIndex ? 'rf-mobile-nav-active' : ''}`}
+          onClick={() => {
+            setPaused(true);
+            setCurrentIndex(idx);
+            setTimeout(() => setPaused(false), 5000);
+          }}
+          aria-label={`Перейти к отзыву ${idx + 1}`}
+        />
+      ))}
+    </div>
+
+    {/* Слайды */}
+    <div className="rf-mobile-slides">
+      {/* Текущий слайд (сверху) */}
+      <div className="rf-mobile-slide rf-mobile-slide-current">
+        <div className="rf-card rf-card-center">
+          <p className="rf-card-text">{REVIEWS[currentIndex].text}</p>
+          <div className="rf-card-author">{REVIEWS[currentIndex].author}</div>
         </div>
+      </div>
+
+      {/* Следующий слайд (снизу) */}
+      <div className="rf-mobile-slide rf-mobile-slide-next">
+        <div 
+          className="rf-card rf-card-side"
+          onClick={() => {
+            const nextIndex = (currentIndex + 1) % REVIEWS.length;
+            setPaused(true);
+            setCurrentIndex(nextIndex);
+            setTimeout(() => setPaused(false), 5000);
+          }}
+        >
+          <p className="rf-card-text">{REVIEWS[(currentIndex + 1) % REVIEWS.length].text}</p>
+          <div className="rf-card-author">{REVIEWS[(currentIndex + 1) % REVIEWS.length].author}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+) : (
+          /* Десктоп версия */
+          <>
+            <div className="rf-slider">
+              <div className="rf-track">
+                {[
+                  (currentIndex - 1 + REVIEWS.length) % REVIEWS.length,
+                  currentIndex,
+                  (currentIndex + 1) % REVIEWS.length
+                ].map((idx, position) => (
+                  <div 
+                    className={`rf-card ${position === 1 ? 'rf-card-center' : position === 0 ? 'rf-card-prev' : 'rf-card-next'}`}
+                    key={`${REVIEWS[idx].author}-${idx}`}
+                    onClick={() => {
+                      if (position === 0) {
+                        setPaused(true);
+                        setCurrentIndex(idx);
+                        setTimeout(() => setPaused(false), 3000);
+                      } else if (position === 2) {
+                        setPaused(true);
+                        setCurrentIndex(idx);
+                        setTimeout(() => setPaused(false), 3000);
+                      }
+                    }}
+                  >
+                    <p className="rf-card-text">{REVIEWS[idx].text}</p>
+                    <div className="rf-card-author">{REVIEWS[idx].author}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <a
           className="rf-yandex-link"

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Montserrat } from 'next/font/google'
 import './globals.css'
 
-import HeaderConditional from '@/components/HeaderConditional' // ← новый компонент
+import HeaderConditional from '@/components/HeaderConditional'
 
 import { HeaderProvider } from '@/components/HeaderContext'
 import { SearchProvider } from '@/components/SearchContext'
@@ -37,6 +37,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
           fetchPriority="high"
         />
+        {/* ← ВОТ СЮДА ВСТАВЬ МЕТА-ТЕГ */}
+        <meta name="yandex-verification" content="439f21885509ad83" />
       </head>
 
       <body className={montserrat.variable}>
@@ -46,7 +48,6 @@ export default function RootLayout({
               <ApartmentProvider>
                 <PhotoModalProvider>
 
-                  {/* Вместо HeaderWrapper используем условный компонент */}
                   <HeaderConditional />
 
                   {children}
