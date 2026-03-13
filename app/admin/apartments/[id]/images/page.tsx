@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ImageUploader from './ImageUploader';
 import ImageGallery from './ImageGallery';
+import RedeployButton from './RedeployButton';
 
 interface Image {
   id: number;
@@ -82,20 +83,24 @@ export default function ApartmentImagesPage() {
   }
 
   return (
-    <div className="admin-page">
-      <div className="admin-header">
-        <h1 className="admin-title">
-          Фотографии: {apartmentTitle}
-        </h1>
-        <Link href={`/admin/apartments/${apartmentId}`} className="admin-button">
-          ← Назад к апартаменту
-        </Link>
-      </div>
+  <div className="admin-page">
+    <div className="admin-header">
+      <h1 className="admin-title">
+        Фотографии: {apartmentTitle}
+      </h1>
+      <Link href={`/admin/apartments/${apartmentId}`} className="admin-button">
+        ← Назад к апартаменту
+      </Link>
+    </div>
 
-      <div className="admin-card">
-        <h2>Загрузить новые фото</h2>
-        <ImageUploader apartmentId={apartmentId} onUpload={handleUpload} />
-      </div>
+    {/* Добавляем кнопку редеплоя */}
+    <RedeployButton apartmentId={apartmentId} />
+
+    {/* Остальной контент */}
+    <div className="admin-card">
+      <h2>Загрузить новые фото</h2>
+      <ImageUploader apartmentId={apartmentId} onUpload={handleUpload} />
+    </div>
 
       <div className="admin-card">
         <h2>Галерея</h2>
