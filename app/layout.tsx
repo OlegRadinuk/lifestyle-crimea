@@ -39,6 +39,7 @@ export default function RootLayout({
         />
         {/* ← ВОТ СЮДА ВСТАВЬ МЕТА-ТЕГ */}
         <meta name="yandex-verification" content="439f21885509ad83" />
+        <meta name="google-site-verification" content="9bcGUuoXG9e1r4BRrvPmd0OcE3ucaM7elZ_lBnFEY40" />
       </head>
 
       <body className={montserrat.variable}>
