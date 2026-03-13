@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+import { useState, useRef, useEffect } from 'react';
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -11,117 +9,185 @@ interface ImageCropperProps {
 }
 
 export default function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Crop>({
-    unit: '%',
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5,
-  });
+  const [crop, setCrop] = useState({ x: 0, y: 0, width: 100, height: 100 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
-  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    imgRef.current = e.currentTarget;
-  };
+  useEffect(() => {
+    if (imageRef.current) {
+      const updateSize = () => {
+        setImageSize({
+          width: imageRef.current!.naturalWidth,
+          height: imageRef.current!.naturalHeight
+        });
+      };
+      
+      if (imageRef.current.complete) {
+        updateSize();
+      } else {
+        imageRef.current.onload = updateSize;
+      }
+    }
+  }, [imageUrl]);
 
-  const getCroppedImg = async () => {
-    if (!completedCrop || !imgRef.current) return;
-
-    const image = imgRef.current;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    // Устанавливаем размер canvas равным размеру обрезки
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
-
-    // Рисуем обрезанное изображение
-    ctx.drawImage(
-      image,
-      completedCrop.x,
-      completedCrop.y,
-      completedCrop.width,
-      completedCrop.height,
-      0,
-      0,
-      completedCrop.width,
-      completedCrop.height
-    );
-
-    // Конвертируем в blob
-    return new Promise<Blob>((resolve) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-        },
-        'image/webp',
-        0.9 // качество 90%
-      );
-    });
-  };
-
-  const handleCropComplete = async () => {
-    const croppedBlob = await getCroppedImg();
-    if (croppedBlob) {
-      onCrop(croppedBlob);
+  const handleMouseDown = (e: React.MouseEvent, type: string, handle?: string) => {
+    e.preventDefault();
+    if (type === 'drag') {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - crop.x, y: e.clientY - crop.y });
+    } else if (type === 'resize') {
+      setIsResizing(true);
+      setResizeHandle(handle || null);
+      setDragStart({ x: e.clientX, y: e.clientY });
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current || !imageRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const maxX = rect.width - crop.width;
+    const maxY = rect.height - crop.height;
+
+    if (isDragging) {
+      let newX = e.clientX - dragStart.x;
+      let newY = e.clientY - dragStart.y;
+      
+      newX = Math.max(0, Math.min(newX, maxX));
+      newY = Math.max(0, Math.min(newY, maxY));
+      
+      setCrop(prev => ({ ...prev, x: newX, y: newY }));
+    }
+    
+    if (isResizing) {
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      
+      setCrop(prev => {
+        let newWidth = prev.width;
+        let newHeight = prev.height;
+        let newX = prev.x;
+        let newY = prev.y;
+        
+        if (resizeHandle?.includes('right')) {
+          newWidth = Math.min(rect.width - prev.x, Math.max(50, prev.width + dx));
+        }
+        if (resizeHandle?.includes('bottom')) {
+          newHeight = Math.min(rect.height - prev.y, Math.max(50, prev.height + dy));
+        }
+        if (resizeHandle?.includes('left')) {
+          const change = Math.min(prev.x + prev.width - 50, Math.max(-prev.x, dx));
+          newWidth = prev.width - change;
+          newX = prev.x + change;
+        }
+        if (resizeHandle?.includes('top')) {
+          const change = Math.min(prev.y + prev.height - 50, Math.max(-prev.y, dy));
+          newHeight = prev.height - change;
+          newY = prev.y + change;
+        }
+        
+        return { x: newX, y: newY, width: newWidth, height: newHeight };
+      });
+      
+      setDragStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
+  };
+
+  const handleCrop = async () => {
+    if (!imageRef.current) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = imageRef.current;
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+
+    ctx.drawImage(
+      img,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) onCrop(blob);
+      },
+      'image/webp',
+      0.92
+    );
+  };
+
   return (
-    <div className="cropper-modal">
+    <div className="cropper-modal" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <div className="cropper-overlay" onClick={onCancel} />
       
-      <div className="cropper-container">
+      <div className="cropper-container" ref={containerRef}>
         <h3>Обрезка изображения</h3>
         
         <div className="cropper-content">
-          <ReactCrop
-            crop={crop}
-            onChange={(c) => setCrop(c)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={16 / 9} // Соотношение сторон 16:9 (можно изменить)
-          >
+          <div className="image-container">
             <img
+              ref={imageRef}
               src={imageUrl}
-              onLoad={onImageLoad}
               alt="Crop preview"
-              style={{ maxHeight: '60vh', maxWidth: '100%' }}
+              style={{ maxWidth: '100%', maxHeight: '60vh' }}
+              draggable={false}
             />
-          </ReactCrop>
-
-          {/* Превысо обрезанного изображения */}
-          {completedCrop && (
-            <div className="cropper-preview">
-              <h4>Предпросмотр:</h4>
-              <canvas
-                ref={previewCanvasRef}
-                width={completedCrop.width}
-                height={completedCrop.height}
-                style={{
-                  width: Math.round(completedCrop.width / 4),
-                  height: Math.round(completedCrop.height / 4),
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                }}
+            
+            <div
+              className="crop-box"
+              style={{
+                left: crop.x,
+                top: crop.y,
+                width: crop.width,
+                height: crop.height
+              }}
+            >
+              <div
+                className="crop-drag-handle"
+                onMouseDown={(e) => handleMouseDown(e, 'drag')}
               />
+              
+              <div className="crop-resize-handle top-left" onMouseDown={(e) => handleMouseDown(e, 'resize', 'top-left')} />
+              <div className="crop-resize-handle top-right" onMouseDown={(e) => handleMouseDown(e, 'resize', 'top-right')} />
+              <div className="crop-resize-handle bottom-left" onMouseDown={(e) => handleMouseDown(e, 'resize', 'bottom-left')} />
+              <div className="crop-resize-handle bottom-right" onMouseDown={(e) => handleMouseDown(e, 'resize', 'bottom-right')} />
+              <div className="crop-resize-handle top" onMouseDown={(e) => handleMouseDown(e, 'resize', 'top')} />
+              <div className="crop-resize-handle right" onMouseDown={(e) => handleMouseDown(e, 'resize', 'right')} />
+              <div className="crop-resize-handle bottom" onMouseDown={(e) => handleMouseDown(e, 'resize', 'bottom')} />
+              <div className="crop-resize-handle left" onMouseDown={(e) => handleMouseDown(e, 'resize', 'left')} />
             </div>
-          )}
+          </div>
         </div>
 
         <div className="cropper-actions">
           <button className="cropper-button cancel" onClick={onCancel}>
             Отмена
           </button>
-          <button 
-            className="cropper-button apply" 
-            onClick={handleCropComplete}
-            disabled={!completedCrop}
-          >
+          <button className="cropper-button apply" onClick={handleCrop}>
             Применить обрезку
           </button>
         </div>
@@ -166,21 +232,87 @@ export default function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCroppe
           color: #1a2634;
         }
         
-        .cropper-content {
-          display: flex;
-          gap: 24px;
-          flex-wrap: wrap;
+        .image-container {
+          position: relative;
+          display: inline-block;
+          user-select: none;
         }
         
-        .cropper-preview {
-          flex-shrink: 0;
-          width: 200px;
+        .crop-box {
+          position: absolute;
+          border: 2px solid #139ab6;
+          background: rgba(19, 154, 182, 0.1);
+          cursor: move;
         }
         
-        .cropper-preview h4 {
-          margin: 0 0 10px 0;
-          font-size: 14px;
-          color: #64748b;
+        .crop-drag-handle {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          cursor: move;
+        }
+        
+        .crop-resize-handle {
+          position: absolute;
+          width: 12px;
+          height: 12px;
+          background: white;
+          border: 2px solid #139ab6;
+          border-radius: 6px;
+        }
+        
+        .crop-resize-handle.top-left {
+          top: -6px;
+          left: -6px;
+          cursor: nwse-resize;
+        }
+        
+        .crop-resize-handle.top-right {
+          top: -6px;
+          right: -6px;
+          cursor: nesw-resize;
+        }
+        
+        .crop-resize-handle.bottom-left {
+          bottom: -6px;
+          left: -6px;
+          cursor: nesw-resize;
+        }
+        
+        .crop-resize-handle.bottom-right {
+          bottom: -6px;
+          right: -6px;
+          cursor: nwse-resize;
+        }
+        
+        .crop-resize-handle.top {
+          top: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          cursor: ns-resize;
+        }
+        
+        .crop-resize-handle.right {
+          right: -6px;
+          top: 50%;
+          transform: translateY(-50%);
+          cursor: ew-resize;
+        }
+        
+        .crop-resize-handle.bottom {
+          bottom: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          cursor: ns-resize;
+        }
+        
+        .crop-resize-handle.left {
+          left: -6px;
+          top: 50%;
+          transform: translateY(-50%);
+          cursor: ew-resize;
         }
         
         .cropper-actions {
@@ -216,25 +348,10 @@ export default function ImageCropper({ imageUrl, onCrop, onCancel }: ImageCroppe
           color: white;
         }
         
-        .cropper-button.apply:hover:not(:disabled) {
+        .cropper-button.apply:hover {
           background: #0f7a91;
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
-        }
-        
-        .cropper-button.apply:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        @media (max-width: 768px) {
-          .cropper-content {
-            flex-direction: column;
-          }
-          
-          .cropper-preview {
-            width: 100%;
-          }
         }
       `}</style>
     </div>
