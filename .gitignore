@@ -1,3 +1,9 @@
+# SQLite temporary files
+*.sqlite-shm
+*.sqlite-wal
+data.sqlite-shm
+data.sqlite-wal
+
 # База данных
 data.sqlite
 *.sqlite
