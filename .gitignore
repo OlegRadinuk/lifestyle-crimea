@@ -47,4 +47,7 @@ tsconfig.tsbuildinfo
 *.swp
 *.swo
 *~
-.DS_Store
+.DS_Storedata.sqlite-shm
+data.sqlite-wal
+*.sqlite-shm
+*.sqlite-wal
