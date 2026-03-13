@@ -6,12 +6,31 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     minimumCacheTTL: 31536000,
+    // Разрешаем локальные изображения из public
+    domains: ['lovelifestyle.ru', 'localhost'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'lovelifestyle.ru',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lovelifestyle.ru',
+        pathname: '/_next/static/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/images/**',
       },
     ],
+    // Добавляем loader для локальных изображений
+    loader: 'default',
+    // Убираем опасные форматы
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // Сжатие
@@ -47,6 +66,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Добавляем для API
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
     ];
   },
 
@@ -76,9 +105,6 @@ const nextConfig: NextConfig = {
     }
   },
 
-  // ✅ УБИРАЕМ STANDALONE
-  // output: 'standalone',  // ← закомментировать или удалить
-  
   poweredByHeader: false,
   reactStrictMode: true,
 };

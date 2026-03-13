@@ -1,0 +1,10 @@
+# robots.txt for lovelifestyle.ru
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Карта сайта
+Sitemap: https://lovelifestyle.ru/sitemap.xml
