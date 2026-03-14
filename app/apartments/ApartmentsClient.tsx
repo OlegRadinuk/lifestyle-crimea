@@ -44,6 +44,16 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [loadingAvailability, setLoadingAvailability] = useState(true);
   const [apartments] = useState(initialApartments);
+  
+  // Определяем мобильность
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     register('apartments-page', {
@@ -118,7 +128,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         setBookingApartment({
           id: apartment.id,
           title: apartment.title,
-          price_base: apartment.price_base, // Передаем цену в модалку
+          price_base: apartment.price_base,
         });
         setBookingOpen(true);
       } else {
@@ -266,7 +276,8 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         )}
 
-        <Footer />
+        {/* Передаем isMobile в Footer */}
+        <Footer isMobile={isMobile} />
       </section>
 
       {bookingOpen && bookingApartment && search && (

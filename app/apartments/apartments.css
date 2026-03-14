@@ -653,3 +653,229 @@
   min-height: 100vh;
   height: auto;
 }
+
+/* ===== FOOTER FINAL ===== */
+.ff-footer {
+  width: 100%;
+  background: linear-gradient(180deg, #1c2226, #0f1419);
+  color: #d6dde3;
+  font-family: var(--font-montserrat), sans-serif;
+  display: flex;
+  align-items: center;
+  padding: 40px 0;
+  margin: 0;
+}
+
+.ff-footer .ff-container {
+  max-width: 1280px;
+  width: calc(100% - 80px);
+  margin: 0 auto;
+}
+
+.ff-footer .ff-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 40px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 28px;
+  padding: 40px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.ff-footer .ff-title {
+  font-size: 26px;
+  font-weight: 500;
+  margin: 0 0 16px 0;
+  color: #139AB6;
+}
+
+.ff-footer .ff-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #b8c4cc;
+  margin: 0 0 24px 0;
+  max-width: 400px;
+}
+
+.ff-footer .ff-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ff-footer .ff-phone {
+  font-size: 14px;
+  color: #139ab6;
+  text-decoration: none;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.ff-footer .ff-phone:hover {
+  opacity: 1;
+}
+
+.ff-footer .ff-address {
+  font-size: 14px;
+  color: #139ab6;
+  opacity: 0.9;
+}
+
+.ff-footer .ff-copyright {
+  margin-top: 24px;
+  font-size: 13px;
+  color: #7f8b93;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+}
+
+.ff-footer .ff-map {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 220px;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
+  background: #1a1f24;
+}
+
+.ff-footer .ff-map iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Десктоп футер */
+.ff-footer-desktop {
+  flex: none !important;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+}
+
+/* Мобилка футер */
+.ff-footer-mobile {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  min-height: 0;
+}
+
+.ff-footer-mobile .ff-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.ff-footer-mobile .ff-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 24px;
+  padding: 20px 16px;
+  width: 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.ff-footer-mobile .ff-info {
+  order: 2;
+}
+
+.ff-footer-mobile .ff-map {
+  order: 1;
+  position: relative;
+  width: 100%;
+  height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  background: #1a1f24;
+}
+
+.ff-footer-mobile .ff-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+  color: #139AB6;
+}
+
+.ff-footer-mobile .ff-description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #b8c4cc;
+  margin: 0 0 16px 0;
+}
+
+.ff-footer-mobile .ff-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.ff-footer-mobile .ff-phone {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ff-footer-mobile .ff-address {
+  font-size: 12px;
+  width: 100%;
+}
+
+.ff-footer-mobile .ff-copyright {
+  font-size: 11px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+/* Маленькие телефоны */
+@media (max-width: 480px) {
+  .ff-footer-mobile {
+    padding: 0 12px;
+  }
+  
+  .ff-footer-mobile .ff-grid {
+    padding: 16px 12px;
+    gap: 12px;
+  }
+  
+  .ff-footer-mobile .ff-map {
+    height: 120px;
+  }
+  
+  .ff-footer-mobile .ff-title {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  
+  .ff-footer-mobile .ff-description {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .ff-footer-mobile .ff-phone,
+  .ff-footer-mobile .ff-address {
+    font-size: 11px;
+  }
+  
+  .ff-footer-mobile .ff-copyright {
+    font-size: 10px;
+    padding-top: 8px;
+  }
+}
+
+/* Safe area для iPhone */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .ff-footer-mobile {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+  }
+}
