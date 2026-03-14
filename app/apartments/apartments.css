@@ -397,7 +397,7 @@
   /* Список апартаментов */
   .ap-list {
     padding: 0 16px 60px;
-    gap: 0px;
+    gap: 25px;
     margin-bottom: 40px;
   }
 
@@ -407,7 +407,7 @@
     border-radius: 24px;
     background: white;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(19, 154, 182, 0.15);
+    border: 1px solid #139ab6
   }
 
   .ap-list-image {
