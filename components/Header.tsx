@@ -205,13 +205,20 @@ const getActiveApartment = () => {
         `}
       >
         <button className="header__burger" onClick={onBurgerClick}>
-          <div className="burger-icon">
-            <span />
-            <span />
-            <span />
-          </div>
-          <span className="burger-text">Меню</span>
-        </button>
+  <svg 
+    className="burger-icon-svg" 
+    width="26" 
+    height="18" 
+    viewBox="0 0 26 18" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect y="0" width="26" height="2" fill="white" />
+    <rect y="8" width="26" height="2" fill="white" />
+    <rect y="16" width="26" height="2" fill="white" />
+  </svg>
+  <span className="burger-text">Меню</span>
+</button>
 
         {mode === 'hero' && (
           <>
