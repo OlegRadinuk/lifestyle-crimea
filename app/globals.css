@@ -1321,7 +1321,7 @@ html, body {
   left: 0;
   right: 0;
   width: 100%;
-  border-radius: 24px 24px 0 0;
+  border-radius: 24px 24px;
   padding: 20px 16px 30px;
   animation: slideUp 0.3s ease;
 }
@@ -5614,12 +5614,12 @@ html, body {
 }
 
 .availability-calendar.mobile {
-    border-radius: 24px 24px 0 0;
-    width: 100%;
+    border-radius: 24px 24px;
+    width: 175%;
     padding: 20px 16px 30px;
     animation: .3s slideUp;
     position: fixed;
-    inset: auto -9px -529px;
+    inset: auto -149px -621px;
 }
 
 /* Мобилка футер - 50% */
@@ -6648,7 +6648,7 @@ html, body {
   }
 
   .rf-mobile .rf-title {
-    font-size: 24px;
+    font-size: 50px;
     margin-bottom: 12px;
     padding-right: 16px;
   }
@@ -6694,7 +6694,7 @@ html, body {
 
   .rf-mobile .rf-title {
     font-size: 22px;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
     padding-right: 14px;
   }
 
@@ -7640,3 +7640,49 @@ html, body {
   z-index: 5000 !important;
 }
 
+/* ===== МОБИЛЬНЫЕ ЗАГОЛОВКИ ДЛЯ ВСЕХ ЭКРАНОВ < 768 ===== */
+@media (max-width: 768px) {
+  .rf-mobile .rf-title {
+    font-size: 24px !important; /* базовый размер */
+    margin-bottom: 8px !important;
+    padding-right: 16px !important;
+    padding-top: 48px !important; /* отступ под хедер */
+    text-align: right !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rf-mobile .rf-title {
+    font-size: 23px !important;
+    padding-top: 50px !important;
+    margin-bottom: 6px !important;
+    padding-right: 14px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .rf-mobile .rf-title {
+    font-size: 22px !important;
+    padding-top: 52px !important;
+    margin-bottom: 5px !important;
+    padding-right: 12px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .rf-mobile .rf-title {
+    font-size: 22px !important;
+    padding-top: 52px !important;
+    margin-bottom: 4px !important;
+    padding-right: 10px !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .rf-mobile .rf-title {
+    font-size: 20px !important;
+    padding-top: 48px !important;
+    margin-bottom: 3px !important;
+    padding-right: 8px !important;
+  }
+}

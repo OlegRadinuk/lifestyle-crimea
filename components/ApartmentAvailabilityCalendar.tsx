@@ -4,7 +4,7 @@ import { DayPicker, DateRange } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
 import 'react-day-picker/dist/style.css';
 import { useMemo, useState, useEffect } from 'react';
-import { startOfToday, differenceInCalendarDays, addDays, isWeekend, format } from 'date-fns';
+import { startOfToday, differenceInCalendarDays, addDays, isWeekend } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type BlockedDate = {
@@ -47,31 +47,22 @@ export default function ApartmentAvailabilityCalendar({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Критически важно: день выезда (end) НЕ добавляется в заблокированные
   const disabledDays = useMemo(() => {
-  console.log('🔥🔥🔥 CALCULATING disabledDays with:', blockedDates);
-  
-  const disabled: ({ before: Date } | Date)[] = [{ before: today }];
-  
-  blockedDates.forEach(blocked => {
-    console.log('  Processing blocked:', blocked);
-    const start = new Date(blocked.start);
-    const end = new Date(blocked.end);
+    const disabled: ({ before: Date } | Date)[] = [{ before: today }];
     
-    let current = new Date(start);
-    while (current < end) {
-      console.log('    Adding disabled day:', current.toISOString().split('T')[0]);
-      disabled.push(new Date(current));
-      current = addDays(current, 1);
-    }
-  });
-  
-  console.log('🏁 Final disabled days:', disabled.map(d => 
-    d instanceof Date ? d.toISOString().split('T')[0] : 'before today'
-  ));
-  
-  return disabled;
-}, [blockedDates, today]);
+    blockedDates.forEach(blocked => {
+      const start = new Date(blocked.start);
+      const end = new Date(blocked.end);
+      
+      let current = new Date(start);
+      while (current < end) {
+        disabled.push(new Date(current));
+        current = addDays(current, 1);
+      }
+    });
+    
+    return disabled;
+  }, [blockedDates, today]);
 
   const nights = range?.from && range?.to
     ? differenceInCalendarDays(range.to, range.from)
@@ -104,6 +95,79 @@ export default function ApartmentAvailabilityCalendar({
     disabled: 'rdp-day_disabled',
   };
 
+  // Мобильная версия
+if (isMobile) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ y: '100%', opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="availability-calendar mobile"
+      >
+        {/* Хедер */}
+        <div className="calendar-header">
+          <h3>Выберите даты</h3>
+          <button className="calendar-close" onClick={onClose}>✕</button>
+        </div>
+
+        {/* Быстрые диапазоны */}
+        <div className="quick-ranges">
+          {QUICK_RANGES.map(({ label, days }) => (
+            <button
+              key={label}
+              className="quick-range-btn"
+              onClick={() => handleQuickRange(days)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Календарь */}
+        <div className="calendar-wrapper">
+          <DayPicker
+            locale={ru}
+            mode="range"
+            selected={range}
+            onSelect={setRange}
+            disabled={disabledDays}
+            modifiers={modifiers}
+            modifiersClassNames={modifiersClassNames}
+            weekStartsOn={1}
+            numberOfMonths={1}
+          />
+        </div>
+
+        {/* Информация о датах */}
+        {range?.from && range?.to && (
+          <div className="calendar-info">
+            <span>
+              {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
+            </span>
+            {showPrice && apartmentPrice > 0 && (
+              <span className="calendar-total-price">
+                • {(apartmentPrice * nights).toLocaleString()} ₽
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Кнопка подтверждения */}
+        <button
+          className="calendar-confirm"
+          disabled={!isValidRange}
+          onClick={handleConfirm}
+        >
+          Выбрать
+        </button>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+  // Десктоп версия (без изменений)
   return (
     <AnimatePresence>
       <motion.div
@@ -112,16 +176,9 @@ export default function ApartmentAvailabilityCalendar({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`availability-calendar ${isMobile ? 'mobile' : ''} position-${position}`}
+        className={`availability-calendar position-${position}`}
       >
-        {isMobile && (
-          <div className="calendar-header">
-            <h3>Выберите даты</h3>
-            <button className="calendar-close" onClick={onClose}>✕</button>
-          </div>
-        )}
-
-        {!isMobile && position === 'right' && (
+        {position === 'right' && (
           <div className="quick-ranges">
             {QUICK_RANGES.map(({ label, days }) => (
               <button
