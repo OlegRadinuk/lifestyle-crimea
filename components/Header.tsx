@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useApartment } from '@/components/ApartmentContext';
@@ -33,9 +33,10 @@ function formatDateForInput(dateStr: string) {
 
 export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
-  const { currentApartment } = useApartment();
+  const { currentApartment: panoramaApartment, currentApartmentIndex } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -47,7 +48,66 @@ export default function Header({ onBurgerClick }: Props) {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
-  const { blockedDates } = useAvailability(currentApartment?.id || null);
+  // Состояние для апартамента из URL (для страницы апартаментов)
+  const [urlApartment, setUrlApartment] = useState<{ id: string; title: string } | null>(null);
+
+  // Определяем тип страницы
+  const isPanoramaPage = pathname === '/';
+  const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
+  const isApartmentsListPage = pathname === '/apartments';
+
+  // Загружаем апартамент из URL если мы на странице апартамента
+  useEffect(() => {
+    const fetchApartmentFromUrl = async () => {
+      const match = pathname?.match(/^\/apartments\/([^\/]+)$/);
+      
+      if (match) {
+        const apartmentId = match[1];
+        try {
+          const res = await fetch(`/api/apartments/${apartmentId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setUrlApartment({
+              id: data.id,
+              title: data.title
+            });
+            setIsActive(data.is_active);
+            setApartmentPrice(data.price_base);
+          } else {
+            setUrlApartment(null);
+          }
+        } catch (error) {
+          console.error('Error fetching apartment from URL:', error);
+          setUrlApartment(null);
+        }
+      } else {
+        setUrlApartment(null);
+      }
+    };
+
+    if (isApartmentPage) {
+      fetchApartmentFromUrl();
+    } else {
+      setUrlApartment(null);
+    }
+  }, [pathname, isApartmentPage]);
+
+  // Определяем какой апартамент показывать в зависимости от страницы
+const getActiveApartment = () => {
+  if (isApartmentPage && urlApartment) {
+    console.log('🏢 Using URL apartment:', urlApartment);
+    return urlApartment;
+  } else if (isPanoramaPage && panoramaApartment) {
+    console.log('🌄 Using panorama apartment:', panoramaApartment);
+    return panoramaApartment;
+  }
+  console.log('❌ No active apartment');
+  return null;
+};
+
+  const activeApartment = getActiveApartment();
+
+  const { blockedDates } = useAvailability(activeApartment?.id || null);
 
   /* ---------- HERO STATE ---------- */
   const [checkIn, setCheckIn] = useState('');
@@ -61,9 +121,9 @@ export default function Header({ onBurgerClick }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем данные апартамента из БД
+  // Загружаем данные апартамента из БД (для цены и статуса)
   useEffect(() => {
-    if (!currentApartment?.id) {
+    if (!activeApartment?.id) {
       setApartmentPrice(0);
       setIsActive(false);
       return;
@@ -72,14 +132,13 @@ export default function Header({ onBurgerClick }: Props) {
     const fetchApartmentData = async () => {
       setLoadingPrice(true);
       try {
-        const res = await fetch(`/api/apartments/${currentApartment.id}`);
+        const res = await fetch(`/api/apartments/${activeApartment.id}`);
         
         if (res.ok) {
           const data = await res.json();
           setApartmentPrice(data.price_base || 0);
           setIsActive(data.is_active === true);
         } else {
-          // Если 404 или другая ошибка, значит апартамент неактивен или не существует
           setApartmentPrice(0);
           setIsActive(false);
         }
@@ -93,7 +152,7 @@ export default function Header({ onBurgerClick }: Props) {
     };
 
     fetchApartmentData();
-  }, [currentApartment?.id]);
+  }, [activeApartment?.id]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -231,8 +290,8 @@ export default function Header({ onBurgerClick }: Props) {
           </>
         )}
 
-        {/* В режиме apartment - показываем только для активных апартаментов */}
-        {mode === 'apartment' && currentApartment && isActive && (
+        {/* В режиме apartment - показываем для активных апартаментов */}
+        {mode === 'apartment' && activeApartment && isActive && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action" style={{ position: 'relative' }}>
               <button
@@ -242,7 +301,7 @@ export default function Header({ onBurgerClick }: Props) {
               >
                 <span className="header__booking-label">Проверить доступность</span>
                 <span className="header__booking-apartment">
-                  {currentApartment.title.replace(/^LS\s*/i, '')}
+                  {activeApartment.title.replace(/^LS\s*/i, '')}
                 </span>
               </button>
 
@@ -250,7 +309,7 @@ export default function Header({ onBurgerClick }: Props) {
                 {calendarOpen && mode === 'apartment' && (
                   <div ref={popoverRef} className="header__calendar-popover">
                     <ApartmentAvailabilityCalendar
-                      key={`calendar-${currentApartment.id}-${blockedDates.length}-${apartmentPrice}`}
+                      key={`calendar-${activeApartment.id}-${blockedDates.length}-${apartmentPrice}`}
                       blockedDates={blockedDates}
                       position="right"
                       onConfirm={(range) => {
@@ -282,22 +341,22 @@ export default function Header({ onBurgerClick }: Props) {
         />
       )}
 
-      {bookingModalOpen && currentApartment && selectedRange && isActive && (
-  <BookingModal
-    apartment={{
-      id: currentApartment.id,
-      title: currentApartment.title,
-      price_base: apartmentPrice  // Добавляем цену из состояния
-    }}
-    initialRange={selectedRange}
-    initialGuests={guests}
-    onClose={() => setBookingModalOpen(false)}
-    onConfirm={(data) => {
-      console.log('FINAL BOOKING DATA', data);
-      setBookingModalOpen(false);
-    }}
-  />
-)}
+      {bookingModalOpen && activeApartment && selectedRange && isActive && (
+        <BookingModal
+          apartment={{
+            id: activeApartment.id,
+            title: activeApartment.title,
+            price_base: apartmentPrice
+          }}
+          initialRange={selectedRange}
+          initialGuests={guests}
+          onClose={() => setBookingModalOpen(false)}
+          onConfirm={(data) => {
+            console.log('FINAL BOOKING DATA', data);
+            setBookingModalOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

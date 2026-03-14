@@ -59,5 +59,5 @@ export default async function ApartmentPage({ params }: PageProps) {
     is_active: Boolean(apartment.is_active),
   };
 
-  return <ClientApartmentWrapper apartment={formattedApartment} />;
+  return <ClientApartmentWrapper key={id} apartment={formattedApartment} />;
 }

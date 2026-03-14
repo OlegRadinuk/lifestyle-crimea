@@ -135,47 +135,37 @@ export default function ReviewsFinal() {
         <h2 className="rf-title">Отзывы наших гостей</h2>
 
         {isMobile ? (
-  /* Мобильная версия - два слайда */
+  /* Мобильная версия - один слайд */
   <div className="rf-mobile-layout">
-    {/* Вертикальная навигация слева */}
-    <div className="rf-mobile-nav">
-      {REVIEWS.map((_, idx) => (
-        <button
-          key={idx}
-          className={`rf-mobile-nav-item ${idx === currentIndex ? 'rf-mobile-nav-active' : ''}`}
-          onClick={() => {
-            setPaused(true);
-            setCurrentIndex(idx);
-            setTimeout(() => setPaused(false), 5000);
-          }}
-          aria-label={`Перейти к отзыву ${idx + 1}`}
-        />
-      ))}
+    {/* Навигация слева от карточки */}
+    <div className="rf-mobile-nav-wrapper">
+      <div className="rf-mobile-nav-container">
+        {REVIEWS.map((_, idx) => {
+          // Расчет позиции риски относительно высоты карточки
+          const progress = (idx / (REVIEWS.length - 1)) * 100;
+          return (
+            <button
+              key={idx}
+              className={`rf-mobile-nav-item ${idx === currentIndex ? 'rf-mobile-nav-active' : ''}`}
+              style={{ top: `${progress}%` }}
+              onClick={() => {
+                setPaused(true);
+                setCurrentIndex(idx);
+                setTimeout(() => setPaused(false), 5000);
+              }}
+              aria-label={`Перейти к отзыву ${idx + 1}`}
+            />
+          );
+        })}
+      </div>
     </div>
 
-    {/* Слайды */}
+    {/* Один слайд */}
     <div className="rf-mobile-slides">
-      {/* Текущий слайд (сверху) */}
-      <div className="rf-mobile-slide rf-mobile-slide-current">
+      <div className="rf-mobile-slide">
         <div className="rf-card rf-card-center">
           <p className="rf-card-text">{REVIEWS[currentIndex].text}</p>
           <div className="rf-card-author">{REVIEWS[currentIndex].author}</div>
-        </div>
-      </div>
-
-      {/* Следующий слайд (снизу) */}
-      <div className="rf-mobile-slide rf-mobile-slide-next">
-        <div 
-          className="rf-card rf-card-side"
-          onClick={() => {
-            const nextIndex = (currentIndex + 1) % REVIEWS.length;
-            setPaused(true);
-            setCurrentIndex(nextIndex);
-            setTimeout(() => setPaused(false), 5000);
-          }}
-        >
-          <p className="rf-card-text">{REVIEWS[(currentIndex + 1) % REVIEWS.length].text}</p>
-          <div className="rf-card-author">{REVIEWS[(currentIndex + 1) % REVIEWS.length].author}</div>
         </div>
       </div>
     </div>

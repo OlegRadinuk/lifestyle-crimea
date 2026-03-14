@@ -22,13 +22,13 @@ type Props = {
 };
 
 export default function ClientApartmentWrapper({ apartment }: Props) {
-  const { setCurrentApartmentIndex, panoramas } = useApartment();
+  const { setCurrentDBApartment, panoramas } = useApartment();
   const [price, setPrice] = useState(apartment.price_base);
   const [isActive, setIsActive] = useState(apartment.is_active !== false);
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState(apartment.images);
 
-  // Загружаем актуальные данные из API (на случай изменений в админке)
+  // Загружаем актуальные данные из API
   useEffect(() => {
     const fetchApartmentData = async () => {
       try {
@@ -55,7 +55,6 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
 
     fetchApartmentData();
 
-    // Подписываемся на событие обновления фото
     const handleImagesUpdated = () => {
       fetchApartmentData();
     };
@@ -64,13 +63,19 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
     return () => window.removeEventListener('apartment-images-updated', handleImagesUpdated);
   }, [apartment.id]);
 
-  // Находим индекс в массиве панорам для контекста
+  // УСТАНАВЛИВАЕМ ТЕКУЩИЙ АПАРТАМЕНТ В КОНТЕКСТ
   useEffect(() => {
-    const index = panoramas?.findIndex(p => p.id === apartment.id) ?? -1;
-    if (index !== -1) {
-      setCurrentApartmentIndex(index);
-    }
-  }, [apartment.id, setCurrentApartmentIndex, panoramas]);
+    console.log('🏠 Setting current DB apartment:', apartment.id, apartment.title);
+    setCurrentDBApartment({
+      id: apartment.id,
+      title: apartment.title
+    });
+    
+    return () => {
+      console.log('🧹 Clearing current DB apartment');
+      setCurrentDBApartment(null);
+    };
+  }, [apartment.id, apartment.title, setCurrentDBApartment]);
 
   // Преобразуем в формат, который ожидает ApartmentHero
   const apartmentForHero = {

@@ -1293,7 +1293,7 @@ html, body {
 
 .availability-calendar.position-left {
   left: 32px;
-  top: -16px;
+  top: 60px;
   right: auto;
 }
 
@@ -4709,13 +4709,13 @@ html, body {
   border-color: transparent;
 }
 
-/* ===== МОБИЛКА - ДВА СЛАЙДА ===== */
+/* ===== МОБИЛКА - ОДИН СЛАЙД ===== */
 .rf-mobile {
   touch-action: pan-y pinch-zoom;
 }
 
 .rf-mobile .rf-container-mobile {
-  flex: 0 0 60%;
+  flex: 0 0 50%; /* 50% на отзывы */
   display: flex;
   flex-direction: column;
   padding: 20px 16px 10px 16px;
@@ -4728,7 +4728,8 @@ html, body {
   font-size: 26px;
   font-weight: 500;
   color: #139AB6;
-  margin: 30px 0 15px 40px; /* отступ слева под навигацию */
+  margin: 10px 0 15px 0;
+  padding-right: 20px;
   flex-shrink: 0;
 }
 
@@ -4741,23 +4742,27 @@ html, body {
   width: 100%;
 }
 
-/* Вертикальная навигация */
-.rf-mobile .rf-mobile-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 24px;
+/* Обертка для навигации - высота равна высоте карточки */
+.rf-mobile .rf-mobile-nav-wrapper {
+  width: 30px;
   flex-shrink: 0;
-  
-  /* Центрирование относительно двух слайдов */
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-  height: fit-content;
-  margin-top: calc(15px + 2%); /* корректировка с учетом заголовка */
+  display: flex;
+  align-items: center; /* центрируем по вертикали */
+  height: 100%;
 }
 
+/* Контейнер навигации */
+.rf-mobile .rf-mobile-nav-container {
+  position: relative;
+  width: 24px;
+  height: 280px; /* фиксированная высота под карточку */
+  margin: 0 auto;
+}
+
+/* Риски навигации */
 .rf-mobile .rf-mobile-nav-item {
+  position: absolute;
+  left: 0;
   width: 4px;
   height: 24px;
   background: rgba(19, 154, 182, 0.2);
@@ -4766,45 +4771,53 @@ html, body {
   cursor: pointer;
   padding: 0;
   transition: all 0.3s ease;
+  transform: translateY(-50%); /* центрирование по позиции */
 }
 
 .rf-mobile .rf-mobile-nav-active {
   background: #139ab6;
-  height: 40px;
   width: 6px;
-  box-shadow: 0 0 10px rgba(19, 154, 182, 0.5);
+  height: 40px;
+  box-shadow: 0 0 15px rgba(19, 154, 182, 0.6);
+  z-index: 2;
 }
 
-/* Контейнер слайдов */
+/* Контейнер слайда */
 .rf-mobile .rf-mobile-slides {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 .rf-mobile .rf-mobile-slide {
-  flex-shrink: 0;
   width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
-/* Текущий слайд (сверху) */
-.rf-mobile .rf-mobile-slide-current .rf-card {
+/* Карточка слайда */
+.rf-mobile .rf-mobile-slide .rf-card {
+  width: 100%;
   background: #ffffff;
   border-radius: 24px;
   padding: 24px;
   border: 2px solid #139ab6;
   box-shadow: 0 15px 30px rgba(19, 154, 182, 0.25);
-  aspect-ratio: 20/2;
+  aspect-ratio: 16/10;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  animation: rfSlideFade 0.3s ease;
 }
 
-.rf-mobile .rf-mobile-slide-current .rf-card-text {
+@keyframes rfSlideFade {
+  from { opacity: 0.5; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rf-mobile .rf-mobile-slide .rf-card-text {
   font-size: 16px;
   line-height: 1.5;
   color: #2b3a42;
@@ -4812,11 +4825,11 @@ html, body {
   font-style: italic;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
 }
 
-.rf-mobile .rf-mobile-slide-current .rf-card-author {
+.rf-mobile .rf-mobile-slide .rf-card-author {
   font-weight: 600;
   color: #139ab6;
   text-align: right;
@@ -4825,59 +4838,16 @@ html, body {
   font-size: 18px;
 }
 
-/* Следующий слайд (снизу) */
-.rf-mobile .rf-mobile-slide-next .rf-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
-  border-radius: 20px;
-  padding: 18px;
-  border: 1px solid rgba(19, 154, 182, 0.3);
-  aspect-ratio: 16/8;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.rf-mobile .rf-mobile-slide-next .rf-card:active {
-  transform: scale(0.98);
-  background: #ffffff;
-}
-
-.rf-mobile .rf-mobile-slide-next .rf-card-text {
-  font-size: 14px;
-  line-height: 1.4;
-  color: #2b3a42;
-  margin-bottom: 8px;
-  font-style: italic;
-  opacity: 0.9;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-
-.rf-mobile .rf-mobile-slide-next .rf-card-author {
-  font-weight: 600;
-  color: #139ab6;
-  text-align: right;
-  border-top: 1px solid rgba(19, 154, 182, 0.1);
-  padding-top: 8px;
-  font-size: 16px;
-  opacity: 0.9;
-}
-
 /* Яндекс ссылка */
 .rf-mobile .rf-yandex-link {
   display: block;
-  margin: 1px auto 0;
+  margin: 8px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  padding: 6px 18px;
+  padding: 8px 20px;
   border-radius: 30px;
   background: rgba(19, 154, 182, 0.08);
   width: fit-content;
@@ -4893,36 +4863,34 @@ html, body {
   
   .rf-mobile .rf-title {
     font-size: 24px;
-    white-space: nowrap;
     margin-bottom: 12px;
   }
   
-  .rf-mobile .rf-mobile-slide-current .rf-card {
-    padding: 20px;
+  .rf-mobile .rf-mobile-slide .rf-card {
+    padding: 18px;
+    aspect-ratio: 16/9; /* чуть ниже на маленьких */
   }
   
-  .rf-mobile .rf-mobile-slide-current .rf-card-text {
+  .rf-mobile .rf-mobile-slide .rf-card-text {
     font-size: 15px;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 5;
   }
   
-  .rf-mobile .rf-mobile-slide-current .rf-card-author {
+  .rf-mobile .rf-mobile-slide .rf-card-author {
     font-size: 16px;
     padding-top: 10px;
   }
   
-  .rf-mobile .rf-mobile-slide-next .rf-card {
-    padding: 14px;
+  .rf-mobile .rf-mobile-nav-container {
+    height: 240px; /* меньше под меньшую карточку */
   }
   
-  .rf-mobile .rf-mobile-slide-next .rf-card-text {
-    font-size: 13px;
-    -webkit-line-clamp: 3;
+  .rf-mobile .rf-mobile-nav-item {
+    height: 20px;
   }
   
-  .rf-mobile .rf-mobile-slide-next .rf-card-author {
-    font-size: 14px;
-    padding-top: 6px;
+  .rf-mobile .rf-mobile-nav-active {
+    height: 36px;
   }
 }
 
@@ -5642,4 +5610,22 @@ html, body {
   .cropper-actions {
     flex-direction: column;
   }
+}
+
+.availability-calendar.mobile {
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    padding: 20px 16px 30px;
+    animation: .3s slideUp;
+    position: fixed;
+    inset: auto -9px -529px;
+}
+
+/* Мобилка футер - 50% */
+.ff-footer-mobile {
+  flex: 0 0 50% !important; /* важно перебить предыдущие стили */
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  min-height: 0;
 }

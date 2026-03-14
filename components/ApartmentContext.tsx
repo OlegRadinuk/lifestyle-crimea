@@ -11,14 +11,26 @@ type Panorama = {
   meta: string[];
 };
 
+type ApartmentFromDB = {
+  id: string;
+  title: string;
+};
+
 type ApartmentContextType = {
+  // Для панорам (старый функционал)
   currentApartmentIndex: number;
   setCurrentApartmentIndex: (i: number) => void;
   currentApartment: Panorama | null;
-  showApartmentBooking: boolean;
-  setShowApartmentBooking: (v: boolean) => void;
   panoramas: Panorama[];
   loading: boolean;
+  
+  // ДЛЯ АПАРТАМЕНТОВ ИЗ БД
+  currentDBApartment: ApartmentFromDB | null;
+  setCurrentDBApartment: (apt: ApartmentFromDB | null) => void; // ЭТО ДОБАВЛЯЕМ
+  
+  // Для совместимости
+  showApartmentBooking: boolean;
+  setShowApartmentBooking: (v: boolean) => void;
 };
 
 const ApartmentContext = createContext<ApartmentContextType | null>(null);
@@ -32,6 +44,9 @@ export function ApartmentProvider({
   const [showApartmentBooking, setShowApartmentBooking] = useState(false);
   const [panoramas, setPanoramas] = useState<Panorama[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Состояние для апартаментов из БД
+  const [currentDBApartment, setCurrentDBApartment] = useState<ApartmentFromDB | null>(null);
 
   // Загружаем панорамы из БД
   useEffect(() => {
@@ -43,12 +58,10 @@ export function ApartmentProvider({
         if (data && data.length > 0) {
           setPanoramas(data);
         } else {
-          // Фолбек на статические данные с правильными ID
           setPanoramas(PANORAMAS);
         }
       } catch (error) {
         console.error('Error loading panoramas:', error);
-        // Фолбек на статические данные
         setPanoramas(PANORAMAS);
       } finally {
         setLoading(false);
@@ -66,13 +79,20 @@ export function ApartmentProvider({
   return (
     <ApartmentContext.Provider
       value={{
+        // Для панорам
         currentApartmentIndex,
         setCurrentApartmentIndex,
         currentApartment,
-        showApartmentBooking,
-        setShowApartmentBooking,
         panoramas,
         loading,
+        
+        // Для апартаментов из БД
+        currentDBApartment,
+        setCurrentDBApartment, // ЭТО ДОБАВЛЯЕМ
+        
+        // Общее
+        showApartmentBooking,
+        setShowApartmentBooking,
       }}
     >
       {children}

@@ -49,7 +49,7 @@ export default function RedeployButton({ apartmentId }: RedeployButtonProps) {
           <path d="M1 20v-6h6" />
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
         </svg>
-        {loading ? message : '🔄 Применить новые фото'}
+        {loading ? message : 'Применить новые фото'}
       </button>
       
       <p className="redeploy-hint">
