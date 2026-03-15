@@ -33,6 +33,7 @@ export default function EditApartmentPage({ params }: PageProps) {
   const [saving, setSaving] = useState(false);
   const [imagesCount, setImagesCount] = useState(0);
   const [featureInput, setFeatureInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchApartment();
@@ -41,11 +42,22 @@ export default function EditApartmentPage({ params }: PageProps) {
 
   const fetchApartment = async () => {
     try {
+      console.log('📥 Загружаем апартамент с ID:', id);
       const res = await fetch(`/api/admin/apartments/${id}`);
+      console.log('📡 Статус ответа:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
+      console.log('📦 Полученные данные:', data);
+      
       setApartment(data);
+      setError(null);
     } catch (error) {
-      console.error('Error fetching apartment:', error);
+      console.error('❌ Error fetching apartment:', error);
+      setError('Не удалось загрузить данные апартамента');
     } finally {
       setLoading(false);
     }
@@ -104,15 +116,12 @@ export default function EditApartmentPage({ params }: PageProps) {
     });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addFeature();
-    }
-  };
-
   if (loading) return <div className="admin-loading">Загрузка...</div>;
+  if (error) return <div className="admin-error">{error}</div>;
   if (!apartment) return <div>Апартамент не найден</div>;
+
+  // Для отладки - покажем данные
+  console.log('🖼️ Рендерим с данными:', apartment);
 
   return (
     <div className="admin-page">
@@ -121,13 +130,18 @@ export default function EditApartmentPage({ params }: PageProps) {
         <Link href="/admin/apartments" className="admin-button">← Назад</Link>
       </div>
 
+      {/* Временный блок для отладки */}
+      <div style={{ background: '#f0f0f0', padding: '10px', marginBottom: '20px' }}>
+        <pre>Данные из БД: {JSON.stringify(apartment, null, 2)}</pre>
+      </div>
+
       <form onSubmit={handleSubmit} className="admin-form">
         {/* Основные поля формы */}
         <div className="form-group">
           <label>Название</label>
           <input
             type="text"
-            value={apartment.title}
+            value={apartment.title || ''}
             onChange={(e) => setApartment({ ...apartment, title: e.target.value })}
             required
           />
@@ -185,7 +199,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         <div className="form-group">
           <label>Вид</label>
           <select
-            value={apartment.view}
+            value={apartment.view || 'sea'}
             onChange={(e) => setApartment({ ...apartment, view: e.target.value })}
           >
             <option value="sea">На море</option>
@@ -198,7 +212,7 @@ export default function EditApartmentPage({ params }: PageProps) {
           <label>
             <input
               type="checkbox"
-              checked={apartment.has_terrace}
+              checked={apartment.has_terrace || false}
               onChange={(e) => setApartment({ ...apartment, has_terrace: e.target.checked })}
             />
             Есть терраса
@@ -209,14 +223,14 @@ export default function EditApartmentPage({ params }: PageProps) {
           <label>
             <input
               type="checkbox"
-              checked={apartment.is_active}
+              checked={apartment.is_active || false}
               onChange={(e) => setApartment({ ...apartment, is_active: e.target.checked })}
             />
             Апартамент активен (показывается на сайте)
           </label>
         </div>
 
-        {/* ПОЛЕ ДЛЯ ОСОБЕННОСТЕЙ - ДОБАВЛЕНО */}
+        {/* Особенности */}
         <div className="form-group">
           <label>Особенности</label>
           <div className="features-list">
@@ -227,40 +241,27 @@ export default function EditApartmentPage({ params }: PageProps) {
                   type="button"
                   onClick={() => removeFeature(index)}
                   className="remove-feature"
-                  title="Удалить"
                 >
                   ×
                 </button>
               </div>
             ))}
-            {(!apartment.features || apartment.features.length === 0) && (
-              <div className="no-features">Нет добавленных особенностей</div>
-            )}
           </div>
           <div className="add-feature">
             <input
               type="text"
               value={featureInput}
               onChange={(e) => setFeatureInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Например: Wi-Fi, Кондиционер, Кухня"
-              className="feature-input"
+              placeholder="Новая особенность"
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
             />
-            <button 
-              type="button" 
-              onClick={addFeature} 
-              className="add-feature-btn"
-              disabled={!featureInput.trim()}
-            >
+            <button type="button" onClick={addFeature} className="admin-button small">
               Добавить
             </button>
           </div>
-          <small className="feature-hint">
-            Нажмите Enter или кнопку "Добавить" чтобы добавить особенность
-          </small>
         </div>
 
-        {/* КНОПКА ДЛЯ УПРАВЛЕНИЯ ФОТО */}
+        {/* Фото */}
         <div className="photo-section">
           <h3>Фотографии</h3>
           <div className="photo-info">
@@ -291,296 +292,6 @@ export default function EditApartmentPage({ params }: PageProps) {
           </Link>
         </div>
       </form>
-
-      <style jsx>{`
-        .photo-section {
-          margin: 30px 0;
-          padding: 20px;
-          background: #f8fafc;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .photo-section h3 {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1a2634;
-          margin-bottom: 16px;
-        }
-        
-        .photo-info {
-          margin-bottom: 16px;
-        }
-        
-        .photo-count-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 500;
-        }
-        
-        .photo-count-badge.has-photos {
-          background: #e6f7ff;
-          color: #139ab6;
-          border: 1px solid rgba(19, 154, 182, 0.2);
-        }
-        
-        .photo-count-badge.no-photos {
-          background: #f5f5f5;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .photo-management-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 24px;
-          background: linear-gradient(135deg, #139ab6, #1fb3cf);
-          color: white;
-          text-decoration: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
-          border: none;
-          cursor: pointer;
-        }
-        
-        .photo-management-btn:hover {
-          background: linear-gradient(135deg, #0f7a91, #139ab6);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(19, 154, 182, 0.4);
-        }
-        
-        .photo-management-btn svg {
-          margin-right: 4px;
-        }
-        
-        .form-actions {
-          display: flex;
-          gap: 16px;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #e2e8f0;
-        }
-        
-        .admin-button.primary {
-          background: linear-gradient(135deg, #139ab6, #1fb3cf);
-          color: white;
-          padding: 12px 28px;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
-        }
-        
-        .admin-button.primary:hover:not(:disabled) {
-          background: linear-gradient(135deg, #0f7a91, #139ab6);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(19, 154, 182, 0.4);
-        }
-        
-        .admin-button.primary:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        
-        .admin-button.secondary {
-          background: white;
-          color: #1a2634;
-          padding: 12px 28px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          text-decoration: none;
-          transition: all 0.3s ease;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .admin-button.secondary:hover {
-          background: #f8fafc;
-          border-color: #139ab6;
-          color: #139ab6;
-        }
-        
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-        
-        .form-group {
-          margin-bottom: 20px;
-        }
-        
-        .form-group label {
-          display: block;
-          margin-bottom: 6px;
-          font-weight: 500;
-          color: #1a2634;
-        }
-        
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group select,
-        .form-group textarea {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-size: 14px;
-          transition: border-color 0.2s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #139ab6;
-        }
-        
-        .form-group.checkbox {
-          display: flex;
-          align-items: center;
-        }
-        
-        .form-group.checkbox label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-        
-        .form-group.checkbox input {
-          width: auto;
-        }
-        
-        /* Стили для особенностей */
-        .features-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 15px;
-          min-height: 40px;
-          padding: 8px;
-          background: #f9f9f9;
-          border-radius: 8px;
-          border: 1px solid #eaeef2;
-        }
-        
-        .feature-item {
-          background: #e6f7ff;
-          border: 1px solid #139ab6;
-          border-radius: 20px;
-          padding: 5px 12px;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 13px;
-        }
-        
-        .remove-feature {
-          background: none;
-          border: none;
-          color: #64748b;
-          cursor: pointer;
-          font-size: 16px;
-          padding: 0 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .remove-feature:hover {
-          color: #c62828;
-        }
-        
-        .no-features {
-          color: #94a3b8;
-          font-style: italic;
-          padding: 4px 8px;
-        }
-        
-        .add-feature {
-          display: flex;
-          gap: 10px;
-        }
-        
-        .feature-input {
-          flex: 1;
-          padding: 10px 12px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-size: 14px;
-        }
-        
-        .feature-input:focus {
-          outline: none;
-          border-color: #139ab6;
-        }
-        
-        .add-feature-btn {
-          padding: 10px 20px;
-          background: #139ab6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .add-feature-btn:hover:not(:disabled) {
-          background: #0f7a91;
-        }
-        
-        .add-feature-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .feature-hint {
-          display: block;
-          margin-top: 6px;
-          color: #94a3b8;
-          font-size: 12px;
-        }
-        
-        @media (max-width: 768px) {
-          .form-row {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
-          
-          .photo-management-btn {
-            width: 100%;
-            justify-content: center;
-          }
-          
-          .form-actions {
-            flex-direction: column;
-          }
-          
-          .admin-button.primary,
-          .admin-button.secondary {
-            width: 100%;
-            text-align: center;
-          }
-          
-          .add-feature {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 }
