@@ -1,165 +1,168 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  
   try {
-    const { id } = await params;
+    console.log('🔍 API GET called for ID:', id);
     
-    const images = db.prepare(`
-      SELECT * FROM apartment_images 
-      WHERE apartment_id = ? 
-      ORDER BY sort_order
-    `).all(id);
-
-    return NextResponse.json(images);
-  } catch (error) {
-    console.error('Error fetching images:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch images' }, 
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
+    // Получаем конкретный апартамент по ID
+    const apartment = db.prepare(`
+      SELECT * FROM apartments WHERE id = ?
+    `).get(id) as any;
     
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file uploaded' }, 
-        { status: 400 }
-      );
+    if (!apartment) {
+      console.log('❌ Apartment not found:', id);
+      return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
 
-    // Проверяем тип файла
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' }, 
-        { status: 400 }
-      );
-    }
-
-    // Проверяем размер (макс 5MB на сервере для безопасности)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File too large (max 5MB)' }, 
-        { status: 400 }
-      );
-    }
-
-    // Логируем информацию о файле
-    console.log('📸 Uploading image:', {
-      name: file.name,
-      type: file.type,
-      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`
-    });
-
-    // Конвертируем файл в buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    // Создаем директорию для апартамента, если её нет
-    const uploadDir = path.join(process.cwd(), 'public/images/apartments', id);
-    await mkdir(uploadDir, { recursive: true });
-    
-    // Генерируем уникальное имя файла (всегда .webp)
-    const filename = `${uuidv4()}.webp`;
-    const filepath = path.join(uploadDir, filename);
-    
-    // Сохраняем файл
-    await writeFile(filepath, buffer);
-    console.log('💾 File saved:', filename);
-    
-    // Получаем максимальный sort_order для этого апартамента
-    const maxSort = db.prepare(`
-      SELECT MAX(sort_order) as max FROM apartment_images WHERE apartment_id = ?
-    `).get(id) as { max: number | null };
-    
-    const sortOrder = (maxSort.max || 0) + 1;
-    
-    // Формируем URL для доступа к изображению
-    const imageUrl = `/images/apartments/${id}/${filename}`;
-    
-    // Сохраняем запись в базу данных
-    const stmt = db.prepare(`
-      INSERT INTO apartment_images (apartment_id, url, sort_order)
-      VALUES (?, ?, ?)
-    `);
-    
-    const result = stmt.run(id, imageUrl, sortOrder);
-    
-    console.log('✅ Image saved to DB with ID:', result.lastInsertRowid);
-    
-    return NextResponse.json({ 
-      success: true, 
-      id: Number(result.lastInsertRowid),
-      url: imageUrl 
-    });
-    
-  } catch (error) {
-    console.error('❌ Error uploading image:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload image' }, 
-      { status: 500 }
-    );
-  }
-}
-
-// Опционально: добавляем DELETE для удаления изображения
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    
-    // Получаем информацию об изображении
-    const image = db.prepare(`
-      SELECT * FROM apartment_images WHERE id = ?
-    `).get(id) as { url: string; apartment_id: string } | undefined;
-
-    if (!image) {
-      return NextResponse.json(
-        { error: 'Image not found' }, 
-        { status: 404 }
-      );
-    }
-
-    // Удаляем файл
+    // Получаем количество фото
+    let imagesCount = 0;
     try {
-      const filename = image.url.split('/').pop();
-      if (filename) {
-        const filepath = path.join(process.cwd(), 'public/images/apartments', image.apartment_id, filename);
-        await writeFile(filepath, Buffer.from('')); // Не можем удалить через writeFile, нужно использовать unlink
-        // На самом деле нужно использовать unlink, но для простоты пока так
-        console.log('🗑️ File deleted:', filename);
-      }
-    } catch (fileError) {
-      console.error('Error deleting file:', fileError);
-      // Продолжаем удаление из БД даже если файл не найден
+      const count = db.prepare(`
+        SELECT COUNT(*) as count FROM apartment_images WHERE apartment_id = ?
+      `).get(id) as { count: number };
+      imagesCount = count?.count || 0;
+    } catch (e) {
+      console.log('⚠️ Error getting images count:', e);
     }
 
-    // Удаляем запись из БД
-    db.prepare('DELETE FROM apartment_images WHERE id = ?').run(id);
+    // Парсим JSON поля
+    let features = [];
+    try {
+      features = apartment.features ? JSON.parse(apartment.features) : [];
+    } catch (e) {
+      console.log('⚠️ Error parsing features:', e);
+    }
+
+    let images = [];
+    try {
+      images = apartment.images ? JSON.parse(apartment.images) : [];
+    } catch (e) {
+      console.log('⚠️ Error parsing images:', e);
+    }
+
+    const formattedApartment = {
+      id: apartment.id,
+      title: apartment.title,
+      short_description: apartment.short_description,
+      description: apartment.description,
+      max_guests: apartment.max_guests,
+      area: apartment.area,
+      price_base: Number(apartment.price_base),
+      view: apartment.view || 'sea',
+      has_terrace: Boolean(apartment.has_terrace),
+      features: features,
+      images: images,
+      is_active: Boolean(apartment.is_active),
+      images_count: imagesCount,
+      created_at: apartment.created_at,
+      updated_at: apartment.updated_at,
+    };
+
+    console.log('✅ Sending apartment:', formattedApartment);
     
+    return NextResponse.json(formattedApartment);
+    
+  } catch (error) {
+    console.error('❌ Error fetching apartment:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch apartment' }, 
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  try {
+    const data = await request.json();
+    console.log('📝 Updating apartment:', id, data);
+    
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    if (data.title !== undefined) {
+      updates.push('title = ?');
+      values.push(data.title);
+    }
+
+    if (data.short_description !== undefined) {
+      updates.push('short_description = ?');
+      values.push(data.short_description);
+    }
+
+    if (data.description !== undefined) {
+      updates.push('description = ?');
+      values.push(data.description);
+    }
+
+    if (data.max_guests !== undefined) {
+      updates.push('max_guests = ?');
+      values.push(data.max_guests);
+    }
+
+    if (data.area !== undefined) {
+      updates.push('area = ?');
+      values.push(data.area);
+    }
+
+    if (data.price_base !== undefined) {
+      updates.push('price_base = ?');
+      values.push(data.price_base);
+    }
+
+    if (data.view !== undefined) {
+      updates.push('view = ?');
+      values.push(data.view);
+    }
+
+    if (data.has_terrace !== undefined) {
+      updates.push('has_terrace = ?');
+      values.push(data.has_terrace ? 1 : 0);
+    }
+
+    if (data.features !== undefined) {
+      updates.push('features = ?');
+      values.push(JSON.stringify(data.features));
+    }
+
+    if (data.images !== undefined) {
+      updates.push('images = ?');
+      values.push(JSON.stringify(data.images));
+    }
+
+    if (data.is_active !== undefined) {
+      updates.push('is_active = ?');
+      values.push(data.is_active ? 1 : 0);
+    }
+
+    if (updates.length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const query = `UPDATE apartments SET ${updates.join(', ')} WHERE id = ?`;
+    console.log('📝 SQL:', query);
+    
+    db.prepare(query).run(...values);
+
     return NextResponse.json({ success: true });
     
   } catch (error) {
-    console.error('Error deleting image:', error);
+    console.error('❌ Error updating apartment:', error);
     return NextResponse.json(
-      { error: 'Failed to delete image' }, 
+      { error: 'Failed to update apartment' }, 
       { status: 500 }
     );
   }
