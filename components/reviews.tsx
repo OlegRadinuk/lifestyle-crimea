@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import Footer from './Footer';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation'; // 🔥 ИМПОРТИРУЕМ ХУК
 
 type Review = {
   author: string;
@@ -41,7 +42,17 @@ const REVIEWS: Review[] = [
 ];
 
 export default function ReviewsFinal() {
+  // 🔥 ИСПОЛЬЗУЕМ ХУК ДЛЯ АНИМАЦИИ ПО СКРОЛЛУ
+  // threshold: 0.2 - анимация запустится когда 20% секции видно
+  // once: true - анимация сработает только один раз
+  const { ref: animationRef, isVisible: isAnimationVisible } = useScrollAnimation({ 
+    threshold: 0.2,
+    once: true 
+  });
+  
+  // Оставляем старый sectionRef для HeaderContext
   const sectionRef = useRef<HTMLElement | null>(null);
+  
   const { register, unregister } = useHeader();
 
   const [visible, setVisible] = useState(false);
@@ -57,7 +68,7 @@ export default function ReviewsFinal() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Регистрация в HeaderContext
+  // Регистрация в HeaderContext (оставляем как есть)
   useEffect(() => {
     if (!sectionRef.current) return;
     const id = 'reviews-final';
@@ -78,20 +89,9 @@ export default function ReviewsFinal() {
     };
   }, [register, unregister]);
 
-  // Анимация появления
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
+  // Анимация появления - ЗАМЕНЯЕМ старый observer на хук
+  // 🔥 Удаляем старый useEffect с observer и оставляем только isAnimationVisible из хука
+  // Теперь visible будет управляться хук ом
 
   // Автоплей - только для мобилки
   useEffect(() => {
@@ -126,51 +126,60 @@ export default function ReviewsFinal() {
   };
 
   return (
+    // 🔥 ВАЖНО: теперь у секции два ref
+    // animationRef - для хука анимации (следит за видимостью)
+    // sectionRef - для HeaderContext (регистрация темной темы)
     <section
-      ref={sectionRef}
-      className={`rf-section ${visible ? 'rf-visible' : ''} ${isMobile ? 'rf-mobile' : 'rf-desktop'}`}
+      ref={(el) => {
+        // Присваиваем оба ref одним колбэком
+        if (el) {
+          (animationRef as React.MutableRefObject<HTMLElement | null>).current = el;
+          sectionRef.current = el;
+        }
+      }}
+      // 🔥 Добавляем isAnimationVisible в классы
+      className={`rf-section ${isAnimationVisible ? 'rf-visible' : ''} ${isMobile ? 'rf-mobile' : 'rf-desktop'}`}
     >
       {/* Контейнер отзывов */}
       <div className={`rf-container ${isMobile ? 'rf-container-mobile' : 'rf-container-desktop'}`}>
         <h2 className="rf-title">Отзывы наших гостей</h2>
 
         {isMobile ? (
-  /* Мобильная версия - один слайд */
-  <div className="rf-mobile-layout">
-    {/* Навигация слева от карточки */}
-    <div className="rf-mobile-nav-wrapper">
-      <div className="rf-mobile-nav-container">
-        {REVIEWS.map((_, idx) => {
-          // Расчет позиции риски относительно высоты карточки
-          const progress = (idx / (REVIEWS.length - 1)) * 100;
-          return (
-            <button
-              key={idx}
-              className={`rf-mobile-nav-item ${idx === currentIndex ? 'rf-mobile-nav-active' : ''}`}
-              style={{ top: `${progress}%` }}
-              onClick={() => {
-                setPaused(true);
-                setCurrentIndex(idx);
-                setTimeout(() => setPaused(false), 5000);
-              }}
-              aria-label={`Перейти к отзыву ${idx + 1}`}
-            />
-          );
-        })}
-      </div>
-    </div>
+          /* Мобильная версия - один слайд */
+          <div className="rf-mobile-layout">
+            {/* Навигация слева от карточки */}
+            <div className="rf-mobile-nav-wrapper">
+              <div className="rf-mobile-nav-container">
+                {REVIEWS.map((_, idx) => {
+                  const progress = (idx / (REVIEWS.length - 1)) * 100;
+                  return (
+                    <button
+                      key={idx}
+                      className={`rf-mobile-nav-item ${idx === currentIndex ? 'rf-mobile-nav-active' : ''}`}
+                      style={{ top: `${progress}%` }}
+                      onClick={() => {
+                        setPaused(true);
+                        setCurrentIndex(idx);
+                        setTimeout(() => setPaused(false), 5000);
+                      }}
+                      aria-label={`Перейти к отзыву ${idx + 1}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
 
-    {/* Один слайд */}
-    <div className="rf-mobile-slides">
-      <div className="rf-mobile-slide">
-        <div className="rf-card rf-card-center">
-          <p className="rf-card-text">{REVIEWS[currentIndex].text}</p>
-          <div className="rf-card-author">{REVIEWS[currentIndex].author}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-) : (
+            {/* Один слайд */}
+            <div className="rf-mobile-slides">
+              <div className="rf-mobile-slide">
+                <div className="rf-card rf-card-center">
+                  <p className="rf-card-text">{REVIEWS[currentIndex].text}</p>
+                  <div className="rf-card-author">{REVIEWS[currentIndex].author}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
           /* Десктоп версия */
           <>
             <div className="rf-slider">

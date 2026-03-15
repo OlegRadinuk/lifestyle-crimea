@@ -7,6 +7,79 @@ interface ImageUploaderProps {
   onUpload: (image: { id: number; url: string }) => void;
 }
 
+// Функция для сжатия изображения
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target?.result as string;
+      
+      img.onload = () => {
+        // Создаем canvas
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Если изображение слишком большое, уменьшаем
+        const MAX_SIZE = 1920; // Максимальный размер по большей стороне
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          } else {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Рисуем изображение
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Конвертируем в WebP с качеством 85%
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Could not compress image'));
+              return;
+            }
+            
+            // Создаем новый файл
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
+              type: 'image/webp',
+            });
+            
+            console.log(`📊 Сжатие: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
+            
+            resolve(compressedFile);
+          },
+          'image/webp',
+          0.85 // Качество 85% (отличный баланс)
+        );
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Could not load image'));
+      };
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Could not read file'));
+    };
+  });
+}
+
 export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -27,15 +100,26 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
         continue;
       }
       
+      // Проверяем размер (макс 20MB для исходника)
       if (file.size > 20 * 1024 * 1024) {
         alert(`Файл ${file.name} слишком большой (макс 20MB)`);
         continue;
       }
       
-      const formData = new FormData();
-      formData.append('file', file);
-      
       try {
+        // Сжимаем изображение
+        console.log(`🖼️ Обработка: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        const compressedFile = await compressImage(file);
+        
+        // Проверяем размер после сжатия
+        if (compressedFile.size > 3 * 1024 * 1024) {
+          console.warn(`⚠️ Файл всё ещё больше 3MB: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+          // Можно предупредить пользователя, но не блокируем
+        }
+        
+        const formData = new FormData();
+        formData.append('file', compressedFile);
+        
         const res = await fetch(`/api/admin/apartments/${apartmentId}/images`, {
           method: 'POST',
           body: formData,
@@ -94,7 +178,13 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
           </svg>
           <h3>Перетащите фото сюда или кликните для выбора</h3>
           <p>Поддерживаются JPG, PNG, WEBP (до 20MB)</p>
-          <p className="small">📸 Можно выбрать несколько файлов сразу</p>
+          <p className="small">
+            🔥 Автоматическое сжатие в WebP (макс 3MB)
+            <br />
+            <span style={{ fontSize: '11px', opacity: 0.7 }}>
+              Качество 85% · Уменьшение до 1920px
+            </span>
+          </p>
         </label>
       </div>
       
@@ -102,7 +192,7 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
         <div className="upload-progress">
           <div className="spinner"></div>
           <span>
-            Загрузка... {uploadProgress.current} из {uploadProgress.total}
+            Обработка и загрузка... {uploadProgress.current} из {uploadProgress.total}
           </span>
         </div>
       )}
@@ -165,6 +255,7 @@ export default function ImageUploader({ apartmentId, onUpload }: ImageUploaderPr
           color: #139ab6;
           font-weight: 500;
           margin-top: 12px;
+          line-height: 1.5;
         }
         
         .upload-progress {

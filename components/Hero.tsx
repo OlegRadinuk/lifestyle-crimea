@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import Image from 'next/image';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation'; // 🔥 ИМПОРТИРУЕМ ХУК
 
 const slides = [
   {
@@ -23,6 +24,14 @@ const slides = [
 ];
 
 export default function Hero() {
+  // 🔥 ИСПОЛЬЗУЕМ ХУК ДЛЯ АНИМАЦИИ ПО СКРОЛЛУ
+  // threshold: 0.3 - анимация запустится когда 30% секции видно
+  // once: true - анимация сработает только один раз
+  const { ref: animationRef, isVisible } = useScrollAnimation({ 
+    threshold: 0.3,
+    once: true 
+  });
+  
   const { register, unregister } = useHeader();
 
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -125,7 +134,15 @@ export default function Hero() {
 
   return (
     <section
-      ref={heroRef}
+      // 🔥 ВАЖНО: теперь у секции два ref
+      // animationRef - для хука анимации (следит за видимостью)
+      // heroRef - для HeaderContext и параллакса
+      ref={(el) => {
+        if (el) {
+          (animationRef as React.MutableRefObject<HTMLElement | null>).current = el;
+          heroRef.current = el;
+        }
+      }}
       className="hero"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -210,7 +227,8 @@ export default function Hero() {
 
       {/* CONTENT */}
       <div className="hero-content">
-        <div className="hero-text" key={active}>
+        {/* 🔥 Добавляем класс animate-in на основе isVisible */}
+        <div className={`hero-text ${isVisible ? 'animate-in' : ''}`} key={active}>
           <h1 className="hero-title">
             Стиль Жизни{' '}
             <span className="hero-love">
