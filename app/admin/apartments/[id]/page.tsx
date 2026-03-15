@@ -32,6 +32,7 @@ export default function EditApartmentPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [imagesCount, setImagesCount] = useState(0);
+  const [featureInput, setFeatureInput] = useState('');
 
   useEffect(() => {
     fetchApartment();
@@ -66,16 +67,47 @@ export default function EditApartmentPage({ params }: PageProps) {
 
     setSaving(true);
     try {
-      await fetch(`/api/admin/apartments/${id}`, {
+      const res = await fetch(`/api/admin/apartments/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apartment),
       });
-      router.push('/admin/apartments');
+      
+      if (res.ok) {
+        router.push('/admin/apartments');
+      } else {
+        const error = await res.json();
+        alert(`Ошибка: ${error.error}`);
+      }
     } catch (error) {
       console.error('Error saving apartment:', error);
+      alert('Ошибка при сохранении');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const addFeature = () => {
+    if (!featureInput.trim() || !apartment) return;
+    setApartment({
+      ...apartment,
+      features: [...(apartment.features || []), featureInput.trim()]
+    });
+    setFeatureInput('');
+  };
+
+  const removeFeature = (index: number) => {
+    if (!apartment) return;
+    setApartment({
+      ...apartment,
+      features: apartment.features.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addFeature();
     }
   };
 
@@ -184,6 +216,50 @@ export default function EditApartmentPage({ params }: PageProps) {
           </label>
         </div>
 
+        {/* ПОЛЕ ДЛЯ ОСОБЕННОСТЕЙ - ДОБАВЛЕНО */}
+        <div className="form-group">
+          <label>Особенности</label>
+          <div className="features-list">
+            {apartment.features?.map((feature, index) => (
+              <div key={index} className="feature-item">
+                <span>{feature}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFeature(index)}
+                  className="remove-feature"
+                  title="Удалить"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {(!apartment.features || apartment.features.length === 0) && (
+              <div className="no-features">Нет добавленных особенностей</div>
+            )}
+          </div>
+          <div className="add-feature">
+            <input
+              type="text"
+              value={featureInput}
+              onChange={(e) => setFeatureInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Например: Wi-Fi, Кондиционер, Кухня"
+              className="feature-input"
+            />
+            <button 
+              type="button" 
+              onClick={addFeature} 
+              className="add-feature-btn"
+              disabled={!featureInput.trim()}
+            >
+              Добавить
+            </button>
+          </div>
+          <small className="feature-hint">
+            Нажмите Enter или кнопку "Добавить" чтобы добавить особенность
+          </small>
+        </div>
+
         {/* КНОПКА ДЛЯ УПРАВЛЕНИЯ ФОТО */}
         <div className="photo-section">
           <h3>Фотографии</h3>
@@ -199,7 +275,7 @@ export default function EditApartmentPage({ params }: PageProps) {
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M15 3H5C3.89543 3 3 3.89543 3 5V15C3 16.1046 3.89543 17 5 17H15C16.1046 17 17 16.1046 17 15V5C17 3.89543 16.1046 3 15 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M7 8C7.55228 8 8 7.55228 8 7C8 6.44772 7.55228 6 7 6C6.44772 6 6 6.44772 6 7C6 7.55228 6.44772 8 7 8Z" fill="currentColor"/>
+              <circle cx="7" cy="7" r="1" fill="currentColor"/>
               <path d="M17 12L13 8L5 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <span>Управление фотографиями ({imagesCount})</span>
@@ -388,6 +464,97 @@ export default function EditApartmentPage({ params }: PageProps) {
           width: auto;
         }
         
+        /* Стили для особенностей */
+        .features-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 15px;
+          min-height: 40px;
+          padding: 8px;
+          background: #f9f9f9;
+          border-radius: 8px;
+          border: 1px solid #eaeef2;
+        }
+        
+        .feature-item {
+          background: #e6f7ff;
+          border: 1px solid #139ab6;
+          border-radius: 20px;
+          padding: 5px 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+        }
+        
+        .remove-feature {
+          background: none;
+          border: none;
+          color: #64748b;
+          cursor: pointer;
+          font-size: 16px;
+          padding: 0 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .remove-feature:hover {
+          color: #c62828;
+        }
+        
+        .no-features {
+          color: #94a3b8;
+          font-style: italic;
+          padding: 4px 8px;
+        }
+        
+        .add-feature {
+          display: flex;
+          gap: 10px;
+        }
+        
+        .feature-input {
+          flex: 1;
+          padding: 10px 12px;
+          border: 1px solid #d0d9e2;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+        
+        .feature-input:focus {
+          outline: none;
+          border-color: #139ab6;
+        }
+        
+        .add-feature-btn {
+          padding: 10px 20px;
+          background: #139ab6;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .add-feature-btn:hover:not(:disabled) {
+          background: #0f7a91;
+        }
+        
+        .add-feature-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .feature-hint {
+          display: block;
+          margin-top: 6px;
+          color: #94a3b8;
+          font-size: 12px;
+        }
+        
         @media (max-width: 768px) {
           .form-row {
             grid-template-columns: 1fr;
@@ -407,6 +574,10 @@ export default function EditApartmentPage({ params }: PageProps) {
           .admin-button.secondary {
             width: 100%;
             text-align: center;
+          }
+          
+          .add-feature {
+            flex-direction: column;
           }
         }
       `}</style>
