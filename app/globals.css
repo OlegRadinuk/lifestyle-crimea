@@ -7967,7 +7967,9 @@ html, body {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 180px;
+    max-width: 300px;
+    margin-top: -55px;
+    margin-left: auto
   }
 
   .header--hero.header--mobile .header__mobile-fields {

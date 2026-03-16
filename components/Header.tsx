@@ -190,6 +190,10 @@ export default function Header({ onBurgerClick }: Props) {
     router.push('/apartments');
   };
 
+  const openCalendar = () => {
+    setCalendarOpen(true);
+  };
+
   return (
     <>
       <header
@@ -224,7 +228,7 @@ export default function Header({ onBurgerClick }: Props) {
                 <div className="header__booking-fields">
                   <div
                     className="booking-field calendar-trigger"
-                    onClick={() => setCalendarOpen(true)}
+                    onClick={openCalendar}
                   >
                     <label>Заезд</label>
                     <input
@@ -236,7 +240,7 @@ export default function Header({ onBurgerClick }: Props) {
                   </div>
                   <div
                     className="booking-field calendar-trigger"
-                    onClick={() => setCalendarOpen(true)}
+                    onClick={openCalendar}
                   >
                     <label>Выезд</label>
                     <input
@@ -263,7 +267,7 @@ export default function Header({ onBurgerClick }: Props) {
                 </button>
               </div>
             ) : (
-              /* МОБИЛЬНАЯ ВЕРСИЯ */
+              /* МОБИЛЬНАЯ ВЕРСИЯ - сначала кнопка, потом поля */
               <>
                 <button
                   className="header__mobile-book-btn"
@@ -278,25 +282,6 @@ export default function Header({ onBurgerClick }: Props) {
             {!isMobile && formError && (
               <div className="header__booking-error">{formError}</div>
             )}
-
-            {/* Календарь для десктопа */}
-            <AnimatePresence>
-              {calendarOpen && mode === 'hero' && !isMobile && (
-                <div ref={popoverRef} className="header__calendar-popover hero-calendar">
-                  <ApartmentAvailabilityCalendar
-                    blockedDates={[]}
-                    position="left"
-                    onConfirm={(range) => {
-                      setCheckIn(format(range.from, 'yyyy-MM-dd'));
-                      setCheckOut(format(range.to, 'yyyy-MM-dd'));
-                      setCalendarOpen(false);
-                    }}
-                    onClose={() => setCalendarOpen(false)}
-                    showPrice={false}
-                  />
-                </div>
-              )}
-            </AnimatePresence>
           </>
         )}
 
@@ -306,7 +291,7 @@ export default function Header({ onBurgerClick }: Props) {
             <div className="header__mobile-fields-row">
               <div
                 className="mobile-field calendar-trigger"
-                onClick={() => setCalendarOpen(true)}
+                onClick={openCalendar}
               >
                 <label>Заезд</label>
                 <input
@@ -318,7 +303,7 @@ export default function Header({ onBurgerClick }: Props) {
               </div>
               <div
                 className="mobile-field calendar-trigger"
-                onClick={() => setCalendarOpen(true)}
+                onClick={openCalendar}
               >
                 <label>Выезд</label>
                 <input
@@ -343,6 +328,26 @@ export default function Header({ onBurgerClick }: Props) {
           </div>
         )}
 
+        {/* Календарь для десктопа */}
+        <AnimatePresence>
+          {calendarOpen && mode === 'hero' && !isMobile && (
+            <div ref={popoverRef} className="header__calendar-popover hero-calendar">
+              <ApartmentAvailabilityCalendar
+                blockedDates={[]}
+                position="left"
+                onConfirm={(range) => {
+                  setCheckIn(format(range.from, 'yyyy-MM-dd'));
+                  setCheckOut(format(range.to, 'yyyy-MM-dd'));
+                  setCalendarOpen(false);
+                  setFormError(''); // очищаем ошибку при выборе дат
+                }}
+                onClose={() => setCalendarOpen(false)}
+                showPrice={false}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* Календарь для мобильных */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && isMobile && (
@@ -357,6 +362,7 @@ export default function Header({ onBurgerClick }: Props) {
                   setCheckIn(format(range.from, 'yyyy-MM-dd'));
                   setCheckOut(format(range.to, 'yyyy-MM-dd'));
                   setCalendarOpen(false);
+                  setFormError(''); // очищаем ошибку при выборе дат
                 }}
                 onClose={() => setCalendarOpen(false)}
                 showPrice={false}
