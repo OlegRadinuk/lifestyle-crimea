@@ -200,104 +200,105 @@ export default function Header({ onBurgerClick }: Props) {
           ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        <div className="header__top-row">
-          <button className="header__burger" onClick={onBurgerClick}>
-            <svg 
-              className="burger-icon-svg" 
-              width="26" 
-              height="18" 
-              viewBox="0 0 26 18" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect y="0" width="26" height="2" fill="white" />
-              <rect y="8" width="26" height="2" fill="white" />
-              <rect y="16" width="26" height="2" fill="white" />
-            </svg>
-            <span className="burger-text">Меню</span>
-          </button>
+        <button className="header__burger" onClick={onBurgerClick}>
+          <svg 
+            className="burger-icon-svg" 
+            width="26" 
+            height="18" 
+            viewBox="0 0 26 18" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect y="0" width="26" height="2" fill="white" />
+            <rect y="8" width="26" height="2" fill="white" />
+            <rect y="16" width="26" height="2" fill="white" />
+          </svg>
+          <span className="burger-text">Меню</span>
+        </button>
 
-          {mode === 'hero' && (
-            <>
-              {!isMobile ? (
-                /* ДЕСКТОП ВЕРСИЯ */
-                <div className="header__booking-wrapper">
-                  <div className="header__booking-fields">
-                    <div
-                      className="booking-field calendar-trigger"
-                      onClick={() => setCalendarOpen(true)}
-                    >
-                      <label>Заезд</label>
-                      <input
-                        type="text"
-                        placeholder="ДД.ММ.ГГГГ"
-                        value={formatDateForInput(checkIn)}
-                        readOnly
-                      />
-                    </div>
-                    <div
-                      className="booking-field calendar-trigger"
-                      onClick={() => setCalendarOpen(true)}
-                    >
-                      <label>Выезд</label>
-                      <input
-                        type="text"
-                        placeholder="ДД.ММ.ГГГГ"
-                        value={formatDateForInput(checkOut)}
-                        readOnly
-                      />
-                    </div>
-                    <div className="booking-field">
-                      <label>Гости</label>
-                      <select value={guests} onChange={e => setGuests(+e.target.value)}>
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <option key={n} value={n}>
-                            {n} {n === 1 ? 'гость' : 'гостя'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+        {mode === 'hero' && (
+          <>
+            {!isMobile ? (
+              /* ДЕСКТОП ВЕРСИЯ */
+              <div className="header__booking-wrapper">
+                <div className="header__booking-fields">
+                  <div
+                    className="booking-field calendar-trigger"
+                    onClick={() => setCalendarOpen(true)}
+                  >
+                    <label>Заезд</label>
+                    <input
+                      type="text"
+                      placeholder="ДД.ММ.ГГГГ"
+                      value={formatDateForInput(checkIn)}
+                      readOnly
+                    />
                   </div>
-
-                  <div className="header__booking-action">
-                    <button className="header__booking" onClick={handleHeroSearch}>
-                      Выбрать апартаменты
-                    </button>
-                    {formError && <div className="header__booking-error">{formError}</div>}
+                  <div
+                    className="booking-field calendar-trigger"
+                    onClick={() => setCalendarOpen(true)}
+                  >
+                    <label>Выезд</label>
+                    <input
+                      type="text"
+                      placeholder="ДД.ММ.ГГГГ"
+                      value={formatDateForInput(checkOut)}
+                      readOnly
+                    />
+                  </div>
+                  <div className="booking-field">
+                    <label>Гости</label>
+                    <select value={guests} onChange={e => setGuests(+e.target.value)}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <option key={n} value={n}>
+                          {n} {n === 1 ? 'гость' : 'гостя'}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-              ) : (
-                /* МОБИЛЬНАЯ ВЕРСИЯ - кнопка "Выбрать апартаменты" */
+
+                <button className="header__booking" onClick={handleHeroSearch}>
+                  Выбрать апартаменты
+                </button>
+              </div>
+            ) : (
+              /* МОБИЛЬНАЯ ВЕРСИЯ */
+              <>
                 <button
                   className="header__mobile-book-btn"
-                  onClick={() => setMobileSheetOpen(true)}
+                  onClick={handleHeroSearch}
                 >
                   Выбрать апартаменты
                 </button>
+              </>
+            )}
+
+            {/* Ошибка формы для десктопа */}
+            {!isMobile && formError && (
+              <div className="header__booking-error">{formError}</div>
+            )}
+
+            {/* Календарь для десктопа */}
+            <AnimatePresence>
+              {calendarOpen && mode === 'hero' && !isMobile && (
+                <div ref={popoverRef} className="header__calendar-popover hero-calendar">
+                  <ApartmentAvailabilityCalendar
+                    blockedDates={[]}
+                    position="left"
+                    onConfirm={(range) => {
+                      setCheckIn(format(range.from, 'yyyy-MM-dd'));
+                      setCheckOut(format(range.to, 'yyyy-MM-dd'));
+                      setCalendarOpen(false);
+                    }}
+                    onClose={() => setCalendarOpen(false)}
+                    showPrice={false}
+                  />
+                </div>
               )}
-            </>
-          )}
-
-          {/* В режиме apartment - показываем для активных апартаментов */}
-          {mode === 'apartment' && activeApartment && isActive && (
-            <div className="header__booking-wrapper is-apartment">
-              <div className="header__booking-action" style={{ position: 'relative' }}>
-                <button
-                  className="header__booking with-apartment"
-                  onClick={() => setCalendarOpen(prev => !prev)}
-                  disabled={loadingPrice}
-                >
-                  <span className="header__booking-label">Проверить доступность</span>
-                  <span className="header__booking-apartment">
-                    {activeApartment.title.replace(/^LS\s*/i, '')}
-                  </span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {mode === 'dark' && <div className="header__dark-placeholder" />}
-        </div>
+            </AnimatePresence>
+          </>
+        )}
 
         {/* МОБИЛЬНЫЕ ПОЛЯ ВВОДА - ТОЛЬКО ДЛЯ HERO */}
         {mode === 'hero' && isMobile && (
@@ -342,12 +343,12 @@ export default function Header({ onBurgerClick }: Props) {
           </div>
         )}
 
-        {/* КАЛЕНДАРЬ */}
+        {/* Календарь для мобильных */}
         <AnimatePresence>
-          {calendarOpen && mode === 'hero' && (
+          {calendarOpen && mode === 'hero' && isMobile && (
             <div 
               ref={popoverRef} 
-              className={`header__calendar-popover ${isMobile ? 'mobile-position' : ''} hero-calendar`}
+              className="header__calendar-popover mobile-position"
             >
               <ApartmentAvailabilityCalendar
                 blockedDates={[]}
@@ -364,25 +365,45 @@ export default function Header({ onBurgerClick }: Props) {
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {calendarOpen && mode === 'apartment' && (
-            <div ref={popoverRef} className="header__calendar-popover">
-              <ApartmentAvailabilityCalendar
-                key={`calendar-${activeApartment?.id}-${blockedDates.length}-${apartmentPrice}`}
-                blockedDates={blockedDates}
-                position="right"
-                onConfirm={(range) => {
-                  setSelectedRange(range);
-                  setCalendarOpen(false);
-                  setBookingModalOpen(true);
-                }}
-                onClose={() => setCalendarOpen(false)}
-                showPrice={true}
-                apartmentPrice={apartmentPrice}
-              />
+        {/* В режиме apartment - показываем для активных апартаментов */}
+        {mode === 'apartment' && activeApartment && isActive && (
+          <div className="header__booking-wrapper is-apartment">
+            <div className="header__booking-action" style={{ position: 'relative' }}>
+              <button
+                className="header__booking with-apartment"
+                onClick={() => setCalendarOpen(prev => !prev)}
+                disabled={loadingPrice}
+              >
+                <span className="header__booking-label">Проверить доступность</span>
+                <span className="header__booking-apartment">
+                  {activeApartment.title.replace(/^LS\s*/i, '')}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {calendarOpen && mode === 'apartment' && (
+                  <div ref={popoverRef} className="header__calendar-popover">
+                    <ApartmentAvailabilityCalendar
+                      key={`calendar-${activeApartment.id}-${blockedDates.length}-${apartmentPrice}`}
+                      blockedDates={blockedDates}
+                      position="right"
+                      onConfirm={(range) => {
+                        setSelectedRange(range);
+                        setCalendarOpen(false);
+                        setBookingModalOpen(true);
+                      }}
+                      onClose={() => setCalendarOpen(false)}
+                      showPrice={true}
+                      apartmentPrice={apartmentPrice}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
+
+        {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
 
       {mobileSheetOpen && (
