@@ -7633,7 +7633,6 @@ html, body {
 
   .header__calendar-popover.mobile-position .availability-calendar {
     position: relative !important;
-    top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
@@ -7765,4 +7764,135 @@ html, body {
     to { opacity: 1; transform: translate(-50%, 0); }
   }
 }
+}
+
+/* ===== DESKTOP CALENDAR AND HEADER FIX ===== */
+@media (min-width: 769px) {
+  /* Фиксируем хедер чтобы он не прыгал */
+  .header {
+    height: 80px !important;
+    min-height: 80px !important;
+    transform: none !important;
+    transition: background 0.35s ease !important;
+    will-change: transform; /* оптимизация для анимаций */
+  }
+
+  /* Убираем скачки при открытии календаря */
+  .header__booking-wrapper {
+    transform: none !important;
+    transition: none !important;
+    position: relative !important;
+    width: auto !important; /* фиксируем ширину */
+  }
+
+  /* Календарь позиционируется абсолютно */
+  .header__calendar-popover {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    right: 0 !important;
+    left: auto !important;
+    margin: 0 !important;
+    z-index: 10000 !important;
+  }
+
+  .header--hero .header__calendar-popover.hero-calendar {
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  /* Фиксируем ширину полей чтобы хедер не менял размер */
+  .booking-field {
+    min-width: 120px !important;
+    width: 120px !important;
+  }
+
+  .booking-field input,
+  .booking-field select {
+    width: 100% !important;
+  }
+
+  /* Фиксируем ширину кнопки */
+  .header__booking {
+    min-width: 220px !important;
+    text-align: center !important;
+    padding: 15.5px 30px !important;
+  }
+
+  /* Убираем псевдоэлементы, которые могут влиять */
+  .header--hero .header__booking-wrapper::after {
+    display: none !important;
+  }
+}
+
+/* ===== DESKTOP ERROR MESSAGE - ГОЛУБОЙ КОНТЕЙНЕР ===== */
+@media (min-width: 769px) {
+  .header__booking-error {
+    position: absolute !important;
+    bottom: -45px !important; /* немного ниже */
+    left: 69% !important; /* 69% от левого края */
+    transform: translateX(-50%) !important;
+    font-size: 13px !important;
+    color: #ffffff !important;
+    background: rgba(19, 154, 182, 0.9) !important; /* голубой с прозрачностью */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 10px 24px !important;
+    border-radius: 40px !important;
+    white-space: nowrap !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 8px 20px rgba(19, 154, 182, 0.3) !important;
+    z-index: 100 !important;
+    animation: errorSlideDown 0.3s ease !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  @keyframes errorSlideDown {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -15px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  /* Добавляем маленькую стрелочку сверху */
+  .header__booking-error::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background: rgba(19, 154, 182, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}
+
+/* ===== ДОПОЛНИТЕЛЬНАЯ ФИКСАЦИЯ ДЛЯ РАЗНЫХ РАЗРЕШЕНИЙ ===== */
+@media (min-width: 1440px) {
+  .header__booking-error {
+    left: 67% !important; /* чуть левее на широких экранах */
+  }
+}
+
+@media (min-width: 1920px) {
+  .header__booking-error {
+    left: 65% !important; /* еще левее на очень широких */
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .header__booking-error {
+    left: 72% !important; /* правее на планшетах */
+    font-size: 12px !important;
+    padding: 8px 20px !important;
+  }
 }
