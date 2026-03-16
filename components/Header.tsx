@@ -36,7 +36,7 @@ export default function Header({ onBurgerClick }: Props) {
   const pathname = usePathname();
   const { setSearch } = useSearch();
   const { mode } = useHeader();
-  const { currentApartment: panoramaApartment, currentApartmentIndex } = useApartment();
+  const { currentApartment: panoramaApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -54,7 +54,6 @@ export default function Header({ onBurgerClick }: Props) {
   // Определяем тип страницы
   const isPanoramaPage = pathname === '/';
   const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
-  const isApartmentsListPage = pathname === '/apartments';
 
   // Загружаем апартамент из URL если мы на странице апартамента
   useEffect(() => {
@@ -93,17 +92,14 @@ export default function Header({ onBurgerClick }: Props) {
   }, [pathname, isApartmentPage]);
 
   // Определяем какой апартамент показывать в зависимости от страницы
-const getActiveApartment = () => {
-  if (isApartmentPage && urlApartment) {
-    console.log('🏢 Using URL apartment:', urlApartment);
-    return urlApartment;
-  } else if (isPanoramaPage && panoramaApartment) {
-    console.log('🌄 Using panorama apartment:', panoramaApartment);
-    return panoramaApartment;
-  }
-  console.log('❌ No active apartment');
-  return null;
-};
+  const getActiveApartment = () => {
+    if (isApartmentPage && urlApartment) {
+      return urlApartment;
+    } else if (isPanoramaPage && panoramaApartment) {
+      return panoramaApartment;
+    }
+    return null;
+  };
 
   const activeApartment = getActiveApartment();
 
@@ -204,93 +200,6 @@ const getActiveApartment = () => {
           ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        <button className="header__burger" onClick={onBurgerClick}>
-  <svg 
-    className="burger-icon-svg" 
-    width="26" 
-    height="18" 
-    viewBox="0 0 26 18" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <rect y="0" width="26" height="2" fill="white" />
-    <rect y="8" width="26" height="2" fill="white" />
-    <rect y="16" width="26" height="2" fill="white" />
-  </svg>
-  <span className="burger-text">Меню</span>
-</button>
-
-        {mode === 'hero' && (
-  <>
-    {!isMobile ? (
-      /* ДЕСКТОПНАЯ ВЕРСИЯ (без изменений) */
-      <div className="header__booking-wrapper">
-        <div className="header__booking-fields">
-          <div
-            className="booking-field calendar-trigger"
-            onClick={() => setCalendarOpen(true)}
-          >
-            <label>Заезд</label>
-            <input
-              type="text"
-              placeholder="ДД.ММ.ГГГГ"
-              value={formatDateForInput(checkIn)}
-              readOnly
-            />
-          </div>
-          <div
-            className="booking-field calendar-trigger"
-            onClick={() => setCalendarOpen(true)}
-          >
-            <label>Выезд</label>
-            <input
-              type="text"
-              placeholder="ДД.ММ.ГГГГ"
-              value={formatDateForInput(checkOut)}
-              readOnly
-            />
-          </div>
-          <div className="booking-field">
-            <label>Гости</label>
-            <select value={guests} onChange={e => setGuests(+e.target.value)}>
-              {[1, 2, 3, 4, 5].map(n => (
-                <option key={n} value={n}>
-                  {n} {n === 1 ? 'гость' : 'гостя'}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="header__booking-action">
-          <button className="header__booking" onClick={handleHeroSearch}>
-            Выбрать апартаменты
-          </button>
-          {formError && <div className="header__booking-error">{formError}</div>}
-        </div>
-
-        <AnimatePresence>
-          {calendarOpen && mode === 'hero' && (
-            <div ref={popoverRef} className="header__calendar-popover hero-calendar">
-              <ApartmentAvailabilityCalendar
-                blockedDates={[]}
-                position="left"
-                onConfirm={(range) => {
-                  setCheckIn(format(range.from, 'yyyy-MM-dd'));
-                  setCheckOut(format(range.to, 'yyyy-MM-dd'));
-                  setCalendarOpen(false);
-                }}
-                onClose={() => setCalendarOpen(false)}
-                showPrice={false}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
-    ) : (
-      /* МОБИЛЬНАЯ ВЕРСИЯ - ДВА РЯДА */
-      <>
-        {/* Первый ряд: меню слева, кнопка справа */}
         <div className="header__top-row">
           <button className="header__burger" onClick={onBurgerClick}>
             <svg 
@@ -308,57 +217,138 @@ const getActiveApartment = () => {
             <span className="burger-text">Меню</span>
           </button>
 
-          <button 
-            className="header__booking" 
-            onClick={handleHeroSearch}
-          >
-            Выбрать
-          </button>
+          {mode === 'hero' && (
+            <>
+              {!isMobile ? (
+                /* ДЕСКТОП ВЕРСИЯ */
+                <div className="header__booking-wrapper">
+                  <div className="header__booking-fields">
+                    <div
+                      className="booking-field calendar-trigger"
+                      onClick={() => setCalendarOpen(true)}
+                    >
+                      <label>Заезд</label>
+                      <input
+                        type="text"
+                        placeholder="ДД.ММ.ГГГГ"
+                        value={formatDateForInput(checkIn)}
+                        readOnly
+                      />
+                    </div>
+                    <div
+                      className="booking-field calendar-trigger"
+                      onClick={() => setCalendarOpen(true)}
+                    >
+                      <label>Выезд</label>
+                      <input
+                        type="text"
+                        placeholder="ДД.ММ.ГГГГ"
+                        value={formatDateForInput(checkOut)}
+                        readOnly
+                      />
+                    </div>
+                    <div className="booking-field">
+                      <label>Гости</label>
+                      <select value={guests} onChange={e => setGuests(+e.target.value)}>
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? 'гость' : 'гостя'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="header__booking-action">
+                    <button className="header__booking" onClick={handleHeroSearch}>
+                      Выбрать апартаменты
+                    </button>
+                    {formError && <div className="header__booking-error">{formError}</div>}
+                  </div>
+                </div>
+              ) : (
+                /* МОБИЛЬНАЯ ВЕРСИЯ - кнопка "Выбрать апартаменты" */
+                <button
+                  className="header__mobile-book-btn"
+                  onClick={() => setMobileSheetOpen(true)}
+                >
+                  Выбрать апартаменты
+                </button>
+              )}
+            </>
+          )}
+
+          {/* В режиме apartment - показываем для активных апартаментов */}
+          {mode === 'apartment' && activeApartment && isActive && (
+            <div className="header__booking-wrapper is-apartment">
+              <div className="header__booking-action" style={{ position: 'relative' }}>
+                <button
+                  className="header__booking with-apartment"
+                  onClick={() => setCalendarOpen(prev => !prev)}
+                  disabled={loadingPrice}
+                >
+                  <span className="header__booking-label">Проверить доступность</span>
+                  <span className="header__booking-apartment">
+                    {activeApartment.title.replace(/^LS\s*/i, '')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mode === 'dark' && <div className="header__dark-placeholder" />}
         </div>
 
-        {/* Второй ряд: поля ввода */}
-        <div className="header__fields-row">
-          <div className="header__booking-fields">
-            <div 
-              className="booking-field calendar-trigger"
-              onClick={() => setCalendarOpen(true)}
-            >
-              <input
-                type="text"
-                placeholder="Заезд"
-                value={formatDateForInput(checkIn)}
-                readOnly
-              />
+        {/* МОБИЛЬНЫЕ ПОЛЯ ВВОДА - ТОЛЬКО ДЛЯ HERO */}
+        {mode === 'hero' && isMobile && (
+          <div className="header__mobile-fields">
+            <div className="header__mobile-fields-row">
+              <div
+                className="mobile-field calendar-trigger"
+                onClick={() => setCalendarOpen(true)}
+              >
+                <label>Заезд</label>
+                <input
+                  type="text"
+                  placeholder="ДД.ММ.ГГГГ"
+                  value={formatDateForInput(checkIn)}
+                  readOnly
+                />
+              </div>
+              <div
+                className="mobile-field calendar-trigger"
+                onClick={() => setCalendarOpen(true)}
+              >
+                <label>Выезд</label>
+                <input
+                  type="text"
+                  placeholder="ДД.ММ.ГГГГ"
+                  value={formatDateForInput(checkOut)}
+                  readOnly
+                />
+              </div>
+              <div className="mobile-field">
+                <label>Гости</label>
+                <select value={guests} onChange={e => setGuests(+e.target.value)}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-            <div 
-              className="booking-field calendar-trigger"
-              onClick={() => setCalendarOpen(true)}
-            >
-              <input
-                type="text"
-                placeholder="Выезд"
-                value={formatDateForInput(checkOut)}
-                readOnly
-              />
-            </div>
-
-            <div className="booking-field">
-              <select value={guests} onChange={e => setGuests(+e.target.value)}>
-                {[1, 2, 3, 4, 5].map(n => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? 'гость' : 'гостя'}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {formError && <div className="header__mobile-error">{formError}</div>}
           </div>
-        </div>
+        )}
 
-        {/* Календарь */}
+        {/* КАЛЕНДАРЬ */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && (
-            <div className="header__calendar-popover">
+            <div 
+              ref={popoverRef} 
+              className={`header__calendar-popover ${isMobile ? 'mobile-position' : ''} hero-calendar`}
+            >
               <ApartmentAvailabilityCalendar
                 blockedDates={[]}
                 position="left"
@@ -374,52 +364,25 @@ const getActiveApartment = () => {
           )}
         </AnimatePresence>
 
-        {/* Ошибка формы */}
-        {formError && <div className="header__booking-error mobile">{formError}</div>}
-      </>
-    )}
-  </>
-)}
-
-        {/* В режиме apartment - показываем для активных апартаментов */}
-        {mode === 'apartment' && activeApartment && isActive && (
-          <div className="header__booking-wrapper is-apartment">
-            <div className="header__booking-action" style={{ position: 'relative' }}>
-              <button
-                className="header__booking with-apartment"
-                onClick={() => setCalendarOpen(prev => !prev)}
-                disabled={loadingPrice}
-              >
-                <span className="header__booking-label">Проверить доступность</span>
-                <span className="header__booking-apartment">
-                  {activeApartment.title.replace(/^LS\s*/i, '')}
-                </span>
-              </button>
-
-              <AnimatePresence>
-                {calendarOpen && mode === 'apartment' && (
-                  <div ref={popoverRef} className="header__calendar-popover">
-                    <ApartmentAvailabilityCalendar
-                      key={`calendar-${activeApartment.id}-${blockedDates.length}-${apartmentPrice}`}
-                      blockedDates={blockedDates}
-                      position="right"
-                      onConfirm={(range) => {
-                        setSelectedRange(range);
-                        setCalendarOpen(false);
-                        setBookingModalOpen(true);
-                      }}
-                      onClose={() => setCalendarOpen(false)}
-                      showPrice={true}
-                      apartmentPrice={apartmentPrice}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
+        <AnimatePresence>
+          {calendarOpen && mode === 'apartment' && (
+            <div ref={popoverRef} className="header__calendar-popover">
+              <ApartmentAvailabilityCalendar
+                key={`calendar-${activeApartment?.id}-${blockedDates.length}-${apartmentPrice}`}
+                blockedDates={blockedDates}
+                position="right"
+                onConfirm={(range) => {
+                  setSelectedRange(range);
+                  setCalendarOpen(false);
+                  setBookingModalOpen(true);
+                }}
+                onClose={() => setCalendarOpen(false)}
+                showPrice={true}
+                apartmentPrice={apartmentPrice}
+              />
             </div>
-          </div>
-        )}
-
-        {mode === 'dark' && <div className="header__dark-placeholder" />}
+          )}
+        </AnimatePresence>
       </header>
 
       {mobileSheetOpen && (
