@@ -289,19 +289,35 @@ const getActiveApartment = () => {
       </div>
     ) : (
       /* МОБИЛЬНАЯ ВЕРСИЯ - ДВА РЯДА */
-      <div className="header__mobile-container">
-        {/* Первый ряд: кнопка на всю ширину */}
-        <div className="header__first-row">
+      <>
+        {/* Первый ряд: меню слева, кнопка справа */}
+        <div className="header__top-row">
+          <button className="header__burger" onClick={onBurgerClick}>
+            <svg 
+              className="burger-icon-svg" 
+              width="26" 
+              height="18" 
+              viewBox="0 0 26 18" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect y="0" width="26" height="2" fill="white" />
+              <rect y="8" width="26" height="2" fill="white" />
+              <rect y="16" width="26" height="2" fill="white" />
+            </svg>
+            <span className="burger-text">Меню</span>
+          </button>
+
           <button 
             className="header__booking" 
             onClick={handleHeroSearch}
           >
-            Выбрать апартаменты
+            Выбрать
           </button>
         </div>
 
         {/* Второй ряд: поля ввода */}
-        <div className="header__second-row">
+        <div className="header__fields-row">
           <div className="header__booking-fields">
             <div 
               className="booking-field calendar-trigger"
@@ -309,7 +325,7 @@ const getActiveApartment = () => {
             >
               <input
                 type="text"
-                placeholder="ДД.ММ.ГГГГ"
+                placeholder="Заезд"
                 value={formatDateForInput(checkIn)}
                 readOnly
               />
@@ -321,7 +337,7 @@ const getActiveApartment = () => {
             >
               <input
                 type="text"
-                placeholder="ДД.ММ.ГГГГ"
+                placeholder="Выезд"
                 value={formatDateForInput(checkOut)}
                 readOnly
               />
@@ -342,7 +358,7 @@ const getActiveApartment = () => {
         {/* Календарь */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && (
-            <div className="header__calendar-popover hero-calendar mobile">
+            <div className="header__calendar-popover">
               <ApartmentAvailabilityCalendar
                 blockedDates={[]}
                 position="left"
@@ -360,7 +376,7 @@ const getActiveApartment = () => {
 
         {/* Ошибка формы */}
         {formError && <div className="header__booking-error mobile">{formError}</div>}
-      </div>
+      </>
     )}
   </>
 )}
