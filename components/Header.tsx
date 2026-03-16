@@ -290,24 +290,15 @@ const getActiveApartment = () => {
     ) : (
       /* МОБИЛЬНАЯ ВЕРСИЯ - ПРАВИЛЬНАЯ СТРУКТУРА */
       <div className="header__mobile-container">
-        {/* Первый ряд: бургер + кнопка */}
-        <div className="header__first-row">
-          <button className="header__burger" onClick={onBurgerClick}>
-            <div className="burger-icon">
-              <span />
-              <span />
-              <span />
-            </div>
-            <span className="burger-text">Меню</span>
-          </button>
-
-          <button 
-            className="header__booking" 
-            onClick={handleHeroSearch}
-          >
-            Выбрать апартаменты
-          </button>
-        </div>
+        {/* Первый ряд: кнопка */}
+<div className="header__first-row">
+  <button 
+    className="header__booking" 
+    onClick={handleHeroSearch}
+  >
+    Выбрать апартаменты
+  </button>
+</div>
 
         {/* Второй ряд: поля ввода */}
         <div className="header__second-row">
