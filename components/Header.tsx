@@ -288,17 +288,17 @@ const getActiveApartment = () => {
         </AnimatePresence>
       </div>
     ) : (
-      /* МОБИЛЬНАЯ ВЕРСИЯ - ПРАВИЛЬНАЯ СТРУКТУРА */
+      /* МОБИЛЬНАЯ ВЕРСИЯ - ДВА РЯДА */
       <div className="header__mobile-container">
-        {/* Первый ряд: кнопка */}
-<div className="header__first-row">
-  <button 
-    className="header__booking" 
-    onClick={handleHeroSearch}
-  >
-    Выбрать апартаменты
-  </button>
-</div>
+        {/* Первый ряд: кнопка на всю ширину */}
+        <div className="header__first-row">
+          <button 
+            className="header__booking" 
+            onClick={handleHeroSearch}
+          >
+            Выбрать апартаменты
+          </button>
+        </div>
 
         {/* Второй ряд: поля ввода */}
         <div className="header__second-row">
@@ -358,7 +358,7 @@ const getActiveApartment = () => {
           )}
         </AnimatePresence>
 
-        {/* Ошибка формы (если есть) */}
+        {/* Ошибка формы */}
         {formError && <div className="header__booking-error mobile">{formError}</div>}
       </div>
     )}

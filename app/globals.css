@@ -8132,3 +8132,26 @@ html, body {
     font-size: 10px !important;
   }
 }
+
+@media (max-width: 768px) {
+  .header__first-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .header__first-row .header__burger {
+    flex-shrink: 0 !important;
+  }
+
+  .header__first-row .header__booking {
+    flex: 0 1 auto !important; /* не растягивается на всю ширину */
+    white-space: nowrap !important;
+  }
+
+  .header__second-row {
+    width: 100% !important;
+  }
+}
