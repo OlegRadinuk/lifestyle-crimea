@@ -8221,3 +8221,222 @@ html, body {
     padding: 14px 16px !important;
   }
 }
+
+/* ===== ЖЕСТКИЙ ФИКС МОБИЛЬНОГО ХЕДЕРА ===== */
+@media (max-width: 768px) {
+  /* Полный сброс для header */
+  .header.header--hero.header--mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    left: 16px !important;
+    right: 16px !important;
+    top: 16px !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Первый ряд */
+  .header.header--hero.header--mobile .header__top-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  /* Бургер - строго слева */
+  .header.header--hero.header--mobile .header__burger {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: rgba(20, 22, 24, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 40px !important;
+    padding: 10px 20px 10px 16px !important;
+    margin: 0 !important;
+    transform: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .header.header--hero.header--mobile .burger-icon-svg {
+    width: 22px !important;
+    height: 18px !important;
+  }
+
+  .header.header--hero.header--mobile .burger-icon-svg rect {
+    fill: white !important;
+  }
+
+  .header.header--hero.header--mobile .burger-text {
+    display: block !important;
+    font-size: 13px !important;
+    color: white !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  /* Кнопка "ВЫБРАТЬ" - строго справа */
+  .header.header--hero.header--mobile .header__booking {
+    display: block !important;
+    padding: 10px 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: rgba(19, 154, 182, 0.9) !important;
+    backdrop-filter: blur(6px) !important;
+    border-radius: 40px !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    min-width: 120px !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  /* Второй ряд с полями */
+  .header.header--hero.header--mobile .header__fields-row {
+    width: 100% !important;
+    background: rgba(20, 22, 24, 0.75) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 40px !important;
+    padding: 6px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    margin: 0 !important;
+  }
+
+  .header.header--hero.header--mobile .header__booking-fields {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 4px !important;
+    padding: 0 !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 4px 6px !important;
+    margin: 0 !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field input,
+  .header.header--hero.header--mobile .booking-field select {
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    font-size: 12px !important;
+    padding: 4px 0 !important;
+    text-align: center !important;
+    height: auto !important;
+    line-height: normal !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 12px !important;
+    text-align: center !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field select {
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right center !important;
+    padding-right: 14px !important;
+    text-align: left !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field select option {
+    background: #1a2634 !important;
+    color: white !important;
+  }
+
+  /* Убираем всё лишнее */
+  .header.header--hero.header--mobile .header__booking-wrapper,
+  .header.header--hero.header--mobile .header__booking-action,
+  .header.header--hero.header--mobile .header__mobile-container {
+    all: unset !important;
+    display: contents !important;
+  }
+
+  /* Календарь */
+  .header.header--hero.header--mobile .header__calendar-popover {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 20px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    z-index: 20000 !important;
+  }
+
+  .header.header--hero.header--mobile .availability-calendar.mobile {
+    width: 100% !important;
+    border-radius: 24px !important;
+    background: white !important;
+    padding: 16px !important;
+  }
+
+  /* Ошибка */
+  .header.header--hero.header--mobile .header__booking-error.mobile {
+    margin: 4px auto 0 !important;
+    font-size: 11px !important;
+    color: #ff6b6b !important;
+    text-align: center !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    width: fit-content !important;
+  }
+}
+
+/* Для совсем мелких */
+@media (max-width: 480px) {
+  .header.header--hero.header--mobile .header__burger {
+    padding: 8px 16px 8px 12px !important;
+  }
+
+  .header.header--hero.header--mobile .burger-text {
+    font-size: 12px !important;
+  }
+
+  .header.header--hero.header--mobile .header__booking {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    min-width: 100px !important;
+  }
+
+  .header.header--hero.header--mobile .booking-field input,
+  .header.header--hero.header--mobile .booking-field select {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .header.header--hero.header--mobile .header__burger {
+    padding: 6px 12px 6px 10px !important;
+  }
+
+  .header.header--hero.header--mobile .burger-icon-svg {
+    width: 18px !important;
+    height: 14px !important;
+  }
+
+  .header.header--hero.header--mobile .burger-text {
+    font-size: 10px !important;
+  }
+
+  .header.header--hero.header--mobile .header__booking {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    min-width: 80px !important;
+  }
+}
