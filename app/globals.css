@@ -7927,7 +7927,7 @@ html, body {
   }
 }
 
-/* ===== MOBILE HEADER 2-ROW WITH LIGHT EFFECT ===== */
+/* ===== MOBILE HEADER CORRECT STRUCTURE ===== */
 @media (max-width: 768px) {
   .header {
     left: 12px !important;
@@ -7946,7 +7946,7 @@ html, body {
     gap: 8px !important;
   }
 
-  /* Первый ряд */
+  /* Первый ряд: бургер + кнопка */
   .header__first-row {
     display: flex !important;
     align-items: center !important;
@@ -7969,13 +7969,17 @@ html, body {
     flex-shrink: 0 !important;
   }
 
-  .burger-icon-svg {
+  .burger-icon {
     width: 18px !important;
     height: 14px !important;
+    position: relative !important;
   }
 
-  .burger-icon-svg rect {
-    fill: #ffffff !important;
+  .burger-icon span,
+  .burger-icon::before,
+  .burger-icon::after {
+    background: #ffffff !important;
+    height: 2px !important;
   }
 
   .burger-text {
@@ -7986,8 +7990,8 @@ html, body {
     letter-spacing: 0.5px !important;
   }
 
-  /* Кнопка "Выбрать апартаменты" (первый ряд) */
-  .header__booking {
+  /* Кнопка "Выбрать апартаменты" */
+  .header__first-row .header__booking {
     flex: 1 !important;
     padding: 8px 16px !important;
     font-size: 13px !important;
@@ -8001,47 +8005,38 @@ html, body {
     text-align: center !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
-    position: relative !important;
-    overflow: hidden !important;
+    margin: 0 !important;
   }
 
-  /* Второй ряд - поля ввода */
+  /* Второй ряд: поля ввода */
   .header__second-row {
+    width: 100% !important;
+  }
+
+  .header__second-row .header__booking-fields {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
     width: 100% !important;
-    padding: 4px !important;
+    padding: 4px 8px !important;
     background: rgba(0, 0, 0, 0.2) !important;
     border-radius: 30px !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    position: relative !important;
-    overflow: hidden !important;
   }
 
-  /* Поля ввода */
-  .header__booking-fields {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    padding: 4px !important;
-    width: 100% !important;
-  }
-
-  .booking-field {
-    position: relative !important;
-    min-width: 0 !important;
+  .header__second-row .booking-field {
     flex: 1 !important;
+    min-width: 0 !important;
+    position: relative !important;
   }
 
-  .booking-field label {
+  .header__second-row .booking-field label {
     display: none !important;
   }
 
-  .booking-field input,
-  .booking-field select {
+  .header__second-row .booking-field input,
+  .header__second-row .booking-field select {
     width: 100% !important;
     font-size: 13px !important;
     padding: 8px 4px !important;
@@ -8050,20 +8045,22 @@ html, body {
     color: #ffffff !important;
     text-align: center !important;
     cursor: pointer !important;
+    border-bottom: none !important;
   }
 
-  .booking-field input::placeholder {
+  .header__second-row .booking-field input::placeholder {
     color: rgba(255, 255, 255, 0.6) !important;
   }
 
-  .booking-field select {
+  .header__second-row .booking-field select {
     appearance: none !important;
     background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right center !important;
   }
 
-  .booking-field:first-child::after {
+  /* Разделитель между полями */
+  .header__second-row .booking-field:not(:last-child)::after {
     content: '' !important;
     position: absolute !important;
     right: -4px !important;
@@ -8073,132 +8070,50 @@ html, body {
     height: 20px !important;
     background: rgba(255, 255, 255, 0.2) !important;
   }
+}
 
-  /* ===== СВЕТОВОЙ ЭФФЕКТ "ПЕРЕВЕРНУТАЯ Г" ===== */
-  .light-effect {
-    position: absolute !important;
-    inset: 0 !important;
-    pointer-events: none !important;
-    z-index: 10 !important;
-    overflow: hidden !important;
+@media (max-width: 480px) {
+  .header {
+    padding: 10px !important;
   }
 
-  .light-effect::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: -100% !important;
-    width: 300% !important;
-    height: 300% !important;
-    background: linear-gradient(
-      115deg, /* Угол как перевернутая Г */
-      transparent 30%,
-      rgba(255, 255, 255, 0.15) 45%,
-      rgba(255, 255, 255, 0.4) 50%,
-      rgba(255, 255, 255, 0.15) 55%,
-      transparent 70%
-    ) !important;
-    transform: skewX(-15deg) translateY(20%) !important;
-    animation: lightSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  .header__burger {
+    padding: 6px 12px 6px 10px !important;
   }
 
-  @keyframes lightSweep {
-    0% {
-      transform: skewX(-15deg) translateX(-150%) translateY(20%);
-    }
-    25% {
-      transform: skewX(-15deg) translateX(-50%) translateY(10%);
-    }
-    50% {
-      transform: skewX(-15deg) translateX(0%) translateY(0%);
-    }
-    75% {
-      transform: skewX(-15deg) translateX(50%) translateY(-10%);
-    }
-    100% {
-      transform: skewX(-15deg) translateX(150%) translateY(-20%);
-    }
+  .burger-icon {
+    width: 16px !important;
+    height: 12px !important;
   }
 
-  /* Дополнительное свечение вокруг кнопки */
-  .header__booking::after {
-    content: '' !important;
-    position: absolute !important;
-    inset: -2px !important;
-    background: linear-gradient(
-      115deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 45%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0.1) 55%,
-      rgba(255, 255, 255, 0) 100%
-    ) !important;
-    border-radius: 30px !important;
-    opacity: 0 !important;
-    transition: opacity 0.3s ease !important;
-    animation: buttonGlow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
-    pointer-events: none !important;
-    z-index: -1 !important;
+  .burger-text {
+    font-size: 11px !important;
   }
 
-  @keyframes buttonGlow {
-    0%, 100% { opacity: 0; }
-    45% { opacity: 1; }
-    55% { opacity: 1; }
-    70% { opacity: 0; }
+  .header__first-row .header__booking {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
 
-  /* ===== АДАПТАЦИЯ ДЛЯ УЗКИХ ЭКРАНОВ ===== */
-  @media (max-width: 480px) {
-    .header {
-      padding: 10px !important;
-    }
+  .header__second-row .booking-field input,
+  .header__second-row .booking-field select {
+    font-size: 12px !important;
+    padding: 6px 2px !important;
+  }
+}
 
-    .header__burger {
-      padding: 6px 12px 6px 10px !important;
-    }
-
-    .burger-icon-svg {
-      width: 16px !important;
-      height: 12px !important;
-    }
-
-    .burger-text {
-      font-size: 11px !important;
-    }
-
-    .header__booking {
-      padding: 6px 12px !important;
-      font-size: 12px !important;
-    }
-
-    .booking-field input,
-    .booking-field select {
-      font-size: 12px !important;
-      padding: 6px 2px !important;
-    }
+@media (max-width: 360px) {
+  .header__first-row .header__booking {
+    font-size: 11px !important;
+    padding: 6px 8px !important;
   }
 
-  @media (max-width: 400px) {
-    .header__booking {
-      font-size: 11px !important;
-      padding: 6px 8px !important;
-    }
-
-    .booking-field input,
-    .booking-field select {
-      font-size: 11px !important;
-    }
+  .header__second-row .header__booking-fields {
+    gap: 4px !important;
   }
 
-  @media (max-width: 360px) {
-    .header__booking-fields {
-      gap: 4px !important;
-    }
-
-    .booking-field input,
-    .booking-field select {
-      font-size: 10px !important;
-    }
+  .header__second-row .booking-field input,
+  .header__second-row .booking-field select {
+    font-size: 10px !important;
   }
 }

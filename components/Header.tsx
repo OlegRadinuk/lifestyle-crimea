@@ -288,7 +288,7 @@ const getActiveApartment = () => {
         </AnimatePresence>
       </div>
     ) : (
-      /* МОБИЛЬНАЯ ВЕРСИЯ - ДВА РЯДА */
+      /* МОБИЛЬНАЯ ВЕРСИЯ - ПРАВИЛЬНАЯ СТРУКТУРА */
       <div className="header__mobile-container">
         {/* Первый ряд: бургер + кнопка */}
         <div className="header__first-row">
@@ -309,42 +309,42 @@ const getActiveApartment = () => {
           </button>
         </div>
 
-        {/* Второй ряд: поля ввода + световой эффект */}
+        {/* Второй ряд: поля ввода */}
         <div className="header__second-row">
-          <div className="light-effect" /> {/* световой эффект */}
-          
-          <div 
-            className="booking-field calendar-trigger"
-            onClick={() => setCalendarOpen(true)}
-          >
-            <input
-              type="text"
-              placeholder="ДД.ММ.ГГГГ"
-              value={formatDateForInput(checkIn)}
-              readOnly
-            />
-          </div>
+          <div className="header__booking-fields">
+            <div 
+              className="booking-field calendar-trigger"
+              onClick={() => setCalendarOpen(true)}
+            >
+              <input
+                type="text"
+                placeholder="ДД.ММ.ГГГГ"
+                value={formatDateForInput(checkIn)}
+                readOnly
+              />
+            </div>
 
-          <div 
-            className="booking-field calendar-trigger"
-            onClick={() => setCalendarOpen(true)}
-          >
-            <input
-              type="text"
-              placeholder="ДД.ММ.ГГГГ"
-              value={formatDateForInput(checkOut)}
-              readOnly
-            />
-          </div>
+            <div 
+              className="booking-field calendar-trigger"
+              onClick={() => setCalendarOpen(true)}
+            >
+              <input
+                type="text"
+                placeholder="ДД.ММ.ГГГГ"
+                value={formatDateForInput(checkOut)}
+                readOnly
+              />
+            </div>
 
-          <div className="booking-field">
-            <select value={guests} onChange={e => setGuests(+e.target.value)}>
-              {[1, 2, 3, 4, 5].map(n => (
-                <option key={n} value={n}>
-                  {n} {n === 1 ? 'гость' : 'гостя'}
-                </option>
-              ))}
-            </select>
+            <div className="booking-field">
+              <select value={guests} onChange={e => setGuests(+e.target.value)}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? 'гость' : 'гостя'}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
