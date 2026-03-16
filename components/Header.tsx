@@ -10,7 +10,7 @@ import { useHeader } from '@/components/HeaderContext';
 import { useAvailability } from '@/hooks/useAvailability';
 import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCalendar';
 import BookingModal from '@/components/BookingModal';
-import MobileBookingSheet from '@/components/MobileBookingSheet';
+// import MobileBookingSheet from '@/components/MobileBookingSheet'; // Закомментируем, пока не нужен
 
 type Props = {
   onBurgerClick: () => void;
@@ -111,9 +111,6 @@ export default function Header({ onBurgerClick }: Props) {
   const [guests, setGuests] = useState(2);
   const [formError, setFormError] = useState('');
 
-  /* ---------- MOBILE SHEET ---------- */
-  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
-
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
@@ -182,11 +179,6 @@ export default function Header({ onBurgerClick }: Props) {
     }
     setFormError('');
     setSearch({ checkIn, checkOut, guests });
-    router.push('/apartments');
-  };
-
-  const handleMobileBooking = (data: { checkIn: string; checkOut: string; guests: number }) => {
-    setSearch(data);
     router.push('/apartments');
   };
 
@@ -267,7 +259,7 @@ export default function Header({ onBurgerClick }: Props) {
                 </button>
               </div>
             ) : (
-              /* МОБИЛЬНАЯ ВЕРСИЯ - сначала кнопка, потом поля */
+              /* МОБИЛЬНАЯ ВЕРСИЯ */
               <>
                 <button
                   className="header__mobile-book-btn"
@@ -339,7 +331,7 @@ export default function Header({ onBurgerClick }: Props) {
                   setCheckIn(format(range.from, 'yyyy-MM-dd'));
                   setCheckOut(format(range.to, 'yyyy-MM-dd'));
                   setCalendarOpen(false);
-                  setFormError(''); // очищаем ошибку при выборе дат
+                  setFormError('');
                 }}
                 onClose={() => setCalendarOpen(false)}
                 showPrice={false}
@@ -348,7 +340,7 @@ export default function Header({ onBurgerClick }: Props) {
           )}
         </AnimatePresence>
 
-        {/* Календарь для мобильных */}
+        {/* Календарь для мобильных - используем класс mobile-position */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && isMobile && (
             <div 
@@ -362,7 +354,7 @@ export default function Header({ onBurgerClick }: Props) {
                   setCheckIn(format(range.from, 'yyyy-MM-dd'));
                   setCheckOut(format(range.to, 'yyyy-MM-dd'));
                   setCalendarOpen(false);
-                  setFormError(''); // очищаем ошибку при выборе дат
+                  setFormError('');
                 }}
                 onClose={() => setCalendarOpen(false)}
                 showPrice={false}
@@ -411,16 +403,6 @@ export default function Header({ onBurgerClick }: Props) {
 
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
-
-      {mobileSheetOpen && (
-        <MobileBookingSheet
-          isOpen={mobileSheetOpen}
-          onClose={() => setMobileSheetOpen(false)}
-          onConfirm={handleMobileBooking}
-          initialGuests={guests}
-          today={today}
-        />
-      )}
 
       {bookingModalOpen && activeApartment && selectedRange && isActive && (
         <BookingModal
