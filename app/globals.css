@@ -8177,7 +8177,7 @@ html, body {
   .header--hero.header--mobile .header__mobile-book-btn {
     padding: 8px 14px;
     font-size: 12px;
-    max-width: 150px;
+    max-width: 300px;
   }
 
   .availability-calendar.mobile-optimized .rdp {
@@ -8217,7 +8217,7 @@ html, body {
   }
 
   .header--hero.header--mobile .header__mobile-book-btn {
-    max-width: 130px;
+    max-width: 300px;
     padding: 8px 12px;
     font-size: 11px;
   }
@@ -8351,13 +8351,13 @@ html, body {
   .header__booking-error {
     position: absolute !important;
     bottom: -35px !important; /* расстояние от полей */
-    left: 50% !important;
+    left: 72% !important;
     transform: translateX(-50%) !important;
     font-size: 14px;
     color: #ff6b6b;
     white-space: nowrap;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: #139ab6;
+    backdrop-filter: blur(5px);
     padding: 8px 20px;
     border-radius: 30px;
     border: 1px solid rgba(255, 255, 255, 0.15);
