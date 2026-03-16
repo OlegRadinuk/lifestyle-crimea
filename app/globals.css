@@ -7926,3 +7926,279 @@ html, body {
     right: 12px !important;
   }
 }
+
+/* ===== MOBILE HEADER 2-ROW WITH LIGHT EFFECT ===== */
+@media (max-width: 768px) {
+  .header {
+    left: 12px !important;
+    right: 12px !important;
+    top: 12px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 12px !important;
+    background: rgba(20, 22, 24, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* Первый ряд */
+  .header__first-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  /* Бургер */
+  .header__burger {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(8px) !important;
+    border-radius: 30px !important;
+    padding: 8px 14px 8px 12px !important;
+    transform: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .burger-icon-svg {
+    width: 18px !important;
+    height: 14px !important;
+  }
+
+  .burger-icon-svg rect {
+    fill: #ffffff !important;
+  }
+
+  .burger-text {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  /* Кнопка "Выбрать апартаменты" (первый ряд) */
+  .header__booking {
+    flex: 1 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #139ab6 !important;
+    border-radius: 30px !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(19, 154, 182, 0.4) !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Второй ряд - поля ввода */
+  .header__second-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 4px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 30px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Поля ввода */
+  .header__booking-fields {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 4px !important;
+    width: 100% !important;
+  }
+
+  .booking-field {
+    position: relative !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .booking-field label {
+    display: none !important;
+  }
+
+  .booking-field input,
+  .booking-field select {
+    width: 100% !important;
+    font-size: 13px !important;
+    padding: 8px 4px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    cursor: pointer !important;
+  }
+
+  .booking-field input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .booking-field select {
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right center !important;
+  }
+
+  .booking-field:first-child::after {
+    content: '' !important;
+    position: absolute !important;
+    right: -4px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 1px !important;
+    height: 20px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* ===== СВЕТОВОЙ ЭФФЕКТ "ПЕРЕВЕРНУТАЯ Г" ===== */
+  .light-effect {
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
+    overflow: hidden !important;
+  }
+
+  .light-effect::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 300% !important;
+    height: 300% !important;
+    background: linear-gradient(
+      115deg, /* Угол как перевернутая Г */
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 45%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0.15) 55%,
+      transparent 70%
+    ) !important;
+    transform: skewX(-15deg) translateY(20%) !important;
+    animation: lightSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  }
+
+  @keyframes lightSweep {
+    0% {
+      transform: skewX(-15deg) translateX(-150%) translateY(20%);
+    }
+    25% {
+      transform: skewX(-15deg) translateX(-50%) translateY(10%);
+    }
+    50% {
+      transform: skewX(-15deg) translateX(0%) translateY(0%);
+    }
+    75% {
+      transform: skewX(-15deg) translateX(50%) translateY(-10%);
+    }
+    100% {
+      transform: skewX(-15deg) translateX(150%) translateY(-20%);
+    }
+  }
+
+  /* Дополнительное свечение вокруг кнопки */
+  .header__booking::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: -2px !important;
+    background: linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 45%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.1) 55%,
+      rgba(255, 255, 255, 0) 100%
+    ) !important;
+    border-radius: 30px !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+    animation: buttonGlow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+  }
+
+  @keyframes buttonGlow {
+    0%, 100% { opacity: 0; }
+    45% { opacity: 1; }
+    55% { opacity: 1; }
+    70% { opacity: 0; }
+  }
+
+  /* ===== АДАПТАЦИЯ ДЛЯ УЗКИХ ЭКРАНОВ ===== */
+  @media (max-width: 480px) {
+    .header {
+      padding: 10px !important;
+    }
+
+    .header__burger {
+      padding: 6px 12px 6px 10px !important;
+    }
+
+    .burger-icon-svg {
+      width: 16px !important;
+      height: 12px !important;
+    }
+
+    .burger-text {
+      font-size: 11px !important;
+    }
+
+    .header__booking {
+      padding: 6px 12px !important;
+      font-size: 12px !important;
+    }
+
+    .booking-field input,
+    .booking-field select {
+      font-size: 12px !important;
+      padding: 6px 2px !important;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .header__booking {
+      font-size: 11px !important;
+      padding: 6px 8px !important;
+    }
+
+    .booking-field input,
+    .booking-field select {
+      font-size: 11px !important;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .header__booking-fields {
+      gap: 4px !important;
+    }
+
+    .booking-field input,
+    .booking-field select {
+      font-size: 10px !important;
+    }
+  }
+}
