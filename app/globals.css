@@ -5946,19 +5946,18 @@ html, body {
     white-space: nowrap;
   }
 
-  /* Календарь */
-  .header--apartment.header--mobile .header__calendar-popover {
-    position: fixed;
-    top: auto;
-    bottom: 80px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-    z-index: 2000;
-  }
+  /* Календарь для мобильных в режиме apartment */
+.header--apartment.header--mobile .header__calendar-popover {
+  position: fixed;
+  top: auto;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  z-index: 2000;
 }
 
 /* ===== МОБИЛЬНЫЕ СТИЛИ ДЛЯ 480px ===== */
@@ -6100,7 +6099,6 @@ html, body {
     gap: 8px 12px;
   }
 
-  /* Кнопки в панораме */
   .panorama-actions-bottom {
     bottom: 20%;
     left: 16px;
@@ -6648,7 +6646,7 @@ html, body {
   }
 
   .rf-mobile .rf-title {
-    font-size: 50px;
+    font-size: 24px;
     margin-bottom: 12px;
     padding-right: 16px;
   }
@@ -6694,7 +6692,7 @@ html, body {
 
   .rf-mobile .rf-title {
     font-size: 22px;
-    margin-bottom: 50px;
+    margin-bottom: 12px;
     padding-right: 14px;
   }
 
@@ -6734,425 +6732,8 @@ html, body {
   }
 }
 
-/* ===== PANORAMA PRECISE POSITIONING ===== */
-@media (max-width: 768px) {
-  /* Текстовый блок (верхняя часть) - от 40% до 60% */
-  .panorama-info {
-    position: absolute;
-    bottom: 45% !important; /* центр между 40-50% */
-    left: 16px;
-    right: 16px;
-    width: auto;
-    min-width: 0;
-    padding: 0;
-    transform: translateY(0);
-    z-index: 30;
-  }
-
-  .panorama-info-inner {
-    padding: 16px 20px;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    max-width: 100%;
-  }
-
-  /* Подсказка и fullscreen на одном уровне (30-35%) */
-  .panorama-swipe-hint {
-    position: absolute;
-    bottom: 30% !important;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 24px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border-radius: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    z-index: 45;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: fit-content;
-    margin: 0 auto;
-  }
-
-  .panorama-fullscreen-button {
-    position: absolute;
-    bottom: 30% !important;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    background: rgba(19, 154, 182, 0.9);
-    backdrop-filter: blur(8px);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 46;
-    border: none;
-    transform: translateY(0);
-  }
-
-  /* Кнопки действий (20-25%) */
-  .panorama-actions-bottom {
-    position: absolute;
-    bottom: 22% !important;
-    left: 16px;
-    right: 16px;
-    display: flex;
-    gap: 10px;
-    z-index: 40;
-  }
-
-  .panorama-action-btn {
-    flex: 1;
-    padding: 14px 8px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 40px;
-    text-align: center;
-    text-decoration: none;
-    backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-  }
-
-  .panorama-action-btn.primary {
-    background: rgba(19, 154, 182, 0.95);
-    color: white;
-  }
-
-  .panorama-action-btn.secondary {
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-  }
-}
-
-/* Для 480px */
-@media (max-width: 480px) {
-  .panorama-info {
-    bottom: 43% !important;
-  }
-
-  .panorama-info-inner {
-    padding: 14px 18px;
-  }
-
-  .panorama-info-title {
-    font-size: 24px;
-  }
-
-  .panorama-info-description {
-    font-size: 12px;
-  }
-
-  .panorama-swipe-hint {
-    bottom: 22% !important;
-    padding: 6px 20px;
-    gap: 10px;
-  }
-
-  .panorama-swipe-hint .swipe-text {
-    font-size: 12px;
-  }
-
-  .panorama-fullscreen-button {
-    bottom: 22% !important;
-    width: 44px;
-    height: 44px;
-  }
-
-  .panorama-actions-bottom {
-    bottom: 23% !important;
-  }
-
-  .panorama-action-btn {
-    padding: 12px 6px;
-    font-size: 13px;
-    height: 44px;
-  }
-}
-
-/* Для 360px */
-@media (max-width: 360px) {
-  .panorama-info {
-    bottom: 42% !important;
-  }
-
-  .panorama-info-inner {
-    padding: 12px 16px;
-  }
-
-  .panorama-info-eyebrow {
-    font-size: 10px;
-  }
-
-  .panorama-info-title {
-    font-size: 22px;
-  }
-
-  .panorama-info-description {
-    font-size: 11px;
-  }
-
-  .panorama-info-meta {
-    font-size: 10px;
-    gap: 6px 8px;
-  }
-
-  .panorama-swipe-hint {
-    bottom: 33% !important;
-    padding: 5px 16px;
-    gap: 8px;
-  }
-
-  .panorama-swipe-hint .swipe-text {
-    font-size: 11px;
-  }
-
-  .panorama-fullscreen-button {
-    bottom: 33% !important;
-    width: 40px;
-    height: 40px;
-  }
-
-  .panorama-fullscreen-button svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .panorama-actions-bottom {
-    bottom: 15% !important;
-    gap: 6px;
-  }
-
-  .panorama-action-btn {
-    padding: 10px 4px;
-    font-size: 12px;
-    height: 40px;
-  }
-}
-
-/* Для iPhone с Safe Area */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  @media (max-width: 768px) {
-    .panorama-actions-bottom {
-      bottom: calc(22% + env(safe-area-inset-bottom)) !important;
-    }
-    
-    .panorama-swipe-hint {
-      bottom: calc(30% + env(safe-area-inset-bottom)) !important;
-    }
-    
-    .panorama-fullscreen-button {
-      bottom: calc(30% + env(safe-area-inset-bottom)) !important;
-    }
-  }
-}
-
-/* ===== PANORAMA PERFECT POSITIONING ===== */
-@media (max-width: 768px) {
-  /* Текстовый блок (40% - 60% экрана) */
-  .panorama-info {
-    position: absolute;
-    bottom: 40% !important; /* начинается на 40% от низа */
-    left: 16px;
-    right: 16px;
-    width: auto;
-    min-width: 0;
-    padding: 0;
-    z-index: 30;
-  }
-
-  .panorama-info-inner {
-    padding: 16px 20px;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-  }
-
-  /* Подсказка и fullscreen (30% от низа) */
-  .panorama-swipe-hint {
-    position: absolute;
-    bottom: 30% !important;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border-radius: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    z-index: 45;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .panorama-fullscreen-button {
-    position: absolute;
-    bottom: 30% !important;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    background: rgba(19, 154, 182, 0.9);
-    backdrop-filter: blur(8px);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 46;
-    border: none;
-    transform: translateY(0);
-  }
-
-  /* Кнопки действий (20% - 25% от низа) */
-  .panorama-actions-bottom {
-    position: absolute;
-    bottom: 22% !important; /* чуть выше середины диапазона 20-25% */
-    left: 16px;
-    right: 16px;
-    display: flex;
-    gap: 8px;
-    z-index: 40;
-  }
-
-  .panorama-action-btn {
-    flex: 1;
-    padding: 14px 8px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 40px;
-    text-align: center;
-    text-decoration: none;
-    backdrop-filter: blur(10px);
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 48px;
-  }
-
-  .panorama-action-btn.primary {
-    background: rgba(19, 154, 182, 0.95);
-    color: white;
-  }
-
-  .panorama-action-btn.secondary {
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-}
-
-/* Корректировка для 480px */
-@media (max-width: 480px) {
-  .panorama-info {
-    bottom: 42% !important;
-  }
-
-  .panorama-info-inner {
-    padding: 14px 16px;
-  }
-
-  .panorama-info-title {
-    font-size: 24px;
-  }
-
-  .panorama-info-description {
-    font-size: 12px;
-  }
-
-  .panorama-swipe-hint {
-    bottom: 22% !important;
-    padding: 6px 16px;
-    left: 50%;
-  }
-
-  .panorama-fullscreen-button {
-    bottom: 22% !important;
-    width: 44px;
-    height: 44px;
-  }
-
-  .panorama-actions-bottom {
-    bottom: 16% !important;
-  }
-
-  .panorama-action-btn {
-    padding: 12px 6px;
-    font-size: 13px;
-    height: 44px;
-  }
-}
-
-/* Корректировка для 360px */
-@media (max-width: 360px) {
-  .panorama-info {
-    bottom: 44% !important;
-  }
-
-  .panorama-info-inner {
-    padding: 12px 14px;
-  }
-
-  .panorama-info-title {
-    font-size: 22px;
-  }
-
-  .panorama-info-description {
-    font-size: 11px;
-  }
-
-  .panorama-swipe-hint {
-    bottom: 22% !important;
-    padding: 5px 12px;
-    gap: 8px;
-    left: 50%;
-  }
-
-  .panorama-swipe-hint .swipe-text {
-    font-size: 10px;
-  }
-
-  .panorama-fullscreen-button {
-    bottom: 22% !important;
-    width: 40px;
-    height: 40px;
-  }
-
-  .panorama-actions-bottom {
-    bottom: 15% !important;
-    gap: 6px;
-  }
-
-  .panorama-action-btn {
-    padding: 10px 4px;
-    font-size: 12px;
-    height: 40px;
-  }
-}
-
 /* ===== SIZE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
-  /* Увеличиваем бургер */
   .header__burger {
     padding: 12px 22px 12px 18px !important;
   }
@@ -7167,7 +6748,6 @@ html, body {
     letter-spacing: 0.12em !important;
   }
 
-  /* Увеличиваем кнопки */
   .header__booking,
   .header__mobile-book-btn {
     padding: 14px 26px !important;
@@ -7175,7 +6755,6 @@ html, body {
     font-weight: 600 !important;
   }
 
-  /* Кнопка в апартаментах (в два ряда) */
   .header--apartment.header--mobile .header__booking.with-apartment {
     min-width: 180px !important;
     padding: 10px 18px !important;
@@ -7260,7 +6839,6 @@ html, body {
   }
 }
 
-/* Для совсем маленьких */
 @media (max-width: 320px) {
   .header__burger {
     padding: 8px 16px 8px 12px !important;
@@ -7316,11 +6894,11 @@ html, body {
 /* ===== BOOKING MODAL MOBILE FIX ===== */
 @media (max-width: 768px) {
   .booking-modal-overlay {
-    z-index: 20000 !important; /* выше хедера */
+    z-index: 20000 !important;
     background: rgba(0, 0, 0, 0.7) !important;
     backdrop-filter: blur(5px) !important;
     padding: 0 !important;
-    align-items: flex-end !important; /* прижимаем к низу */
+    align-items: flex-end !important;
   }
 
   .booking-modal {
@@ -7335,12 +6913,8 @@ html, body {
   }
 
   @keyframes slideUpModal {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 
   .booking-modal__header {
@@ -7500,10 +7074,6 @@ html, body {
   .confirm-booking:active {
     transform: scale(0.98) !important;
   }
-
-  .loading-spinner {
-    display: inline-block !important;
-  }
 }
 
 @media (max-width: 480px) {
@@ -7625,7 +7195,7 @@ html, body {
 .burger-overlay,
 .photo-modal-overlay,
 .mobile-sheet-overlay {
-  z-index: 20000 !important; /* выше хедера (5000) */
+  z-index: 20000 !important;
 }
 
 .booking-modal,
@@ -7635,7 +7205,6 @@ html, body {
   z-index: 20001 !important;
 }
 
-/* Убеждаемся что хедер не перекрывает модалки */
 .header {
   z-index: 5000 !important;
 }
@@ -7643,10 +7212,10 @@ html, body {
 /* ===== МОБИЛЬНЫЕ ЗАГОЛОВКИ ДЛЯ ВСЕХ ЭКРАНОВ < 768 ===== */
 @media (max-width: 768px) {
   .rf-mobile .rf-title {
-    font-size: 24px !important; /* базовый размер */
+    font-size: 24px !important;
     margin-bottom: 8px !important;
     padding-right: 16px !important;
-    padding-top: 48px !important; /* отступ под хедер */
+    padding-top: 48px !important;
     text-align: right !important;
   }
 }
@@ -7712,14 +7281,8 @@ html, body {
   }
 
   @keyframes burgerFadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   .burger-layout {
@@ -7751,9 +7314,9 @@ html, body {
     font-weight: 500 !important;
     padding: 8px 0 !important;
     text-align: left !important;
-    color: #4a5568 !important; /* графитовый цвет */
+    color: #4a5568 !important;
     transition: all 0.2s ease !important;
-    border-bottom: none !important; /* убираем разделители */
+    border-bottom: none !important;
   }
 
   .burger-menu li:last-child {
@@ -7801,14 +7364,13 @@ html, body {
     flex-shrink: 0 !important;
   }
 
-  /* Телефоны в две строки - каждый на своей строке */
   .burger-contacts a {
     font-size: 16px !important;
     font-weight: 500 !important;
     margin-bottom: 8px !important;
     color: #139ab6 !important;
     text-decoration: none !important;
-    display: block !important; /* каждый на новой строке */
+    display: block !important;
     line-height: 1.4 !important;
   }
 
@@ -7969,7 +7531,7 @@ html, body {
     text-overflow: ellipsis;
     max-width: 300px;
     margin-top: -55px;
-    margin-left: auto
+    margin-left: auto;
   }
 
   .header--hero.header--mobile .header__mobile-fields {
@@ -8055,181 +7617,40 @@ html, body {
   }
 }
 
-/* ===== MOBILE CALENDAR POPOVER ===== */
+/* ===== MOBILE CALENDAR - ЕДИНСТВЕННЫЙ РАБОЧИЙ БЛОК ===== */
 @media (max-width: 768px) {
-  .header__calendar-popover.mobile {
-    position: fixed;
-    top: auto;
-    bottom: 20px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    max-width: none;
-    z-index: 20000;
-    animation: slideUpCalendar 0.3s ease;
+  .header__calendar-popover.mobile-position {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 20px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 20000 !important;
+    animation: slideUpMobile 0.3s ease !important;
   }
 
-  .header__calendar-popover.mobile .availability-calendar {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  .header__calendar-popover.mobile-position .availability-calendar {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 24px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+    background: #ffffff !important;
+    padding: 20px 16px !important;
   }
 
-  .header__calendar-popover.mobile .availability-calendar::before {
-    display: none;
+  .header__calendar-popover.mobile-position .availability-calendar::before {
+    display: none !important;
   }
 
-  @keyframes slideUpCalendar {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Адаптация календаря под мобильные */
-  .availability-calendar.mobile-optimized {
-    padding: 16px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp {
-    --rdp-cell-size: 38px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-month {
-    width: 100%;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-table {
-    width: 100%;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-head_cell {
-    font-size: 12px;
-    padding: 4px 0;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-button {
-    width: 38px;
-    height: 38px;
-    font-size: 13px;
-  }
-
-  .calendar-header {
-    padding-bottom: 10px;
-    margin-bottom: 12px;
-  }
-
-  .calendar-header h3 {
-    font-size: 18px;
-  }
-
-  .calendar-close {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-  }
-
-  .quick-ranges {
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-
-  .quick-range-btn {
-    padding: 6px 10px;
-    font-size: 12px;
-    min-width: 70px;
-  }
-
-  .calendar-info {
-    padding: 10px;
-    font-size: 14px;
-    margin: 12px 0 10px;
-  }
-
-  .calendar-confirm {
-    padding: 12px;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header--hero.header--mobile .header__mobile-fields-row {
-    gap: 8px;
-  }
-
-  .mobile-field label {
-    font-size: 8px;
-  }
-
-  .mobile-field input,
-  .mobile-field select {
-    font-size: 12px;
-  }
-
-  .header--hero.header--mobile .header__mobile-book-btn {
-    padding: 8px 14px;
-    font-size: 12px;
-    max-width: 300px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp {
-    --rdp-cell-size: 34px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-button {
-    width: 34px;
-    height: 34px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 360px) {
-  .header--hero.header--mobile .header__mobile-fields {
-    padding: 10px 12px;
-  }
-
-  .header__mobile-fields-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .mobile-field {
-    width: 100%;
-  }
-
-  .mobile-field label {
-    font-size: 9px;
-    margin-bottom: 2px;
-  }
-
-  .mobile-field input,
-  .mobile-field select {
-    font-size: 13px;
-    padding: 6px 0;
-  }
-
-  .header--hero.header--mobile .header__mobile-book-btn {
-    max-width: 300px;
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp {
-    --rdp-cell-size: 32px;
-  }
-
-  .availability-calendar.mobile-optimized .rdp-button {
-    width: 32px;
-    height: 32px;
-    font-size: 11px;
+  @keyframes slideUpMobile {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 
@@ -8302,63 +7723,8 @@ html, body {
   }
 }
 
-/* ===== DESKTOP ERROR MESSAGE POSITION FIX ===== */
+/* ===== DESKTOP CALENDAR - ЕДИНСТВЕННЫЙ РАБОЧИЙ БЛОК ===== */
 @media (min-width: 769px) {
-  .header__booking-error {
-    position: absolute !important;
-    bottom: -35px !important; /* расстояние от полей */
-    left: 72% !important;
-    transform: translateX(-50%) !important;
-    font-size: 14px;
-    color: #ff6b6b;
-    white-space: nowrap;
-    background: #139ab6;
-    backdrop-filter: blur(px);
-    padding: 8px 20px;
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    animation: fadeInError 0.25s ease;
-    z-index: 100;
-    width: auto;
-    text-align: center;
-    pointer-events: none;
-  }
-
-  @keyframes fadeInError {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -10px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-  }
-
-  /* Контейнер для правильного позиционирования */
-  .header--hero .header__booking-wrapper {
-    position: relative !important;
-  }
-}
-
-/* ===== DESKTOP HEADER ULTIMATE FIX ===== */
-@media (min-width: 769px) {
-  /* Фиксируем хедер */
-  .header {
-    height: 80px !important;
-    min-height: 80px !important;
-    transform: none !important;
-    transition: background 0.35s ease !important;
-  }
-
-  /* Убираем скачки при открытии календаря */
-  .header__booking-wrapper {
-    transform: none !important;
-    transition: none !important;
-    position: relative !important;
-  }
-
-  /* Календарь позиционируется абсолютно */
   .header__calendar-popover {
     position: absolute !important;
     top: calc(100% + 10px) !important;
@@ -8368,17 +7734,18 @@ html, body {
     z-index: 10000 !important;
   }
 
-  /* Для hero режима */
   .header--hero .header__calendar-popover.hero-calendar {
     right: 0 !important;
     left: auto !important;
   }
+}
 
-  /* Сообщение об ошибке - ровно под полями */
+/* ===== DESKTOP ERROR MESSAGE ===== */
+@media (min-width: 769px) {
   .header__booking-error {
     position: absolute !important;
     bottom: -40px !important;
-    left: 72% !important;
+    left: 50% !important;
     transform: translateX(-50%) !important;
     font-size: 13px !important;
     color: #ffffff !important;
@@ -8394,236 +7761,8 @@ html, body {
   }
 
   @keyframes errorSlideDown {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -10px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-  }
-
-  /* Фиксированная ширина для полей */
-  .booking-field {
-    min-width: 120px !important;
-    width: 120px !important;
-  }
-
-  .booking-field input,
-  .booking-field select {
-    width: 100% !important;
-  }
-
-  /* Фиксированная ширина для кнопки */
-  .header__booking {
-    min-width: 220px !important;
-    text-align: center !important;
-    padding: 15.5px 30px !important;
-  }
-
-  /* Убираем возможные трансформации */
-  .header__booking-fields {
-    transform: none !important;
-  }
-
-  /* Убираем псевдоэлементы, которые могут влиять */
-  .header--hero .header__booking-wrapper::after {
-    display: none !important;
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
   }
 }
-
-/* ===== MOBILE CALENDAR PERFECT POSITIONING ===== */
-@media (max-width: 768px) {
-  .header__calendar-popover.mobile-position {
-    position: fixed !important;
-    top: auto !important;
-    bottom: 20px !important;
-    left: 16px !important;
-    right: 16px !important;
-    width: auto !important;
-    max-width: none !important;
-    z-index: 20000 !important;
-    animation: slideUpMobile 0.3s ease !important;
-  }
-
-  .header__calendar-popover.mobile-position .availability-calendar {
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    border-radius: 24px !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
-    background: #ffffff !important;
-    padding: 20px 16px !important;
-  }
-
-  .header__calendar-popover.mobile-position .availability-calendar::before {
-    display: none !important;
-  }
-
-  /* Адаптация календаря под мобильные */
-  .header__calendar-popover.mobile-position .rdp {
-    --rdp-cell-size: 42px !important;
-    margin: 0 !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-months {
-    display: flex !important;
-    justify-content: center !important;
-    width: 100% !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-month {
-    width: 100% !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-table {
-    width: 100% !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-head_cell {
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: #666 !important;
-    padding: 8px 0 !important;
-    text-align: center !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-button {
-    width: 42px !important;
-    height: 42px !important;
-    font-size: 14px !important;
-    border-radius: 50% !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 16px !important;
-    padding-bottom: 12px !important;
-    border-bottom: 1px solid rgba(19, 154, 182, 0.2) !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-header h3 {
-    font-size: 20px !important;
-    color: #139ab6 !important;
-    margin: 0 !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-close {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    background: rgba(19, 154, 182, 0.1) !important;
-    border: none !important;
-    color: #139ab6 !important;
-    font-size: 18px !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .header__calendar-popover.mobile-position .quick-ranges {
-    display: flex !important;
-    gap: 8px !important;
-    margin-bottom: 16px !important;
-    flex-wrap: wrap !important;
-  }
-
-  .header__calendar-popover.mobile-position .quick-range-btn {
-    flex: 1 !important;
-    min-width: 70px !important;
-    padding: 8px 10px !important;
-    background: rgba(19, 154, 182, 0.08) !important;
-    border: 1px solid rgba(19, 154, 182, 0.2) !important;
-    border-radius: 20px !important;
-    font-size: 12px !important;
-    color: #139ab6 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-  }
-
-  .header__calendar-popover.mobile-position .quick-range-btn:active {
-    background: #139ab6 !important;
-    color: white !important;
-    transform: scale(0.95) !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-info {
-    text-align: center !important;
-    margin: 16px 0 12px !important;
-    padding: 12px !important;
-    background: rgba(19, 154, 182, 0.05) !important;
-    border-radius: 12px !important;
-    font-size: 14px !important;
-    color: #333 !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-confirm {
-    width: 100% !important;
-    padding: 14px !important;
-    border-radius: 40px !important;
-    border: none !important;
-    background: linear-gradient(120deg, #139ab6, #1bb6d6) !important;
-    color: white !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    margin-top: 8px !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-confirm:active {
-    transform: scale(0.97) !important;
-  }
-
-  @keyframes slideUpMobile {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
-
-/* Уменьшаем размеры для маленьких экранов */
-@media (max-width: 480px) {
-  .header__calendar-popover.mobile-position .rdp {
-    --rdp-cell-size: 38px !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-button {
-    width: 38px !important;
-    height: 38px !important;
-    font-size: 13px !important;
-  }
-
-  .header__calendar-popover.mobile-position .calendar-header h3 {
-    font-size: 18px !important;
-  }
-
-  .header__calendar-popover.mobile-position .quick-range-btn {
-    font-size: 11px !important;
-    padding: 6px 8px !important;
-  }
-}
-
-@media (max-width: 360px) {
-  .header__calendar-popover.mobile-position .rdp {
-    --rdp-cell-size: 34px !important;
-  }
-
-  .header__calendar-popover.mobile-position .rdp-button {
-    width: 34px !important;
-    height: 34px !important;
-    font-size: 12px !important;
-  }
 }
