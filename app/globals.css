@@ -7927,15 +7927,15 @@ html, body {
   }
 }
 
-/* ===== MOBILE HEADER CORRECT STRUCTURE ===== */
+/* ===== MOBILE HERO HEADER – КОМПАКТНО И РОВНО ===== */
 @media (max-width: 768px) {
+  /* Контейнер всего хедера */
   .header {
     left: 12px !important;
     right: 12px !important;
     top: 12px !important;
     width: auto !important;
     height: auto !important;
-    min-height: auto !important;
     padding: 12px !important;
     background: rgba(20, 22, 24, 0.85) !important;
     backdrop-filter: blur(12px) !important;
@@ -7951,12 +7951,12 @@ html, body {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    width: 100% !important;
     gap: 8px !important;
+    width: 100% !important;
   }
 
   /* Бургер */
-  .header__burger {
+  .header__first-row .header__burger {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
@@ -7964,25 +7964,25 @@ html, body {
     backdrop-filter: blur(8px) !important;
     border-radius: 30px !important;
     padding: 8px 14px 8px 12px !important;
-    transform: none !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     flex-shrink: 0 !important;
+    transform: none !important;
   }
 
-  .burger-icon {
+  .header__first-row .header__burger .burger-icon {
     width: 18px !important;
     height: 14px !important;
     position: relative !important;
   }
 
-  .burger-icon span,
-  .burger-icon::before,
-  .burger-icon::after {
+  .header__first-row .header__burger .burger-icon span,
+  .header__first-row .header__burger .burger-icon::before,
+  .header__first-row .header__burger .burger-icon::after {
     background: #ffffff !important;
     height: 2px !important;
   }
 
-  .burger-text {
+  .header__first-row .header__burger .burger-text {
     display: block !important;
     font-size: 12px !important;
     font-weight: 500 !important;
@@ -8005,7 +8005,7 @@ html, body {
     text-align: center !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
-    margin: 0 !important;
+    line-height: 1.2 !important;
   }
 
   /* Второй ряд: поля ввода */
@@ -8029,6 +8029,9 @@ html, body {
     flex: 1 !important;
     min-width: 0 !important;
     position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .header__second-row .booking-field label {
@@ -8046,6 +8049,7 @@ html, body {
     text-align: center !important;
     cursor: pointer !important;
     border-bottom: none !important;
+    outline: none !important;
   }
 
   .header__second-row .booking-field input::placeholder {
@@ -8057,6 +8061,7 @@ html, body {
     background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right center !important;
+    padding-right: 16px !important;
   }
 
   /* Разделитель между полями */
@@ -8070,6 +8075,16 @@ html, body {
     height: 20px !important;
     background: rgba(255, 255, 255, 0.2) !important;
   }
+
+  /* Календарь на мобилке */
+  .header__calendar-popover.mobile {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    z-index: 20000 !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -8077,16 +8092,16 @@ html, body {
     padding: 10px !important;
   }
 
-  .header__burger {
+  .header__first-row .header__burger {
     padding: 6px 12px 6px 10px !important;
   }
 
-  .burger-icon {
+  .header__first-row .header__burger .burger-icon {
     width: 16px !important;
     height: 12px !important;
   }
 
-  .burger-text {
+  .header__first-row .header__burger .burger-text {
     font-size: 11px !important;
   }
 
