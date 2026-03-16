@@ -6787,7 +6787,7 @@ html, body {
 
   .header__booking,
   .header__mobile-book-btn {
-    padding: 12px 22px !important;
+    padding: 12px 12px !important;
     font-size: 14px !important;
   }
 
