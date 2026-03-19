@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from 'next/link';
 import './apartment.css';
 
@@ -31,6 +31,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const slideRef = useRef<HTMLDivElement>(null);
 
   // Определяем мобилку
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   /* ===============================
      АНИМАЦИЯ ДЫХАНИЯ (НЕПРЕРЫВНАЯ)
+     Начинается с большего масштаба (1.06)
   =============================== */
   useEffect(() => {
     const container = document.querySelector('.apartment-hero .hero-slider');
@@ -53,17 +56,20 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     const animateBreathing = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       
-      const progress = (timestamp - startTime) / 6000; // 6 секунд на цикл
+      const progress = (timestamp - startTime) / 8000; // 8 секунд на цикл (медленнее)
       const normalizedProgress = progress % 1; // 0 to 1
       
-      // Плавное дыхание от 1.06 до 1 и обратно
-      const scale = 1.03 + 0.03 * Math.sin(normalizedProgress * Math.PI * 2);
+      // Плавное дыхание от 1.06 до 1.03 и обратно
+      // Начинаем с большего масштаба (1.06), уменьшаем до 1.03, потом обратно
+      const scale = 1.045 + 0.015 * Math.sin(normalizedProgress * Math.PI * 2);
       
-      // Применяем масштаб только к активному слайду
-      const activeSlide = container.querySelector('.hero-slide.active .hero-slide-bg');
-      if (activeSlide instanceof HTMLElement) {
-        activeSlide.style.transform = `scale(${scale})`;
-      }
+      // Применяем масштаб ко всем слайдам (не только к активному)
+      const allSlides = container.querySelectorAll('.hero-slide-bg');
+      allSlides.forEach((slide: any) => {
+        if (slide instanceof HTMLElement) {
+          slide.style.transform = `scale(${scale})`;
+        }
+      });
 
       animationFrame = requestAnimationFrame(animateBreathing);
     };
@@ -74,6 +80,33 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       cancelAnimationFrame(animationFrame);
     };
   }, []); // Пустой массив - анимация не перезапускается
+
+  /* ===============================
+     ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ СЛАЙДОВ
+  =============================== */
+  const changeSlide = (newIndex: number) => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setActive(newIndex);
+    
+    // Сбрасываем флаг через 500ms (длительность анимации)
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
+  };
+
+  const nextSlide = () => {
+    if (isTransitioning) return;
+    const newIndex = (active + 1) % apartment.images.length;
+    changeSlide(newIndex);
+  };
+
+  const prevSlide = () => {
+    if (isTransitioning) return;
+    const newIndex = active === 0 ? apartment.images.length - 1 : active - 1;
+    changeSlide(newIndex);
+  };
 
   /* ===============================
      СВАЙП (ГОРИЗОНТАЛЬНЫЙ И ВЕРТИКАЛЬНЫЙ)
@@ -91,6 +124,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     let isSwiping = false;
 
     const handleTouchStart = (e: Event) => {
+      if (isTransitioning) return;
       const touchEvent = e as TouchEvent;
       touchStartX = touchEvent.touches[0].clientX;
       touchStartY = touchEvent.touches[0].clientY;
@@ -99,38 +133,33 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     };
 
     const handleTouchMove = (e: Event) => {
-      if (!isSwiping) return;
+      if (!isSwiping || isTransitioning) return;
       const touchEvent = e as TouchEvent;
       touchEndX = touchEvent.touches[0].clientX;
       touchEndY = touchEvent.touches[0].clientY;
     };
 
     const handleTouchEnd = () => {
-      if (!isSwiping) return;
+      if (!isSwiping || isTransitioning) return;
       
       const deltaX = touchEndX - touchStartX;
       const deltaY = touchEndY - touchStartY;
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
 
-      // Определяем направление свайпа (и горизонтальный, и вертикальный)
       if (absDeltaX > 50 && absDeltaX > absDeltaY) {
         // Горизонтальный свайп
         if (deltaX > 0) {
-          // Свайп вправо - предыдущий слайд
-          setActive(prev => prev === 0 ? apartment.images.length - 1 : prev - 1);
+          prevSlide();
         } else {
-          // Свайп влево - следующий слайд
-          setActive(prev => (prev + 1) % apartment.images.length);
+          nextSlide();
         }
       } else if (absDeltaY > 50 && absDeltaY > absDeltaX) {
         // Вертикальный свайп
         if (deltaY > 0) {
-          // Свайп вниз - предыдущий слайд
-          setActive(prev => prev === 0 ? apartment.images.length - 1 : prev - 1);
+          prevSlide();
         } else {
-          // Свайп вверх - следующий слайд
-          setActive(prev => (prev + 1) % apartment.images.length);
+          nextSlide();
         }
       }
 
@@ -147,7 +176,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       container.removeEventListener('touchmove', handleTouchMove as EventListener);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isMobile, apartment.images.length]);
+  }, [isMobile, isTransitioning]);
 
   // HEADER MODE
   useEffect(() => {
@@ -158,14 +187,14 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   // AUTOPLAY
   useEffect(() => {
-    if (paused || !apartment.images?.length) return;
+    if (paused || isTransitioning || !apartment.images?.length) return;
 
     const timer = setInterval(() => {
-      setActive(prev => (prev + 1) % apartment.images.length);
+      nextSlide();
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [paused, apartment.images]);
+  }, [paused, isTransitioning, apartment.images]);
 
   if (!apartment.images?.length) {
     return <div>Нет изображений</div>;
@@ -177,14 +206,16 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const SliderArrows = () => (
     <>
       <button
-        className={`hero-arrow hero-arrow--left ${isMobile ? 'mobile' : ''}`}
-        onClick={() => setActive(prev => prev === 0 ? apartment.images.length - 1 : prev - 1)}
+        className={`hero-arrow hero-arrow--left ${isMobile ? 'mobile' : ''} ${isTransitioning ? 'disabled' : ''}`}
+        onClick={prevSlide}
+        disabled={isTransitioning}
       >
         ‹
       </button>
       <button
-        className={`hero-arrow hero-arrow--right ${isMobile ? 'mobile' : ''}`}
-        onClick={() => setActive(prev => (prev + 1) % apartment.images.length)}
+        className={`hero-arrow hero-arrow--right ${isMobile ? 'mobile' : ''} ${isTransitioning ? 'disabled' : ''}`}
+        onClick={nextSlide}
+        disabled={isTransitioning}
       >
         ›
       </button>
@@ -196,8 +227,9 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       {apartment.images.map((_, index) => (
         <button
           key={index}
-          className={`hero-timeline-item ${index === active ? 'active' : ''}`}
-          onClick={() => setActive(index)}
+          className={`hero-timeline-item ${index === active ? 'active' : ''} ${isTransitioning ? 'disabled' : ''}`}
+          onClick={() => !isTransitioning && changeSlide(index)}
+          disabled={isTransitioning}
         >
           {String(index + 1).padStart(2, '0')}
         </button>
@@ -214,18 +246,30 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         onMouseLeave={() => setPaused(false)}
       >
         {/* SLIDER */}
-        <div className="hero-slider">
-          {apartment.images.map((img, index) => (
-            <div
-              key={index}
-              className={`hero-slide ${index === active ? 'active' : ''}`}
-            >
+        <div className="hero-slider" ref={slideRef}>
+          <AnimatePresence mode="wait">
+            {apartment.images.map((img, index) => (
               <div
-                className="hero-slide-bg"
-                style={{ backgroundImage: `url(${img})` }}
-              />
-            </div>
-          ))}
+                key={index}
+                className={`hero-slide ${index === active ? 'active' : ''}`}
+              >
+                <motion.div
+                  className="hero-slide-bg"
+                  style={{ backgroundImage: `url(${img})` }}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ 
+                    opacity: index === active ? 1 : 0,
+                    scale: index === active ? 1 : 1.1,
+                    transition: {
+                      opacity: { duration: 0.5, ease: "easeInOut" },
+                      scale: { duration: 0.5, ease: "easeInOut" }
+                    }
+                  }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                />
+              </div>
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* OVERLAY */}
@@ -285,18 +329,30 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       onTouchEnd={() => setTimeout(() => setPaused(false), 3000)}
     >
       {/* SLIDER */}
-      <div className="hero-slider">
-        {apartment.images.map((img, index) => (
-          <div
-            key={index}
-            className={`hero-slide ${index === active ? 'active' : ''}`}
-          >
+      <div className="hero-slider" ref={slideRef}>
+        <AnimatePresence mode="wait">
+          {apartment.images.map((img, index) => (
             <div
-              className="hero-slide-bg"
-              style={{ backgroundImage: `url(${img})` }}
-            />
-          </div>
-        ))}
+              key={index}
+              className={`hero-slide ${index === active ? 'active' : ''}`}
+            >
+              <motion.div
+                className="hero-slide-bg"
+                style={{ backgroundImage: `url(${img})` }}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ 
+                  opacity: index === active ? 1 : 0,
+                  scale: index === active ? 1 : 1.1,
+                  transition: {
+                    opacity: { duration: 0.4, ease: "easeInOut" },
+                    scale: { duration: 0.4, ease: "easeInOut" }
+                  }
+                }}
+                exit={{ opacity: 0, scale: 1.1 }}
+              />
+            </div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* OVERLAY */}

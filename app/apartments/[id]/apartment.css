@@ -679,3 +679,42 @@
     font-size: 9px !important;
   }
 }
+
+/* ===== АНИМАЦИИ ДЛЯ СЛАЙДОВ ===== */
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  z-index: 2;
+}
+
+.hero-slide-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+  transform: scale(1.045); /* Начальный масштаб */
+}
+
+/* Отключаем анимацию при переключении */
+.hero-arrow.disabled,
+.hero-timeline-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Мобильные корректировки */
+@media (max-width: 768px) {
+  .hero-slide-bg {
+    transform: scale(1.06); /* Чуть больше на мобилках */
+  }
+}
