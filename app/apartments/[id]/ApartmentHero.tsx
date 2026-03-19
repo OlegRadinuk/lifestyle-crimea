@@ -30,7 +30,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   // Определяем мобилку
   useEffect(() => {
@@ -47,38 +46,29 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     return () => unregister(id);
   }, [register, unregister]);
 
-  // Функции навигации с защитой от двойных кликов
+  // Функции навигации
   const goToNext = useCallback(() => {
-    if (isAnimating) return;
-    setIsAnimating(true);
     setActiveIndex(prev => (prev + 1) % apartment.images.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [apartment.images.length, isAnimating]);
+  }, [apartment.images.length]);
 
   const goToPrev = useCallback(() => {
-    if (isAnimating) return;
-    setIsAnimating(true);
     setActiveIndex(prev => prev === 0 ? apartment.images.length - 1 : prev - 1);
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [apartment.images.length, isAnimating]);
+  }, [apartment.images.length]);
 
   const goToSlide = useCallback((index: number) => {
-    if (isAnimating || index === activeIndex) return;
-    setIsAnimating(true);
     setActiveIndex(index);
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [activeIndex, isAnimating]);
+  }, []);
 
   // AUTOPLAY
   useEffect(() => {
-    if (paused || !apartment.images?.length || isAnimating) return;
+    if (paused || !apartment.images?.length) return;
 
     const timer = setInterval(() => {
       goToNext();
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [paused, apartment.images.length, goToNext, isAnimating]);
+  }, [paused, apartment.images.length, goToNext]);
 
   if (!apartment.images?.length) {
     return <div>Нет изображений</div>;
@@ -86,21 +76,54 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
+  // Анимация для слайда - картинка ПРИБЛИЖАЕТСЯ (scale от 1 к 1.1)
+  const slideVariants = {
+    initial: { 
+      opacity: 0,
+    },
+    animate: { 
+      opacity: 1,
+      transition: {
+        opacity: { duration: 0.4 }
+      }
+    },
+    exit: { 
+      opacity: 0,
+      transition: {
+        opacity: { duration: 0.3 }
+      }
+    }
+  };
+
+  // Анимация для цифр таймлайна - как в Hero
+  const timelineItemVariants = {
+    initial: { 
+      opacity: 0, 
+      y: 12 
+    },
+    animate: (i: number) => ({ 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        delay: i * 0.15,
+        duration: 0.4
+      }
+    })
+  };
+
   // Компонент стрелок
   const SliderArrows = () => (
     <>
       <button
-        className={`hero-arrow hero-arrow--left ${isMobile ? 'mobile' : ''} ${isAnimating ? 'disabled' : ''}`}
+        className={`hero-arrow hero-arrow--left ${isMobile ? 'mobile' : ''}`}
         onClick={goToPrev}
-        disabled={isAnimating}
         aria-label="Предыдущее фото"
       >
         ‹
       </button>
       <button
-        className={`hero-arrow hero-arrow--right ${isMobile ? 'mobile' : ''} ${isAnimating ? 'disabled' : ''}`}
+        className={`hero-arrow hero-arrow--right ${isMobile ? 'mobile' : ''}`}
         onClick={goToNext}
-        disabled={isAnimating}
         aria-label="Следующее фото"
       >
         ›
@@ -108,24 +131,29 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     </>
   );
 
-  // Компонент таймлайна
+  // Компонент таймлайна с анимацией как в Hero
   const Timeline = () => (
-    <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
+    <motion.div 
+      className={`hero-timeline ${isMobile ? 'mobile' : ''}`}
+      initial="initial"
+      animate="animate"
+    >
       {apartment.images.map((_, index) => {
         const isActiveSlide = index === activeIndex;
         return (
-          <button
+          <motion.button
             key={index}
+            custom={index}
+            variants={timelineItemVariants}
             className={`hero-timeline-item ${isActiveSlide ? 'active' : ''}`}
             onClick={() => goToSlide(index)}
-            disabled={isAnimating}
             aria-label={`Перейти к фото ${index + 1}`}
           >
             {String(index + 1).padStart(2, '0')}
-          </button>
+          </motion.button>
         );
       })}
-    </div>
+    </motion.div>
   );
 
   // Десктоп версия
@@ -136,29 +164,34 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        {/* SLIDER с простой анимацией через key и transition */}
+        {/* SLIDER с AnimatePresence */}
         <div className="hero-slider">
           <AnimatePresence mode="wait">
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="hero-slide active"
-              style={{ 
-                position: 'absolute', 
-                inset: 0,
-                willChange: 'opacity'
-              }}
-            >
-              <div
-                className="hero-slide-bg"
-                style={{ 
-                  backgroundImage: `url(${apartment.images[activeIndex]})`,
-                }}
-              />
-            </motion.div>
+            {apartment.images.map((img, index) => (
+              index === activeIndex && (
+                <motion.div
+                  key={index}
+                  variants={slideVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="hero-slide active"
+                  style={{ 
+                    position: 'absolute', 
+                    inset: 0,
+                    willChange: 'opacity'
+                  }}
+                >
+                  {/* Картинка с анимацией приближения через CSS transition */}
+                  <div
+                    className="hero-slide-bg hero-slide-bg-zoom-in"
+                    style={{ 
+                      backgroundImage: `url(${img})`,
+                    }}
+                  />
+                </motion.div>
+              )
+            ))}
           </AnimatePresence>
           
           {/* Бэкграунд для предотвращения мигания */}
@@ -229,29 +262,33 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setTimeout(() => setPaused(false), 3000)}
     >
-      {/* SLIDER с простой анимацией через key и transition */}
+      {/* SLIDER с AnimatePresence */}
       <div className="hero-slider">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="hero-slide active"
-            style={{ 
-              position: 'absolute', 
-              inset: 0,
-              willChange: 'opacity'
-            }}
-          >
-            <div
-              className="hero-slide-bg"
-              style={{ 
-                backgroundImage: `url(${apartment.images[activeIndex]})`,
-              }}
-            />
-          </motion.div>
+          {apartment.images.map((img, index) => (
+            index === activeIndex && (
+              <motion.div
+                key={index}
+                variants={slideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="hero-slide active"
+                style={{ 
+                  position: 'absolute', 
+                  inset: 0,
+                  willChange: 'opacity'
+                }}
+              >
+                <div
+                  className="hero-slide-bg hero-slide-bg-zoom-in"
+                  style={{ 
+                    backgroundImage: `url(${img})`,
+                  }}
+                />
+              </motion.div>
+            )
+          ))}
         </AnimatePresence>
         
         {/* Бэкграунд для предотвращения мигания */}
