@@ -320,7 +320,7 @@ export default function Header({ onBurgerClick }: Props) {
           </div>
         )}
 
-        {/* Календарь для десктопа */}
+        {/* Календарь для десктопа в hero режиме */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && !isMobile && (
             <div ref={popoverRef} className="header__calendar-popover hero-calendar">
@@ -335,12 +335,13 @@ export default function Header({ onBurgerClick }: Props) {
                 }}
                 onClose={() => setCalendarOpen(false)}
                 showPrice={false}
+                customClass="calendar--hero"
               />
             </div>
           )}
         </AnimatePresence>
 
-        {/* Календарь для мобильных - используем класс mobile-position */}
+        {/* Календарь для мобильных в hero режиме */}
         <AnimatePresence>
           {calendarOpen && mode === 'hero' && isMobile && (
             <div 
@@ -358,6 +359,7 @@ export default function Header({ onBurgerClick }: Props) {
                 }}
                 onClose={() => setCalendarOpen(false)}
                 showPrice={false}
+                customClass="calendar--hero"
               />
             </div>
           )}
@@ -393,6 +395,7 @@ export default function Header({ onBurgerClick }: Props) {
                       onClose={() => setCalendarOpen(false)}
                       showPrice={true}
                       apartmentPrice={apartmentPrice}
+                      customClass="calendar--apartment"
                     />
                   </div>
                 )}

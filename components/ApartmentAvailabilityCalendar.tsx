@@ -20,13 +20,8 @@ type Props = {
   position?: 'left' | 'right';
   showPrice?: boolean;
   apartmentPrice?: number;
+  customClass?: string;
 };
-
-const QUICK_RANGES = [
-  { label: 'Уикенд', days: 3 },
-  { label: 'Неделя', days: 7 },
-  { label: '14 дней', days: 14 },
-];
 
 export default function ApartmentAvailabilityCalendar({
   blockedDates,
@@ -35,6 +30,7 @@ export default function ApartmentAvailabilityCalendar({
   position = 'right',
   showPrice = false,
   apartmentPrice = 0,
+  customClass = '',
 }: Props) {
   const [range, setRange] = useState<DateRange>();
   const [isMobile, setIsMobile] = useState(false);
@@ -104,25 +100,12 @@ if (isMobile) {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="availability-calendar mobile"
+        className={`availability-calendar mobile ${customClass}`}
       >
         {/* Хедер */}
         <div className="calendar-header">
           <h3>Выберите даты</h3>
           <button className="calendar-close" onClick={onClose}>✕</button>
-        </div>
-
-        {/* Быстрые диапазоны */}
-        <div className="quick-ranges">
-          {QUICK_RANGES.map(({ label, days }) => (
-            <button
-              key={label}
-              className="quick-range-btn"
-              onClick={() => handleQuickRange(days)}
-            >
-              {label}
-            </button>
-          ))}
         </div>
 
         {/* Календарь */}
@@ -167,7 +150,7 @@ if (isMobile) {
   );
 }
 
-  // Десктоп версия (без изменений)
+  // Десктоп версия
   return (
     <AnimatePresence>
       <motion.div
@@ -176,19 +159,10 @@ if (isMobile) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`availability-calendar position-${position}`}
+        className={`availability-calendar ${customClass}`}
       >
         {position === 'right' && (
           <div className="quick-ranges">
-            {QUICK_RANGES.map(({ label, days }) => (
-              <button
-                key={label}
-                className="quick-range-btn"
-                onClick={() => handleQuickRange(days)}
-              >
-                {label}
-              </button>
-            ))}
           </div>
         )}
 

@@ -1306,7 +1306,7 @@ html, body {
 .availability-calendar.position-right {
   left: auto;
   right: 33px;
-  top: 101px;
+  top: 8px;
 }
 
 .availability-calendar.position-right::before {
@@ -2504,7 +2504,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1px;
 }
 
 .calendar-legend {
@@ -5615,11 +5615,11 @@ html, body {
 
 .availability-calendar.mobile {
     border-radius: 24px 24px;
-    width: 175%;
-    padding: 20px 16px 30px;
+    width: 66%;
+    padding: 11px 11px 11px;
     animation: .3s slideUp;
     position: fixed;
-    inset: auto -149px -621px;
+    inset: auto 177px -527px;
 }
 
 /* Мобилка футер - 50% */
@@ -6100,7 +6100,7 @@ html, body {
   }
 
   .panorama-actions-bottom {
-    bottom: 20%;
+    bottom: 15%;
     left: 16px;
     right: 16px;
     gap: 8px;
@@ -6125,7 +6125,7 @@ html, body {
   }
 
   .panorama-swipe-hint {
-    bottom: 22%;
+    bottom: 21%;
     left: 50%;
     transform: translateX(-50%);
     padding: 8px 20px;
@@ -6140,11 +6140,12 @@ html, body {
 
 @media (max-width: 480px) {
   .panorama-info {
-    bottom: 38%;
+    bottom: 30%;
   }
 
   .panorama-info-inner {
     padding: 14px 16px;
+    margin-bottom: -27px;
   }
 
   .panorama-info-title {
@@ -6161,7 +6162,7 @@ html, body {
   }
 
   .panorama-actions-bottom {
-    bottom: 22%;
+    bottom: 15%;
   }
 
   .panorama-action-btn {
@@ -6171,13 +6172,13 @@ html, body {
   }
 
   .panorama-fullscreen-button {
-    bottom: 34%;
+    bottom: 21%;
     width: 44px;
     height: 44px;
   }
 
   .panorama-swipe-hint {
-    bottom: 34%;
+    bottom: 21%;
     padding: 6px 16px;
   }
 
@@ -6188,11 +6189,12 @@ html, body {
 
 @media (max-width: 360px) {
   .panorama-info {
-    bottom: 40%;
+    bottom: 30%;
   }
 
   .panorama-info-inner {
     padding: 12px 14px;
+    margin-bottom: -11px;
   }
 
   .panorama-info-eyebrow {
@@ -6213,7 +6215,7 @@ html, body {
   }
 
   .panorama-actions-bottom {
-    bottom: 24%;
+    bottom: 14%;
     gap: 6px;
   }
 
@@ -6224,13 +6226,13 @@ html, body {
   }
 
   .panorama-fullscreen-button {
-    bottom: 36%;
+    bottom: 21%;
     width: 40px;
     height: 40px;
   }
 
   .panorama-swipe-hint {
-    bottom: 36%;
+    bottom: 21%;
     padding: 5px 12px;
   }
 
@@ -7509,31 +7511,6 @@ html, body {
     gap: 12px;
   }
 
-  .header--hero.header--mobile .header__mobile-book-btn {
-    position: static;
-    transform: none;
-    padding: 10px 18px;
-    font-size: 13px;
-    white-space: nowrap;
-    background: rgba(19, 154, 182, 0.95);
-    backdrop-filter: blur(6px);
-    border-radius: 30px;
-    color: #e6fbff;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(19, 154, 182, 0.3);
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
-    margin-top: -55px;
-    margin-left: auto;
-  }
-
   .header--hero.header--mobile .header__mobile-fields {
     width: 100%;
     background: rgba(0, 0, 0, 0.35);
@@ -7766,64 +7743,6 @@ html, body {
 }
 }
 
-/* ===== DESKTOP CALENDAR AND HEADER FIX ===== */
-@media (min-width: 769px) {
-  /* Фиксируем хедер чтобы он не прыгал */
-  .header {
-    height: 80px !important;
-    min-height: 80px !important;
-    transform: none !important;
-    transition: background 0.35s ease !important;
-    will-change: transform; /* оптимизация для анимаций */
-  }
-
-  /* Убираем скачки при открытии календаря */
-  .header__booking-wrapper {
-    transform: none !important;
-    transition: none !important;
-    position: relative !important;
-    width: auto !important; /* фиксируем ширину */
-  }
-
-  /* Календарь позиционируется абсолютно */
-  .header__calendar-popover {
-    position: absolute !important;
-    top: calc(100% + 10px) !important;
-    right: 0 !important;
-    left: auto !important;
-    margin: 0 !important;
-    z-index: 10000 !important;
-  }
-
-  .header--hero .header__calendar-popover.hero-calendar {
-    right: 0 !important;
-    left: auto !important;
-  }
-
-  /* Фиксируем ширину полей чтобы хедер не менял размер */
-  .booking-field {
-    min-width: 120px !important;
-    width: 120px !important;
-  }
-
-  .booking-field input,
-  .booking-field select {
-    width: 100% !important;
-  }
-
-  /* Фиксируем ширину кнопки */
-  .header__booking {
-    min-width: 220px !important;
-    text-align: center !important;
-    padding: 15.5px 30px !important;
-  }
-
-  /* Убираем псевдоэлементы, которые могут влиять */
-  .header--hero .header__booking-wrapper::after {
-    display: none !important;
-  }
-}
-
 /* ===== DESKTOP ERROR MESSAGE - ГОЛУБОЙ КОНТЕЙНЕР ===== */
 @media (min-width: 769px) {
   .header__booking-error {
@@ -7894,5 +7813,152 @@ html, body {
     left: 72% !important; /* правее на планшетах */
     font-size: 12px !important;
     padding: 8px 20px !important;
+  }
+}
+
+/* ФИКСИРУЕМ ШИРИНУ ПРАВОЙ ЧАСТИ */
+.header__booking-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  z-index: 2;
+  min-width: 520px; /* ← ФИКСИРОВАННАЯ МИНИМАЛЬНАЯ ШИРИНА */
+  justify-content: flex-end; /* выравниваем контент вправо */
+}
+
+/* Для hero режима - чтобы не прыгало */
+.header--hero .header__booking-wrapper {
+  min-width: 520px;
+}
+
+/* Контейнер для календаря */
+.header__calendar-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  left: auto;
+  z-index: 10000;
+  width: 340px; /* фиксированная ширина календаря */
+}
+
+/* Убираем лишние трансформации */
+.header__booking-fields {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 56px;
+  padding-left: 24px;
+  z-index: 2;
+  flex-shrink: 0; /* запрещаем сжиматься */
+}
+
+.header__booking {
+  flex-shrink: 0; /* запрещаем сжиматься */
+}
+
+/* ===== Адаптивность для кнопки хеддера на экранах ===== */
+    @media (max-width: 360px) {
+        .header--hero.header--mobile .header__mobile-book-btn {
+            white-space: nowrap;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            color: #e6fbff;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-overflow: ellipsis;
+            background: #139ab6f2;
+            border: none;
+            border-radius: 30px;
+            flex-shrink: 1;
+            min-width: 0;
+            max-width: 300px;
+            margin-top: -48px;
+            margin-left: auto;
+            padding: 8px 9px!important;
+            font-size: 13px;
+            font-weight: 500;
+            position: static;
+            overflow: hidden;
+            transform: none;
+            box-shadow: 0 4px 15px #139ab64d;
+        }
+    }
+@media (max-width: 480px) {
+    .header--hero.header--mobile .header__mobile-book-btn {
+    position: static;
+    transform: none;
+    padding: 10px 9px!important;
+    font-size: 12px!important;
+    white-space: nowrap;
+    background: rgba(19, 154, 182, 0.95);
+    backdrop-filter: blur(6px);
+    border-radius: 30px;
+    color: #e6fbff;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(19, 154, 182, 0.3);
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+    margin-top: -50.5px;
+    margin-left: auto;
+  }
+}
+
+/* ===== ДЕСКТОП СТИЛИ ДЛЯ КАЛЕНДАРЯ (769px и выше) ===== */
+@media (min-width: 769px) {
+  /* Базовые стили календаря */
+  .availability-calendar {
+    position: absolute;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    width: 340px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    z-index: 2000;
+    animation: calendarFade .15s ease-out;
+  }
+
+  .availability-calendar::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Hero режим - календарь слева (как было с position-left) */
+  .calendar--hero {
+    left: -612px !important;
+    right: auto !important;
+    top: -10px !important;
+  }
+
+  /* Apartment режим - календарь справа (как было с position-right) */
+  .calendar--apartment {
+    right: 33px !important;
+    left: auto !important;
+    top: 8px !important;
+  }
+
+  .calendar--apartment::before {
+    right: 20px !important;
+    left: auto !important;
+  }
+
+  /* Анимация */
+  @keyframes calendarFade {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
