@@ -44,11 +44,11 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   }, []);
 
   /* ===============================
-     АНИМАЦИЯ ДЫХАНИЯ (ТОЛЬКО ДЛЯ АКТИВНОГО СЛАЙДА)
+     АНИМАЦИЯ ДЫХАНИЯ
   =============================== */
   useEffect(() => {
-    const activeSlide = document.querySelector('.hero-slide.active .hero-slide-bg');
-    if (!activeSlide || !(activeSlide instanceof HTMLElement)) return;
+    const container = document.querySelector('.hero-slider');
+    if (!container) return;
 
     let startTime: number | null = null;
     
@@ -60,9 +60,13 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       
       const scale = 1.06 + 0.02 * Math.sin(normalizedProgress * Math.PI * 2);
       
-      if (activeSlide instanceof HTMLElement) {
-        activeSlide.style.transform = `scale(${scale})`;
-      }
+      // Применяем ко всем слайдам, но активный будет виден
+      const allSlides = container.querySelectorAll('.hero-slide-bg');
+      allSlides.forEach((slide: any) => {
+        if (slide instanceof HTMLElement) {
+          slide.style.transform = `scale(${scale})`;
+        }
+      });
 
       animationRef.current = requestAnimationFrame(animateBreathing);
     };
@@ -74,7 +78,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [active]);
+  }, []); // Не зависит от active
 
   /* ===============================
      ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ СЛАЙДОВ
@@ -84,15 +88,13 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     
     setIsTransitioning(true);
     
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-    
+    // Меняем слайд
     setActive(newIndex);
     
+    // Разблокируем через 500ms
     setTimeout(() => {
       setIsTransitioning(false);
-    }, 600);
+    }, 500);
   };
 
   const nextSlide = () => {
@@ -248,6 +250,11 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             <div
               key={index}
               className={`hero-slide ${index === active ? 'active' : ''}`}
+              style={{
+                opacity: index === active ? 1 : 0,
+                transition: 'opacity 0.5s ease-in-out',
+                zIndex: index === active ? 2 : 1
+              }}
             >
               <div
                 className="hero-slide-bg"
@@ -319,6 +326,11 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           <div
             key={index}
             className={`hero-slide ${index === active ? 'active' : ''}`}
+            style={{
+              opacity: index === active ? 1 : 0,
+              transition: 'opacity 0.4s ease-in-out',
+              zIndex: index === active ? 2 : 1
+            }}
           >
             <div
               className="hero-slide-bg"
