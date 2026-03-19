@@ -54,6 +54,7 @@ let tokenExpiry = 0;
 
 async function getToken(force = false) {
   if (!force && token && Date.now() < tokenExpiry) {
+    console.log('🔑 Using cached token (expires in', Math.floor((tokenExpiry - Date.now())/1000), 'seconds)');
     return token;
   }
 
@@ -70,13 +71,16 @@ async function getToken(force = false) {
   });
 
   if (!response.ok) {
+    console.error(`❌ Auth failed with status ${response.status}`);
+    const text = await response.text();
+    console.error('Response:', text);
     throw new Error(`Auth failed: ${response.status}`);
   }
 
   const data = await response.json();
   token = data.access_token;
   tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-  console.log('✅ Token obtained');
+  console.log('✅ Token obtained, expires in', data.expires_in, 'seconds');
   return token;
 }
 
@@ -92,11 +96,14 @@ function getLastSyncInfo() {
   `).get();
   
   if (row) {
+    console.log('📅 Last sync from DB:', row.last_sync);
+    console.log('   Continue token:', row.continue_token ? row.continue_token.substring(0, 30) + '...' : 'none');
     return {
       lastSync: row.last_sync,
       continueToken: row.continue_token
     };
   }
+  console.log('📅 No previous sync found');
   return { lastSync: null, continueToken: null };
 }
 
@@ -104,18 +111,21 @@ function getLastSyncInfo() {
 // СОХРАНЕНИЕ ПРОГРЕССА
 // ============================================
 function saveProgress(continueToken, stats) {
+  const now = new Date().toISOString();
+  
   db.prepare(`
     INSERT INTO sync_log (source, last_sync, continue_token, status, message)
     VALUES (?, ?, ?, ?, ?)
   `).run(
     'travelline',
-    new Date().toISOString(),
+    now,
     continueToken,
     'success',
     `Modified:${stats.modified}, Saved:${stats.saved}, Cancelled:${stats.cancelled}`
   );
   
-  console.log(`\n📊 Progress saved. Continue token: ${continueToken ? continueToken.substring(0, 30) + '...' : 'none'}`);
+  console.log(`\n📊 Progress saved at ${now}`);
+  console.log(`   Continue token: ${continueToken ? continueToken.substring(0, 30) + '...' : 'none'}`);
 }
 
 // ============================================
@@ -125,7 +135,7 @@ async function getModifiedBookings(lastSyncDate, continueToken = null) {
   const token = await getToken();
   const url = new URL(`https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings`);
   
-  // КЛЮЧЕВОЙ МОМЕНТ: запрашиваем только изменения с последней синхронизации
+  // КЛЮЧЕВОЙ МОМЕНТ: используем дату как есть
   if (lastSyncDate) {
     url.searchParams.set('lastModification', lastSyncDate);
     console.log(`📅 Requesting changes since: ${lastSyncDate}`);
@@ -133,17 +143,43 @@ async function getModifiedBookings(lastSyncDate, continueToken = null) {
   
   if (continueToken) {
     url.searchParams.set('continueToken', continueToken);
+    console.log(`   Using continue token: ${continueToken.substring(0, 30)}...`);
   }
 
+  console.log(`   Full URL: ${url.toString()}`);
+  
+  const startTime = Date.now();
   const response = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` }
   });
+  const endTime = Date.now();
 
+  console.log(`   Response status: ${response.status} (${endTime - startTime}ms)`);
+  
   if (!response.ok) {
+    const text = await response.text();
+    console.log(`   ❌ Response body:`, text);
+    
+    // Пробуем распарсить ошибку
+    try {
+      const errorData = JSON.parse(text);
+      console.log('   Error details:', errorData);
+    } catch (e) {
+      // Не JSON, просто текст
+    }
+    
     throw new Error(`API error: ${response.status}`);
   }
   
   const data = await response.json();
+  const count = data.bookingSummaries?.length || 0;
+  console.log(`   ✅ Success, received ${count} bookings`);
+  
+  if (count > 0) {
+    console.log(`   First booking: ${data.bookingSummaries[0].number} (${data.bookingSummaries[0].modifiedDateTime})`);
+    console.log(`   Last booking: ${data.bookingSummaries[count-1].number} (${data.bookingSummaries[count-1].modifiedDateTime})`);
+  }
+  
   return data;
 }
 
@@ -152,10 +188,11 @@ async function getModifiedBookings(lastSyncDate, continueToken = null) {
 // ============================================
 async function getBookingDetails(bookingNumber) {
   const token = await getToken();
-  const response = await fetch(
-    `https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings/${bookingNumber}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const url = `https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings/${bookingNumber}`;
+  
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   
   if (!response.ok) {
     throw new Error(`Failed to get booking ${bookingNumber}: ${response.status}`);
@@ -166,7 +203,7 @@ async function getBookingDetails(bookingNumber) {
 }
 
 // ============================================
-// МАППИНГ КОМНАТ (без изменений)
+// МАППИНГ КОМНАТ
 // ============================================
 const ROOM_TYPE_MAPPING = {
   '278023': 'ls-space',
@@ -208,18 +245,26 @@ const ROOM_TYPE_MAPPING = {
   '363094': 'ls-lux-fly-birds',
   '280610': 'ls-deep-forest',
   '281311': 'ls-flowers-tea',
+  '368602': 'ls-summer-emotions',  // Добавил маппинг для отсутствующих
+  '269607': 'ls-parking-26',
+  '269605': 'ls-parking-24',
+  '269604': 'ls-parking-22',
+  '352594': 'ls-parking-22',
+  '352588': 'ls-parking-12',
+  '386685': 'ls-golden-sand',
 };
 
 // ============================================
 // ОСНОВНАЯ ФУНКЦИЯ
 // ============================================
 async function syncBookings() {
-  console.log('\n' + '='.repeat(70));
-  console.log('🚀 TRAVELLINE INCREMENTAL SYNC v5.0');
-  console.log('='.repeat(70));
+  console.log('\n' + '='.repeat(80));
+  console.log('🚀 TRAVELLINE INCREMENTAL SYNC v5.1 (DEBUG)');
+  console.log('='.repeat(80));
   console.log(`Property ID: ${TRAVELLINE_PROPERTY_ID}`);
   console.log(`Time: ${new Date().toLocaleString()}`);
-  console.log('='.repeat(70));
+  console.log(`Node version: ${process.version}`);
+  console.log('='.repeat(80));
 
   const stats = {
     pageCount: 0,
@@ -231,13 +276,16 @@ async function syncBookings() {
   };
 
   try {
+    // Проверяем соединение с Travelline
+    console.log('\n🔍 Testing Travelline connection...');
     await getToken();
-    
+    console.log('✅ Connection OK');
+
     // Получаем информацию о последней синхронизации
     const { lastSync, continueToken } = getLastSyncInfo();
     
     if (!lastSync) {
-      console.log('📅 First sync - will get recent bookings (last 30 days)');
+      console.log('📅 First sync - will get recent bookings');
     }
 
     let currentContinueToken = continueToken;
@@ -251,8 +299,6 @@ async function syncBookings() {
       const data = await getModifiedBookings(lastSync, currentContinueToken);
       const summaries = data.bookingSummaries || [];
       
-      console.log(`   Received ${summaries.length} modified bookings`);
-
       if (summaries.length === 0) {
         console.log('   ✅ No changes since last sync');
         break;
@@ -260,9 +306,10 @@ async function syncBookings() {
 
       stats.modified += summaries.length;
 
-      for (const summary of summaries) {
+      for (let i = 0; i < summaries.length; i++) {
+        const summary = summaries[i];
         stats.totalThisRun++;
-        process.stdout.write(`\n   [${stats.totalThisRun}] ${summary.number}... `);
+        process.stdout.write(`\n   [${stats.totalThisRun}/${summaries.length}] ${summary.number}... `);
 
         try {
           const booking = await getBookingDetails(summary.number);
@@ -336,15 +383,15 @@ async function syncBookings() {
       saveProgress(currentContinueToken, stats);
     }
 
-    console.log('\n' + '='.repeat(70));
+    console.log('\n' + '='.repeat(80));
     console.log('📊 RUN SUMMARY');
-    console.log('='.repeat(70));
+    console.log('='.repeat(80));
     console.log(`📋 Pages:              ${stats.pageCount}`);
     console.log(`📋 Modified bookings:   ${stats.modified}`);
     console.log(`✅ Saved (future):      ${stats.saved}`);
     console.log(`❌ Cancelled:           ${stats.cancelled}`);
     console.log(`💥 Errors:              ${stats.errors}`);
-    console.log('='.repeat(70));
+    console.log('='.repeat(80));
 
   } catch (error) {
     console.error('\n❌ SYNC FAILED:', error);
