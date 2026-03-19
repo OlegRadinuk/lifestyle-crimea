@@ -173,17 +173,15 @@ export default function Hero() {
     let touchEndX = 0;
     let isSwiping = false;
 
-    const handleTouchStart = (e: Event) => {
-      const touchEvent = e as TouchEvent;
-      touchStartX = touchEvent.touches[0].clientX;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
       isSwiping = true;
       setIsHovered(true); // Пауза автоплея
     };
 
-    const handleTouchMove = (e: Event) => {
+    const handleTouchMove = (e: TouchEvent) => {
       if (!isSwiping) return;
-      const touchEvent = e as TouchEvent;
-      touchEndX = touchEvent.touches[0].clientX;
+      touchEndX = e.touches[0].clientX;
     };
 
     const handleTouchEnd = () => {
@@ -207,13 +205,13 @@ export default function Hero() {
       setTimeout(() => setIsHovered(false), 3000);
     };
 
-    hero.addEventListener('touchstart', handleTouchStart as EventListener);
-    hero.addEventListener('touchmove', handleTouchMove as EventListener);
+    hero.addEventListener('touchstart', handleTouchStart);
+    hero.addEventListener('touchmove', handleTouchMove);
     hero.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      hero.removeEventListener('touchstart', handleTouchStart as EventListener);
-      hero.removeEventListener('touchmove', handleTouchMove as EventListener);
+      hero.removeEventListener('touchstart', handleTouchStart);
+      hero.removeEventListener('touchmove', handleTouchMove);
       hero.removeEventListener('touchend', handleTouchEnd);
     };
   }, [slides.length]);
