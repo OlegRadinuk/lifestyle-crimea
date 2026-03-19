@@ -42,45 +42,9 @@ export default function Hero() {
   const [isHovered, setIsHovered] = useState(false);
 
   /* ===============================
-     АНИМАЦИЯ ДЫХАНИЯ (НЕПРЕРЫВНАЯ)
-  =============================== */
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    let animationFrame: number;
-    let startTime: number | null = null;
-
-    const animateBreathing = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      
-      const progress = (timestamp - startTime) / 6000; // 6 секунд на цикл
-      const normalizedProgress = progress % 1; // 0 to 1
-      
-      // Плавное дыхание от 1.06 до 1 и обратно
-      const scale = 1.03 + 0.03 * Math.sin(normalizedProgress * Math.PI * 2);
-      
-      // Применяем масштаб ко всем активным слайдам
-      const activeSlides = hero.querySelectorAll('.hero-slide.active .hero-slide-bg');
-      activeSlides.forEach((slide: any) => {
-        if (slide instanceof HTMLElement) {
-          slide.style.transform = `scale(${scale})`;
-        }
-      });
-
-      animationFrame = requestAnimationFrame(animateBreathing);
-    };
-
-    animationFrame = requestAnimationFrame(animateBreathing);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
-    };
-  }, []); // Пустой массив - анимация не перезапускается
-
-  /* ===============================
      HEADER MODE (HERO)
   =============================== */
+
   useEffect(() => {
     if (!heroRef.current) return;
 
@@ -113,6 +77,7 @@ export default function Hero() {
   /* ===============================
      PARALLAX / TILT
   =============================== */
+
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -152,6 +117,7 @@ export default function Hero() {
   /* ===============================
      AUTOPLAY
   =============================== */
+
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       setActive(prev => (prev + 1) % slides.length);
@@ -163,67 +129,17 @@ export default function Hero() {
   }, [active, isHovered]);
 
   /* ===============================
-     СВАЙП (ТОЛЬКО ГОРИЗОНТАЛЬНЫЙ)
-  =============================== */
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-    let isSwiping = false;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX;
-      isSwiping = true;
-      setIsHovered(true); // Пауза автоплея
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isSwiping) return;
-      touchEndX = e.touches[0].clientX;
-    };
-
-    const handleTouchEnd = () => {
-      if (!isSwiping) return;
-      
-      const deltaX = touchEndX - touchStartX;
-      const absDeltaX = Math.abs(deltaX);
-
-      // Только горизонтальный свайп, если движение достаточно большое
-      if (absDeltaX > 50) {
-        if (deltaX > 0) {
-          // Свайп вправо - предыдущий слайд
-          setActive(prev => prev === 0 ? slides.length - 1 : prev - 1);
-        } else {
-          // Свайп влево - следующий слайд
-          setActive(prev => (prev + 1) % slides.length);
-        }
-      }
-
-      isSwiping = false;
-      setTimeout(() => setIsHovered(false), 3000);
-    };
-
-    hero.addEventListener('touchstart', handleTouchStart);
-    hero.addEventListener('touchmove', handleTouchMove);
-    hero.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      hero.removeEventListener('touchstart', handleTouchStart);
-      hero.removeEventListener('touchmove', handleTouchMove);
-      hero.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [slides.length]);
-
-  /* ===============================
      JSX
   =============================== */
+
   return (
     <section
       ref={(el) => {
+        // Проверяем, что элемент действительно HTMLDivElement
         if (el && el instanceof HTMLDivElement) {
+          // Устанавливаем оба ref
           heroRef.current = el;
+          // Для animationRef используем приведение типа
           (animationRef as React.MutableRefObject<HTMLElement | null>).current = el;
         }
       }}
@@ -255,12 +171,8 @@ export default function Hero() {
           <div
             key={slide.id}
             className={`hero-slide ${i === active ? 'active' : ''}`}
-          >
-            <div 
-              className="hero-slide-bg"
-              style={{ backgroundImage: `url(${slide.image})` }}
-            />
-          </div>
+            style={{ backgroundImage: `url(${slide.image})` }}
+          />
         ))}
       </div>
 
