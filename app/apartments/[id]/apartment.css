@@ -17,16 +17,11 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.5s ease;
   pointer-events: none;
-  /* Убираем will-change - он может мешать */
 }
 
 .hero-slide.active {
-  opacity: 1;
   pointer-events: auto;
-  /* Убираем will-change */
 }
 
 .hero-slide-bg {
@@ -35,9 +30,9 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Анимация только у активного */
 }
 
+/* Анимация приближения */
 .hero-slide.active .hero-slide-bg {
   animation: zoomIn 8s ease-out forwards;
 }
@@ -67,7 +62,7 @@
   color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
   z-index: 100;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .hero-arrow:hover {
@@ -78,11 +73,19 @@
   left: 24px;
 }
 
+.hero-arrow--left:hover {
+  transform: translate(-6px, -50%);
+}
+
 .hero-arrow--right {
   right: 24px;
 }
 
-/* ===== TIMELINE - БЕЗ ВСЯКОЙ АНИМАЦИИ ===== */
+.hero-arrow--right:hover {
+  transform: translate(6px, -50%);
+}
+
+/* ===== TIMELINE - АНИМАЦИЯ КАК В HERO ===== */
 .hero-timeline {
   position: absolute;
   right: 60px;
@@ -102,18 +105,33 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px 0;
-  /* Только цвет меняется */
-  transition: color 0.2s ease;
-  /* Убираем transform */
-  transform: none !important;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: timelineReveal 0.6s ease-out forwards;
+}
+
+.hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
+.hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
+.hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
+.hero-timeline-item:nth-child(4) { animation-delay: 0.65s; }
+.hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
+.hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
+
+@keyframes timelineReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-timeline-item:hover {
   color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
 }
 
 .hero-timeline-item.active {
   color: #139AB6;
+  transform: scale(1.1);
   font-weight: 500;
 }
 
@@ -212,20 +230,32 @@
 
 /* ===== МОБИЛЬНЫЕ СТИЛИ ===== */
 @media (max-width: 768px) {
+  .apartment-hero.mobile {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+    color: #fff;
+  }
+
   .hero-arrow {
-    display: none;
+    display: none; /* На мобилке стрелок нет */
   }
 
-  .hero-timeline {
-    right: 20px;
-    bottom: 120px;
-    gap: 8px;
+  /* Затемнение */
+  .panorama-overlay.mobile {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
+    pointer-events: none;
+    z-index: 10;
   }
 
-  .hero-timeline-item {
-    font-size: 14px;
-  }
-
+  /* Инфо */
   .apartment-info-mobile {
     position: absolute;
     bottom: 120px;
@@ -273,6 +303,7 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   }
 
+  /* Чипсы */
   .apartment-features-mobile {
     display: flex;
     flex-wrap: wrap;
@@ -294,34 +325,33 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  .panorama-overlay.mobile {
+  /* Мобильный таймлайн */
+  .hero-timeline.mobile {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.2) 0%,
-      rgba(0, 0, 0, 0.4) 50%,
-      rgba(0, 0, 0, 0.7) 100%
-    );
-    pointer-events: none;
-    z-index: 10;
+    right: 20px;
+    bottom: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 30;
+    pointer-events: auto;
   }
 
-  .panorama-unavailable-message.mobile {
-    padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    text-align: center;
-    margin-top: 8px;
+  .hero-timeline.mobile .hero-timeline-item {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: right;
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 
-  .panorama-unavailable-message.mobile .unavailable-text {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
+  .hero-timeline.mobile .hero-timeline-item.active {
+    color: #139ab6;
+    transform: scale(1.2);
   }
 
+  /* Подсказка для свайпа */
   .swipe-hint {
     position: absolute;
     bottom: 80px;
@@ -345,8 +375,25 @@
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
   }
+
+  /* Сообщение о недоступности */
+  .panorama-unavailable-message.mobile {
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .panorama-unavailable-message.mobile .unavailable-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+  }
 }
 
+/* ===== МАЛЕНЬКИЕ ТЕЛЕФОНЫ ===== */
 @media (max-width: 480px) {
   .apartment-info-mobile {
     bottom: 100px;
@@ -368,13 +415,13 @@
     font-size: 12px;
   }
 
-  .hero-timeline {
+  .hero-timeline.mobile {
     right: 16px;
     bottom: 100px;
     gap: 6px;
   }
 
-  .hero-timeline-item {
+  .hero-timeline.mobile .hero-timeline-item {
     font-size: 13px;
   }
 
@@ -405,12 +452,12 @@
     font-size: 11px;
   }
 
-  .hero-timeline {
+  .hero-timeline.mobile {
     right: 12px;
     bottom: 90px;
   }
 
-  .hero-timeline-item {
+  .hero-timeline.mobile .hero-timeline-item {
     font-size: 12px;
   }
 
@@ -421,18 +468,47 @@
   }
 }
 
+/* ===== SAFE AREA ===== */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   @media (max-width: 768px) {
     .apartment-info-mobile {
       bottom: calc(120px + env(safe-area-inset-bottom));
     }
     
-    .hero-timeline {
+    .hero-timeline.mobile {
       bottom: calc(120px + env(safe-area-inset-bottom));
     }
 
     .swipe-hint {
       bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .apartment-info-mobile {
+      bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+    
+    .hero-timeline.mobile {
+      bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+
+    .swipe-hint {
+      bottom: calc(70px + env(safe-area-inset-bottom));
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .apartment-info-mobile {
+      bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+    
+    .hero-timeline.mobile {
+      bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .swipe-hint {
+      bottom: calc(60px + env(safe-area-inset-bottom));
     }
   }
 }

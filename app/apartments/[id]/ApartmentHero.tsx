@@ -151,6 +151,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             <div
               key={index}
               className={`hero-slide ${index === activeIndex ? 'active' : ''}`}
+              style={{ display: index === activeIndex ? 'block' : 'none' }}
             >
               <div className="hero-slide-bg" style={{ backgroundImage: `url(${img})` }} />
             </div>
@@ -204,6 +205,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           <div
             key={index}
             className={`hero-slide ${index === activeIndex ? 'active' : ''}`}
+            style={{ display: index === activeIndex ? 'block' : 'none' }}
           >
             <div className="hero-slide-bg" style={{ backgroundImage: `url(${img})` }} />
           </div>
