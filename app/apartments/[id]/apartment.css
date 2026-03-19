@@ -85,7 +85,7 @@
   transform: translate(6px, -50%);
 }
 
-/* ===== TIMELINE - АНИМАЦИЯ КАК В HERO ===== */
+/* ===== TIMELINE - ТОЛЬКО ПРИ ПЕРВОЙ ЗАГРУЗКЕ ===== */
 .hero-timeline {
   position: absolute;
   right: 60px;
@@ -105,11 +105,16 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px 0;
+  
+  /* Анимация ТОЛЬКО при первом появлении */
   opacity: 0;
   transform: translateY(12px);
-  animation: timelineReveal 0.6s ease-out forwards;
+  animation: timelineFirstShow 0.6s ease-out forwards;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
+/* Задержки ТОЛЬКО при первой загрузке */
 .hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
 .hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
 .hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
@@ -117,22 +122,36 @@
 .hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
 .hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
 
-@keyframes timelineReveal {
-  to {
+/* Ключевые кадры - только один раз */
+@keyframes timelineFirstShow {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
+/* При наведении - плавно меняем цвет и масштаб */
 .hero-timeline-item:hover {
   color: rgba(255, 255, 255, 0.8);
-  transform: scale(1.05);
+  transform: scale(1.05) !important;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
+/* Активный элемент - другой цвет и масштаб */
 .hero-timeline-item.active {
   color: #139AB6;
-  transform: scale(1.1);
+  transform: scale(1.1) !important;
   font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* Обычные элементы - без трансформации при смене активного */
+.hero-timeline-item:not(.active) {
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 /* ===== OVERLAY ===== */

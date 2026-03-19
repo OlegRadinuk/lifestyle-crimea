@@ -239,10 +239,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       </div>
 
       <Timeline />
-      
-      <div className="swipe-hint">
-        <span>← свайп →</span>
-      </div>
     </section>
   );
 }
