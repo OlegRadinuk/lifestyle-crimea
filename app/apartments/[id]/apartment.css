@@ -1,37 +1,28 @@
 .apartment-hero {
   height: 100dvh;
   overflow: hidden;
+  position: relative;
+  color: #fff;
 }
 
-.hero-slide {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.hero-slide-bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transform: scale(1.06);
-  transition: transform 6s ease;
-}
-
-.hero-slide.active .hero-slide-bg {
-  transform: scale(1);
-}
-
+/* ===== SLIDER STYLES ===== */
 .hero-slider {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: #000; /* черный фон для плавных переходов */
 }
 
 .hero-slide {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.hero-slide.active {
+  pointer-events: auto;
 }
 
 .hero-slide-bg {
@@ -40,60 +31,201 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  transform: scale(1.06);
-  transition: transform 6s ease;
-}
-
-.hero-slide.active .hero-slide-bg {
   transform: scale(1);
+  transition: transform 8s ease-out;
 }
 
-.apartment-hero {
-  color: #fff;
+/* Легкое увеличение для активного слайда (очень медленное) */
+.hero-slide.active .hero-slide-bg {
+  transform: scale(1.03);
 }
 
-/* Добавить в конец файла */
-
-.panorama-desktop-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 32px;
-  pointer-events: auto;
+/* Бэкграунд для предотвращения мигания */
+.hero-slide-background {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: -1;
 }
 
-.panorama-desktop-btn {
-  padding: 12px 24px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
+/* ===== ARROWS ===== */
+.hero-arrow {
+  position: absolute;
+  top: 49.5%;
+  transform: translateY(-50%);
+  background: none;
   border: none;
+  padding: 0;
+  font-size: 44px;
+  font-weight: 100;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
+  z-index: 100;
+  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
 }
 
-.panorama-desktop-btn.primary {
-  background: #139ab6;
-  color: white;
+.hero-arrow.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
-.panorama-desktop-btn.primary:hover {
-  background: #0f7a91;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(19, 154, 182, 0.4);
+.hero-arrow::after {
+  content: '';
+  position: absolute;
+  inset: -30px -15px;
 }
 
-.panorama-desktop-btn.secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.hero-arrow:hover:not(.disabled) {
+  color: #ffffff;
 }
 
-.panorama-desktop-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+.hero-arrow--left {
+  left: 24px;
+}
+
+.hero-arrow--left:hover:not(.disabled) {
+  transform: translate(-6px, -50%);
+}
+
+.hero-arrow--right {
+  right: 24px;
+}
+
+.hero-arrow--right:hover:not(.disabled) {
+  transform: translate(6px, -50%);
+}
+
+/* ===== TIMELINE ===== */
+.hero-timeline {
+  position: absolute;
+  right: 60px;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.hero-timeline-item {
+  background: none;
+  border: none;
+  font-size: 15.5px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+  opacity: 0.6;
+  padding: 4px 0;
+  position: relative;
+}
+
+.hero-timeline-item:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+}
+
+.hero-timeline-item.active {
+  color: #139AB6;
+  transform: scale(1.1);
+  font-weight: 500;
+}
+
+.hero-timeline-item:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ===== OVERLAY ===== */
+.panorama-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0)), 
+              linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  z-index: 80;
+}
+
+/* ===== SVG FRAME ===== */
+.hero-frame-svg {
+  position: absolute;
+  inset: 24px;
+  width: calc(100% - 48px);
+  height: calc(100% - 48px);
+  z-index: 90;
+  pointer-events: none;
+}
+
+/* ===== INFO PANEL ===== */
+.panorama-info {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 36%;
+  min-width: 420px;
+  display: flex;
+  align-items: center;
+  padding-left: 64px;
+  pointer-events: none;
+  z-index: 90;
+}
+
+.panorama-info-inner {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  pointer-events: auto;
+  animation: fadeInInfo 1s ease forwards;
+}
+
+@keyframes fadeInInfo {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panorama-info-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.panorama-info-title {
+  font-size: 44px;
+  line-height: 1.1;
+  font-weight: 500;
+  color: #139AB6;
+}
+
+.panorama-info-description {
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.75;
+  max-width: 380px;
+}
+
+.panorama-info-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #139AB6;
+  opacity: 0.85;
 }
 
 .panorama-unavailable-message {
@@ -112,7 +244,7 @@
   letter-spacing: 0.3px;
 }
 
-/* ===== MOBILE APARTMENT HERO ===== */
+/* ===== MOBILE STYLES ===== */
 @media (max-width: 768px) {
   .apartment-hero.mobile {
     position: relative;
@@ -135,7 +267,7 @@
     z-index: 10;
   }
 
-  /* Информационный блок - опущен на 40px */
+  /* Информационный блок */
   .apartment-info-mobile {
     position: absolute;
     bottom: 120px;
@@ -146,6 +278,18 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    animation: mobileInfoFade 0.8s ease forwards;
+  }
+
+  @keyframes mobileInfoFade {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .apartment-info-header {
@@ -183,7 +327,7 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   }
 
-  /* Чипсы характеристик - ровные и аккуратные */
+  /* Чипсы характеристик */
   .apartment-features-mobile {
     display: flex;
     flex-wrap: wrap;
@@ -206,12 +350,14 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Стрелки для мобилок */
+  /* Мобильные стрелки */
   .hero-arrow.mobile {
-    display: none; /* или оставить, если нужны */
+    display: block;
+    font-size: 36px;
+    z-index: 30;
   }
 
-  /* Таймлайн для мобилок */
+  /* Мобильный таймлайн */
   .hero-timeline.mobile {
     position: absolute;
     right: 20px;
@@ -230,7 +376,7 @@
     color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all 0.3s ease;
-    padding: 0;
+    padding: 4px 0;
     text-align: right;
   }
 
@@ -257,6 +403,7 @@
   }
 }
 
+/* ===== МАЛЕНЬКИЕ ТЕЛЕФОНЫ ===== */
 @media (max-width: 480px) {
   .apartment-info-mobile {
     bottom: 100px;
@@ -271,7 +418,6 @@
 
   .apartment-info-description {
     font-size: 13px;
-    -webkit-line-clamp: 3;
   }
 
   .feature-chip {
@@ -288,6 +434,10 @@
   .hero-timeline.mobile .hero-timeline-item {
     font-size: 13px;
   }
+
+  .hero-arrow.mobile {
+    font-size: 32px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -303,16 +453,11 @@
 
   .apartment-info-description {
     font-size: 12px;
-    -webkit-line-clamp: 3;
   }
 
   .feature-chip {
     padding: 4px 10px;
     font-size: 11px;
-  }
-
-  .apartment-features-mobile {
-    gap: 6px;
   }
 
   .hero-timeline.mobile {
@@ -322,5 +467,42 @@
 
   .hero-timeline.mobile .hero-timeline-item {
     font-size: 12px;
+  }
+
+  .hero-arrow.mobile {
+    font-size: 28px;
+  }
+}
+
+/* ===== SAFE AREA ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .apartment-info-mobile {
+      bottom: calc(120px + env(safe-area-inset-bottom));
+    }
+    
+    .hero-timeline.mobile {
+      bottom: calc(120px + env(safe-area-inset-bottom));
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .apartment-info-mobile {
+      bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+    
+    .hero-timeline.mobile {
+      bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .apartment-info-mobile {
+      bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+    
+    .hero-timeline.mobile {
+      bottom: calc(90px + env(safe-area-inset-bottom));
+    }
   }
 }
