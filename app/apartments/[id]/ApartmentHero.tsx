@@ -76,39 +76,17 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
-  // Анимация для слайда - картинка ПРИБЛИЖАЕТСЯ (scale от 1 к 1.1)
+  // Анимация для слайда - только opacity
   const slideVariants = {
-    initial: { 
-      opacity: 0,
-    },
+    initial: { opacity: 0 },
     animate: { 
       opacity: 1,
-      transition: {
-        opacity: { duration: 0.4 }
-      }
+      transition: { opacity: { duration: 0.4 } }
     },
     exit: { 
       opacity: 0,
-      transition: {
-        opacity: { duration: 0.3 }
-      }
+      transition: { opacity: { duration: 0.3 } }
     }
-  };
-
-  // Анимация для цифр таймлайна - как в Hero
-  const timelineItemVariants = {
-    initial: { 
-      opacity: 0, 
-      y: 12 
-    },
-    animate: (i: number) => ({ 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        delay: i * 0.15,
-        duration: 0.4
-      }
-    })
   };
 
   // Компонент стрелок
@@ -131,29 +109,23 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     </>
   );
 
-  // Компонент таймлайна с анимацией как в Hero
+  // Компонент таймлайна
   const Timeline = () => (
-    <motion.div 
-      className={`hero-timeline ${isMobile ? 'mobile' : ''}`}
-      initial="initial"
-      animate="animate"
-    >
+    <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
       {apartment.images.map((_, index) => {
         const isActiveSlide = index === activeIndex;
         return (
-          <motion.button
+          <button
             key={index}
-            custom={index}
-            variants={timelineItemVariants}
             className={`hero-timeline-item ${isActiveSlide ? 'active' : ''}`}
             onClick={() => goToSlide(index)}
             aria-label={`Перейти к фото ${index + 1}`}
           >
             {String(index + 1).padStart(2, '0')}
-          </motion.button>
+          </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 
   // Десктоп версия
@@ -182,9 +154,9 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                     willChange: 'opacity'
                   }}
                 >
-                  {/* Картинка с анимацией приближения через CSS transition */}
+                  {/* Картинка с анимацией приближения через CSS */}
                   <div
-                    className="hero-slide-bg hero-slide-bg-zoom-in"
+                    className="hero-slide-bg"
                     style={{ 
                       backgroundImage: `url(${img})`,
                     }}
@@ -281,7 +253,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 }}
               >
                 <div
-                  className="hero-slide-bg hero-slide-bg-zoom-in"
+                  className="hero-slide-bg"
                   style={{ 
                     backgroundImage: `url(${img})`,
                   }}
