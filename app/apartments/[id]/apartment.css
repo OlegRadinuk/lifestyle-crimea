@@ -680,12 +680,19 @@
   }
 }
 
-/* ===== ПЛАВНАЯ АНИМАЦИЯ СЛАЙДОВ ===== */
+/* ===== БАЗОВЫЕ СТИЛИ СЛАЙДОВ (ВАЖНО!) ===== */
+.hero-slider {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .hero-slide {
   position: absolute;
   inset: 0;
   overflow: hidden;
   opacity: 0;
+  transition: opacity 0.5s ease-in-out;
   z-index: 1;
 }
 
@@ -700,8 +707,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  will-change: transform;
-  transform: scale(1.08); /* Начинаем с большего масштаба */
+  transform: scale(1.06);
   transition: transform 0.5s ease-in-out;
 }
 
@@ -716,6 +722,6 @@
 /* Мобильные корректировки */
 @media (max-width: 768px) {
   .hero-slide-bg {
-    transform: scale(1.1); /* Чуть больше на мобилках */
+    transform: scale(1.1);
   }
 }
