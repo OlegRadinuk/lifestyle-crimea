@@ -135,15 +135,15 @@ async function getModifiedBookings(lastSyncDate, continueToken = null) {
   const token = await getToken();
   const url = new URL(`https://partner.tlintegration.com/api/read-reservation/v1/properties/${TRAVELLINE_PROPERTY_ID}/bookings`);
   
-  // КЛЮЧЕВОЙ МОМЕНТ: используем дату как есть
-  if (lastSyncDate) {
-    url.searchParams.set('lastModification', lastSyncDate);
-    console.log(`📅 Requesting changes since: ${lastSyncDate}`);
-  }
-  
+  // ВАЖНО: НЕЛЬЗЯ использовать lastModification и continueToken вместе
   if (continueToken) {
+    // Если есть continueToken - используем только его (продолжаем с того места, где остановились)
     url.searchParams.set('continueToken', continueToken);
     console.log(`   Using continue token: ${continueToken.substring(0, 30)}...`);
+  } else if (lastSyncDate) {
+    // Если нет continueToken, но есть lastSyncDate - используем его (запрашиваем изменения с даты)
+    url.searchParams.set('lastModification', lastSyncDate);
+    console.log(`📅 Requesting changes since: ${lastSyncDate}`);
   }
 
   console.log(`   Full URL: ${url.toString()}`);
@@ -160,7 +160,6 @@ async function getModifiedBookings(lastSyncDate, continueToken = null) {
     const text = await response.text();
     console.log(`   ❌ Response body:`, text);
     
-    // Пробуем распарсить ошибку
     try {
       const errorData = JSON.parse(text);
       console.log('   Error details:', errorData);
@@ -259,7 +258,7 @@ const ROOM_TYPE_MAPPING = {
 // ============================================
 async function syncBookings() {
   console.log('\n' + '='.repeat(80));
-  console.log('🚀 TRAVELLINE INCREMENTAL SYNC v5.1 (DEBUG)');
+  console.log('🚀 TRAVELLINE INCREMENTAL SYNC v5.2 (FIXED)');
   console.log('='.repeat(80));
   console.log(`Property ID: ${TRAVELLINE_PROPERTY_ID}`);
   console.log(`Time: ${new Date().toLocaleString()}`);
