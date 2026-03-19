@@ -40,6 +40,115 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  /* ===============================
+     АНИМАЦИЯ ДЫХАНИЯ (НЕПРЕРЫВНАЯ)
+  =============================== */
+  useEffect(() => {
+    const container = document.querySelector('.apartment-hero .hero-slider');
+    if (!container) return;
+
+    let animationFrame: number;
+    let startTime: number | null = null;
+
+    const animateBreathing = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      
+      const progress = (timestamp - startTime) / 6000; // 6 секунд на цикл
+      const normalizedProgress = progress % 1; // 0 to 1
+      
+      // Плавное дыхание от 1.06 до 1 и обратно
+      const scale = 1.03 + 0.03 * Math.sin(normalizedProgress * Math.PI * 2);
+      
+      // Применяем масштаб только к активному слайду
+      const activeSlide = container.querySelector('.hero-slide.active .hero-slide-bg');
+      if (activeSlide instanceof HTMLElement) {
+        activeSlide.style.transform = `scale(${scale})`;
+      }
+
+      animationFrame = requestAnimationFrame(animateBreathing);
+    };
+
+    animationFrame = requestAnimationFrame(animateBreathing);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+    };
+  }, []); // Пустой массив - анимация не перезапускается
+
+  /* ===============================
+     СВАЙП (ГОРИЗОНТАЛЬНЫЙ И ВЕРТИКАЛЬНЫЙ)
+  =============================== */
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const container = document.querySelector('.apartment-hero.mobile');
+    if (!container) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isSwiping = false;
+
+    const handleTouchStart = (e: Event) => {
+      const touchEvent = e as TouchEvent;
+      touchStartX = touchEvent.touches[0].clientX;
+      touchStartY = touchEvent.touches[0].clientY;
+      isSwiping = true;
+      setPaused(true);
+    };
+
+    const handleTouchMove = (e: Event) => {
+      if (!isSwiping) return;
+      const touchEvent = e as TouchEvent;
+      touchEndX = touchEvent.touches[0].clientX;
+      touchEndY = touchEvent.touches[0].clientY;
+    };
+
+    const handleTouchEnd = () => {
+      if (!isSwiping) return;
+      
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
+
+      // Определяем направление свайпа (и горизонтальный, и вертикальный)
+      if (absDeltaX > 50 && absDeltaX > absDeltaY) {
+        // Горизонтальный свайп
+        if (deltaX > 0) {
+          // Свайп вправо - предыдущий слайд
+          setActive(prev => prev === 0 ? apartment.images.length - 1 : prev - 1);
+        } else {
+          // Свайп влево - следующий слайд
+          setActive(prev => (prev + 1) % apartment.images.length);
+        }
+      } else if (absDeltaY > 50 && absDeltaY > absDeltaX) {
+        // Вертикальный свайп
+        if (deltaY > 0) {
+          // Свайп вниз - предыдущий слайд
+          setActive(prev => prev === 0 ? apartment.images.length - 1 : prev - 1);
+        } else {
+          // Свайп вверх - следующий слайд
+          setActive(prev => (prev + 1) % apartment.images.length);
+        }
+      }
+
+      isSwiping = false;
+      setTimeout(() => setPaused(false), 3000);
+    };
+
+    container.addEventListener('touchstart', handleTouchStart as EventListener);
+    container.addEventListener('touchmove', handleTouchMove as EventListener);
+    container.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart as EventListener);
+      container.removeEventListener('touchmove', handleTouchMove as EventListener);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile, apartment.images.length]);
+
   // HEADER MODE
   useEffect(() => {
     const id = 'apartment-hero';
