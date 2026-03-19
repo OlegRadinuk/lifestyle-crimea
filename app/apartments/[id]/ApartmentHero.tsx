@@ -33,8 +33,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   // Для свайпа
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const touchEndY = useRef<number | null>(null);
 
   // Определяем мобилку
   useEffect(() => {
@@ -125,7 +123,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     );
   };
 
-  // Таймлайн - просто цифры
+  // Таймлайн
   const Timeline = () => (
     <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
       {apartment.images.map((_, index) => (
