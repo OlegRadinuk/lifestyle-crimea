@@ -17,7 +17,6 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  will-change: opacity;
   pointer-events: none;
 }
 
@@ -33,22 +32,16 @@
   background-repeat: no-repeat;
 }
 
-/* АНИМАЦИЯ ПРИБЛИЖЕНИЯ - только для активного слайда */
+/* Анимация приближения */
 .hero-slide.active .hero-slide-bg {
-  transform: scale(1);
-  animation: zoomIn 8s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+  animation: zoomIn 8s ease-out forwards;
 }
 
 @keyframes zoomIn {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.1);
-  }
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
 }
 
-/* Бэкграунд для предотвращения мигания */
 .hero-slide-background {
   position: absolute;
   inset: 0;
@@ -56,7 +49,7 @@
   z-index: -1;
 }
 
-/* ===== ARROWS ===== */
+/* ===== ARROWS - ТОЛЬКО ДЕСКТОП ===== */
 .hero-arrow {
   position: absolute;
   top: 49.5%;
@@ -66,11 +59,10 @@
   padding: 0;
   font-size: 44px;
   font-weight: 100;
-  line-height: 1;
   color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
   z-index: 100;
-  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .hero-arrow:hover {
@@ -93,7 +85,7 @@
   transform: translate(6px, -50%);
 }
 
-/* ===== TIMELINE ===== */
+/* ===== TIMELINE - БЕЗ АНИМАЦИИ ПОЯВЛЕНИЯ ===== */
 .hero-timeline {
   position: absolute;
   right: 60px;
@@ -105,7 +97,6 @@
   z-index: 100;
 }
 
-/* Анимация появления цифр КАК В HERO */
 .hero-timeline-item {
   background: none;
   border: none;
@@ -114,23 +105,7 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px 0;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: timelineReveal 0.6s ease-out forwards;
-}
-
-.hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
-.hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
-.hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
-.hero-timeline-item:nth-child(4) { animation-delay: 0.65s; }
-.hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
-.hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
-
-@keyframes timelineReveal {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .hero-timeline-item:hover {
@@ -185,18 +160,6 @@
   flex-direction: column;
   gap: 20px;
   pointer-events: auto;
-  animation: fadeInInfo 1s ease forwards;
-}
-
-@keyframes fadeInInfo {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .panorama-info-eyebrow {
@@ -249,7 +212,7 @@
   letter-spacing: 0.3px;
 }
 
-/* ===== MOBILE STYLES ===== */
+/* ===== МОБИЛЬНЫЕ СТИЛИ ===== */
 @media (max-width: 768px) {
   .apartment-hero.mobile {
     position: relative;
@@ -258,6 +221,7 @@
     color: #fff;
   }
 
+  /* Затемнение */
   .panorama-overlay.mobile {
     position: absolute;
     inset: 0;
@@ -271,6 +235,7 @@
     z-index: 10;
   }
 
+  /* Инфо */
   .apartment-info-mobile {
     position: absolute;
     bottom: 120px;
@@ -281,18 +246,6 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    animation: mobileInfoFade 0.8s ease forwards;
-  }
-
-  @keyframes mobileInfoFade {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   .apartment-info-header {
@@ -330,6 +283,7 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   }
 
+  /* Чипсы */
   .apartment-features-mobile {
     display: flex;
     flex-wrap: wrap;
@@ -340,7 +294,6 @@
   .feature-chip {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     border: 1px solid #139ab6;
     border-radius: 30px;
     padding: 6px 14px;
@@ -352,12 +305,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  .hero-arrow.mobile {
-    display: block;
-    font-size: 36px;
-    z-index: 30;
-  }
-
+  /* Мобильный таймлайн */
   .hero-timeline.mobile {
     position: absolute;
     right: 20px;
@@ -373,6 +321,7 @@
     font-size: 14px;
     color: rgba(255, 255, 255, 0.5);
     text-align: right;
+    transition: color 0.2s ease, transform 0.2s ease;
   }
 
   .hero-timeline.mobile .hero-timeline-item.active {
@@ -380,6 +329,32 @@
     transform: scale(1.2);
   }
 
+  /* Подсказка для свайпа */
+  .swipe-hint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 40;
+    pointer-events: none;
+    animation: pulseHint 2s infinite;
+  }
+
+  @keyframes pulseHint {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* Сообщение о недоступности */
   .panorama-unavailable-message.mobile {
     padding: 10px 16px;
     background: rgba(0, 0, 0, 0.5);
@@ -396,6 +371,7 @@
   }
 }
 
+/* ===== МАЛЕНЬКИЕ ТЕЛЕФОНЫ ===== */
 @media (max-width: 480px) {
   .apartment-info-mobile {
     bottom: 100px;
@@ -427,8 +403,10 @@
     font-size: 13px;
   }
 
-  .hero-arrow.mobile {
-    font-size: 32px;
+  .swipe-hint {
+    bottom: 70px;
+    font-size: 11px;
+    padding: 6px 16px;
   }
 }
 
@@ -461,8 +439,10 @@
     font-size: 12px;
   }
 
-  .hero-arrow.mobile {
-    font-size: 28px;
+  .swipe-hint {
+    bottom: 60px;
+    font-size: 10px;
+    padding: 5px 12px;
   }
 }
 
@@ -476,6 +456,10 @@
     .hero-timeline.mobile {
       bottom: calc(120px + env(safe-area-inset-bottom));
     }
+
+    .swipe-hint {
+      bottom: calc(80px + env(safe-area-inset-bottom));
+    }
   }
   
   @media (max-width: 480px) {
@@ -486,6 +470,10 @@
     .hero-timeline.mobile {
       bottom: calc(100px + env(safe-area-inset-bottom));
     }
+
+    .swipe-hint {
+      bottom: calc(70px + env(safe-area-inset-bottom));
+    }
   }
   
   @media (max-width: 360px) {
@@ -495,6 +483,10 @@
     
     .hero-timeline.mobile {
       bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .swipe-hint {
+      bottom: calc(60px + env(safe-area-inset-bottom));
     }
   }
 }

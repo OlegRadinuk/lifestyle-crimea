@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +30,13 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Для свайпа
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const touchEndY = useRef<number | null>(null);
+  const swipeLock = useRef(false);
 
   // Определяем мобилку
   useEffect(() => {
@@ -61,14 +68,77 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   // AUTOPLAY
   useEffect(() => {
-    if (paused || !apartment.images?.length) return;
+    if (paused || !apartment.images?.length || isMobile) return; // На мобилке автоплей отключаем
 
     const timer = setInterval(() => {
       goToNext();
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [paused, apartment.images.length, goToNext]);
+  }, [paused, apartment.images.length, goToNext, isMobile]);
+
+  // Обработчики свайпа
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchEndX.current = null;
+    touchEndY.current = null;
+    swipeLock.current = false;
+    setPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartX.current || !touchStartY.current || swipeLock.current) return;
+    
+    touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+    
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - touchEndY.current;
+    
+    // Определяем направление свайпа и блокируем другое
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      // Горизонтальный свайп
+      swipeLock.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current || !touchStartY.current || !touchEndY.current) {
+      setPaused(false);
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
+
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - touchEndY.current;
+    const minSwipeDistance = 50;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipeDistance) {
+      // Горизонтальный свайп - переключаем слайды
+      if (diffX > 0) {
+        goToNext(); // свайп влево
+      } else {
+        goToPrev(); // свайп вправо
+      }
+    } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > minSwipeDistance) {
+      // Вертикальный свайп - тоже переключаем слайды
+      if (diffY > 0) {
+        goToNext(); // свайп вверх
+      } else {
+        goToPrev(); // свайп вниз
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+    touchEndX.current = null;
+    touchEndY.current = null;
+    swipeLock.current = false;
+    
+    setTimeout(() => setPaused(false), 2000);
+  };
 
   if (!apartment.images?.length) {
     return <div>Нет изображений</div>;
@@ -76,40 +146,42 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
-  // Анимация для слайда - только opacity
+  // Простая анимация - только opacity
   const slideVariants = {
     initial: { opacity: 0 },
-    animate: { 
-      opacity: 1,
-      transition: { opacity: { duration: 0.4 } }
-    },
-    exit: { 
-      opacity: 0,
-      transition: { opacity: { duration: 0.3 } }
-    }
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
   };
 
-  // Компонент стрелок
-  const SliderArrows = () => (
-    <>
-      <button
-        className={`hero-arrow hero-arrow--left ${isMobile ? 'mobile' : ''}`}
-        onClick={goToPrev}
-        aria-label="Предыдущее фото"
-      >
-        ‹
-      </button>
-      <button
-        className={`hero-arrow hero-arrow--right ${isMobile ? 'mobile' : ''}`}
-        onClick={goToNext}
-        aria-label="Следующее фото"
-      >
-        ›
-      </button>
-    </>
-  );
+  const slideTransition = {
+    opacity: { duration: 0.3 }
+  };
 
-  // Компонент таймлайна
+  // Компонент стрелок (только для десктопа)
+  const SliderArrows = () => {
+    if (isMobile) return null; // На мобилке стрелок нет
+    
+    return (
+      <>
+        <button
+          className="hero-arrow hero-arrow--left"
+          onClick={goToPrev}
+          aria-label="Предыдущее фото"
+        >
+          ‹
+        </button>
+        <button
+          className="hero-arrow hero-arrow--right"
+          onClick={goToNext}
+          aria-label="Следующее фото"
+        >
+          ›
+        </button>
+      </>
+    );
+  };
+
+  // Компонент таймлайна - без анимации появления
   const Timeline = () => (
     <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
       {apartment.images.map((_, index) => {
@@ -136,7 +208,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        {/* SLIDER с AnimatePresence */}
+        {/* SLIDER */}
         <div className="hero-slider">
           <AnimatePresence mode="wait">
             {apartment.images.map((img, index) => (
@@ -147,6 +219,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                   initial="initial"
                   animate="animate"
                   exit="exit"
+                  transition={slideTransition}
                   className="hero-slide active"
                   style={{ 
                     position: 'absolute', 
@@ -154,28 +227,15 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                     willChange: 'opacity'
                   }}
                 >
-                  {/* Картинка с анимацией приближения через CSS */}
                   <div
                     className="hero-slide-bg"
-                    style={{ 
-                      backgroundImage: `url(${img})`,
-                    }}
+                    style={{ backgroundImage: `url(${img})` }}
                   />
                 </motion.div>
               )
             ))}
           </AnimatePresence>
-          
-          {/* Бэкграунд для предотвращения мигания */}
-          <div 
-            className="hero-slide-background"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: '#000',
-              zIndex: -1
-            }}
-          />
+          <div className="hero-slide-background" />
         </div>
 
         {/* OVERLAY */}
@@ -227,14 +287,15 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     );
   }
 
-  // Мобильная версия
+  // Мобильная версия со свайпом
   return (
     <section
       className="apartment-hero mobile"
-      onTouchStart={() => setPaused(true)}
-      onTouchEnd={() => setTimeout(() => setPaused(false), 3000)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* SLIDER с AnimatePresence */}
+      {/* SLIDER */}
       <div className="hero-slider">
         <AnimatePresence mode="wait">
           {apartment.images.map((img, index) => (
@@ -245,6 +306,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 initial="initial"
                 animate="animate"
                 exit="exit"
+                transition={slideTransition}
                 className="hero-slide active"
                 style={{ 
                   position: 'absolute', 
@@ -254,25 +316,13 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
               >
                 <div
                   className="hero-slide-bg"
-                  style={{ 
-                    backgroundImage: `url(${img})`,
-                  }}
+                  style={{ backgroundImage: `url(${img})` }}
                 />
               </motion.div>
             )
           ))}
         </AnimatePresence>
-        
-        {/* Бэкграунд для предотвращения мигания */}
-        <div 
-          className="hero-slide-background"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: '#000',
-            zIndex: -1
-          }}
-        />
+        <div className="hero-slide-background" />
       </div>
 
       {/* OVERLAY */}
@@ -287,7 +337,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
         <p className="apartment-info-description">{apartment.description}</p>
 
-        {/* ХАРАКТЕРИСТИКИ - ЧИПСЫ */}
+        {/* ЧИПСЫ */}
         <div className="apartment-features-mobile">
           <div className="feature-chip">До {apartment.maxGuests} гостей</div>
           <div className="feature-chip">{apartment.area} м²</div>
@@ -305,8 +355,13 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         )}
       </div>
 
-      <SliderArrows />
+      {/* ТОЛЬКО ТАЙМЛАЙН, БЕЗ СТРЕЛОК */}
       <Timeline />
+
+      {/* ПОДСКАЗКА ДЛЯ СВАЙПА */}
+      <div className="swipe-hint">
+        <span>← свайп →</span>
+      </div>
     </section>
   );
 }
