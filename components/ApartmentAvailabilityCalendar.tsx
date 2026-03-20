@@ -69,13 +69,8 @@ export default function ApartmentAvailabilityCalendar({
   const handleConfirm = () => {
     if (range?.from && range?.to && isValidRange) {
       onConfirm({ from: range.from, to: range.to });
+      if (onClose) onClose();
     }
-  };
-
-  const handleQuickRange = (days: number) => {
-    const from = new Date();
-    const to = addDays(from, days);
-    setRange({ from, to });
   };
 
   const modifiers = {
@@ -89,27 +84,25 @@ export default function ApartmentAvailabilityCalendar({
     range_end: 'rdp-day_range_end',
     range_middle: 'rdp-day_range_middle',
     disabled: 'rdp-day_disabled',
+    outside: 'rdp-day_outside', // Добавляем стиль для дней другого месяца
   };
 
   // Мобильная версия
-if (isMobile) {
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ y: '100%', opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className={`availability-calendar mobile ${customClass}`}
-      >
-        {/* Хедер */}
-        <div className="calendar-header">
-          <h3>Выберите даты</h3>
-          <button className="calendar-close" onClick={onClose}>✕</button>
-        </div>
+  if (isMobile) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className={`availability-calendar mobile ${customClass}`}
+        >
+          <div className="calendar-header">
+            <h3>Выберите даты</h3>
+            <button className="calendar-close" onClick={onClose}>✕</button>
+          </div>
 
-        {/* Календарь */}
-        <div className="calendar-wrapper">
           <DayPicker
             locale={ru}
             mode="range"
@@ -120,35 +113,33 @@ if (isMobile) {
             modifiersClassNames={modifiersClassNames}
             weekStartsOn={1}
             numberOfMonths={1}
+            showOutsideDays={true} // ← ВКЛЮЧАЕМ ОТОБРАЖЕНИЕ ДНЕЙ ДРУГОГО МЕСЯЦА
           />
-        </div>
 
-        {/* Информация о датах */}
-        {range?.from && range?.to && (
-          <div className="calendar-info">
-            <span>
-              {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
-            </span>
-            {showPrice && apartmentPrice > 0 && (
-              <span className="calendar-total-price">
-                • {(apartmentPrice * nights).toLocaleString()} ₽
+          {range?.from && range?.to && (
+            <div className="calendar-info">
+              <span>
+                {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
               </span>
-            )}
-          </div>
-        )}
+              {showPrice && apartmentPrice > 0 && (
+                <span className="calendar-total-price">
+                  • {(apartmentPrice * nights).toLocaleString()} ₽
+                </span>
+              )}
+            </div>
+          )}
 
-        {/* Кнопка подтверждения */}
-        <button
-          className="calendar-confirm"
-          disabled={!isValidRange}
-          onClick={handleConfirm}
-        >
-          Выбрать
-        </button>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+          <button
+            className="calendar-confirm"
+            disabled={!isValidRange}
+            onClick={handleConfirm}
+          >
+            Выбрать
+          </button>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   // Десктоп версия
   return (
@@ -161,11 +152,6 @@ if (isMobile) {
         transition={{ duration: 0.2 }}
         className={`availability-calendar ${customClass}`}
       >
-        {position === 'right' && (
-          <div className="quick-ranges">
-          </div>
-        )}
-
         <DayPicker
           locale={ru}
           mode="range"
@@ -176,6 +162,7 @@ if (isMobile) {
           modifiersClassNames={modifiersClassNames}
           weekStartsOn={1}
           numberOfMonths={1}
+          showOutsideDays={true} // ← ВКЛЮЧАЕМ ОТОБРАЖЕНИЕ ДНЕЙ ДРУГОГО МЕСЯЦА
         />
 
         {range?.from && range?.to && (

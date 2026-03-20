@@ -7997,3 +7997,10 @@ html, body {
     font-size: 15px;
   }
 }
+
+/* Стили для дней другого месяца (outside days) */
+.rdp-day_outside {
+  opacity: 0.5;
+  color: #94a3b8;
+}
+

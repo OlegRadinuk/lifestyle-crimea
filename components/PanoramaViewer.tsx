@@ -298,7 +298,10 @@ export default function PanoramaViewer() {
     const AUTO_ROTATE_SPEED = 0.005;
     const TOUCH_DAMPING_FACTOR = 0.1;
     const TOUCH_ROTATION_SPEED = 0.15;
-    const SMOOTHING_FACTOR = 0.1; // Новый параметр для сглаживания
+    const SMOOTHING_FACTOR = 0.1;
+
+    // Переменные для touch
+    let touchStartX = 0, touchStartY = 0;
 
     // Обработчики pointer (десктоп)
     const onPointerDown = (e: PointerEvent) => {
@@ -314,7 +317,6 @@ export default function PanoramaViewer() {
     const onPointerMove = (e: PointerEvent) => {
       if (!isUserInteracting || isMobile) return;
       
-      // Плавное обновление целевых значений
       const newTargetLon = startLon - (e.clientX - startX) * ROTATION_SPEED;
       const newTargetLat = startLat + (e.clientY - startY) * ROTATION_SPEED;
       
@@ -356,7 +358,6 @@ export default function PanoramaViewer() {
       if (fullscreenMode) {
         e.preventDefault();
         if (isUserInteracting) {
-          // Плавное обновление для мобильных
           const newTargetLon = startLon - deltaX * TOUCH_ROTATION_SPEED;
           const newTargetLat = startLat + deltaY * TOUCH_ROTATION_SPEED * 0.5;
           
@@ -396,36 +397,34 @@ export default function PanoramaViewer() {
         setHasInteracted(true);
         setShowSwipeHint(false);
       }
+      
+      isDragging = false;
     };
 
-    // Сохраняем ссылки на обработчики для touch
-    let touchStartX = 0, touchStartY = 0;
-
+    // Добавляем обработчики на canvas
     container.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     
-    if (isMobile) {
-      container.addEventListener('touchstart', handleTouchStart, { passive: false });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // Добавляем обработчики на ВЕСЬ sectionRef для свайпа
+    const sectionElement = sectionRef.current;
+    if (sectionElement) {
+      sectionElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+      sectionElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+      sectionElement.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
 
     const animate = () => {
       requestAnimationFrame(animate);
       
       // Автовращение
-        if (!isUserInteracting && !isHoverRef.current) {
-  // В полноэкранном режиме не вращаемся
-  if (!fullscreenMode) {
-    rotationState.current.targetLon += AUTO_ROTATE_SPEED;
-  }
-}
+      if (!isUserInteracting && !isHoverRef.current) {
+        if (!fullscreenMode) {
+          rotationState.current.targetLon += AUTO_ROTATE_SPEED;
+        }
+      }
 
-      // ПЛАВНОЕ ДВИЖЕНИЕ - теперь используем smoothing factor
-      const dampingFactor = isMobile ? TOUCH_DAMPING_FACTOR : DAMPING_FACTOR;
-      
-      // Применяем сглаженное движение вместо прямого присвоения
+      // ПЛАВНОЕ ДВИЖЕНИЕ
       rotationState.current.lon += (rotationState.current.targetLon - rotationState.current.lon) * SMOOTHING_FACTOR;
       rotationState.current.lat += (rotationState.current.targetLat - rotationState.current.lat) * SMOOTHING_FACTOR;
 
@@ -447,11 +446,14 @@ export default function PanoramaViewer() {
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      if (isMobile) {
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-        container.removeEventListener('touchend', handleTouchEnd);
+      
+      const sectionElementClean = sectionRef.current;
+      if (sectionElementClean) {
+        sectionElementClean.removeEventListener('touchstart', handleTouchStart);
+        sectionElementClean.removeEventListener('touchmove', handleTouchMove);
+        sectionElementClean.removeEventListener('touchend', handleTouchEnd);
       }
+      
       if (rendererRef.current) {
         try {
           if (rendererRef.current.domElement.parentNode === container) {
