@@ -30,6 +30,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
+  // Для свайпа
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -48,6 +49,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     return () => unregister(id);
   }, [register, unregister]);
 
+  // Функции навигации
   const goToNext = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % apartment.images.length);
   }, [apartment.images.length]);
@@ -109,8 +111,10 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
+  // Стрелки - только для десктопа
   const SliderArrows = () => {
     if (isMobile) return null;
+    
     return (
       <>
         <button className="hero-arrow hero-arrow--left" onClick={goToPrev}>‹</button>
@@ -119,6 +123,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     );
   };
 
+  // Таймлайн
   const Timeline = () => (
     <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
       {apartment.images.map((_, index) => (

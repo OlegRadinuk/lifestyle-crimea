@@ -32,6 +32,16 @@
   background-repeat: no-repeat;
 }
 
+/* Анимация приближения */
+.hero-slide.active .hero-slide-bg {
+  animation: zoomIn 8s ease-out forwards;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
 .hero-slide-background {
   position: absolute;
   inset: 0;
@@ -75,7 +85,7 @@
   transform: translate(6px, -50%);
 }
 
-/* ===== TIMELINE ===== */
+/* ===== TIMELINE - ТОЛЬКО ПРИ ПЕРВОЙ ЗАГРУЗКЕ ===== */
 .hero-timeline {
   position: absolute;
   right: 60px;
@@ -95,39 +105,53 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px 0;
-  transition: color 0.2s ease, transform 0.2s ease;
-  opacity: 1;
-  transform: none;
+  
+  /* Анимация ТОЛЬКО при первом появлении */
+  opacity: 0;
+  transform: translateY(12px);
+  animation: timelineFirstShow 0.6s ease-out forwards;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
+/* Задержки ТОЛЬКО при первой загрузке */
+.hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
+.hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
+.hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
+.hero-timeline-item:nth-child(4) { animation-delay: 0.65s; }
+.hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
+.hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
+
+/* Ключевые кадры - только один раз */
+@keyframes timelineFirstShow {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* При наведении - плавно меняем цвет и масштаб */
 .hero-timeline-item:hover {
   color: rgba(255, 255, 255, 0.8);
-  transform: scale(1.05);
+  transform: scale(1.05) !important;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
+/* Активный элемент - другой цвет и масштаб */
 .hero-timeline-item.active {
   color: #139AB6;
-  transform: scale(1.1);
+  transform: scale(1.1) !important;
   font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-/* Мобильный таймлайн */
-.hero-timeline.mobile {
-  position: absolute;
-  right: 20px;
-  bottom: 120px;
-  gap: 8px;
-}
-
-.hero-timeline.mobile .hero-timeline-item {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: right;
-}
-
-.hero-timeline.mobile .hero-timeline-item.active {
-  color: #139ab6;
-  transform: scale(1.2);
+/* Обычные элементы - без трансформации при смене активного */
+.hero-timeline-item:not(.active) {
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 /* ===== OVERLAY ===== */
@@ -344,6 +368,31 @@
   .hero-timeline.mobile .hero-timeline-item.active {
     color: #139ab6;
     transform: scale(1.2);
+  }
+
+  /* Подсказка для свайпа */
+  .swipe-hint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 40;
+    pointer-events: none;
+    animation: pulseHint 2s infinite;
+  }
+
+  @keyframes pulseHint {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
 
   /* Сообщение о недоступности */
