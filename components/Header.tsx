@@ -30,12 +30,6 @@ function formatDateForInput(dateStr: string) {
   });
 }
 
-function getGuestsDeclension(count: number): string {
-  if (count === 1) return 'гость';
-  if (count >= 2 && count <= 4) return 'гостя';
-  return 'гостей';
-}
-
 export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,15 +48,19 @@ export default function Header({ onBurgerClick }: Props) {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
+  // Состояние для апартамента из URL (для страницы апартаментов)
   const [urlApartment, setUrlApartment] = useState<{ id: string; title: string } | null>(null);
 
+  // Даты из URL для страницы апартамента
   const urlCheckIn = searchParams?.get('checkIn');
   const urlCheckOut = searchParams?.get('checkOut');
   const urlGuests = searchParams?.get('guests');
 
+  // Определяем тип страницы
   const isPanoramaPage = pathname === '/';
   const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
 
+  // Загружаем апартамент из URL если мы на странице апартамента
   useEffect(() => {
     const fetchApartmentFromUrl = async () => {
       const match = pathname?.match(/^\/apartments\/([^\/]+)$/);
@@ -98,6 +96,7 @@ export default function Header({ onBurgerClick }: Props) {
     }
   }, [pathname, isApartmentPage]);
 
+  // Определяем какой апартамент показывать в зависимости от страницы
   const getActiveApartment = () => {
     if (isApartmentPage && urlApartment) {
       return urlApartment;
@@ -111,6 +110,7 @@ export default function Header({ onBurgerClick }: Props) {
 
   const { blockedDates } = useAvailability(activeApartment?.id || null);
 
+  // Для страницы апартамента — даты из URL или из контекста поиска
   const getSavedCheckIn = (): string | null => {
     if (urlCheckIn) return urlCheckIn;
     if (searchContext?.checkIn) return searchContext.checkIn;
@@ -133,13 +133,16 @@ export default function Header({ onBurgerClick }: Props) {
   const savedCheckOut = getSavedCheckOut();
   const savedGuests = getSavedGuests();
 
+  // Состояние для формы (для hero режима)
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
   const [formError, setFormError] = useState('');
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const today = new Date().toISOString().split('T')[0];
 
+  // Загружаем данные апартамента из БД (для цены и статуса)
   useEffect(() => {
     if (!activeApartment?.id) {
       setApartmentPrice(0);
@@ -211,85 +214,88 @@ export default function Header({ onBurgerClick }: Props) {
     setCalendarOpen(true);
   };
 
-  const renderApartmentDetailHeader = () => {
-    if (!activeApartment) return null;
-    
-    const hasDatesInUrl = !!(urlCheckIn && urlCheckOut);
-    
-    if (!isActive) {
-      return (
-        <div className="header__booking-wrapper is-apartment">
-          <div className="panorama-unavailable-message" style={{ padding: '8px 20px' }}>
-            <span className="unavailable-text">Апартамент временно недоступен</span>
-          </div>
-        </div>
-      );
+  // Обработчик бронирования для страницы апартамента
+  const handleBookingClick = () => {
+    if (savedCheckIn && savedCheckOut) {
+      // Если есть сохранённые даты, открываем модалку сразу
+      setSelectedRange({
+        from: new Date(savedCheckIn),
+        to: new Date(savedCheckOut),
+      });
+      setBookingModalOpen(true);
+    } else {
+      // Если нет дат, открываем календарь
+      setCalendarOpen(true);
     }
-    
-    if (hasDatesInUrl) {
-      return (
-        <div className="header__booking-wrapper is-apartment-detail">
-          <div className="header__booking-info">
-            <div className="booking-info-dates">
-              <span>{formatDateForInput(urlCheckIn)}</span>
-              <span>—</span>
-              <span>{formatDateForInput(urlCheckOut)}</span>
+  };
+
+  // Рендер для режима apartment-detail
+  const renderApartmentDetailHeader = () => {
+    if (!activeApartment || !isActive) return null;
+
+    const hasDates = savedCheckIn && savedCheckOut;
+
+    return (
+      <div className="header__booking-wrapper is-apartment-detail">
+        <div className="header__booking-action">
+          {hasDates ? (
+            // Показываем выбранные даты и количество гостей
+            <div className="header__booking-info">
+              <div className="booking-info-dates">
+                <span>{formatDateForInput(savedCheckIn)}</span>
+                <span>—</span>
+                <span>{formatDateForInput(savedCheckOut)}</span>
+              </div>
+              <div className="booking-info-guests">
+                {savedGuests} {savedGuests === 1 ? 'гость' : savedGuests <= 4 ? 'гостя' : 'гостей'}
+              </div>
             </div>
-            <div className="booking-info-guests">
-              {urlGuests ? `${urlGuests} ${getGuestsDeclension(parseInt(urlGuests, 10))}` : '2 гостя'}
-            </div>
-          </div>
+          ) : (
+            <button
+              className="header__booking with-apartment"
+              onClick={handleBookingClick}
+              disabled={loadingPrice}
+            >
+              <span className="header__booking-label">Забронировать</span>
+              <span className="header__booking-apartment">
+                {activeApartment.title.replace(/^LS\s*/i, '')}
+              </span>
+            </button>
+          )}
+
+          {!hasDates && (
+            <AnimatePresence>
+              {calendarOpen && (
+                <div ref={popoverRef} className="header__calendar-popover">
+                  <ApartmentAvailabilityCalendar
+                    key={`calendar-${activeApartment.id}-${blockedDates.length}-${apartmentPrice}`}
+                    blockedDates={blockedDates}
+                    position="right"
+                    onConfirm={(range) => {
+                      setSelectedRange(range);
+                      setCalendarOpen(false);
+                      setBookingModalOpen(true);
+                    }}
+                    onClose={() => setCalendarOpen(false)}
+                    showPrice={true}
+                    apartmentPrice={apartmentPrice}
+                    customClass="calendar--apartment"
+                  />
+                </div>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+
+        {/* Если есть даты, показываем кнопку бронирования рядом */}
+        {hasDates && (
           <button
             className="header__booking primary"
-            onClick={() => {
-              setSelectedRange({
-                from: new Date(urlCheckIn),
-                to: new Date(urlCheckOut),
-              });
-              setBookingModalOpen(true);
-            }}
+            onClick={handleBookingClick}
           >
             Забронировать
           </button>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="header__booking-wrapper is-apartment">
-        <div className="header__booking-action" style={{ position: 'relative' }}>
-          <button
-            className="header__booking with-apartment"
-            onClick={() => setCalendarOpen(prev => !prev)}
-            disabled={loadingPrice}
-          >
-            <span className="header__booking-label">Проверить доступность</span>
-            <span className="header__booking-apartment">
-              {activeApartment.title.replace(/^LS\s*/i, '')}
-            </span>
-          </button>
-
-          <AnimatePresence>
-            {calendarOpen && (
-              <div ref={popoverRef} className="header__calendar-popover">
-                <ApartmentAvailabilityCalendar
-                  key={`calendar-${activeApartment.id}-${blockedDates.length}-${apartmentPrice}`}
-                  blockedDates={blockedDates}
-                  position="right"
-                  onConfirm={(range) => {
-                    setSelectedRange(range);
-                    setCalendarOpen(false);
-                    setBookingModalOpen(true);
-                  }}
-                  onClose={() => setCalendarOpen(false)}
-                  showPrice={true}
-                  apartmentPrice={apartmentPrice}
-                  customClass="calendar--apartment"
-                />
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
+        )}
       </div>
     );
   };
@@ -382,8 +388,10 @@ export default function Header({ onBurgerClick }: Props) {
           </>
         )}
 
+        {/* НОВЫЙ РЕЖИМ: apartment-detail */}
         {mode === 'apartment-detail' && renderApartmentDetailHeader()}
 
+        {/* Старый режим apartment (для панорамы на главной) */}
         {mode === 'apartment' && activeApartment && isActive && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action" style={{ position: 'relative' }}>
@@ -445,6 +453,7 @@ export default function Header({ onBurgerClick }: Props) {
         />
       )}
 
+      {/* Календарь для hero режима */}
       <AnimatePresence>
         {calendarOpen && mode === 'hero' && !isMobile && (
           <div ref={popoverRef} className="header__calendar-popover hero-calendar">
@@ -465,6 +474,7 @@ export default function Header({ onBurgerClick }: Props) {
         )}
       </AnimatePresence>
 
+      {/* Календарь для мобильных в hero режиме */}
       <AnimatePresence>
         {calendarOpen && mode === 'hero' && isMobile && (
           <div 
