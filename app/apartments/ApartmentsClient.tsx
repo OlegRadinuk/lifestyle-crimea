@@ -24,7 +24,6 @@ function formatDate(date: string): string {
 }
 
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
-  // ========== МИНИМАЛЬНОЕ ЛОГИРОВАНИЕ ==========
   console.log('🚀 ApartmentsClient mounted, apartments:', initialApartments.length);
 
   const { open } = usePhotoModal();
@@ -161,6 +160,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   );
 
   console.log('📊 Available apartments:', filteredApartments.length);
+  
+  // Логируем пример ссылки для отладки
+  if (filteredApartments.length > 0) {
+    console.log('🔗 EXAMPLE LINK:', `/apartments/${filteredApartments[0].id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`);
+  }
 
   if (loadingAvailability) {
     return (
@@ -209,74 +213,79 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         ) : (
           <div className="ap-list">
-            {filteredApartments.map((apartment, index) => (
-              <article
-                key={apartment.id}
-                className="ap-list-card card-appear"
-                style={{ animationDelay: `${index * 80}ms` }}
-              >
-                <div className="ap-list-image">
-                  <img 
-                    src={apartment.images?.[0] || '/images/placeholder.jpg'} 
-                    alt={apartment.title} 
-                  />
-                  <button
-                    className="ap-list-gallery-btn"
-                    onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
-                  >
-                    Смотреть фото
-                  </button>
-                </div>
-                <div className="ap-list-content">
-                  <div className="ap-list-header">
-                    <h2>{apartment.title}</h2>
-                    <span className="ap-list-guests">
-                      до {apartment.max_guests} гостей
-                    </span>
+            {filteredApartments.map((apartment, index) => {
+              // Формируем URL с параметрами
+              const apartmentUrl = `/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`;
+              
+              return (
+                <article
+                  key={apartment.id}
+                  className="ap-list-card card-appear"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <div className="ap-list-image">
+                    <img 
+                      src={apartment.images?.[0] || '/images/placeholder.jpg'} 
+                      alt={apartment.title} 
+                    />
+                    <button
+                      className="ap-list-gallery-btn"
+                      onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
+                    >
+                      Смотреть фото
+                    </button>
                   </div>
-
-                  <p className="ap-list-description">{apartment.short_description}</p>
-
-                  {apartment.features && apartment.features.length > 0 && (
-                    <ul className="ap-list-features">
-                      {apartment.features.slice(0, 3).map((feature) => (
-                        <li key={feature}>{feature}</li>
-                      ))}
-                      {apartment.features.length > 3 && (
-                        <li>+{apartment.features.length - 3}</li>
-                      )}
-                    </ul>
-                  )}
-
-                  <div className="ap-list-footer">
-                    <div className="ap-list-price">
-                      от {apartment.price_base.toLocaleString()} ₽ / ночь
+                  <div className="ap-list-content">
+                    <div className="ap-list-header">
+                      <h2>{apartment.title}</h2>
+                      <span className="ap-list-guests">
+                        до {apartment.max_guests} гостей
+                      </span>
                     </div>
 
-                    <div className="ap-list-actions">
-                      <Link
-                        href={`/apartments/${apartment.id}`}
-                        className="btn-outline"
-                      >
-                        Подробнее
-                      </Link>
+                    <p className="ap-list-description">{apartment.short_description}</p>
 
-                      <button
-                        className="btn-primary"
-                        onClick={() => handleBookingClick(apartment)}
-                        disabled={checkingId === apartment.id}
-                      >
-                        {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
-                      </button>
+                    {apartment.features && apartment.features.length > 0 && (
+                      <ul className="ap-list-features">
+                        {apartment.features.slice(0, 3).map((feature) => (
+                          <li key={feature}>{feature}</li>
+                        ))}
+                        {apartment.features.length > 3 && (
+                          <li>+{apartment.features.length - 3}</li>
+                        )}
+                      </ul>
+                    )}
+
+                    <div className="ap-list-footer">
+                      <div className="ap-list-price">
+                        от {apartment.price_base.toLocaleString()} ₽ / ночь
+                      </div>
+
+                      <div className="ap-list-actions">
+                        {/* ИСПРАВЛЕНО: добавляем параметры поиска в URL */}
+                        <Link
+                          href={apartmentUrl}
+                          className="btn-outline"
+                        >
+                          Подробнее
+                        </Link>
+
+                        <button
+                          className="btn-primary"
+                          onClick={() => handleBookingClick(apartment)}
+                          disabled={checkingId === apartment.id}
+                        >
+                          {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
 
-        {/* Передаем isMobile в Footer */}
         <Footer isMobile={isMobile} />
       </section>
 

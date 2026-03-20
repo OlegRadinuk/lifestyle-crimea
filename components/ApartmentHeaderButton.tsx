@@ -38,12 +38,15 @@ export default function ApartmentHeaderButton({
   // Если есть параметры поиска из URL - показываем кнопку "Забронировать"
   const hasPreselectedDates = searchParams !== null;
 
+  console.log('🎯 [ApartmentHeaderButton] hasPreselectedDates:', hasPreselectedDates, 'searchParams:', searchParams);
+
   // Функция для немедленного бронирования (с предзаполненными датами)
   const handleDirectBooking = () => {
     if (searchParams) {
       const from = new Date(searchParams.checkIn);
       const to = new Date(searchParams.checkOut);
       
+      console.log('📅 [ApartmentHeaderButton] Direct booking with dates:', { from, to, guests: searchParams.guests });
       setSelectedRange({ from, to });
       setBookingModalOpen(true);
     }
@@ -134,7 +137,7 @@ export default function ApartmentHeaderButton({
           initialGuests={searchParams?.guests || 2}
           onClose={() => setBookingModalOpen(false)}
           onConfirm={(data) => {
-            console.log('FINAL BOOKING DATA', data);
+            console.log('✅ [ApartmentHeaderButton] Booking confirmed:', data);
             setBookingModalOpen(false);
           }}
         />
