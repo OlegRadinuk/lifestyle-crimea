@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
+import JsonLd from '@/components/JsonLd';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -9,10 +10,17 @@ export const fetchCache = 'force-no-store';
 
 export const metadata: Metadata = {
   title: 'Все апартаменты в Алуште | Каталог номеров | Life Style Crimea',
-  description: '38 дизайнерских апартаментов в Алуште. Студии и номера с отдельной спальней. Вид на море, террасы, полностью укомплектованы. Выберите идеальный вариант для отдыха.',
+  description: '38 дизайнерских апартаментов в Алуште. Студии и номера с отдельной спальней. Вид на море, балконы, полностью укомплектованы. Выберите идеальный вариант для отдыха.',
   keywords: 'апартаменты алушта, каталог апартаментов, снять апартаменты, апартаменты с видом на море, студия алушта',
   alternates: {
     canonical: 'https://lovelifestyle.ru/apartments',
+  },
+  openGraph: {
+    title: 'Все апартаменты в Алуште | Life Style Crimea',
+    description: '38 дизайнерских апартаментов. Студии и номера с отдельной спальней. Вид на море, балконы.',
+    url: 'https://lovelifestyle.ru/apartments',
+    type: 'website',
+    images: ['/og-image.jpg'],
   },
 };
 
@@ -78,5 +86,25 @@ export default async function ApartmentsPage() {
     })
   );
 
-  return <ApartmentsClient initialApartments={formattedApartments} key={Date.now()} />;
+  // Формируем ItemList для Schema.org со всеми 38 апартаментами
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Все апартаменты в Алуште',
+    description: 'Каталог из 38 дизайнерских апартаментов с видом на море. Студии и номера с отдельной спальней.',
+    numberOfItems: formattedApartments.length,
+    itemListElement: formattedApartments.map((apt, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: apt.title,
+      url: `https://lovelifestyle.ru/apartments/${apt.id}`,
+    })),
+  };
+
+  return (
+    <>
+      <JsonLd data={itemListJsonLd} />
+      <ApartmentsClient initialApartments={formattedApartments} key={Date.now()} />
+    </>
+  );
 }

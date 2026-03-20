@@ -57,7 +57,6 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   }, [apartment.id, setCurrentApartmentIndex, panoramas]);
 
   // Преобразуем в формат, который ожидает ApartmentHero
-  // Заменяем null на пустую строку для совместимости с типизацией
   const apartmentForHero = {
     id: apartment.id,
     title: apartment.title,
@@ -93,8 +92,8 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   const jsonLdData = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: apartment.title,
-    description: apartment.short_description || apartment.description?.slice(0, 200) || `${apartment.title} в Алуште`,
+    name: `${apartment.title} | Апартаменты в Алуште`,
+    description: apartment.short_description || `${apartment.title} — стильные апартаменты в Алуште с видом ${viewText}. ${apartment.area || ''} м², до ${apartment.max_guests} гостей. Балкон, кондиционер, кухня.`,
     image: apartment.images?.[0] || '/images/placeholder.jpg',
     brand: {
       '@type': 'Brand',
@@ -105,9 +104,6 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
       price: price,
       priceCurrency: 'RUB',
       availability: isActive ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      validFrom: new Date().toISOString().split('T')[0],
-      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-      url: `https://lovelifestyle.ru/apartments/${apartment.id}`,
       priceSpecification: {
         '@type': 'UnitPriceSpecification',
         price: price,
@@ -138,15 +134,11 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
         name: 'Вид',
         value: viewText,
       },
-      ...(apartment.has_terrace
-        ? [
-            {
-              '@type': 'PropertyValue',
-              name: 'Терраса',
-              value: 'есть',
-            },
-          ]
-        : []),
+      {
+        '@type': 'PropertyValue',
+        name: 'Балкон',
+        value: apartment.has_terrace ? 'есть' : 'нет',
+      },
       ...(topFeatures
         ? [
             {
