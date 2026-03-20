@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 
 /* ===== exports ===== */
 
@@ -35,7 +36,7 @@ type Props = {
   apartment: {
     id: string;
     title: string;
-    price_base?: number; // Добавляем цену из базы
+    price_base?: number;
   };
   initialRange: DateRange | null;
   initialGuests: number;
@@ -51,13 +52,12 @@ function getNights(from: Date, to: Date) {
   return Math.max(1, Math.round((to.getTime() - from.getTime()) / MS_PER_DAY));
 }
 
-// Исправлено: используем реальную цену из базы
 function calculatePrice(params: {
   from: Date;
   to: Date;
   guests: number;
   meals: Meals;
-  basePricePerNight: number; // Добавляем цену из пропсов
+  basePricePerNight: number;
 }) {
   const { from, to, guests, meals, basePricePerNight } = params;
   const nights = getNights(from, to);
@@ -120,8 +120,8 @@ export default function BookingModal({
   const [guests, setGuests] = useState(initialGuests);
   const [meals, setMeals] = useState<Meals>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
-  // Если цена не передана, используем заглушку для обратной совместимости
   const basePrice = apartment.price_base || 8000;
 
   const [guestInfo, setGuestInfo] = useState({
@@ -143,9 +143,11 @@ export default function BookingModal({
   }, [dates, guests, meals, basePrice]);
 
   useEffect(() => {
+    setMounted(true);
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = '';
+      setMounted(false);
     };
   }, []);
 
@@ -172,11 +174,9 @@ export default function BookingModal({
     setIsSubmitting(true);
 
     try {
-      // РУЧНОЕ ФОРМАТИРОВАНИЕ ДАТ С УЧЁТОМ ЛОКАЛЬНОГО ЧАСОВОГО ПОЯСА
       const checkInStr = `${dates.from.getFullYear()}-${String(dates.from.getMonth() + 1).padStart(2, '0')}-${String(dates.from.getDate()).padStart(2, '0')}`;
       const checkOutStr = `${dates.to.getFullYear()}-${String(dates.to.getMonth() + 1).padStart(2, '0')}-${String(dates.to.getDate()).padStart(2, '0')}`;
 
-      // ИСПРАВЛЕНО: используем правильный API для проверки доступности
       const checkResponse = await fetch(
         `/api/availability-travelline/${apartment.id}?checkIn=${checkInStr}&checkOut=${checkOutStr}`
       );
@@ -188,7 +188,6 @@ export default function BookingModal({
         return;
       }
 
-      // Создание брони
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -214,7 +213,6 @@ export default function BookingModal({
         return;
       }
 
-      // Telegram уведомление
       try {
         await fetch('/api/telegram/send', {
           method: 'POST',
@@ -276,7 +274,7 @@ export default function BookingModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div className="booking-modal-overlay" onClick={onClose}>
       <div className="booking-modal" onClick={e => e.stopPropagation()}>
         <div className="booking-modal__header">
@@ -441,4 +439,8 @@ export default function BookingModal({
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+  
+  return createPortal(modalContent, document.body);
 }
