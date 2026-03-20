@@ -30,7 +30,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
-  // Для свайпа
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -49,7 +48,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     return () => unregister(id);
   }, [register, unregister]);
 
-  // Функции навигации
   const goToNext = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % apartment.images.length);
   }, [apartment.images.length]);
@@ -111,10 +109,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
-  // Стрелки - только для десктопа
   const SliderArrows = () => {
     if (isMobile) return null;
-    
     return (
       <>
         <button className="hero-arrow hero-arrow--left" onClick={goToPrev}>‹</button>
@@ -123,20 +119,62 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     );
   };
 
-  // Таймлайн
-  const Timeline = () => (
-    <div className={`hero-timeline ${isMobile ? 'mobile' : ''}`}>
-      {apartment.images.map((_, index) => (
-        <button
-          key={index}
-          className={`hero-timeline-item ${index === activeIndex ? 'active' : ''}`}
-          onClick={() => goToSlide(index)}
-        >
-          {String(index + 1).padStart(2, '0')}
-        </button>
-      ))}
-    </div>
-  );
+  // ЧИСТЫЙ ТАЙМЛАЙН — без анимаций, только inline-стили
+  const Timeline = () => {
+    const containerStyle: React.CSSProperties = {
+      position: 'absolute',
+      right: isMobile ? '20px' : '60px',
+      bottom: isMobile ? '120px' : '60px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: isMobile ? '8px' : '14px',
+      pointerEvents: 'auto',
+      zIndex: 100,
+    };
+
+    const getItemStyle = (index: number): React.CSSProperties => {
+      const isActiveItem = index === activeIndex;
+      return {
+        background: 'none',
+        border: 'none',
+        fontSize: isMobile ? '14px' : '15.5px',
+        letterSpacing: '0.18em',
+        color: isActiveItem ? '#139AB6' : 'rgba(255, 255, 255, 0.5)',
+        cursor: 'pointer',
+        padding: '4px 0',
+        fontWeight: isActiveItem ? 500 : 400,
+        transform: isActiveItem ? 'scale(1.1)' : 'scale(1)',
+        transition: 'color 0.2s ease, transform 0.2s ease',
+        textAlign: isMobile ? 'right' : 'left',
+      };
+    };
+
+    return (
+      <div style={containerStyle}>
+        {apartment.images.map((_, index) => (
+          <button
+            key={index}
+            style={getItemStyle(index)}
+            onClick={() => goToSlide(index)}
+            onMouseEnter={(e) => {
+              if (!isMobile && index !== activeIndex) {
+                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isMobile && index !== activeIndex) {
+                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }
+            }}
+          >
+            {String(index + 1).padStart(2, '0')}
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   // Десктоп
   if (!isMobile) {
