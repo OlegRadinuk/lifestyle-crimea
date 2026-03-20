@@ -376,13 +376,6 @@ export default function Header({ onBurgerClick }: Props) {
           )}
         </AnimatePresence>
 
-        {/* ИЗМЕНЕНО: В режиме apartment - используем новый компонент ApartmentHeaderButton */}
-        {mode === 'apartment' && (
-  <div style={{ background: 'red', color: 'white', padding: '2px', position: 'absolute', top: 0, left: 0, zIndex: 9999 }}>
-    MODE IS APARTMENT! searchParams: {JSON.stringify(searchParams)}
-  </div>
-)}
-
 {mode === 'apartment' && activeApartment && isActive && (
   <ApartmentHeaderButton
     apartmentId={activeApartment.id}
