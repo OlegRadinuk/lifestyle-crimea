@@ -10,6 +10,12 @@ import {
 
 export type HeaderMode = 'hero' | 'dark' | 'apartment';
 
+export type SearchParamsFromUrl = {
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+};
+
 type Section = {
   mode: HeaderMode;
   priority: number;
@@ -21,12 +27,15 @@ type HeaderContextValue = {
   mode: HeaderMode;
   register: (id: string, section: Section) => void;
   unregister: (id: string) => void;
+  searchParams: SearchParamsFromUrl | null;
+  setSearchParams: (params: SearchParamsFromUrl | null) => void;
 };
 
 const HeaderContext = createContext<HeaderContextValue | null>(null);
 
 export function HeaderProvider({ children }: { children: React.ReactNode }) {
   const [sections, setSections] = useState<SectionsMap>({});
+  const [searchParams, setSearchParams] = useState<SearchParamsFromUrl | null>(null);
 
   const register = useCallback((id: string, section: Section) => {
     setSections(prev => {
@@ -75,8 +84,10 @@ export function HeaderProvider({ children }: { children: React.ReactNode }) {
       mode,
       register,
       unregister,
+      searchParams,
+      setSearchParams,
     }),
-    [mode, register, unregister]
+    [mode, register, unregister, searchParams]
   );
 
   return (

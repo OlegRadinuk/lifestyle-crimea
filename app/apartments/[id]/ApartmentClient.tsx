@@ -42,34 +42,16 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [checkingId, setCheckingId] = useState<string | null>(null);
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [loadingAvailability, setLoadingAvailability] = useState(true);
-  const [apartments, setApartments] = useState(initialApartments);
+  const [apartments] = useState(initialApartments);
+  
+  // Определяем мобильность
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Периодически обновляем данные (включая фото)
   useEffect(() => {
-    const fetchApartments = async () => {
-      try {
-        const res = await fetch('/api/apartments', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setApartments(data);
-        }
-      } catch (error) {
-        console.error('Error fetching apartments:', error);
-      }
-    };
-
-    // Обновляем каждые 30 секунд
-    const interval = setInterval(fetchApartments, 30000);
-    
-    // При монтировании тоже обновляем
-    fetchApartments();
-
-    return () => clearInterval(interval);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -271,12 +253,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                     </div>
 
                     <div className="ap-list-actions">
+                      {/* ИЗМЕНЕНО: добавляем параметры поиска в URL */}
                       <Link
-  href={`/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`}
-  className="btn-outline"
->
-  Подробнее
-</Link>
+                        href={`/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`}
+                        className="btn-outline"
+                      >
+                        Подробнее
+                      </Link>
 
                       <button
                         className="btn-primary"
@@ -293,7 +276,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         )}
 
-        <Footer />
+        <Footer isMobile={isMobile} />
       </section>
 
       {bookingOpen && bookingApartment && search && (

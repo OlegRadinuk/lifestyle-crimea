@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParamsFromUrl } from '@/hooks/useSearchParamsFromUrl';
+import { useHeader } from '@/components/HeaderContext';
 import { useApartment } from '@/components/ApartmentContext';
 import ApartmentHero from './ApartmentHero';
 
@@ -23,10 +25,24 @@ type Props = {
 
 export default function ClientApartmentWrapper({ apartment }: Props) {
   const { setCurrentDBApartment, panoramas } = useApartment();
+  const { setSearchParams } = useHeader();
+  const searchParamsFromUrl = useSearchParamsFromUrl();
+  
   const [price, setPrice] = useState(apartment.price_base);
   const [isActive, setIsActive] = useState(apartment.is_active !== false);
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState(apartment.images);
+
+  // Передаем параметры поиска в контекст хедера
+  useEffect(() => {
+    if (searchParamsFromUrl) {
+      setSearchParams(searchParamsFromUrl);
+    }
+    
+    return () => {
+      setSearchParams(null);
+    };
+  }, [searchParamsFromUrl, setSearchParams]);
 
   // Загружаем актуальные данные из API
   useEffect(() => {

@@ -41,10 +41,10 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // HEADER MODE
+  // HEADER MODE - увеличиваем приоритет до 100
   useEffect(() => {
     const id = 'apartment-hero';
-    register(id, { mode: 'apartment', priority: 2 });
+    register(id, { mode: 'apartment', priority: 100 });
     return () => unregister(id);
   }, [register, unregister]);
 
