@@ -54,19 +54,15 @@ export default function Header({ onBurgerClick }: Props) {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
 
-  // Состояние для апартамента из URL (для страницы апартаментов)
   const [urlApartment, setUrlApartment] = useState<{ id: string; title: string } | null>(null);
 
-  // Даты из URL для страницы апартамента
   const urlCheckIn = searchParams?.get('checkIn');
   const urlCheckOut = searchParams?.get('checkOut');
   const urlGuests = searchParams?.get('guests');
 
-  // Определяем тип страницы
   const isPanoramaPage = pathname === '/';
   const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
 
-  // Загружаем апартамент из URL если мы на странице апартамента
   useEffect(() => {
     const fetchApartmentFromUrl = async () => {
       const match = pathname?.match(/^\/apartments\/([^\/]+)$/);
@@ -102,7 +98,6 @@ export default function Header({ onBurgerClick }: Props) {
     }
   }, [pathname, isApartmentPage]);
 
-  // Определяем какой апартамент показывать в зависимости от страницы
   const getActiveApartment = () => {
     if (isApartmentPage && urlApartment) {
       return urlApartment;
@@ -116,7 +111,6 @@ export default function Header({ onBurgerClick }: Props) {
 
   const { blockedDates } = useAvailability(activeApartment?.id || null);
 
-  // Для страницы апартамента — даты из URL или из контекста поиска
   const getSavedCheckIn = (): string | null => {
     if (urlCheckIn) return urlCheckIn;
     if (searchContext?.checkIn) return searchContext.checkIn;
@@ -139,16 +133,13 @@ export default function Header({ onBurgerClick }: Props) {
   const savedCheckOut = getSavedCheckOut();
   const savedGuests = getSavedGuests();
 
-  // Состояние для формы (для hero режима)
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
   const [formError, setFormError] = useState('');
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
-  const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем данные апартамента из БД (для цены и статуса)
   useEffect(() => {
     if (!activeApartment?.id) {
       setApartmentPrice(0);
@@ -220,7 +211,6 @@ export default function Header({ onBurgerClick }: Props) {
     setCalendarOpen(true);
   };
 
-  // Рендер для режима apartment-detail
   const renderApartmentDetailHeader = () => {
     if (!activeApartment) return null;
     
@@ -236,7 +226,6 @@ export default function Header({ onBurgerClick }: Props) {
       );
     }
     
-    // СЦЕНАРИЙ 1: Есть даты в URL (пришли со страницы списка)
     if (hasDatesInUrl) {
       return (
         <div className="header__booking-wrapper is-apartment-detail">
@@ -266,7 +255,6 @@ export default function Header({ onBurgerClick }: Props) {
       );
     }
     
-    // СЦЕНАРИЙ 2: Нет дат в URL (прямой переход) — показываем кнопку с календарём
     return (
       <div className="header__booking-wrapper is-apartment">
         <div className="header__booking-action" style={{ position: 'relative' }}>
@@ -394,10 +382,8 @@ export default function Header({ onBurgerClick }: Props) {
           </>
         )}
 
-        {/* НОВЫЙ РЕЖИМ: apartment-detail */}
         {mode === 'apartment-detail' && renderApartmentDetailHeader()}
 
-        {/* Режим apartment (для панорамы на главной) */}
         {mode === 'apartment' && activeApartment && isActive && (
           <div className="header__booking-wrapper is-apartment">
             <div className="header__booking-action" style={{ position: 'relative' }}>
@@ -459,7 +445,6 @@ export default function Header({ onBurgerClick }: Props) {
         />
       )}
 
-      {/* Календарь для hero режима */}
       <AnimatePresence>
         {calendarOpen && mode === 'hero' && !isMobile && (
           <div ref={popoverRef} className="header__calendar-popover hero-calendar">
@@ -480,7 +465,6 @@ export default function Header({ onBurgerClick }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Календарь для мобильных в hero режиме */}
       <AnimatePresence>
         {calendarOpen && mode === 'hero' && isMobile && (
           <div 
