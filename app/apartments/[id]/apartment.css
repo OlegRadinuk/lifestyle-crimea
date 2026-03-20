@@ -532,3 +532,10 @@
   }
 }
 
+/* ОТКЛЮЧАЕМ ТОЛЬКО ПРОБЛЕМНУЮ АНИМАЦИЮ НАВИГАЦИИ */
+.hero-timeline-item,
+.hero-timeline-item.active {
+  animation: none !important;
+  transition: color 0.2s ease, transform 0.2s ease !important;
+  transform: none !important;
+}
