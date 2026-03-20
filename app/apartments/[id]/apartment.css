@@ -346,11 +346,6 @@
     transform: scale(1.2);
   }
 
-  @keyframes pulseHint {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-
   /* Сообщение о недоступности */
   .panorama-unavailable-message.mobile {
     padding: 10px 16px;
@@ -486,4 +481,16 @@
       bottom: calc(60px + env(safe-area-inset-bottom));
     }
   }
+}
+
+/* ОТКЛЮЧАЕМ ВСЕ АНИМАЦИИ ДЛЯ ОТЛАДКИ */
+.hero-slide-bg,
+.hero-slide.active .hero-slide-bg,
+.hero-timeline-item,
+.hero-timeline-item.active,
+.panorama-info *,
+.apartment-info-mobile * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
 }
