@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Header from './Header';
+import HeaderWithSuspense from './HeaderWithSuspense';
 import BurgerMenu from './BurgerMenu';
 
 export default function HeaderWrapper() {
@@ -9,8 +9,7 @@ export default function HeaderWrapper() {
 
   return (
     <>
-      <Header onBurgerClick={() => setBurgerOpen(true)} />
-
+      <HeaderWithSuspense onBurgerClick={() => setBurgerOpen(true)} />
       <BurgerMenu
         isOpen={burgerOpen}
         onClose={() => setBurgerOpen(false)}

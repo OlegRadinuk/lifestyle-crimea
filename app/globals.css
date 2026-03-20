@@ -8051,3 +8051,9 @@ html, body {
     text-align: center;
   }
 }
+
+/* Placeholder для Suspense */
+.header-placeholder {
+  height: 80px;
+  background: transparent;
+}
