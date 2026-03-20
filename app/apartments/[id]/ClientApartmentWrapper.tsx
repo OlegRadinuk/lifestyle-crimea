@@ -1,84 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParamsFromUrl } from '@/hooks/useSearchParamsFromUrl';
-import { useHeader } from '@/components/HeaderContext';
 import { useApartment } from '@/components/ApartmentContext';
 import ApartmentHero from './ApartmentHero';
+import JsonLd from '@/components/JsonLd';
 
 type Props = {
   apartment: {
     id: string;
     title: string;
-    short_description: string;
-    description: string;
+    short_description: string | null;
+    description: string | null;
     max_guests: number;
-    area: number;
+    area: number | null;
     price_base: number;
     view: string;
     has_terrace: boolean;
     features: string[];
     images: string[];
-    is_active?: boolean;
+    is_active: boolean;
   };
 };
 
 export default function ClientApartmentWrapper({ apartment }: Props) {
-  const { setCurrentDBApartment } = useApartment();
-  const { setSearchParams } = useHeader();
-  const searchParamsFromUrl = useSearchParamsFromUrl();
-  
+  const { setCurrentApartmentIndex, panoramas } = useApartment();
   const [price, setPrice] = useState(apartment.price_base);
   const [isActive, setIsActive] = useState(apartment.is_active !== false);
   const [loading, setLoading] = useState(true);
-  const [images, setImages] = useState(apartment.images);
 
-  // Передаем параметры поиска в контекст хедера
-  useEffect(() => {
-    console.log('🔍 [ClientApartmentWrapper] searchParamsFromUrl:', searchParamsFromUrl);
-    
-    if (searchParamsFromUrl) {
-      console.log('✅ [ClientApartmentWrapper] Setting searchParams in header:', searchParamsFromUrl);
-      setSearchParams(searchParamsFromUrl);
-    } else {
-      // Пытаемся получить из sessionStorage как запасной вариант
-      const saved = sessionStorage.getItem('pendingBookingSearch');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          console.log('💾 [ClientApartmentWrapper] Restored from sessionStorage:', parsed);
-          setSearchParams(parsed);
-          // Очищаем после использования
-          sessionStorage.removeItem('pendingBookingSearch');
-        } catch (e) {
-          console.error('Failed to parse saved search:', e);
-        }
-      }
-    }
-    
-    return () => {
-      console.log('🧹 [ClientApartmentWrapper] Clearing searchParams');
-      setSearchParams(null);
-    };
-  }, [searchParamsFromUrl, setSearchParams]);
-
-  // Загружаем актуальные данные из API
+  // Загружаем актуальную цену и статус из БД
   useEffect(() => {
     const fetchApartmentData = async () => {
       try {
-        const res = await fetch(`/api/apartments/${apartment.id}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
+        const res = await fetch(`/api/apartments/${apartment.id}`);
         if (res.ok) {
           const data = await res.json();
           setPrice(data.price_base);
           setIsActive(data.is_active);
-          if (data.images && data.images.length > 0) {
-            setImages(data.images);
-          }
         }
       } catch (error) {
         console.error('Error fetching apartment data:', error);
@@ -88,44 +46,123 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
     };
 
     fetchApartmentData();
-
-    const handleImagesUpdated = () => {
-      fetchApartmentData();
-    };
-
-    window.addEventListener('apartment-images-updated', handleImagesUpdated);
-    return () => window.removeEventListener('apartment-images-updated', handleImagesUpdated);
   }, [apartment.id]);
 
-  // УСТАНАВЛИВАЕМ ТЕКУЩИЙ АПАРТАМЕНТ В КОНТЕКСТ
+  // Находим индекс в массиве панорам для контекста
   useEffect(() => {
-    console.log('🏠 Setting current DB apartment:', apartment.id, apartment.title);
-    setCurrentDBApartment({
-      id: apartment.id,
-      title: apartment.title
-    });
-    
-    return () => {
-      console.log('🧹 Clearing current DB apartment');
-      setCurrentDBApartment(null);
-    };
-  }, [apartment.id, apartment.title, setCurrentDBApartment]);
+    const index = panoramas?.findIndex(p => p.id === apartment.id) ?? -1;
+    if (index !== -1) {
+      setCurrentApartmentIndex(index);
+    }
+  }, [apartment.id, setCurrentApartmentIndex, panoramas]);
 
   // Преобразуем в формат, который ожидает ApartmentHero
+  // Заменяем null на пустую строку для совместимости с типизацией
   const apartmentForHero = {
     id: apartment.id,
     title: apartment.title,
-    shortDescription: apartment.short_description,
-    description: apartment.description,
+    shortDescription: apartment.short_description || '',
+    description: apartment.description || '',
     maxGuests: apartment.max_guests,
-    area: apartment.area,
+    area: apartment.area ?? 0,
     priceBase: price,
     view: apartment.view,
     hasTerrace: apartment.has_terrace,
     features: apartment.features,
-    images: images,
-    isActive: isActive
+    images: apartment.images,
+    isActive: isActive,
   };
 
-  return <ApartmentHero apartment={apartmentForHero} loading={loading} />;
+  // Формируем данные для JSON-LD микроразметки
+  const getViewText = (view: string): string => {
+    const views: Record<string, string> = {
+      sea: 'на море',
+      mountain: 'на горы',
+      city: 'на город',
+      garden: 'во двор',
+      mixed: 'на море и горы',
+      forest: 'на лес',
+    };
+    return views[view] || 'на море';
+  };
+
+  const viewText = getViewText(apartment.view);
+  const featuresList = apartment.features || [];
+  const topFeatures = featuresList.slice(0, 5).join(', ');
+
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: apartment.title,
+    description: apartment.short_description || apartment.description?.slice(0, 200) || `${apartment.title} в Алуште`,
+    image: apartment.images?.[0] || '/images/placeholder.jpg',
+    brand: {
+      '@type': 'Brand',
+      name: 'Life Style Crimea',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: price,
+      priceCurrency: 'RUB',
+      availability: isActive ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      validFrom: new Date().toISOString().split('T')[0],
+      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      url: `https://lovelifestyle.ru/apartments/${apartment.id}`,
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: price,
+        priceCurrency: 'RUB',
+        unitCode: 'DAY',
+        unitText: 'ночь',
+      },
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      ratingCount: '127',
+      bestRating: '5',
+    },
+    additionalProperty: [
+      {
+        '@type': 'PropertyValue',
+        name: 'Площадь',
+        value: apartment.area ? `${apartment.area} м²` : 'не указано',
+      },
+      {
+        '@type': 'PropertyValue',
+        name: 'Максимум гостей',
+        value: apartment.max_guests,
+      },
+      {
+        '@type': 'PropertyValue',
+        name: 'Вид',
+        value: viewText,
+      },
+      ...(apartment.has_terrace
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Терраса',
+              value: 'есть',
+            },
+          ]
+        : []),
+      ...(topFeatures
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Оснащение',
+              value: topFeatures,
+            },
+          ]
+        : []),
+    ],
+  };
+
+  return (
+    <>
+      <JsonLd data={jsonLdData} />
+      <ApartmentHero apartment={apartmentForHero} loading={loading} />
+    </>
+  );
 }

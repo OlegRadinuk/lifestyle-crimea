@@ -1,11 +1,20 @@
+import { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { ApartmentClient } from '@/lib/types';
 import ApartmentsClient from './ApartmentsClient';
 
-// ОТКЛЮЧАЕМ статическую генерацию и кэширование
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
+
+export const metadata: Metadata = {
+  title: 'Все апартаменты в Алуште | Каталог номеров | Life Style Crimea',
+  description: '38 дизайнерских апартаментов в Алуште. Студии и номера с отдельной спальней. Вид на море, террасы, полностью укомплектованы. Выберите идеальный вариант для отдыха.',
+  keywords: 'апартаменты алушта, каталог апартаментов, снять апартаменты, апартаменты с видом на море, студия алушта',
+  alternates: {
+    canonical: 'https://lovelifestyle.ru/apartments',
+  },
+};
 
 interface ApartmentRow {
   id: string;
@@ -25,12 +34,10 @@ interface ApartmentRow {
 }
 
 export default async function ApartmentsPage() {
-  // Загружаем ТОЛЬКО активные апартаменты из БД
   const apartments = db.prepare(`
     SELECT * FROM apartments WHERE is_active = 1 ORDER BY price_base ASC
   `).all() as ApartmentRow[];
 
-  // Для каждого апартамента получаем фото из отдельной таблицы
   const formattedApartments: ApartmentClient[] = await Promise.all(
     apartments.map(async (apt) => {
       let images: string[] = [];
@@ -41,10 +48,8 @@ export default async function ApartmentsPage() {
           WHERE apartment_id = ? 
           ORDER BY sort_order
         `).all(apt.id);
-        
         images = imageRows.map((img: any) => img.url);
       } catch (e) {
-        // Если таблицы нет, используем images из JSON поля
         if (apt.images) {
           try {
             images = JSON.parse(apt.images);
@@ -68,13 +73,10 @@ export default async function ApartmentsPage() {
         features: apt.features ? JSON.parse(apt.features) : [],
         images: images.length > 0 ? images : ['/images/placeholder.jpg'],
         created_at: apt.created_at,
-        updated_at: apt.updated_at
+        updated_at: apt.updated_at,
       };
     })
   );
 
-  return <ApartmentsClient 
-    initialApartments={formattedApartments} 
-    key={Date.now()}
-  />;
+  return <ApartmentsClient initialApartments={formattedApartments} key={Date.now()} />;
 }

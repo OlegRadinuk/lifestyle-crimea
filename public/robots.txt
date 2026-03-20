@@ -6,5 +6,16 @@ Disallow: /api/
 Disallow: /_next/
 Disallow: /static/
 
+# Правила для Яндекс
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
+
+# Правила для Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
 # Карта сайта
 Sitemap: https://lovelifestyle.ru/sitemap.xml
+Host: https://lovelifestyle.ru
