@@ -32,11 +32,6 @@
   background-repeat: no-repeat;
 }
 
-@keyframes zoomIn {
-  from { transform: scale(1); }
-  to { transform: scale(1.1); }
-}
-
 .hero-slide-background {
   position: absolute;
   inset: 0;
@@ -349,26 +344,6 @@
   .hero-timeline.mobile .hero-timeline-item.active {
     color: #139ab6;
     transform: scale(1.2);
-  }
-
-  /* Подсказка для свайпа */
-  .swipe-hint {
-    position: absolute;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
-    padding: 8px 20px;
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    z-index: 40;
-    pointer-events: none;
-    animation: pulseHint 2s infinite;
   }
 
   @keyframes pulseHint {
