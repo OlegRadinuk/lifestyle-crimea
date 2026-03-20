@@ -43,10 +43,10 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   // HEADER MODE
   useEffect(() => {
-    const id = 'apartment-hero';
-    register(id, { mode: 'apartment', priority: 2 });
-    return () => unregister(id);
-  }, [register, unregister]);
+  const id = 'apartment-hero';
+  register(id, { mode: 'apartment-detail', priority: 2 });
+  return () => unregister(id);
+}, [register, unregister]);
 
   const goToNext = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % apartment.images.length);

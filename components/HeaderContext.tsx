@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-export type HeaderMode = 'hero' | 'dark' | 'apartment';
+export type HeaderMode = 'hero' | 'dark' | 'apartment' | 'apartment-detail';
 
 type Section = {
   mode: HeaderMode;

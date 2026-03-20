@@ -272,11 +272,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
                     <div className="ap-list-actions">
                       <Link
-                        href={`/apartments/${apartment.id}`}
-                        className="btn-outline"
-                      >
-                        Подробнее
-                      </Link>
+  href={`/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`}
+  className="btn-outline"
+>
+  Подробнее
+</Link>
 
                       <button
                         className="btn-primary"

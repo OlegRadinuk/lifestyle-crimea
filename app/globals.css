@@ -7984,3 +7984,70 @@ html, body {
   }
 }
 
+/* Apartment Detail Mode */
+.header__booking-wrapper.is-apartment-detail {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header__booking-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.booking-info-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.booking-info-guests {
+  font-size: 14px;
+  color: #139AB6;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header__booking.primary {
+  background: #139AB6;
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.header__booking.primary:hover {
+  background: #0f7f96;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .header__booking-wrapper.is-apartment-detail {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding: 0 16px;
+  }
+  
+  .header__booking-info {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .header__booking.primary {
+    width: 100%;
+    text-align: center;
+  }
+}
