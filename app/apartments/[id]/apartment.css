@@ -532,14 +532,3 @@
   }
 }
 
-/* ОТКЛЮЧАЕМ ВСЕ АНИМАЦИИ ДЛЯ ОТЛАДКИ */
-.hero-slide-bg,
-.hero-slide.active .hero-slide-bg,
-.hero-timeline-item,
-.hero-timeline-item.active,
-.panorama-info *,
-.apartment-info-mobile * {
-  animation: none !important;
-  transition: none !important;
-  transform: none !important;
-}
