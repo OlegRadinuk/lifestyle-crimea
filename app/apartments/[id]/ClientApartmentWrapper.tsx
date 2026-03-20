@@ -1,3 +1,4 @@
+// app/apartments/[id]/ClientApartmentWrapper.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -25,7 +26,7 @@ type Props = {
 
 export default function ClientApartmentWrapper({ apartment }: Props) {
   const { setCurrentDBApartment, panoramas } = useApartment();
-  const { setSearchParams } = useHeader();
+  const { setSearchParams, searchParams: headerSearchParams } = useHeader();
   const searchParamsFromUrl = useSearchParamsFromUrl();
   
   const [price, setPrice] = useState(apartment.price_base);
@@ -33,16 +34,26 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState(apartment.images);
 
+  // Логируем для отладки
+  useEffect(() => {
+    console.log('🔍 [ClientApartmentWrapper] searchParamsFromUrl:', searchParamsFromUrl);
+    console.log('🔍 [ClientApartmentWrapper] headerSearchParams before set:', headerSearchParams);
+  }, [searchParamsFromUrl, headerSearchParams]);
+
   // Передаем параметры поиска в контекст хедера
   useEffect(() => {
     if (searchParamsFromUrl) {
+      console.log('📝 [ClientApartmentWrapper] Setting searchParams in header:', searchParamsFromUrl);
       setSearchParams(searchParamsFromUrl);
     }
     
     return () => {
+      console.log('🧹 [ClientApartmentWrapper] Clearing searchParams');
       setSearchParams(null);
     };
   }, [searchParamsFromUrl, setSearchParams]);
+
+  // ... остальной код без изменений
 
   // Загружаем актуальные данные из API
   useEffect(() => {

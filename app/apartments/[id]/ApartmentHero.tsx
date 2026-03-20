@@ -42,11 +42,15 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   }, []);
 
   // HEADER MODE - увеличиваем приоритет до 100
-  useEffect(() => {
-    const id = 'apartment-hero';
-    register(id, { mode: 'apartment', priority: 100 });
-    return () => unregister(id);
-  }, [register, unregister]);
+useEffect(() => {
+  const id = 'apartment-hero';
+  console.log('🎯 [ApartmentHero] Registering with mode: apartment, priority: 100');
+  register(id, { mode: 'apartment', priority: 100 });
+  return () => {
+    console.log('🎯 [ApartmentHero] Unregistering');
+    unregister(id);
+  };
+}, [register, unregister]);
 
   const goToNext = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % apartment.images.length);

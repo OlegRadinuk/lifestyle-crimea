@@ -36,7 +36,7 @@ export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { setSearch } = useSearch();
-  const { mode } = useHeader();
+  const { mode, searchParams } = useHeader();
   const { currentApartment: panoramaApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
@@ -44,6 +44,7 @@ export default function Header({ onBurgerClick }: Props) {
   const [apartmentPrice, setApartmentPrice] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [loadingPrice, setLoadingPrice] = useState(false);
+  
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -55,6 +56,15 @@ export default function Header({ onBurgerClick }: Props) {
   // Определяем тип страницы
   const isPanoramaPage = pathname === '/';
   const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
+
+  // Логируем для отладки
+  useEffect(() => {
+    console.log('📌 [Header] mode:', mode);
+    console.log('📌 [Header] searchParams:', searchParams);
+    console.log('📌 [Header] pathname:', pathname);
+    console.log('📌 [Header] isApartmentPage:', pathname?.startsWith('/apartments/') && pathname !== '/apartments');
+    console.log('📌 [Header] activeApartment:', getActiveApartment());
+  }, [mode, searchParams, pathname]);
 
   // Загружаем апартамент из URL если мы на странице апартамента
   useEffect(() => {
@@ -367,15 +377,21 @@ export default function Header({ onBurgerClick }: Props) {
         </AnimatePresence>
 
         {/* ИЗМЕНЕНО: В режиме apartment - используем новый компонент ApartmentHeaderButton */}
-        {mode === 'apartment' && activeApartment && isActive && (
-          <ApartmentHeaderButton
-            apartmentId={activeApartment.id}
-            apartmentTitle={activeApartment.title}
-            apartmentPrice={apartmentPrice}
-            isActive={isActive}
-            loadingPrice={loadingPrice}
-          />
-        )}
+        {mode === 'apartment' && (
+  <div style={{ background: 'red', color: 'white', padding: '2px', position: 'absolute', top: 0, left: 0, zIndex: 9999 }}>
+    MODE IS APARTMENT! searchParams: {JSON.stringify(searchParams)}
+  </div>
+)}
+
+{mode === 'apartment' && activeApartment && isActive && (
+  <ApartmentHeaderButton
+    apartmentId={activeApartment.id}
+    apartmentTitle={activeApartment.title}
+    apartmentPrice={apartmentPrice}
+    isActive={isActive}
+    loadingPrice={loadingPrice}
+  />
+)}
 
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
