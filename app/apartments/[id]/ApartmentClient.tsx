@@ -169,6 +169,9 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     );
   }
 
+  // Добавьте это в компонент ApartmentsClient перед return
+console.log('🔗 Example link:', `/apartments/${apartments[0]?.id}?checkIn=${search?.checkIn}&checkOut=${search?.checkOut}&guests=${search?.guests}`);
+
   return (
     <>
       <section className="ap-page">
@@ -255,11 +258,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                     <div className="ap-list-actions">
                       {/* ИЗМЕНЕНО: добавляем параметры поиска в URL */}
                       <Link
-                        href={`/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`}
-                        className="btn-outline"
-                      >
-                        Подробнее
-                      </Link>
+  href={`/apartments/${apartment.id}?checkIn=${search.checkIn}&checkOut=${search.checkOut}&guests=${search.guests}`}
+  className="btn-outline"
+>
+  Подробнее
+</Link>
 
                       <button
                         className="btn-primary"
