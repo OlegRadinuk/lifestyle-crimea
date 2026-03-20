@@ -29,6 +29,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const hasAnimatedTimeline = useRef(false);
+  const [animateActiveIndex, setAnimateActiveIndex] = useState<number | null>(null);
   
   // Для свайпа
   const touchStartX = useRef<number | null>(null);
@@ -48,6 +50,29 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     register(id, { mode: 'apartment', priority: 2 });
     return () => unregister(id);
   }, [register, unregister]);
+
+  // Анимация таймлайна при первом рендере
+  useEffect(() => {
+    if (!hasAnimatedTimeline.current && !isMobile) {
+      hasAnimatedTimeline.current = true;
+      // Небольшая задержка, чтобы DOM успел отрисоваться
+      setTimeout(() => {
+        document.querySelectorAll('.hero-timeline-item').forEach(el => {
+          el.classList.add('animate-in');
+        });
+      }, 50);
+    }
+  }, [isMobile]);
+
+  // Анимация активного элемента при смене слайда
+  useEffect(() => {
+    if (isMobile) return;
+    setAnimateActiveIndex(activeIndex);
+    const timer = setTimeout(() => {
+      setAnimateActiveIndex(null);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [activeIndex, isMobile]);
 
   // Функции навигации
   const goToNext = useCallback(() => {
@@ -129,7 +154,9 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       {apartment.images.map((_, index) => (
         <button
           key={index}
-          className={`hero-timeline-item ${index === activeIndex ? 'active' : ''}`}
+          className={`hero-timeline-item ${index === activeIndex ? 'active' : ''} ${
+            animateActiveIndex === index ? 'animate-active' : ''
+          }`}
           onClick={() => goToSlide(index)}
         >
           {String(index + 1).padStart(2, '0')}
@@ -239,10 +266,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
       </div>
 
       <Timeline />
-      
-      <div className="swipe-hint">
-        <span>← свайп →</span>
-      </div>
     </section>
   );
 }
