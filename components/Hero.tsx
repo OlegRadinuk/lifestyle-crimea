@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
-import Image from 'next/image';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const slides = [
@@ -24,10 +23,8 @@ const slides = [
 ];
 
 export default function Hero() {
-  // Используем один ref для всего
   const heroRef = useRef<HTMLDivElement | null>(null);
   
-  // Хук анимации использует тот же ref
   const { ref: animationRef, isVisible } = useScrollAnimation({ 
     threshold: 0.3,
     once: true 
@@ -36,15 +33,28 @@ export default function Hero() {
   const { register, unregister } = useHeader();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  /* ===============================
-     HEADER MODE (HERO)
-  =============================== */
+  // ПРИНУДИТЕЛЬНЫЙ СБРОС ПРИ МОНТИРОВАНИИ
+  useEffect(() => {
+    // Сбрасываем все возможные левые классы на hero-секции
+    const heroElement = heroRef.current;
+    if (heroElement) {
+      heroElement.classList.remove('mobile', 'desktop', 'fullscreen-mode');
+    }
+    
+    // Сбрасываем контейнер
+    const mainContainer = document.querySelector('.main-container');
+    if (mainContainer) {
+      const isMobile = window.innerWidth <= 768;
+      mainContainer.classList.remove('mobile', 'desktop');
+      mainContainer.classList.add(isMobile ? 'mobile' : 'desktop');
+    }
+  }, []);
 
+  /* HEADER MODE (HERO) */
   useEffect(() => {
     if (!heroRef.current) return;
 
@@ -74,10 +84,7 @@ export default function Hero() {
     };
   }, [register, unregister]);
 
-  /* ===============================
-     PARALLAX / TILT
-  =============================== */
-
+  /* PARALLAX / TILT */
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -114,10 +121,7 @@ export default function Hero() {
     };
   }, []);
 
-  /* ===============================
-     AUTOPLAY
-  =============================== */
-
+  /* AUTOPLAY */
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       setActive(prev => (prev + 1) % slides.length);
@@ -128,18 +132,11 @@ export default function Hero() {
     };
   }, [active, isHovered]);
 
-  /* ===============================
-     JSX
-  =============================== */
-
   return (
     <section
       ref={(el) => {
-        // Проверяем, что элемент действительно HTMLDivElement
         if (el && el instanceof HTMLDivElement) {
-          // Устанавливаем оба ref
           heroRef.current = el;
-          // Для animationRef используем приведение типа
           (animationRef as React.MutableRefObject<HTMLElement | null>).current = el;
         }
       }}

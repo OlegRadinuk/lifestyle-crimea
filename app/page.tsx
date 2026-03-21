@@ -11,6 +11,7 @@ import JsonLd from '@/components/JsonLd';
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [mountKey, setMountKey] = useState(Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,6 +24,21 @@ export default function HomePage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // При каждом возврате на страницу пересоздаём ключ для принудительного сброса компонентов
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setMountKey(Date.now());
+      }
+    };
+    
+    // Также при загрузке страницы сбрасываем
+    setMountKey(Date.now());
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   // Schema.org разметка для отеля
@@ -96,7 +112,7 @@ export default function HomePage() {
       >
         {/* Сцена 1 - Hero */}
         <section className="scene scene--hero">
-          <Hero />
+          <Hero key={`hero-${mountKey}`} />
         </section>
 
         {/* Спейсер между Hero и Panorama (только на десктопе) */}
@@ -104,7 +120,7 @@ export default function HomePage() {
 
         {/* Сцена 2 - Panorama */}
         <section className="scene scene--panorama">
-          <PanoramaViewer />
+          <PanoramaViewer key={`panorama-${mountKey}`} />
         </section>
 
         {/* Спейсер между Panorama и Reviews (только на десктопе) */}
@@ -112,7 +128,7 @@ export default function HomePage() {
 
         {/* Сцена 3 - Отзывы + Футер */}
         <section className="scene scene--reviews-footer">
-          <Reviews />
+          <Reviews key={`reviews-${mountKey}`} />
         </section>
       </div>
     </>
