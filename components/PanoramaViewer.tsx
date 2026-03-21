@@ -668,7 +668,7 @@ export default function PanoramaViewer() {
       <div
         style={{
           position: 'fixed',
-          bottom: '200px',
+          bottom: '190px',
           right: '20px',
           zIndex: 999999,
           pointerEvents: 'auto',

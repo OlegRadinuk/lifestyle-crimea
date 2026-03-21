@@ -3272,10 +3272,6 @@ html, body {
       padding-bottom: max(32px, env(safe-area-inset-bottom));
     }
 
-    .availability-calendar.mobile {
-      padding-bottom: max(30px, env(safe-area-inset-bottom));
-    }
-
     .panorama-actions-bottom {
       bottom: calc(80px + env(safe-area-inset-bottom));
     }
@@ -5562,7 +5558,7 @@ html, body {
     padding: 11px 11px 11px;
     animation: .3s slideUp;
     position: fixed;
-    inset: auto 177px -527px;
+    inset: auto 177px -489px;
 }
 
 /* Мобилка футер - 50% */
@@ -8002,34 +7998,4 @@ html, body {
 .rdp-day_outside {
   opacity: 0.5;
   color: #94a3b8;
-}
-
-/* Фикс для кнопки выхода из фуллскрина */
-.panorama-section.fullscreen-mode .panorama-canvas {
-  pointer-events: auto;
-}
-
-.panorama-fullscreen-button.exit {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 99999;
-  pointer-events: auto !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
-}
-
-.panorama-fullscreen-button.exit:active {
-  transform: scale(0.95);
-  background: rgba(255, 59, 48, 0.9);
 }
