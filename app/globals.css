@@ -8114,175 +8114,127 @@ html, body {
 
 /* Кнопки переключения */
 .panorama-arrow {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: 60px !important;
-  padding: 12px 24px !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  white-space: nowrap !important;
-  width: auto !important;
-  min-width: auto !important;
-  max-width: none !important;
-  margin: 0 20px !important; /* Добавляем отступы от краев */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 60px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  width: auto;
+  min-width: 340px;
 }
 
 .panorama-arrow.left {
-  flex-direction: row !important;
-  justify-content: flex-start !important;
-  margin-left: 40px !important; /* Отступ слева */
+  flex-direction: row;
+  margin-left: 30px;
 }
 
 .panorama-arrow.right {
-  flex-direction: row !important;
-  justify-content: flex-end !important;
-  margin-right: 40px !important; /* Отступ справа */
+  flex-direction: row;
+  margin-right: 30px;
 }
 
 .panorama-arrow:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  transform: scale(1.02) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .arrow-icon {
-  font-size: 18px !important;
-  color: white !important;
-  font-weight: 400 !important;
-  transition: transform 0.2s ease !important;
-  line-height: 1 !important;
-  flex-shrink: 0 !important;
+  font-size: 18px;
+  color: white;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .panorama-arrow:hover .arrow-icon {
-  transform: translateX(3px) !important;
+  transform: translateX(3px);
 }
 
 .panorama-arrow.left:hover .arrow-icon {
-  transform: translateX(-3px) !important;
+  transform: translateX(-3px);
 }
 
 .arrow-text {
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: white !important;
-  letter-spacing: 0.3px !important;
-  white-space: nowrap !important;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
 }
 
-/* Для правой кнопки текст идет перед стрелкой */
-.panorama-arrow.right .arrow-text {
-  order: 0 !important;
-}
-
-.panorama-arrow.right .arrow-icon {
-  order: 1 !important;
-  margin-left: 4px !important;
-}
-
-/* Для левой кнопки стрелка перед текстом */
-.panorama-arrow.left .arrow-icon {
-  order: 0 !important;
-  margin-right: 4px !important;
-}
-
-.panorama-arrow.left .arrow-text {
-  order: 1 !important;
-}
-
-/* Адаптация для разных размеров экрана */
+/* Адаптация */
 @media (max-width: 1400px) {
-  .panorama-arrow.left {
-    margin-left: 30px !important;
+  .panorama-arrow {
+    min-width: 320px;
+    padding: 10px 24px;
   }
-  
-  .panorama-arrow.right {
-    margin-right: 30px !important;
-  }
-  
   .arrow-text {
-    font-size: 12px !important;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 1200px) {
-  .panorama-arrow.left {
-    margin-left: 20px !important;
-  }
-  
-  .panorama-arrow.right {
-    margin-right: 20px !important;
-  }
-  
-  .arrow-text {
-    font-size: 11px !important;
-  }
-  
   .panorama-arrow {
-    padding: 10px 20px !important;
+    min-width: 300px;
+    padding: 10px 20px;
+  }
+  .arrow-text {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 1024px) {
-  .panorama-arrow.left {
-    margin-left: 15px !important;
+  .panorama-arrow {
+    min-width: 280px;
+    padding: 8px 18px;
   }
-  
-  .panorama-arrow.right {
-    margin-right: 15px !important;
-  }
-  
   .arrow-text {
-    font-size: 11px !important;
+    font-size: 11px;
+  }
+  .panorama-arrow.left {
+    margin-left: 20px;
+  }
+  .panorama-arrow.right {
+    margin-right: 20px;
   }
 }
 
 @media (max-width: 900px) {
-  .panorama-arrow.left {
-    margin-left: 10px !important;
-  }
-  
-  .panorama-arrow.right {
-    margin-right: 10px !important;
-  }
-  
-  .arrow-text {
-    font-size: 10px !important;
-  }
-  
   .panorama-arrow {
-    padding: 8px 16px !important;
-    gap: 6px !important;
+    min-width: 260px;
+    padding: 8px 16px;
+    gap: 8px;
+  }
+  .arrow-text {
+    font-size: 10px;
   }
 }
 
 @media (max-width: 768px) {
-  .panorama-arrow.left,
-  .panorama-arrow.right {
+  .panorama-arrow {
+    min-width: auto;
+    padding: 8px 14px;
     margin: 0 10px !important;
   }
-  
   .arrow-text {
-    font-size: 11px !important;
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
-  .panorama-arrow.left,
-  .panorama-arrow.right {
-    margin: 0 5px !important;
-    padding: 6px 12px !important;
+  .panorama-arrow {
+    padding: 6px 12px;
+    gap: 6px;
   }
-  
   .arrow-text {
-    font-size: 9px !important;
+    font-size: 9px;
   }
-  
   .arrow-icon {
-    font-size: 14px !important;
+    font-size: 14px;
   }
 }
