@@ -265,9 +265,9 @@ export default function HeroSlidesPage() {
                   : 'Нажмите или перетащите изображение'
               }
             </h3>
-            <p>Поддерживаются JPG, PNG, WEBP (до 20MB)</p>
+            <p>Поддерживаются JPG, PNG, WEBP (до 12MB)</p>
             <p className="upload-hint">
-              🔥 Автоматическое сжатие в WebP (макс 3MB после обработки) · Качество 85%
+              Автоматическое сжатие в WebP
             </p>
           </label>
         </div>
