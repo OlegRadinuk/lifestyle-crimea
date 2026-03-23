@@ -42,6 +42,7 @@ export default function AdminLayout({
   const menuItems = [
      { href: '/admin', label: 'Дашборд', icon: '📊' },
   { href: '/admin/apartments', label: 'Апартаменты', icon: '🏢' },
+  { href: '/admin/hero-slides', label: 'Слайды главной', icon: '🖼️' },
   { href: '/admin/bookings', label: 'Брони (сайт)', icon: '📋' },
   { href: '/admin/travelline-bookings', label: 'Брони (Travelline)', icon: '🔄' },
   { href: '/admin/sync-logs', label: 'Логи синхронизации', icon: '📝' }, // НОВЫЙ ПУНКТ

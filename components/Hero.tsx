@@ -4,23 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
-const slides = [
-  {
-    id: 1,
-    image: '/images/hero/hero1.webp',
-    text: 'Ваш стиль жизни у берега Черного моря',
-  },
-  {
-    id: 2,
-    image: '/images/hero/hero2.webp',
-    text: 'Премиальные апартаменты в Алуште',
-  },
-  {
-    id: 3,
-    image: '/images/hero/hero3.webp',
-    text: 'Комфорт, эстетика и природа',
-  },
-];
+type HeroSlide = {
+  id: number;
+  image_url: string;
+  title: string | null;
+  subtitle: string | null;
+  sort_order: number;
+  is_active: number;
+};
 
 export default function Hero() {
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -36,16 +27,42 @@ export default function Hero() {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Загружаем слайды из БД
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const res = await fetch('/api/hero-slides');
+        const data = await res.json();
+        setSlides(data);
+      } catch (error) {
+        console.error('Error fetching hero slides:', error);
+        // Запасные слайды на случай ошибки
+        setSlides([
+          { id: 1, image_url: '/images/hero/hero1.webp', title: 'Стиль жизни', subtitle: 'Ваш стиль жизни у берега Черного моря', sort_order: 1, is_active: 1 },
+          { id: 2, image_url: '/images/hero/hero2.webp', title: 'Премиальные апартаменты', subtitle: 'Премиальные апартаменты в Алуште', sort_order: 2, is_active: 1 },
+          { id: 3, image_url: '/images/hero/hero3.webp', title: 'Комфорт и природа', subtitle: 'Комфорт, эстетика и природа', sort_order: 3, is_active: 1 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSlides();
+  }, []);
+
+  // Фильтруем активные слайды и сортируем
+  const activeSlides = slides.filter(slide => slide.is_active === 1).sort((a, b) => a.sort_order - b.sort_order);
 
   // ПРИНУДИТЕЛЬНЫЙ СБРОС ПРИ МОНТИРОВАНИИ
   useEffect(() => {
-    // Сбрасываем все возможные левые классы на hero-секции
     const heroElement = heroRef.current;
     if (heroElement) {
       heroElement.classList.remove('mobile', 'desktop', 'fullscreen-mode');
     }
     
-    // Сбрасываем контейнер
     const mainContainer = document.querySelector('.main-container');
     if (mainContainer) {
       const isMobile = window.innerWidth <= 768;
@@ -121,16 +138,41 @@ export default function Hero() {
     };
   }, []);
 
-  /* AUTOPLAY */
+  /* AUTOPLAY - обновлено для работы с динамическими слайдами */
   useEffect(() => {
+    if (activeSlides.length <= 1) return;
+    
     timeoutRef.current = setTimeout(() => {
-      setActive(prev => (prev + 1) % slides.length);
-    }, 4000);
+      setActive(prev => (prev + 1) % activeSlides.length);
+    }, 5000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [active, isHovered]);
+  }, [active, isHovered, activeSlides.length]);
+
+  // Показываем заглушку при загрузке
+  if (loading) {
+    return (
+      <section className="hero-loading">
+        <div className="hero-loader" />
+      </section>
+    );
+  }
+
+  // Если нет слайдов, показываем заглушку
+  if (activeSlides.length === 0) {
+    return (
+      <section className="hero-empty">
+        <div className="hero-empty-content">
+          <h1>Стиль Жизни</h1>
+          <p>Премиальные апартаменты в Алуште</p>
+        </div>
+      </section>
+    );
+  }
+
+  const currentSlide = activeSlides[active];
 
   return (
     <section
@@ -150,12 +192,12 @@ export default function Hero() {
         const diff = touchStart - e.changedTouches[0].clientX;
 
         if (diff > 50) {
-          setActive(prev => (prev + 1) % slides.length);
+          setActive(prev => (prev + 1) % activeSlides.length);
         }
 
         if (diff < -50) {
           setActive(prev =>
-            prev === 0 ? slides.length - 1 : prev - 1
+            prev === 0 ? activeSlides.length - 1 : prev - 1
           );
         }
 
@@ -164,11 +206,11 @@ export default function Hero() {
     >
       {/* SLIDES */}
       <div className="hero-slides">
-        {slides.map((slide, i) => (
+        {activeSlides.map((slide, i) => (
           <div
             key={slide.id}
             className={`hero-slide ${i === active ? 'active' : ''}`}
-            style={{ backgroundImage: `url(${slide.image})` }}
+            style={{ backgroundImage: `url(${slide.image_url})` }}
           />
         ))}
       </div>
@@ -204,7 +246,7 @@ export default function Hero() {
         className="hero-arrow hero-arrow--left"
         onClick={() =>
           setActive(prev =>
-            prev === 0 ? slides.length - 1 : prev - 1
+            prev === 0 ? activeSlides.length - 1 : prev - 1
           )
         }
       >
@@ -214,7 +256,7 @@ export default function Hero() {
       <button
         className="hero-arrow hero-arrow--right"
         onClick={() =>
-          setActive(prev => (prev + 1) % slides.length)
+          setActive(prev => (prev + 1) % activeSlides.length)
         }
       >
         ›
@@ -226,7 +268,7 @@ export default function Hero() {
       <div className="hero-content">
         <div className={`hero-text ${isVisible ? 'animate-in' : ''}`} key={active}>
           <h1 className="hero-title">
-            Стиль Жизни{' '}
+            {currentSlide.title || 'Стиль Жизни'}{' '}
             <span className="hero-love">
               {'с любовью...'.split('').map((char, i) => (
                 <span
@@ -241,13 +283,13 @@ export default function Hero() {
           </h1>
 
           <p className="hero-description">
-            {slides[active].text}
+            {currentSlide.subtitle}
           </p>
         </div>
 
         {/* TIMELINE */}
         <div className="hero-timeline">
-          {slides.map((_, i) => (
+          {activeSlides.map((_, i) => (
             <button
               key={i}
               className={`hero-timeline-item ${i === active ? 'active' : ''}`}
