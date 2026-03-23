@@ -345,11 +345,11 @@ html, body {
 }
 
 .header--dark .burger-text {
-  color: #e5e7eb;
+  color: #fff;
 }
 
 .header--dark .header__burger {
-  color: #e5e7eb;
+  color: #fff;
 }
 
 .header--dark .header__booking-wrapper {
@@ -365,7 +365,7 @@ html, body {
   top: 10px;
   width: 170px;
   height: 60px;
-  background: rgba(20, 22, 24, 0.85);
+  background: #139AB6;
   backdrop-filter: blur(12px);
   border-radius: 30px;
   z-index: -1;
