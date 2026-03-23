@@ -101,6 +101,7 @@ html, body {
   }
 }
 
+
 /* =========================
    HEADER (ПОЛНОСТЬЮ ТВОЙ)
 ========================= */
@@ -398,6 +399,7 @@ html, body {
   to { opacity: 0.85; transform: translateY(0); }
 }
 
+
 /* =========================
    BURGER MENU (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
@@ -659,6 +661,7 @@ html, body {
   opacity: 0.15;
   pointer-events: none;
 }
+
 
 /* =========================
    HERO (ТВОЙ ПОЛНОСТЬЮ)
@@ -1212,6 +1215,10 @@ html, body {
   letter-spacing: 0.3px;
 }
 
+.panorama-desktop-actions {
+  display: none;
+}
+
 @media (min-width: 769px) {
   .panorama-desktop-actions {
     display: flex;
@@ -1257,6 +1264,7 @@ html, body {
     border-color: #139ab6;
   }
 }
+
 
 /* =========================
    CALENDAR & BOOKING (ТВОЙ)
@@ -1885,6 +1893,7 @@ html, body {
   width: 8rem;
   height: 8rem;
 }
+
 
 /* =========================
    ADMIN PANEL STYLES (ТВОЙ)
@@ -2562,6 +2571,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 
 /* =========================
    МОБИЛЬНЫЕ СТИЛИ (ВСЁ ТВОЁ)
@@ -3315,6 +3325,7 @@ html, body {
     display: none !important;
   }
 }
+
 
 /* =========================
    REVIEWS + FOOTER - ОДНА СЦЕНА (ДЕСКТОП И МОБИЛКА)
@@ -5994,6 +6005,7 @@ html, body {
   }
 }
 
+
 /* ===== ПАНОРАМА СЦЕНА ===== */
 @media (max-width: 768px) {
   .panorama-info {
@@ -6179,6 +6191,7 @@ html, body {
     font-size: 10px;
   }
 }
+
 
 /* ===== СТРАНИЦА АПАРТАМЕНТОВ ===== */
 @media (max-width: 768px) {
@@ -7998,4 +8011,62 @@ html, body {
 .rdp-day_outside {
   opacity: 0.5;
   color: #94a3b8;
+}
+
+/* ===== FULLSCREEN EXIT ANIMATION ===== */
+.panorama-section {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panorama-section.fullscreen-mode {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  background: #000 !important;
+  animation: fullscreenEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panorama-section.fullscreen-mode.exit-animation {
+  animation: fullscreenExit 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fullscreenEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fullscreenExit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* Плавное появление/исчезновение UI */
+.panorama-fullscreen-button.exit {
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.panorama-fullscreen-button.exit:active {
+  transform: scale(0.95);
+}
+
+/* Анимация для информационного блока */
+.panorama-info {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.panorama-section.fullscreen-mode .panorama-info {
+  opacity: 0;
+  pointer-events: none;
 }

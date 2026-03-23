@@ -1,3 +1,6 @@
+/* Все правила ниже — только внутри .apartment-hero, иначе после визита страницы апартамента
+   ломаются главная (hero-timeline, panorama-info) и панорама — те же классы в globals.css */
+
 .apartment-hero {
   height: 100dvh;
   overflow: hidden;
@@ -6,25 +9,25 @@
 }
 
 /* ===== SLIDER STYLES ===== */
-.hero-slider {
+.apartment-hero .hero-slider {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: #000;
 }
 
-.hero-slide {
+.apartment-hero .hero-slide {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
 }
 
-.hero-slide.active {
+.apartment-hero .hero-slide.active {
   pointer-events: auto;
 }
 
-.hero-slide-bg {
+.apartment-hero .hero-slide-bg {
   position: absolute;
   inset: 0;
   background-size: cover;
@@ -32,17 +35,16 @@
   background-repeat: no-repeat;
 }
 
-/* Анимация приближения */
-.hero-slide.active .hero-slide-bg {
-  animation: zoomIn 8s ease-out forwards;
+.apartment-hero .hero-slide.active .hero-slide-bg {
+  animation: apartmentZoomIn 8s ease-out forwards;
 }
 
-@keyframes zoomIn {
+@keyframes apartmentZoomIn {
   from { transform: scale(1); }
   to { transform: scale(1.1); }
 }
 
-.hero-slide-background {
+.apartment-hero .hero-slide-background {
   position: absolute;
   inset: 0;
   background: #000;
@@ -50,7 +52,7 @@
 }
 
 /* ===== ARROWS ===== */
-.hero-arrow {
+.apartment-hero .hero-arrow {
   position: absolute;
   top: 49.5%;
   transform: translateY(-50%);
@@ -65,28 +67,28 @@
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.hero-arrow:hover {
+.apartment-hero .hero-arrow:hover {
   color: #ffffff;
 }
 
-.hero-arrow--left {
+.apartment-hero .hero-arrow--left {
   left: 24px;
 }
 
-.hero-arrow--left:hover {
+.apartment-hero .hero-arrow--left:hover {
   transform: translate(-6px, -50%);
 }
 
-.hero-arrow--right {
+.apartment-hero .hero-arrow--right {
   right: 24px;
 }
 
-.hero-arrow--right:hover {
+.apartment-hero .hero-arrow--right:hover {
   transform: translate(6px, -50%);
 }
 
-/* ===== TIMELINE - ТОЛЬКО ПРИ ПЕРВОЙ ЗАГРУЗКЕ ===== */
-.hero-timeline {
+/* ===== TIMELINE (десктопный вариант с классами; мобильный таймлайн — inline в компоненте) ===== */
+.apartment-hero .hero-timeline {
   position: absolute;
   right: 60px;
   bottom: 60px;
@@ -97,7 +99,7 @@
   z-index: 100;
 }
 
-.hero-timeline-item {
+.apartment-hero .hero-timeline-item {
   background: none;
   border: none;
   font-size: 15.5px;
@@ -105,25 +107,21 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px 0;
-  
-  /* Анимация ТОЛЬКО при первом появлении */
   opacity: 0;
   transform: translateY(12px);
-  animation: timelineFirstShow 0.6s ease-out forwards;
+  animation: apartmentTimelineFirstShow 0.6s ease-out forwards;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 }
 
-/* Задержки ТОЛЬКО при первой загрузке */
-.hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
-.hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
-.hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
-.hero-timeline-item:nth-child(4) { animation-delay: 0.65s; }
-.hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
-.hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
+.apartment-hero .hero-timeline-item:nth-child(1) { animation-delay: 0.2s; }
+.apartment-hero .hero-timeline-item:nth-child(2) { animation-delay: 0.35s; }
+.apartment-hero .hero-timeline-item:nth-child(3) { animation-delay: 0.5s; }
+.apartment-hero .hero-timeline-item:nth-child(4) { animation-delay: 0.65s; }
+.apartment-hero .hero-timeline-item:nth-child(5) { animation-delay: 0.8s; }
+.apartment-hero .hero-timeline-item:nth-child(6) { animation-delay: 0.95s; }
 
-/* Ключевые кадры - только один раз */
-@keyframes timelineFirstShow {
+@keyframes apartmentTimelineFirstShow {
   0% {
     opacity: 0;
     transform: translateY(12px);
@@ -134,38 +132,35 @@
   }
 }
 
-/* При наведении - плавно меняем цвет и масштаб */
-.hero-timeline-item:hover {
+.apartment-hero .hero-timeline-item:hover {
   color: rgba(255, 255, 255, 0.8);
   transform: scale(1.05) !important;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-/* Активный элемент - другой цвет и масштаб */
-.hero-timeline-item.active {
+.apartment-hero .hero-timeline-item.active {
   color: #139AB6;
   transform: scale(1.1) !important;
   font-weight: 500;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-/* Обычные элементы - без трансформации при смене активного */
-.hero-timeline-item:not(.active) {
+.apartment-hero .hero-timeline-item:not(.active) {
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 /* ===== OVERLAY ===== */
-.panorama-overlay {
+.apartment-hero .panorama-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0)), 
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0)),
               linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
   z-index: 80;
 }
 
 /* ===== SVG FRAME ===== */
-.hero-frame-svg {
+.apartment-hero .hero-frame-svg {
   position: absolute;
   inset: 24px;
   width: calc(100% - 48px);
@@ -174,8 +169,8 @@
   pointer-events: none;
 }
 
-/* ===== INFO PANEL ===== */
-.panorama-info {
+/* ===== INFO PANEL (только десктопная вёрстка апартамента) ===== */
+.apartment-hero .panorama-info {
   position: absolute;
   left: 0;
   top: 0;
@@ -189,7 +184,7 @@
   z-index: 90;
 }
 
-.panorama-info-inner {
+.apartment-hero .panorama-info-inner {
   max-width: 420px;
   display: flex;
   flex-direction: column;
@@ -197,28 +192,28 @@
   pointer-events: auto;
 }
 
-.panorama-info-eyebrow {
+.apartment-hero .panorama-info-eyebrow {
   font-size: 12px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   opacity: 0.6;
 }
 
-.panorama-info-title {
+.apartment-hero .panorama-info-title {
   font-size: 44px;
   line-height: 1.1;
   font-weight: 500;
   color: #139AB6;
 }
 
-.panorama-info-description {
+.apartment-hero .panorama-info-description {
   font-size: 16px;
   line-height: 1.6;
   opacity: 0.75;
   max-width: 380px;
 }
 
-.panorama-info-meta {
+.apartment-hero .panorama-info-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 20px;
@@ -231,7 +226,7 @@
   opacity: 0.85;
 }
 
-.panorama-unavailable-message {
+.apartment-hero .panorama-unavailable-message {
   padding: 14px 28px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -240,7 +235,7 @@
   text-align: center;
 }
 
-.unavailable-text {
+.apartment-hero .unavailable-text {
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   font-weight: 400;
@@ -256,12 +251,11 @@
     color: #fff;
   }
 
-  .hero-arrow {
-    display: none; /* На мобилке стрелок нет */
+  .apartment-hero .hero-arrow {
+    display: none;
   }
 
-  /* Затемнение */
-  .panorama-overlay.mobile {
+  .apartment-hero .panorama-overlay.mobile {
     position: absolute;
     inset: 0;
     background: linear-gradient(
@@ -274,8 +268,7 @@
     z-index: 10;
   }
 
-  /* Инфо */
-  .apartment-info-mobile {
+  .apartment-hero .apartment-info-mobile {
     position: absolute;
     bottom: 120px;
     left: 20px;
@@ -287,13 +280,13 @@
     gap: 12px;
   }
 
-  .apartment-info-header {
+  .apartment-hero .apartment-info-header {
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
 
-  .apartment-info-eyebrow {
+  .apartment-hero .apartment-info-eyebrow {
     font-size: 12px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -301,7 +294,7 @@
     color: #fff;
   }
 
-  .apartment-info-title {
+  .apartment-hero .apartment-info-title {
     font-size: 32px;
     font-weight: 600;
     color: #139ab6;
@@ -310,7 +303,7 @@
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
 
-  .apartment-info-description {
+  .apartment-hero .apartment-info-description {
     font-size: 14px;
     line-height: 1.5;
     opacity: 0.9;
@@ -322,15 +315,14 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   }
 
-  /* Чипсы */
-  .apartment-features-mobile {
+  .apartment-hero .apartment-features-mobile {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 8px;
   }
 
-  .feature-chip {
+  .apartment-hero .feature-chip {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
     border: 1px solid #139ab6;
@@ -344,8 +336,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Мобильный таймлайн */
-  .hero-timeline.mobile {
+  .apartment-hero .hero-timeline.mobile {
     position: absolute;
     right: 20px;
     bottom: 120px;
@@ -356,7 +347,7 @@
     pointer-events: auto;
   }
 
-  .hero-timeline.mobile .hero-timeline-item {
+  .apartment-hero .hero-timeline.mobile .hero-timeline-item {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.5);
     text-align: right;
@@ -365,13 +356,12 @@
     animation: none;
   }
 
-  .hero-timeline.mobile .hero-timeline-item.active {
+  .apartment-hero .hero-timeline.mobile .hero-timeline-item.active {
     color: #139ab6;
     transform: scale(1.2);
   }
 
-  /* Подсказка для свайпа */
-  .swipe-hint {
+  .apartment-hero .swipe-hint {
     position: absolute;
     bottom: 80px;
     left: 50%;
@@ -395,8 +385,7 @@
     50% { opacity: 1; }
   }
 
-  /* Сообщение о недоступности */
-  .panorama-unavailable-message.mobile {
+  .apartment-hero .panorama-unavailable-message.mobile {
     padding: 10px 16px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
@@ -406,7 +395,7 @@
     margin-top: 8px;
   }
 
-  .panorama-unavailable-message.mobile .unavailable-text {
+  .apartment-hero .panorama-unavailable-message.mobile .unavailable-text {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
   }
@@ -414,37 +403,37 @@
 
 /* ===== МАЛЕНЬКИЕ ТЕЛЕФОНЫ ===== */
 @media (max-width: 480px) {
-  .apartment-info-mobile {
+  .apartment-hero .apartment-info-mobile {
     bottom: 100px;
     left: 16px;
     right: 16px;
     gap: 10px;
   }
 
-  .apartment-info-title {
+  .apartment-hero .apartment-info-title {
     font-size: 28px;
   }
 
-  .apartment-info-description {
+  .apartment-hero .apartment-info-description {
     font-size: 13px;
   }
 
-  .feature-chip {
+  .apartment-hero .feature-chip {
     padding: 5px 12px;
     font-size: 12px;
   }
 
-  .hero-timeline.mobile {
+  .apartment-hero .hero-timeline.mobile {
     right: 16px;
     bottom: 100px;
     gap: 6px;
   }
 
-  .hero-timeline.mobile .hero-timeline-item {
+  .apartment-hero .hero-timeline.mobile .hero-timeline-item {
     font-size: 13px;
   }
 
-  .swipe-hint {
+  .apartment-hero .swipe-hint {
     bottom: 70px;
     font-size: 11px;
     padding: 6px 16px;
@@ -452,35 +441,35 @@
 }
 
 @media (max-width: 360px) {
-  .apartment-info-mobile {
+  .apartment-hero .apartment-info-mobile {
     bottom: 90px;
     left: 12px;
     right: 12px;
   }
 
-  .apartment-info-title {
+  .apartment-hero .apartment-info-title {
     font-size: 24px;
   }
 
-  .apartment-info-description {
+  .apartment-hero .apartment-info-description {
     font-size: 12px;
   }
 
-  .feature-chip {
+  .apartment-hero .feature-chip {
     padding: 4px 10px;
     font-size: 11px;
   }
 
-  .hero-timeline.mobile {
+  .apartment-hero .hero-timeline.mobile {
     right: 12px;
     bottom: 90px;
   }
 
-  .hero-timeline.mobile .hero-timeline-item {
+  .apartment-hero .hero-timeline.mobile .hero-timeline-item {
     font-size: 12px;
   }
 
-  .swipe-hint {
+  .apartment-hero .swipe-hint {
     bottom: 60px;
     font-size: 10px;
     padding: 5px 12px;
@@ -490,52 +479,44 @@
 /* ===== SAFE AREA ===== */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   @media (max-width: 768px) {
-    .apartment-info-mobile {
-      bottom: calc(120px + env(safe-area-inset-bottom));
-    }
-    
-    .hero-timeline.mobile {
+    .apartment-hero .apartment-info-mobile {
       bottom: calc(120px + env(safe-area-inset-bottom));
     }
 
-    .swipe-hint {
+    .apartment-hero .hero-timeline.mobile {
+      bottom: calc(120px + env(safe-area-inset-bottom));
+    }
+
+    .apartment-hero .swipe-hint {
       bottom: calc(80px + env(safe-area-inset-bottom));
     }
   }
-  
+
   @media (max-width: 480px) {
-    .apartment-info-mobile {
-      bottom: calc(100px + env(safe-area-inset-bottom));
-    }
-    
-    .hero-timeline.mobile {
+    .apartment-hero .apartment-info-mobile {
       bottom: calc(100px + env(safe-area-inset-bottom));
     }
 
-    .swipe-hint {
+    .apartment-hero .hero-timeline.mobile {
+      bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+
+    .apartment-hero .swipe-hint {
       bottom: calc(70px + env(safe-area-inset-bottom));
     }
   }
-  
+
   @media (max-width: 360px) {
-    .apartment-info-mobile {
-      bottom: calc(90px + env(safe-area-inset-bottom));
-    }
-    
-    .hero-timeline.mobile {
+    .apartment-hero .apartment-info-mobile {
       bottom: calc(90px + env(safe-area-inset-bottom));
     }
 
-    .swipe-hint {
+    .apartment-hero .hero-timeline.mobile {
+      bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .apartment-hero .swipe-hint {
       bottom: calc(60px + env(safe-area-inset-bottom));
     }
   }
-}
-
-/* ОТКЛЮЧАЕМ ТОЛЬКО ПРОБЛЕМНУЮ АНИМАЦИЮ НАВИГАЦИИ */
-.hero-timeline-item,
-.hero-timeline-item.active {
-  animation: none !important;
-  transition: color 0.2s ease, transform 0.2s ease !important;
-  transform: none !important;
 }

@@ -588,7 +588,7 @@ export default function PanoramaViewer() {
             <p className="panorama-info-description">Просторные премиальные апартаменты с панорамным видом на Чёрное море.</p>
             <ul className="panorama-info-meta">{currentPano.meta.map((item, i) => (<li key={i}>{item}</li>))}</ul>
 
-            {!isMobile && !checkingStatus && (
+            {!checkingStatus && (
               <div className="panorama-desktop-actions">
                 {isActive ? (
                   <>
