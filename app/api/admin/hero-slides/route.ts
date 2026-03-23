@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { v4 as uuidv4 } from 'uuid';
+import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,22 +30,78 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    // Сохраняем файл
+    // Проверяем размер (макс 20MB для исходника)
+    if (file.size > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 });
+    }
+
+    // Читаем файл
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // Генерируем уникальное имя
-    const ext = file.name.split('.').pop();
-    const filename = `hero_${Date.now()}.${ext}`;
-    const filepath = path.join(process.cwd(), 'public/images/hero', filename);
-    
-    // Убедимся, что папка существует
-    const dir = path.join(process.cwd(), 'public/images/hero');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+
+    // Создаем папку если нет
+    const uploadDir = path.join(process.cwd(), 'public/images/hero');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
+
+    // Генерируем уникальное имя
+    const filename = `hero_${Date.now()}.webp`;
+    const outputPath = path.join(uploadDir, filename);
+
+    // Получаем метаданные для оптимизации
+    let metadata;
+    let processedBuffer: Buffer;
     
-    fs.writeFileSync(filepath, buffer);
+    try {
+      metadata = await sharp(buffer).metadata();
+      
+      // Оптимизируем размер (макс 1920px)
+      let width = metadata.width || 1920;
+      let height = metadata.height || 1080;
+      
+      if (width > 1920) {
+        height = Math.round((height * 1920) / width);
+        width = 1920;
+      }
+      
+      // Обрабатываем и сжимаем в WebP
+      const sharpInstance = sharp(buffer)
+        .resize(width, height, {
+          fit: 'cover',
+          position: 'center'
+        })
+        .webp({
+          quality: 85,
+          effort: 6,
+          lossless: false,
+          nearLossless: false,
+          smartSubsample: true
+        });
+      
+      processedBuffer = await sharpInstance.toBuffer() as Buffer;
+      
+      const originalSize = (buffer.length / 1024 / 1024).toFixed(2);
+      const newSize = (processedBuffer.length / 1024 / 1024).toFixed(2);
+      console.log(`📸 Hero image: ${originalSize}MB → ${newSize}MB (${metadata.width}x${metadata.height} → ${width}x${height})`);
+      
+      // Если после сжатия всё ещё больше 3MB — снижаем качество
+      if (processedBuffer.length > 3 * 1024 * 1024) {
+        console.log(`⚠️ Image still >3MB, reducing quality to 75%`);
+        const sharpRetry = sharp(buffer)
+          .resize(width, height, { fit: 'cover', position: 'center' })
+          .webp({ quality: 75, effort: 6 });
+        processedBuffer = await sharpRetry.toBuffer() as Buffer;
+      }
+      
+    } catch (sharpError) {
+      console.error('Sharp processing error:', sharpError);
+      // Если sharp не справился, используем оригинал
+      processedBuffer = buffer;
+    }
+
+    // Сохраняем обработанный файл
+    fs.writeFileSync(outputPath, processedBuffer);
     
     const imageUrl = `/images/hero/${filename}`;
     
@@ -65,7 +121,8 @@ export async function POST(request: Request) {
       success: true, 
       id: result.lastInsertRowid,
       image_url: imageUrl,
-      sort_order: sortOrder
+      sort_order: sortOrder,
+      size: processedBuffer.length
     });
     
   } catch (error) {
