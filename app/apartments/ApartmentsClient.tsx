@@ -53,10 +53,18 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
   // Инициализация из URL или контекста
   useEffect(() => {
-    // Безопасное получение параметров
-    const urlCheckIn = searchParams?.get('checkIn') || null;
-    const urlCheckOut = searchParams?.get('checkOut') || null;
-    const urlGuests = searchParams?.get('guests') || null;
+    // Безопасно получаем параметры
+    let urlCheckIn: string | null = null;
+    let urlCheckOut: string | null = null;
+    let urlGuests: string | null = null;
+    
+    try {
+      urlCheckIn = searchParams?.get('checkIn') || null;
+      urlCheckOut = searchParams?.get('checkOut') || null;
+      urlGuests = searchParams?.get('guests') || null;
+    } catch (e) {
+      console.log('SearchParams error, using defaults');
+    }
 
     if (urlCheckIn && urlCheckOut && urlGuests) {
       setCheckIn(urlCheckIn);
@@ -67,6 +75,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       setCheckOut(contextSearch.checkOut);
       setGuests(contextSearch.guests);
     }
+    // Если нет параметров — оставляем пустые поля
   }, [searchParams, contextSearch]);
 
   useEffect(() => {
@@ -162,7 +171,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         setBookingOpen(true);
       } else {
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
-        // Обновляем доступность
         setAvailableIds(prev => {
           const next = new Set(prev);
           next.delete(apartment.id);
@@ -237,7 +245,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
               {hasSearchParams ? (
                 checkingAvailability 
                   ? 'Проверяем доступность...' 
-                  : `Найдено: ${Array.from(availableIds).length} доступных апартаментов`
+                  : `Найдено: ${availableIds.size} доступных апартаментов`
               ) : (
                 'Все апартаменты'
               )}
