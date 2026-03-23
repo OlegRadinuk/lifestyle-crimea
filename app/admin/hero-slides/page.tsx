@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
 type HeroSlide = {
@@ -18,6 +18,9 @@ export default function HeroSlidesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   useEffect(() => {
     fetchSlides();
@@ -30,13 +33,16 @@ export default function HeroSlidesPage() {
     setLoading(false);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('Пожалуйста, выберите изображение');
-      return;
+      return false;
+    }
+
+    // Проверка размера (даём шанс, API сам сожмёт)
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Файл слишком большой (макс 20MB)');
+      return false;
     }
 
     setUploading(true);
@@ -53,17 +59,64 @@ export default function HeroSlidesPage() {
 
       if (res.ok) {
         await fetchSlides();
+        return true;
       } else {
         const error = await res.json();
         alert(error.error || 'Ошибка загрузки');
+        return false;
       }
     } catch (error) {
       console.error('Upload error:', error);
       alert('Ошибка при загрузке');
+      return false;
     } finally {
       setUploading(false);
       setUploadProgress(0);
-      e.target.value = '';
+    }
+  };
+
+  // Обработчик выбора файла через кнопку
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await handleFileUpload(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Drag-n-drop обработчики
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragActive(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragActive(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    dragCounter.current = 0;
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      await handleFileUpload(file);
     }
   };
 
@@ -111,12 +164,12 @@ export default function HeroSlidesPage() {
     fetchSlides();
   };
 
-  // Drag-n-drop
-  const handleDragStart = (index: number) => {
+  // Drag-n-drop для сортировки
+  const handleSortDragStart = (index: number) => {
     setDraggedItem(index);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleSortDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedItem === null || draggedItem === index) return;
     
@@ -128,7 +181,7 @@ export default function HeroSlidesPage() {
     setDraggedItem(index);
   };
 
-  const handleDragEnd = async () => {
+  const handleSortDragEnd = async () => {
     if (draggedItem === null) return;
     
     const ids = slides.map(slide => slide.id);
@@ -153,12 +206,21 @@ export default function HeroSlidesPage() {
 
       <div className="admin-card">
         <h2>Добавить новый слайд</h2>
-        <div className={`upload-area ${uploading ? 'uploading' : ''}`}>
+        
+        {/* Зона загрузки с drag-n-drop */}
+        <div
+          className={`upload-area ${dragActive ? 'drag-active' : ''} ${uploading ? 'uploading' : ''}`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           <input
+            ref={fileInputRef}
             type="file"
             id="hero-upload"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFileUpload}
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            onChange={handleFileSelect}
             disabled={uploading}
             style={{ display: 'none' }}
           />
@@ -168,10 +230,17 @@ export default function HeroSlidesPage() {
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <h3>{uploading ? 'Обработка и загрузка...' : 'Нажмите или перетащите изображение'}</h3>
-            <p>Рекомендуемый размер: 1920x1080px (max 20MB)</p>
+            <h3>
+              {uploading 
+                ? 'Обработка и загрузка...' 
+                : dragActive 
+                  ? 'Отпустите файл для загрузки' 
+                  : 'Нажмите или перетащите изображение'
+              }
+            </h3>
+            <p>Поддерживаются JPG, PNG, WEBP (до 20MB)</p>
             <p className="upload-hint">
-              🔥 Автоматическое сжатие в WebP (макс 3MB) · Качество 85%
+              🔥 Автоматическое сжатие в WebP (макс 3MB после обработки) · Качество 85%
             </p>
           </label>
         </div>
@@ -194,9 +263,9 @@ export default function HeroSlidesPage() {
               key={slide.id}
               className={`slide-item ${draggedItem === index ? 'dragging' : ''}`}
               draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
+              onDragStart={() => handleSortDragStart(index)}
+              onDragOver={(e) => handleSortDragOver(e, index)}
+              onDragEnd={handleSortDragEnd}
             >
               <div className="drag-handle">⋮⋮</div>
               <div className="slide-image">
@@ -265,13 +334,14 @@ export default function HeroSlidesPage() {
           border-radius: 12px;
           padding: 40px 20px;
           text-align: center;
-          cursor: pointer;
           transition: all 0.3s;
+          background: #fafbfc;
         }
         
-        .upload-area:hover {
+        .upload-area.drag-active {
           border-color: #139ab6;
-          background: #f0f9ff;
+          background: #e6f7ff;
+          transform: scale(1.02);
         }
         
         .upload-area.uploading {
