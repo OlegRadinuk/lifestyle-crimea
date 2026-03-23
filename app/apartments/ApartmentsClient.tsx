@@ -15,16 +15,6 @@ interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
 }
 
-function formatDateForInput(dateStr: string) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
-
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,10 +58,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     }
 
     if (urlCheckIn && urlCheckOut && urlGuests) {
+      console.log('📌 Using URL params:', { urlCheckIn, urlCheckOut, urlGuests });
       setCheckIn(urlCheckIn);
       setCheckOut(urlCheckOut);
       setGuests(parseInt(urlGuests));
     } else if (contextSearch) {
+      console.log('📌 Using context search:', contextSearch);
       setCheckIn(contextSearch.checkIn);
       setCheckOut(contextSearch.checkOut);
       setGuests(contextSearch.guests);
@@ -93,25 +85,25 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     return () => unregister('apartments-page');
   }, [register, unregister]);
 
-  // Проверка доступности для всех апартаментов
-  const checkAllAvailability = useCallback(async (checkInDate: string, checkOutDate: string, guestCount: number) => {
-    if (!checkInDate || !checkOutDate) return new Set<string>();
-    
+  // Проверка доступности
+  const checkAvailability = useCallback(async () => {
+    if (!checkIn || !checkOut) return;
+
     setCheckingAvailability(true);
     const available = new Set<string>();
 
-    // Фильтруем по максимальному количеству гостей
-    const filteredByGuests = allApartments.filter(apt => apt.max_guests >= guestCount);
+    // Фильтруем по количеству гостей
+    const apartmentsToCheck = allApartments.filter(apt => apt.max_guests >= guests);
+    
+    console.log('🔍 Checking availability for:', apartmentsToCheck.length, 'apartments (filtered by guests)');
     
     await Promise.all(
-      filteredByGuests.map(async (apt) => {
+      apartmentsToCheck.map(async (apt) => {
         try {
-          // Используем правильный эндпоинт с apartmentId
           const response = await fetch(
-            `/api/availability-travelline/${apt.id}?checkIn=${checkInDate}&checkOut=${checkOutDate}&t=${Date.now()}`
+            `/api/availability-travelline/${apt.id}?checkIn=${checkIn}&checkOut=${checkOut}&t=${Date.now()}`
           );
           const data = await response.json();
-          // Проверяем поле isAvailable из ответа API
           if (data.isAvailable === true) {
             available.add(apt.id);
           }
@@ -121,20 +113,19 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       })
     );
 
+    console.log('✅ Available apartments:', available.size);
+    setAvailableIds(available);
     setCheckingAvailability(false);
-    return available;
-  }, [allApartments]);
+  }, [checkIn, checkOut, guests, allApartments]);
 
   // Запускаем проверку при изменении дат или количества гостей
   useEffect(() => {
     if (checkIn && checkOut) {
-      checkAllAvailability(checkIn, checkOut, guests).then(available => {
-        setAvailableIds(available);
-      });
+      checkAvailability();
     } else {
       setAvailableIds(new Set());
     }
-  }, [checkIn, checkOut, guests, checkAllAvailability]);
+  }, [checkIn, checkOut, guests, checkAvailability]);
 
   const handleSearch = () => {
     if (!checkIn || !checkOut) {
@@ -149,14 +140,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     
     setFormError('');
     
-    // Обновляем URL
+    // Обновляем URL и контекст
     const params = new URLSearchParams();
     params.set('checkIn', checkIn);
     params.set('checkOut', checkOut);
     params.set('guests', guests.toString());
     router.push(`/apartments?${params.toString()}`);
-    
-    // Обновляем контекст
     setSearch({ checkIn, checkOut, guests });
   };
 
@@ -183,7 +172,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         setBookingOpen(true);
       } else {
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
-        // Обновляем доступность
         setAvailableIds(prev => {
           const next = new Set(prev);
           next.delete(apartment.id);
@@ -211,14 +199,14 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const hasSearchParams = checkIn && checkOut;
   
   // Фильтруем по количеству гостей для отображения
-  const filteredByGuests = sortedApartments.filter(apt => !hasSearchParams || apt.max_guests >= guests);
+  const displayedApartments = sortedApartments.filter(apt => !hasSearchParams || apt.max_guests >= guests);
   
   const availableCount = Array.from(availableIds).filter(id => {
     const apt = allApartments.find(a => a.id === id);
     return apt && apt.max_guests >= guests;
   }).length;
   
-  const totalCount = filteredByGuests.length;
+  const totalCount = displayedApartments.length;
 
   return (
     <>
@@ -262,7 +250,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         </div>
 
-        {/* Результаты поиска */}
+        {/* Результаты */}
         <div className="ap-results">
           <div className="ap-results-header">
             <span>
@@ -297,13 +285,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           <div className="ap-loading">Загрузка доступных апартаментов...</div>
         ) : (
           <div className="ap-list">
-            {filteredByGuests.length === 0 && hasSearchParams ? (
+            {displayedApartments.length === 0 && hasSearchParams ? (
               <div className="ap-empty">
                 <p>Нет апартаментов, подходящих под выбранные параметры</p>
                 <p>Попробуйте изменить даты или количество гостей</p>
               </div>
             ) : (
-              filteredByGuests.map((apartment, index) => {
+              displayedApartments.map((apartment, index) => {
                 const isAvailable = !hasSearchParams || availableIds.has(apartment.id);
                 const apartmentUrl = `/apartments/${apartment.id}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
                 
@@ -401,10 +389,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           onConfirm={() => {
             setBookingOpen(false);
             window.dispatchEvent(new CustomEvent('booking-completed'));
-            // Обновляем доступность после бронирования
-            checkAllAvailability(checkIn, checkOut, guests).then(available => {
-              setAvailableIds(available);
-            });
+            checkAvailability();
           }}
         />
       )}

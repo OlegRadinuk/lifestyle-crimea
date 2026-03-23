@@ -15,7 +15,7 @@ export interface Apartment {
   updated_at: string;
 }
 
-// Для использования в клиенте
+// Для использования в клиенте - created_at и updated_at опциональны
 export interface ApartmentClient {
   id: string;
   title: string;
@@ -29,8 +29,8 @@ export interface ApartmentClient {
   is_active: boolean; // boolean для клиента
   features: string[]; // массив для клиента
   images: string[]; // массив для клиента
-  created_at: string;
-  updated_at: string;
+  created_at?: string; // опционально, не всегда нужно на клиенте
+  updated_at?: string; // опционально, не всегда нужно на клиенте
 }
 
 export interface Booking {
