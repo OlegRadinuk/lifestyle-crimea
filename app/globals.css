@@ -8125,8 +8125,9 @@ html, body {
   align-items: center;
   gap: 12px;
   white-space: nowrap;
-  min-width: 290px; /* Увеличиваем минимальную ширину */
-  max-width: 380px; /* Ограничиваем максимальную ширину */
+  width: auto; /* Автоматическая ширина */
+  min-width: 320px; /* Увеличиваем минимальную ширину */
+  max-width: 400px; /* Максимальная ширина */
 }
 
 .panorama-arrow.left {
@@ -8151,7 +8152,7 @@ html, body {
   font-weight: 400;
   transition: transform 0.2s ease;
   line-height: 1;
-  flex-shrink: 0; /* Иконка не сжимается */
+  flex-shrink: 0;
 }
 
 .panorama-arrow:hover .arrow-icon {
@@ -8168,14 +8169,12 @@ html, body {
   color: white;
   letter-spacing: 0.3px;
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
 }
 
 /* Адаптация для разных размеров экрана */
 @media (max-width: 1400px) {
   .panorama-arrow {
-    min-width: 240px;
+    min-width: 280px;
     padding: 12px 24px;
   }
   
@@ -8186,26 +8185,58 @@ html, body {
 
 @media (max-width: 1200px) {
   .panorama-arrow {
-    min-width: 220px;
-    padding: 12px 20px;
+    min-width: 260px;
+    padding: 12px 22px;
   }
   
   .arrow-text {
     font-size: 12px;
   }
-  
-  .arrow-icon {
-    font-size: 18px;
-  }
 }
 
 @media (max-width: 1024px) {
   .panorama-arrow {
-    min-width: 200px;
+    min-width: 240px;
+    padding: 10px 20px;
+  }
+  
+  .arrow-text {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  .panorama-arrow {
+    min-width: 220px;
     padding: 10px 18px;
   }
   
   .arrow-text {
     font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .panorama-arrow {
+    min-width: auto;
+    width: auto;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  
+  .arrow-text {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .panorama-arrow {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  
+  .arrow-text {
+    font-size: 10px;
   }
 }
