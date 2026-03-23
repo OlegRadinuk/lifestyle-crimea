@@ -2,7 +2,15 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import JsonLdHotel from './json-ld-hotel';
-import { AppProviders } from '@/components/AppProviders';
+
+import HeaderConditional from '@/components/HeaderConditional';
+
+import { HeaderProvider } from '@/components/HeaderContext';
+import { SearchProvider } from '@/components/SearchContext';
+import { ApartmentProvider } from '@/components/ApartmentContext';
+import { PhotoModalProvider } from '@/components/photo-modal/PhotoModalContext';
+import { ModalProvider } from '@/components/ModalProvider';
+import { LayoutGroup } from 'framer-motion';
 
 const montserrat = Montserrat({
   subsets: ['latin', 'cyrillic'],
@@ -11,13 +19,12 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://lovelifestyle.ru'),
   title: {
-    default: 'Апартаменты в Алуште | Life Style Crimea | Стиль Жизни с любовью',
+    default: 'Апартаменты в Алуште | Апарт-отель Стиль Жизни с Любовью | Life Style Crimea',
     template: '%s | Life Style Crimea',
   },
-  description: 'Премиальные апартаменты в Алуште с видом на море. 38 дизайнерских номеров с балконами, полностью укомплектованы. Бронирование онлайн. Лучшие цены напрямую.',
-  keywords: 'апартаменты алушта, снять апартаменты в алуште, гостиница алушта, апартаменты с видом на море, life style crimea, стиль жизни с любовью',
+  description: 'Официальный сайт апарт-отеля «Стиль Жизни с Любовью» в Алуште. Дизайнерские апартаменты с видом на море. Гарантия лучшей цены, мгновенное подтверждение брони, бронирование онлайн.',
+  keywords: 'апартаменты алушта, апарт-отель алушта, снять апартаменты в алуште, апартаменты с видом на море, стиль жизни с любовью, life style crimea',
   authors: [{ name: 'Life Style Crimea' }],
   creator: 'Life Style Crimea',
   publisher: 'Life Style Crimea',
@@ -31,8 +38,8 @@ export const metadata: Metadata = {
     canonical: 'https://lovelifestyle.ru',
   },
   openGraph: {
-    title: 'Апартаменты в Алуште | Life Style Crimea',
-    description: 'Премиальные апартаменты в Алуште с видом на море. 38 дизайнерских номеров. Бронирование онлайн.',
+    title: 'Апартаменты в Алуште | Апарт-отель Стиль Жизни с Любовью | Life Style Crimea',
+    description: 'Официальный сайт апарт-отеля «Стиль Жизни с Любовью» в Алуште. Дизайнерские апартаменты с видом на море. Гарантия лучшей цены.',
     url: 'https://lovelifestyle.ru',
     siteName: 'Life Style Crimea',
     locale: 'ru_RU',
@@ -42,7 +49,7 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Life Style Crimea - апартаменты в Алуште',
+        alt: 'Апарт-отель Стиль Жизни с Любовью - апартаменты в Алуште',
       },
     ],
   },
@@ -60,7 +67,6 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <head>
-        {/* Preload главного изображения */}
         <link
           rel="preload"
           as="image"
@@ -69,24 +75,32 @@ export default function RootLayout({
           fetchPriority="high"
         />
 
-        {/* ========== ФАВИКОНКИ ========== */}
+        {/* ФАВИКОНКИ */}
         <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
         <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
         <link rel="shortcut icon" href="/favicons/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Love Life Style" />
         <link rel="manifest" href="/favicons/site.webmanifest" />
-        
-        {/* Цвет темы для браузера */}
         <meta name="theme-color" content="#139AB6" />
-        <meta name="msapplication-TileColor" content="#139AB6" />
-        <meta name="msapplication-navbutton-color" content="#139AB6" />
 
-        {/* JSON-LD разметка для главной */}
+        {/* JSON-LD для главной */}
         <JsonLdHotel />
       </head>
       <body className={montserrat.variable}>
-        <AppProviders>{children}</AppProviders>
+        <LayoutGroup id="global-modals">
+          <HeaderProvider>
+            <SearchProvider>
+              <ApartmentProvider>
+                <PhotoModalProvider>
+                  <HeaderConditional />
+                  {children}
+                  <ModalProvider />
+                </PhotoModalProvider>
+              </ApartmentProvider>
+            </SearchProvider>
+          </HeaderProvider>
+        </LayoutGroup>
       </body>
     </html>
   );
