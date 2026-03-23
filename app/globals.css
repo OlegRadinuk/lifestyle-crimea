@@ -8111,3 +8111,90 @@ html, body {
   inset: 0;
   background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
 }
+
+/* Кнопки переключения с текстом */
+.panorama-arrow {
+  position: relative;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 60px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.panorama-arrow.left {
+  flex-direction: row;
+}
+
+.panorama-arrow.right {
+  flex-direction: row-reverse;
+}
+
+.panorama-arrow:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.arrow-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.panorama-arrow.right .arrow-content {
+  align-items: flex-end;
+}
+
+.arrow-label-prefix {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.arrow-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.arrow-icon {
+  font-size: 24px;
+  color: white;
+  font-weight: 300;
+  transition: transform 0.2s ease;
+}
+
+.panorama-arrow:hover .arrow-icon {
+  transform: translateX(3px);
+}
+
+.panorama-arrow.left:hover .arrow-icon {
+  transform: translateX(-3px);
+}
+
+/* Адаптация для мобильных - скрываем длинный текст */
+@media (max-width: 768px) {
+  .panorama-arrow {
+    min-width: auto;
+    padding: 10px 16px;
+  }
+  
+  .arrow-content {
+    display: none;
+  }
+  
+  .arrow-icon {
+    font-size: 20px;
+  }
+}
