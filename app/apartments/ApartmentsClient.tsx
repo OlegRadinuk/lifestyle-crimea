@@ -15,12 +15,14 @@ interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
 }
 
-function formatDate(date: string): string {
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
+function formatDateForInput(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
@@ -53,7 +55,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
   // Инициализация из URL или контекста
   useEffect(() => {
-    // Безопасно получаем параметры
     let urlCheckIn: string | null = null;
     let urlCheckOut: string | null = null;
     let urlGuests: string | null = null;
@@ -75,7 +76,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       setCheckOut(contextSearch.checkOut);
       setGuests(contextSearch.guests);
     }
-    // Если нет параметров — оставляем пустые поля
   }, [searchParams, contextSearch]);
 
   useEffect(() => {
@@ -93,21 +93,26 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     return () => unregister('apartments-page');
   }, [register, unregister]);
 
-  // Проверка доступности
-  const checkAvailability = useCallback(async () => {
-    if (!checkIn || !checkOut) return;
-
+  // Проверка доступности для всех апартаментов
+  const checkAllAvailability = useCallback(async (checkInDate: string, checkOutDate: string, guestCount: number) => {
+    if (!checkInDate || !checkOutDate) return new Set<string>();
+    
     setCheckingAvailability(true);
     const available = new Set<string>();
 
+    // Фильтруем по максимальному количеству гостей
+    const filteredByGuests = allApartments.filter(apt => apt.max_guests >= guestCount);
+    
     await Promise.all(
-      allApartments.map(async (apt) => {
+      filteredByGuests.map(async (apt) => {
         try {
+          // Используем правильный эндпоинт с apartmentId
           const response = await fetch(
-            `/api/availability-travelline/${apt.id}?checkIn=${checkIn}&checkOut=${checkOut}&t=${Date.now()}`
+            `/api/availability-travelline/${apt.id}?checkIn=${checkInDate}&checkOut=${checkOutDate}&t=${Date.now()}`
           );
           const data = await response.json();
-          if (data.isAvailable) {
+          // Проверяем поле isAvailable из ответа API
+          if (data.isAvailable === true) {
             available.add(apt.id);
           }
         } catch (error) {
@@ -116,36 +121,43 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       })
     );
 
-    setAvailableIds(available);
     setCheckingAvailability(false);
-  }, [checkIn, checkOut, allApartments]);
+    return available;
+  }, [allApartments]);
 
-  // Запускаем проверку при изменении дат
+  // Запускаем проверку при изменении дат или количества гостей
   useEffect(() => {
     if (checkIn && checkOut) {
-      checkAvailability();
+      checkAllAvailability(checkIn, checkOut, guests).then(available => {
+        setAvailableIds(available);
+      });
     } else {
       setAvailableIds(new Set());
     }
-  }, [checkIn, checkOut, checkAvailability]);
+  }, [checkIn, checkOut, guests, checkAllAvailability]);
 
   const handleSearch = () => {
     if (!checkIn || !checkOut) {
       setFormError('Пожалуйста, выберите даты заезда и выезда');
       return;
     }
+    
+    if (guests < 1) {
+      setFormError('Пожалуйста, укажите количество гостей');
+      return;
+    }
+    
     setFormError('');
     
-    // Обновляем URL и контекст
+    // Обновляем URL
     const params = new URLSearchParams();
     params.set('checkIn', checkIn);
     params.set('checkOut', checkOut);
     params.set('guests', guests.toString());
     router.push(`/apartments?${params.toString()}`);
-    setSearch({ checkIn, checkOut, guests });
     
-    // Перепроверяем доступность
-    checkAvailability();
+    // Обновляем контекст
+    setSearch({ checkIn, checkOut, guests });
   };
 
   const handleBookingClick = async (apartment: ApartmentClient) => {
@@ -162,7 +174,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       );
       const data = await response.json();
 
-      if (data.isAvailable) {
+      if (data.isAvailable === true) {
         setBookingApartment({
           id: apartment.id,
           title: apartment.title,
@@ -171,6 +183,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         setBookingOpen(true);
       } else {
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
+        // Обновляем доступность
         setAvailableIds(prev => {
           const next = new Set(prev);
           next.delete(apartment.id);
@@ -196,6 +209,16 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   });
 
   const hasSearchParams = checkIn && checkOut;
+  
+  // Фильтруем по количеству гостей для отображения
+  const filteredByGuests = sortedApartments.filter(apt => !hasSearchParams || apt.max_guests >= guests);
+  
+  const availableCount = Array.from(availableIds).filter(id => {
+    const apt = allApartments.find(a => a.id === id);
+    return apt && apt.max_guests >= guests;
+  }).length;
+  
+  const totalCount = filteredByGuests.length;
 
   return (
     <>
@@ -239,109 +262,127 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         </div>
 
+        {/* Результаты поиска */}
         <div className="ap-results">
           <div className="ap-results-header">
             <span>
               {hasSearchParams ? (
                 checkingAvailability 
                   ? 'Проверяем доступность...' 
-                  : `Найдено: ${availableIds.size} доступных апартаментов`
+                  : `Найдено: ${availableCount} ${getDeclension(availableCount, 'доступный апартамент', 'доступных апартамента', 'доступных апартаментов')}`
               ) : (
-                'Все апартаменты'
+                `Все апартаменты (${allApartments.length})`
               )}
             </span>
-            {hasSearchParams && availableIds.size > 0 && (
+            {hasSearchParams && availableCount > 0 && (
               <span className="ap-available-count">
-                🟢 Доступно: {availableIds.size}
+                🟢 Доступно: {availableCount}
               </span>
             )}
-            {hasSearchParams && availableIds.size < allApartments.length && (
+            {hasSearchParams && availableCount < totalCount && (
               <span className="ap-unavailable-count">
-                🔴 Недоступно: {allApartments.length - availableIds.size}
+                🔴 Недоступно: {totalCount - availableCount}
+              </span>
+            )}
+            {hasSearchParams && guests > 0 && (
+              <span className="ap-guests-filter">
+                👥 До {guests} гостей
               </span>
             )}
           </div>
         </div>
 
+        {/* Список апартаментов */}
         {checkingAvailability && hasSearchParams ? (
           <div className="ap-loading">Загрузка доступных апартаментов...</div>
         ) : (
           <div className="ap-list">
-            {sortedApartments.map((apartment, index) => {
-              const isAvailable = !hasSearchParams || availableIds.has(apartment.id);
-              const apartmentUrl = `/apartments/${apartment.id}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
-              
-              return (
-                <article
-                  key={apartment.id}
-                  className={`ap-list-card card-appear ${!isAvailable ? 'unavailable' : ''}`}
-                  style={{ animationDelay: `${index * 80}ms` }}
-                >
-                  <div className="ap-list-image">
-                    <img 
-                      src={apartment.images?.[0] || '/images/placeholder.jpg'} 
-                      alt={apartment.title} 
-                    />
-                    <button
-                      className="ap-list-gallery-btn"
-                      onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
-                    >
-                      Смотреть фото
-                    </button>
-                    {!isAvailable && (
-                      <div className="unavailable-badge">Нет мест</div>
-                    )}
-                  </div>
-                  <div className="ap-list-content">
-                    <div className="ap-list-header">
-                      <h2>{apartment.title}</h2>
-                      <span className="ap-list-guests">
-                        до {apartment.max_guests} гостей
-                      </span>
+            {filteredByGuests.length === 0 && hasSearchParams ? (
+              <div className="ap-empty">
+                <p>Нет апартаментов, подходящих под выбранные параметры</p>
+                <p>Попробуйте изменить даты или количество гостей</p>
+              </div>
+            ) : (
+              filteredByGuests.map((apartment, index) => {
+                const isAvailable = !hasSearchParams || availableIds.has(apartment.id);
+                const apartmentUrl = `/apartments/${apartment.id}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+                
+                return (
+                  <article
+                    key={apartment.id}
+                    className={`ap-list-card card-appear ${!isAvailable ? 'unavailable' : ''}`}
+                    style={{ animationDelay: `${index * 80}ms` }}
+                  >
+                    <div className="ap-list-image">
+                      <img 
+                        src={apartment.images?.[0] || '/images/placeholder.jpg'} 
+                        alt={apartment.title} 
+                      />
+                      <button
+                        className="ap-list-gallery-btn"
+                        onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
+                      >
+                        Смотреть фото
+                      </button>
+                      {!isAvailable && hasSearchParams && (
+                        <div className="unavailable-badge">Нет мест</div>
+                      )}
                     </div>
-
-                    <p className="ap-list-description">{apartment.short_description}</p>
-
-                    {apartment.features && apartment.features.length > 0 && (
-                      <ul className="ap-list-features">
-                        {apartment.features.slice(0, 3).map((feature) => (
-                          <li key={feature}>{feature}</li>
-                        ))}
-                        {apartment.features.length > 3 && (
-                          <li>+{apartment.features.length - 3}</li>
-                        )}
-                      </ul>
-                    )}
-
-                    <div className="ap-list-footer">
-                      <div className="ap-list-price">
-                        от {apartment.price_base.toLocaleString()} ₽ / ночь
+                    <div className="ap-list-content">
+                      <div className="ap-list-header">
+                        <h2>{apartment.title}</h2>
+                        <span className="ap-list-guests">
+                          до {apartment.max_guests} гостей
+                        </span>
                       </div>
 
-                      <div className="ap-list-actions">
-                        <Link href={apartmentUrl} className="btn-outline">
-                          Подробнее
-                        </Link>
+                      <p className="ap-list-description">{apartment.short_description}</p>
 
-                        {isAvailable ? (
-                          <button
-                            className="btn-primary"
-                            onClick={() => handleBookingClick(apartment)}
-                            disabled={checkingId === apartment.id}
-                          >
-                            {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
-                          </button>
-                        ) : (
-                          <button className="btn-unavailable" disabled>
-                            Недоступно
-                          </button>
-                        )}
+                      {apartment.features && apartment.features.length > 0 && (
+                        <ul className="ap-list-features">
+                          {apartment.features.slice(0, 3).map((feature) => (
+                            <li key={feature}>{feature}</li>
+                          ))}
+                          {apartment.features.length > 3 && (
+                            <li>+{apartment.features.length - 3}</li>
+                          )}
+                        </ul>
+                      )}
+
+                      <div className="ap-list-footer">
+                        <div className="ap-list-price">
+                          от {apartment.price_base.toLocaleString()} ₽ / ночь
+                        </div>
+
+                        <div className="ap-list-actions">
+                          <Link href={apartmentUrl} className="btn-outline">
+                            Подробнее
+                          </Link>
+
+                          {!hasSearchParams ? (
+                            <Link href={`/apartments/${apartment.id}`} className="btn-primary">
+                              Выбрать даты
+                            </Link>
+                          ) : isAvailable ? (
+                            <button
+                              className="btn-primary"
+                              onClick={() => handleBookingClick(apartment)}
+                              disabled={checkingId === apartment.id}
+                            >
+                              {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
+                            </button>
+                          ) : (
+                            <button className="btn-unavailable" disabled>
+                              Недоступно
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
+                  </article>
+                );
+              })
+            )}
           </div>
         )}
 
@@ -360,10 +401,24 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           onConfirm={() => {
             setBookingOpen(false);
             window.dispatchEvent(new CustomEvent('booking-completed'));
-            checkAvailability();
+            // Обновляем доступность после бронирования
+            checkAllAvailability(checkIn, checkOut, guests).then(available => {
+              setAvailableIds(available);
+            });
           }}
         />
       )}
     </>
   );
+}
+
+// Вспомогательная функция для склонения
+function getDeclension(number: number, one: string, two: string, five: string): string {
+  const n = Math.abs(number);
+  const n10 = n % 10;
+  const n100 = n % 100;
+  
+  if (n10 === 1 && n100 !== 11) return one;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return two;
+  return five;
 }

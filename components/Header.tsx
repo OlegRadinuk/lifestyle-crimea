@@ -35,7 +35,7 @@ function formatDateForInput(dateStr: string) {
 export default function Header({ onBurgerClick }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const { setSearch } = useSearch();
+  const { setSearch, search: contextSearch } = useSearch(); // 👈 Добавляем useSearch
   const { mode, searchParams } = useHeader();
   const { currentApartment: panoramaApartment } = useApartment();
 
@@ -101,6 +101,16 @@ export default function Header({ onBurgerClick }: Props) {
       setUrlApartment(null);
     }
   }, [pathname, isApartmentPage]);
+
+  // Синхронизация с контекстом поиска
+  useEffect(() => {
+    // Если есть параметры из контекста и мы на hero режиме
+    if (contextSearch && mode === 'hero') {
+      setCheckIn(contextSearch.checkIn);
+      setCheckOut(contextSearch.checkOut);
+      setGuests(contextSearch.guests);
+    }
+  }, [contextSearch, mode]);
 
   // Определяем какой апартамент показывать в зависимости от страницы
   const getActiveApartment = () => {
@@ -376,15 +386,15 @@ export default function Header({ onBurgerClick }: Props) {
           )}
         </AnimatePresence>
 
-{mode === 'apartment' && activeApartment && isActive && (
-  <ApartmentHeaderButton
-    apartmentId={activeApartment.id}
-    apartmentTitle={activeApartment.title}
-    apartmentPrice={apartmentPrice}
-    isActive={isActive}
-    loadingPrice={loadingPrice}
-  />
-)}
+        {mode === 'apartment' && activeApartment && isActive && (
+          <ApartmentHeaderButton
+            apartmentId={activeApartment.id}
+            apartmentTitle={activeApartment.title}
+            apartmentPrice={apartmentPrice}
+            isActive={isActive}
+            loadingPrice={loadingPrice}
+          />
+        )}
 
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>
