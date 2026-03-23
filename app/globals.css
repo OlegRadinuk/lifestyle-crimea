@@ -8186,3 +8186,66 @@ html, body {
     font-size: 18px;
   }
 }
+
+/* Кнопки переключения */
+.panorama-arrow {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.panorama-arrow.left {
+  flex-direction: row;
+  margin-left: 30px;
+}
+
+.panorama-arrow.right {
+  flex-direction: row;
+  margin-right: 30px;
+}
+
+.panorama-arrow:hover {
+  transform: scale(1.05);
+}
+
+/* При наведении делаем голубыми */
+.panorama-arrow:hover .arrow-icon,
+.panorama-arrow:hover .arrow-text {
+  color: #139ab6 !important;
+  transition: color 0.2s ease;
+}
+
+.arrow-icon {
+  font-size: 24px;
+  color: white;
+  transition: all 0.2s ease;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.panorama-arrow:hover .arrow-icon {
+  transform: translateX(3px);
+  text-shadow: none;
+}
+
+.panorama-arrow.left:hover .arrow-icon {
+  transform: translateX(-3px);
+}
+
+.arrow-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.panorama-arrow:hover .arrow-text {
+  text-shadow: none;
+}
