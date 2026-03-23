@@ -28,7 +28,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: 'Апартаменты',
-    href: '/#panorama',
+    href: '/apartments',
     type: 'slider',
     images: Array.from({ length: 9 }, (_, i) => `/images/apartments/${i + 1}.webp`),
   },
@@ -74,9 +74,14 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   const touchStartX = useRef<number | null>(null);
 
   const baseActiveItem = useMemo(() => {
-    const found = menuItems.find(
-      (item) => item.href.split('#')[0] === pathname
-    );
+    const found = menuItems.find((item) => {
+      const itemPath = item.href.split('#')[0];
+      // Для страницы апартаментов проверяем startsWith
+      if (itemPath === '/apartments' && pathname?.startsWith('/apartments')) {
+        return true;
+      }
+      return itemPath === pathname;
+    });
     return found ?? menuItems[0];
   }, [pathname]);
 
@@ -87,9 +92,6 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [onClose]);
-
-  // Убираем автоплей - теперь слайдер не листается автоматически
-  // useEffect для автоплея удален
 
   const nextSlide = () => {
     if (!activeItem.images) return;

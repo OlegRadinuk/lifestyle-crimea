@@ -8118,26 +8118,30 @@ html, body {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 60px;
-  padding: 12px 24px;
+  padding: 14px 28px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 12px;
   white-space: nowrap;
+  min-width: 260px; /* Увеличиваем минимальную ширину */
+  max-width: 320px; /* Ограничиваем максимальную ширину */
 }
 
 .panorama-arrow.left {
   flex-direction: row;
+  justify-content: flex-start;
 }
 
 .panorama-arrow.right {
   flex-direction: row;
+  justify-content: flex-end;
 }
 
 .panorama-arrow:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
+  transform: scale(1.02);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -8147,6 +8151,7 @@ html, body {
   font-weight: 400;
   transition: transform 0.2s ease;
   line-height: 1;
+  flex-shrink: 0; /* Иконка не сжимается */
 }
 
 .panorama-arrow:hover .arrow-icon {
@@ -8162,13 +8167,27 @@ html, body {
   font-weight: 500;
   color: white;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
+/* Адаптация для разных размеров экрана */
+@media (max-width: 1400px) {
   .panorama-arrow {
-    padding: 10px 16px;
-    gap: 8px;
+    min-width: 240px;
+    padding: 12px 24px;
+  }
+  
+  .arrow-text {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .panorama-arrow {
+    min-width: 220px;
+    padding: 12px 20px;
   }
   
   .arrow-text {
@@ -8176,17 +8195,17 @@ html, body {
   }
   
   .arrow-icon {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 
-/* Если на маленьких экранах текст не помещается */
-@media (max-width: 480px) {
+@media (max-width: 1024px) {
   .panorama-arrow {
-    padding: 8px 12px;
+    min-width: 200px;
+    padding: 10px 18px;
   }
   
   .arrow-text {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
