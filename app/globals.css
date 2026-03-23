@@ -8112,9 +8112,8 @@ html, body {
   background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
 }
 
-/* Кнопки переключения с текстом */
+/* Кнопки переключения */
 .panorama-arrow {
-  position: relative;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -8125,7 +8124,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 180px;
+  white-space: nowrap;
 }
 
 .panorama-arrow.left {
@@ -8133,7 +8132,7 @@ html, body {
 }
 
 .panorama-arrow.right {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .panorama-arrow:hover {
@@ -8142,37 +8141,12 @@ html, body {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.arrow-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.panorama-arrow.right .arrow-content {
-  align-items: flex-end;
-}
-
-.arrow-label-prefix {
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.arrow-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  white-space: nowrap;
-}
-
 .arrow-icon {
-  font-size: 24px;
+  font-size: 20px;
   color: white;
-  font-weight: 300;
+  font-weight: 400;
   transition: transform 0.2s ease;
+  line-height: 1;
 }
 
 .panorama-arrow:hover .arrow-icon {
@@ -8183,18 +8157,36 @@ html, body {
   transform: translateX(-3px);
 }
 
-/* Адаптация для мобильных - скрываем длинный текст */
+.arrow-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  letter-spacing: 0.3px;
+}
+
+/* Адаптация для мобильных */
 @media (max-width: 768px) {
   .panorama-arrow {
-    min-width: auto;
     padding: 10px 16px;
+    gap: 8px;
   }
   
-  .arrow-content {
-    display: none;
+  .arrow-text {
+    font-size: 12px;
   }
   
   .arrow-icon {
-    font-size: 20px;
+    font-size: 16px;
+  }
+}
+
+/* Если на маленьких экранах текст не помещается */
+@media (max-width: 480px) {
+  .panorama-arrow {
+    padding: 8px 12px;
+  }
+  
+  .arrow-text {
+    font-size: 10px;
   }
 }

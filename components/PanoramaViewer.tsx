@@ -754,10 +754,7 @@ export default function PanoramaViewer() {
       }}
     >
       <span className="arrow-icon">←</span>
-      <div className="arrow-content">
-        <span className="arrow-label-prefix">Вернуться к</span>
-        <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
-      </div>
+      <span className="arrow-text">Вернуться к {cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
     </button>
 
     <div className="panorama-center">
@@ -782,10 +779,7 @@ export default function PanoramaViewer() {
         changePanorama(next);
       }}
     >
-      <div className="arrow-content">
-        <span className="arrow-label-prefix">Смотреть следующий</span>
-        <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
-      </div>
+      <span className="arrow-text">Смотреть следующий {cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
       <span className="arrow-icon">→</span>
     </button>
   </div>
