@@ -16,9 +16,10 @@ export default function HeroSlidesPage() {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [editedSlides, setEditedSlides] = useState<Record<number, { title: string; subtitle: string }>>({});
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
 
@@ -30,7 +31,54 @@ export default function HeroSlidesPage() {
     const res = await fetch('/api/admin/hero-slides');
     const data = await res.json();
     setSlides(data);
+    // Инициализируем editedSlides
+    const edits: Record<number, { title: string; subtitle: string }> = {};
+    data.forEach((slide: HeroSlide) => {
+      edits[slide.id] = {
+        title: slide.title || '',
+        subtitle: slide.subtitle || '',
+      };
+    });
+    setEditedSlides(edits);
     setLoading(false);
+  };
+
+  const handleTitleChange = (id: number, title: string) => {
+    setEditedSlides(prev => ({
+      ...prev,
+      [id]: { ...prev[id], title }
+    }));
+  };
+
+  const handleSubtitleChange = (id: number, subtitle: string) => {
+    setEditedSlides(prev => ({
+      ...prev,
+      [id]: { ...prev[id], subtitle }
+    }));
+  };
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    const promises = Object.entries(editedSlides).map(async ([idStr, data]) => {
+      const id = parseInt(idStr);
+      const originalSlide = slides.find(s => s.id === id);
+      
+      if (originalSlide?.title !== data.title || originalSlide?.subtitle !== data.subtitle) {
+        await fetch(`/api/admin/hero-slides/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: data.title || null,
+            subtitle: data.subtitle || null,
+          }),
+        });
+      }
+    });
+    
+    await Promise.all(promises);
+    await fetchSlides();
+    setSaving(false);
+    alert('Все изменения сохранены');
   };
 
   const handleFileUpload = async (file: File) => {
@@ -39,14 +87,12 @@ export default function HeroSlidesPage() {
       return false;
     }
 
-    // Проверка размера (даём шанс, API сам сожмёт)
     if (file.size > 20 * 1024 * 1024) {
       alert('Файл слишком большой (макс 20MB)');
       return false;
     }
 
     setUploading(true);
-    setUploadProgress(0);
     
     const formData = new FormData();
     formData.append('file', file);
@@ -71,11 +117,9 @@ export default function HeroSlidesPage() {
       return false;
     } finally {
       setUploading(false);
-      setUploadProgress(0);
     }
   };
 
-  // Обработчик выбора файла через кнопку
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -83,7 +127,7 @@ export default function HeroSlidesPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Drag-n-drop обработчики
+  // Drag-n-drop для загрузки
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -146,24 +190,6 @@ export default function HeroSlidesPage() {
     }
   };
 
-  const updateTitle = async (id: number, title: string) => {
-    await fetch(`/api/admin/hero-slides/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title }),
-    });
-    fetchSlides();
-  };
-
-  const updateSubtitle = async (id: number, subtitle: string) => {
-    await fetch(`/api/admin/hero-slides/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subtitle }),
-    });
-    fetchSlides();
-  };
-
   // Drag-n-drop для сортировки
   const handleSortDragStart = (index: number) => {
     setDraggedItem(index);
@@ -205,9 +231,10 @@ export default function HeroSlidesPage() {
       </div>
 
       <div className="admin-card">
-        <h2>Добавить новый слайд</h2>
+        <div className="card-header">
+          <h2>Добавить новый слайд</h2>
+        </div>
         
-        {/* Зона загрузки с drag-n-drop */}
         <div
           className={`upload-area ${dragActive ? 'drag-active' : ''} ${uploading ? 'uploading' : ''}`}
           onDragEnter={handleDragEnter}
@@ -254,7 +281,16 @@ export default function HeroSlidesPage() {
       </div>
 
       <div className="admin-card">
-        <h2>Слайды ({slides.length})</h2>
+        <div className="card-header">
+          <h2>Слайды ({slides.length})</h2>
+          <button 
+            onClick={handleSaveAll} 
+            className="save-all-btn"
+            disabled={saving}
+          >
+            {saving ? 'Сохранение...' : '💾 Сохранить все изменения'}
+          </button>
+        </div>
         <p className="gallery-hint">💡 Перетаскивайте слайды для изменения порядка</p>
         
         <div className="slides-list">
@@ -274,18 +310,16 @@ export default function HeroSlidesPage() {
               <div className="slide-info">
                 <input
                   type="text"
-                  value={slide.title || ''}
-                  onChange={(e) => updateTitle(slide.id, e.target.value)}
-                  onBlur={() => fetchSlides()}
-                  placeholder="Заголовок (опционально)"
+                  value={editedSlides[slide.id]?.title || ''}
+                  onChange={(e) => handleTitleChange(slide.id, e.target.value)}
+                  placeholder="Заголовок (оставьте пустым для стандартного 'Стиль Жизни')"
                   className="slide-title-input"
                 />
                 <input
                   type="text"
-                  value={slide.subtitle || ''}
-                  onChange={(e) => updateSubtitle(slide.id, e.target.value)}
-                  onBlur={() => fetchSlides()}
-                  placeholder="Подзаголовок (опционально)"
+                  value={editedSlides[slide.id]?.subtitle || ''}
+                  onChange={(e) => handleSubtitleChange(slide.id, e.target.value)}
+                  placeholder="Подзаголовок"
                   className="slide-subtitle-input"
                 />
               </div>
@@ -323,10 +357,39 @@ export default function HeroSlidesPage() {
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         
-        .admin-card h2 {
-          font-size: 18px;
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: 16px;
+        }
+        
+        .card-header h2 {
+          margin: 0;
+          font-size: 18px;
           color: #1a2634;
+        }
+        
+        .save-all-btn {
+          padding: 8px 20px;
+          background: linear-gradient(135deg, #139ab6, #1fb3cf);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        
+        .save-all-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
+        }
+        
+        .save-all-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
         
         .upload-area {
