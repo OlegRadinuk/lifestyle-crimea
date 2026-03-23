@@ -745,45 +745,51 @@ export default function PanoramaViewer() {
 )}
 
       {!isMobile && !fullscreenMode && (
-        <div className="panorama-ui">
-          <button 
-            className="panorama-arrow left" 
-            onClick={() => {
-              const prev = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
-              changePanorama(prev);
-            }}
-          >
-            <span className="arrow-icon">←</span>
-            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
-          </button>
+  <div className="panorama-ui">
+    <button 
+      className="panorama-arrow left" 
+      onClick={() => {
+        const prev = (currentApartmentIndex - 1 + panoramas.length) % panoramas.length;
+        changePanorama(prev);
+      }}
+    >
+      <span className="arrow-icon">←</span>
+      <div className="arrow-content">
+        <span className="arrow-label-prefix">Вернуться к</span>
+        <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
+      </div>
+    </button>
 
-          <div className="panorama-center">
-            <div className="panorama-tiles">
-              {panoramas.map((_, i) => (
-                <span
-                  key={i}
-                  className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
-                  onClick={() => changePanorama(i)}
-                />
-              ))}
-            </div>
-            {hintAllowed && isHover && (
-              <div className="panorama-hint">Нажмите и потяните, чтобы осмотреться</div>
-            )}
-          </div>
-
-          <button 
-            className="panorama-arrow right" 
-            onClick={() => {
-              const next = (currentApartmentIndex + 1) % panoramas.length;
-              changePanorama(next);
-            }}
-          >
-            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
-            <span className="arrow-icon">→</span>
-          </button>
-        </div>
+    <div className="panorama-center">
+      <div className="panorama-tiles">
+        {panoramas.map((_, i) => (
+          <span
+            key={i}
+            className={`tile ${i === currentApartmentIndex ? 'active' : ''}`}
+            onClick={() => changePanorama(i)}
+          />
+        ))}
+      </div>
+      {hintAllowed && isHover && (
+        <div className="panorama-hint">Нажмите и потяните, чтобы осмотреться</div>
       )}
+    </div>
+
+    <button 
+      className="panorama-arrow right" 
+      onClick={() => {
+        const next = (currentApartmentIndex + 1) % panoramas.length;
+        changePanorama(next);
+      }}
+    >
+      <div className="arrow-content">
+        <span className="arrow-label-prefix">Смотреть следующий</span>
+        <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
+      </div>
+      <span className="arrow-icon">→</span>
+    </button>
+  </div>
+)}
     </section>
   );
 }
