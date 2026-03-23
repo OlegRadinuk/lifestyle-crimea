@@ -687,18 +687,79 @@
   font-size: 18px;
   line-height: 1.6;
   color: #4a5a63;
-  margin: 0;
+  margin: 0 0 20px 0;
 }
 
-/* Десктопная версия - текст приподнят под хеддер */
+.ap-hero-description:last-child {
+  margin-bottom: 0;
+}
+
+/* ДЕСКТОПНАЯ ВЕРСИЯ - хеддер поверх контента */
 @media (min-width: 769px) {
   .ap-hero {
-    padding-top: 80px; /* Отступ под прозрачный хеддер */
-    min-height: 380px;
+    padding-top: 0; /* Убираем отступ сверху */
+    min-height: 100vh; /* На всю высоту экрана */
+    align-items: center; /* Центрируем по вертикали */
+  }
+  
+  .ap-hero-container {
+    margin-top: -40px; /* Немного поднимаем контент для лучшего визуала */
+  }
+  
+  /* Выравнивание заголовка с кнопкой меню */
+  .ap-hero-left {
+    margin-top: 0;
+  }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .ap-hero {
+    padding: 100px 20px 40px;
+    min-height: auto;
+    align-items: flex-start;
+  }
+  
+  .ap-hero-container {
+    flex-direction: column;
+    gap: 24px;
   }
   
   .ap-hero-left {
-    margin-top: 20px; /* Дополнительный отступ чтобы текст не упирался в кнопку меню */
+    flex: auto;
+    text-align: center;
+  }
+  
+  .ap-hero-brand {
+    font-size: 12px;
+  }
+  
+  .ap-hero-title {
+    font-size: 32px;
+  }
+  
+  .ap-hero-right {
+    flex: auto;
+  }
+  
+  .ap-hero-description {
+    font-size: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .ap-hero {
+    padding: 90px 16px 32px;
+  }
+  
+  .ap-hero-title {
+    font-size: 28px;
+  }
+  
+  .ap-hero-description {
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
