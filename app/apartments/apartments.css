@@ -29,7 +29,7 @@
 
 .ap-search-section {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 40px 24px;
+  padding: 0 24px 40px;
   border-bottom: 1px solid rgba(19, 154, 182, 0.15);
 }
 
@@ -44,6 +44,7 @@
   color: #1a2634;
   margin-bottom: 24px;
   text-align: center;
+  display: none; /* Убираем или скрываем старый заголовок */
 }
 
 .ap-search-form {
@@ -535,5 +536,102 @@
   .ap-list-actions button,
   .ap-list-actions a {
     width: 100%;
+  }
+}
+
+/* ===== HERO SECTION ===== */
+
+.ap-hero {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 120px 24px 60px;
+  border-bottom: 1px solid rgba(19, 154, 182, 0.15);
+}
+
+.ap-hero-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.ap-hero-left {
+  flex: 0 0 30%;
+}
+
+.ap-hero-brand {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #139ab6;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.ap-hero-title {
+  font-size: 48px;
+  font-weight: 600;
+  color: #1a2a33;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ap-hero-right {
+  flex: 0 0 70%;
+}
+
+.ap-hero-description {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #4a5a63;
+  margin: 0;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .ap-hero {
+    padding: 100px 20px 40px;
+  }
+  
+  .ap-hero-container {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .ap-hero-left {
+    flex: auto;
+    text-align: center;
+  }
+  
+  .ap-hero-brand {
+    font-size: 12px;
+  }
+  
+  .ap-hero-title {
+    font-size: 32px;
+  }
+  
+  .ap-hero-right {
+    flex: auto;
+  }
+  
+  .ap-hero-description {
+    font-size: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .ap-hero {
+    padding: 90px 16px 32px;
+  }
+  
+  .ap-hero-title {
+    font-size: 28px;
+  }
+  
+  .ap-hero-description {
+    font-size: 14px;
+    line-height: 1.5;
   }
 }

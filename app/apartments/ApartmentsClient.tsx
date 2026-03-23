@@ -211,10 +211,26 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   return (
     <>
       <section className="ap-page">
+        {/* Hero секция с заголовком и описанием */}
+        <div className="ap-hero">
+          <div className="ap-hero-container">
+            <div className="ap-hero-left">
+              <div className="ap-hero-brand">Стиль жизни . Алушта</div>
+              <h1 className="ap-hero-title">Апартаменты</h1>
+            </div>
+            <div className="ap-hero-right">
+              <p className="ap-hero-description">
+                Создано для жизни, наполнено стилем. Наши номера — это автономные апартаменты с уютной кухней, 
+                где удобно и готовить, и отдыхать. Мы подготовили сюрприз для эстетов: коллекцию номеров в разных стилях, 
+                чтобы вы могли выбрать интерьер, который понравится именно вам.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Форма поиска */}
         <div className="ap-search-section">
           <div className="ap-search-container">
-            <h2 className="ap-search-title">Выберите даты проживания</h2>
             <div className="ap-search-form">
               <div className="ap-search-field">
                 <label>Заезд</label>
@@ -250,7 +266,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           </div>
         </div>
 
-        {/* Результаты */}
+        {/* Результаты - только счетчик */}
         <div className="ap-results">
           <div className="ap-results-header">
             <span>
@@ -262,21 +278,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                 `Все апартаменты (${allApartments.length})`
               )}
             </span>
-            {hasSearchParams && availableCount > 0 && (
-              <span className="ap-available-count">
-                🟢 Доступно: {availableCount}
-              </span>
-            )}
-            {hasSearchParams && availableCount < totalCount && (
-              <span className="ap-unavailable-count">
-                🔴 Недоступно: {totalCount - availableCount}
-              </span>
-            )}
-            {hasSearchParams && guests > 0 && (
-              <span className="ap-guests-filter">
-                👥 До {guests} гостей
-              </span>
-            )}
           </div>
         </div>
 
