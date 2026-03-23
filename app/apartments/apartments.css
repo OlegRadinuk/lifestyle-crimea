@@ -635,3 +635,262 @@
     line-height: 1.5;
   }
 }
+
+/* ===== HERO SECTION ===== */
+
+.ap-hero {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 0 24px 60px;
+  border-bottom: 1px solid rgba(19, 154, 182, 0.15);
+  position: relative;
+  min-height: 320px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ap-hero-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.ap-hero-left {
+  flex: 0 0 30%;
+  position: relative;
+}
+
+.ap-hero-brand {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #139ab6;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.ap-hero-title {
+  font-size: 48px;
+  font-weight: 600;
+  color: #1a2a33;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ap-hero-right {
+  flex: 0 0 70%;
+}
+
+.ap-hero-description {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #4a5a63;
+  margin: 0;
+}
+
+/* Десктопная версия - текст приподнят под хеддер */
+@media (min-width: 769px) {
+  .ap-hero {
+    padding-top: 80px; /* Отступ под прозрачный хеддер */
+    min-height: 380px;
+  }
+  
+  .ap-hero-left {
+    margin-top: 20px; /* Дополнительный отступ чтобы текст не упирался в кнопку меню */
+  }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .ap-hero {
+    padding: 100px 20px 40px;
+    min-height: auto;
+    align-items: flex-start;
+  }
+  
+  .ap-hero-container {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .ap-hero-left {
+    flex: auto;
+    text-align: center;
+  }
+  
+  .ap-hero-brand {
+    font-size: 12px;
+  }
+  
+  .ap-hero-title {
+    font-size: 32px;
+  }
+  
+  .ap-hero-right {
+    flex: auto;
+  }
+  
+  .ap-hero-description {
+    font-size: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .ap-hero {
+    padding: 90px 16px 32px;
+  }
+  
+  .ap-hero-title {
+    font-size: 28px;
+  }
+  
+  .ap-hero-description {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* ===== FORM SEARCH ===== */
+
+.ap-search-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 0 24px 40px;
+  border-bottom: 1px solid rgba(19, 154, 182, 0.15);
+}
+
+.ap-search-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Убираем заголовок */
+.ap-search-title {
+  display: none;
+}
+
+.ap-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ap-search-field {
+  min-width: 180px;
+  flex: 1;
+}
+
+.ap-search-field label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.ap-search-field input,
+.ap-search-field select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.ap-search-field input:focus,
+.ap-search-field select:focus {
+  outline: none;
+  border-color: #139ab6;
+  box-shadow: 0 0 0 3px rgba(19, 154, 182, 0.1);
+}
+
+.ap-search-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #139ab6, #1fb3cf);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+.ap-search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(19, 154, 182, 0.3);
+}
+
+.ap-search-error {
+  text-align: center;
+  margin-top: 16px;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .ap-search-section {
+    padding: 0 16px 32px;
+  }
+  
+  .ap-search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ap-search-field {
+    min-width: auto;
+  }
+  
+  .ap-search-btn {
+    margin-top: 8px;
+  }
+}
+
+/* ===== RESULTS ===== */
+
+.ap-results {
+  max-width: 1280px;
+  margin: 30px auto 20px;
+  padding: 0 24px;
+}
+
+.ap-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 15px;
+  color: #64748b;
+}
+
+/* Скрываем цветные бейджи */
+.ap-available-count,
+.ap-unavailable-count,
+.ap-guests-filter {
+  display: none;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+  .ap-results {
+    margin: 20px auto 16px;
+    padding: 0 16px;
+  }
+  
+  .ap-results-header {
+    justify-content: center;
+    text-align: center;
+  }
+}
+

@@ -215,14 +215,14 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         <div className="ap-hero">
           <div className="ap-hero-container">
             <div className="ap-hero-left">
-              <div className="ap-hero-brand">Стиль жизни . Алушта</div>
+              <div className="ap-hero-brand">Стиль жизни · Алушта</div>
               <h1 className="ap-hero-title">Апартаменты</h1>
             </div>
             <div className="ap-hero-right">
               <p className="ap-hero-description">
                 Создано для жизни, наполнено стилем. Наши номера — это автономные апартаменты с уютной кухней, 
-                где удобно и готовить, и отдыхать. Мы подготовили сюрприз для эстетов: коллекцию номеров в разных стилях, 
-                чтобы вы могли выбрать интерьер, который понравится именно вам.
+                где удобно и готовить, и отдыхать. <br>Мы подготовили сюрприз для эстетов: коллекцию номеров в разных стилях, 
+                чтобы вы могли выбрать интерьер, который понравится именно вам.</br>
               </p>
             </div>
           </div>
