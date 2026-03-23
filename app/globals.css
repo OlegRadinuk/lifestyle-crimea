@@ -8118,26 +8118,29 @@ html, body {
   backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 60px !important;
-  padding: 14px 28px !important;
+  padding: 12px 24px !important;
   cursor: pointer !important;
   transition: all 0.3s ease !important;
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 8px !important;
   white-space: nowrap !important;
-  width: 380px !important; /* Фиксированная ширина */
-  min-width: 380px !important; /* Минимальная ширина */
-  max-width: 380px !important; /* Максимальная ширина */
+  width: auto !important;
+  min-width: auto !important;
+  max-width: none !important;
+  margin: 0 20px !important; /* Добавляем отступы от краев */
 }
 
 .panorama-arrow.left {
   flex-direction: row !important;
   justify-content: flex-start !important;
+  margin-left: 40px !important; /* Отступ слева */
 }
 
 .panorama-arrow.right {
   flex-direction: row !important;
   justify-content: flex-end !important;
+  margin-right: 40px !important; /* Отступ справа */
 }
 
 .panorama-arrow:hover {
@@ -8147,7 +8150,7 @@ html, body {
 }
 
 .arrow-icon {
-  font-size: 20px !important;
+  font-size: 18px !important;
   color: white !important;
   font-weight: 400 !important;
   transition: transform 0.2s ease !important;
@@ -8164,33 +8167,41 @@ html, body {
 }
 
 .arrow-text {
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
   color: white !important;
   letter-spacing: 0.3px !important;
   white-space: nowrap !important;
 }
 
-/* Адаптация для разных размеров экрана */
-@media (max-width: 1400px) {
-  .panorama-arrow {
-    width: 340px !important;
-    min-width: 340px !important;
-    max-width: 340px !important;
-    padding: 12px 24px !important;
-  }
-  
-  .arrow-text {
-    font-size: 13px !important;
-  }
+/* Для правой кнопки текст идет перед стрелкой */
+.panorama-arrow.right .arrow-text {
+  order: 0 !important;
 }
 
-@media (max-width: 1200px) {
-  .panorama-arrow {
-    width: 320px !important;
-    min-width: 320px !important;
-    max-width: 320px !important;
-    padding: 12px 22px !important;
+.panorama-arrow.right .arrow-icon {
+  order: 1 !important;
+  margin-left: 4px !important;
+}
+
+/* Для левой кнопки стрелка перед текстом */
+.panorama-arrow.left .arrow-icon {
+  order: 0 !important;
+  margin-right: 4px !important;
+}
+
+.panorama-arrow.left .arrow-text {
+  order: 1 !important;
+}
+
+/* Адаптация для разных размеров экрана */
+@media (max-width: 1400px) {
+  .panorama-arrow.left {
+    margin-left: 30px !important;
+  }
+  
+  .panorama-arrow.right {
+    margin-right: 30px !important;
   }
   
   .arrow-text {
@@ -8198,15 +8209,80 @@ html, body {
   }
 }
 
-@media (max-width: 1024px) {
-  .panorama-arrow {
-    width: 300px !important;
-    min-width: 300px !important;
-    max-width: 300px !important;
-    padding: 10px 20px !important;
+@media (max-width: 1200px) {
+  .panorama-arrow.left {
+    margin-left: 20px !important;
+  }
+  
+  .panorama-arrow.right {
+    margin-right: 20px !important;
   }
   
   .arrow-text {
     font-size: 11px !important;
+  }
+  
+  .panorama-arrow {
+    padding: 10px 20px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .panorama-arrow.left {
+    margin-left: 15px !important;
+  }
+  
+  .panorama-arrow.right {
+    margin-right: 15px !important;
+  }
+  
+  .arrow-text {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .panorama-arrow.left {
+    margin-left: 10px !important;
+  }
+  
+  .panorama-arrow.right {
+    margin-right: 10px !important;
+  }
+  
+  .arrow-text {
+    font-size: 10px !important;
+  }
+  
+  .panorama-arrow {
+    padding: 8px 16px !important;
+    gap: 6px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .panorama-arrow.left,
+  .panorama-arrow.right {
+    margin: 0 10px !important;
+  }
+  
+  .arrow-text {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .panorama-arrow.left,
+  .panorama-arrow.right {
+    margin: 0 5px !important;
+    padding: 6px 12px !important;
+  }
+  
+  .arrow-text {
+    font-size: 9px !important;
+  }
+  
+  .arrow-icon {
+    font-size: 14px !important;
   }
 }
