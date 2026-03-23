@@ -8125,8 +8125,8 @@ html, body {
   align-items: center;
   gap: 12px;
   white-space: nowrap;
-  min-width: 260px; /* Увеличиваем минимальную ширину */
-  max-width: 320px; /* Ограничиваем максимальную ширину */
+  min-width: 290px; /* Увеличиваем минимальную ширину */
+  max-width: 380px; /* Ограничиваем максимальную ширину */
 }
 
 .panorama-arrow.left {
