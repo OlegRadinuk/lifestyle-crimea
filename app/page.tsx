@@ -19,6 +19,7 @@ export default function HomePage() {
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  // Используем ref для хранения ключа, чтобы избежать лишних ререндеров
   const [mountKey, setMountKey] = useState(() => Date.now());
 
   const mainContainerRef = useCallback((node: HTMLDivElement | null) => {
@@ -28,21 +29,30 @@ export default function HomePage() {
     }
   }, []);
 
-  // Если пользователь ушёл на /apartments/[id] и потом вернулся на '/',
-  // иногда часть DOM/состояния может сохраняться (особенно на мобилках и в bfcache).
-  // Поэтому жёстко пересоздаём сцены через mountKey при переходе обратно на '/'.
+  // Отслеживаем переходы между страницами
   const prevPathRef = useRef<string | null>(null);
+  const isReturningFromApartment = useRef(false);
+
   useEffect(() => {
     const prev = prevPathRef.current;
     prevPathRef.current = pathname;
 
-    if (pathname === '/' && prev && prev !== '/') {
+    // Только при возврате с /apartments/[id] на /
+    if (pathname === '/' && prev && prev.startsWith('/apartments/')) {
+      isReturningFromApartment.current = true;
       setMountKey(Date.now());
+      
+      // Сбрасываем скролл
       const main = document.querySelector('.main-container');
       if (main instanceof HTMLElement) {
         main.scrollTop = 0;
       }
       window.scrollTo(0, 0);
+      
+      // Сбрасываем флаг после небольшой задержки
+      setTimeout(() => {
+        isReturningFromApartment.current = false;
+      }, 100);
     }
   }, [pathname]);
 
@@ -66,16 +76,24 @@ export default function HomePage() {
     return () => window.removeEventListener('pageshow', onPageShow);
   }, []);
 
-  // Только при возврате во вкладку — новый ключ, без двойного mount при каждом заходе на /
+  // Убираем visibilitychange, который вызывал пересоздание компонентов
+  // Оставляем только восстановление скролла при возврате на вкладку
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        setMountKey(Date.now());
+        // Только сбрасываем скролл, НЕ пересоздаём компоненты
         resetHomeScroll();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Дополнительная защита: если компонент размонтируется, сбрасываем флаг
+  useEffect(() => {
+    return () => {
+      isReturningFromApartment.current = false;
+    };
   }, []);
 
   // Schema.org разметка для отеля
