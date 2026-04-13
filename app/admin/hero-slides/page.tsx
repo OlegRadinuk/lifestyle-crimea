@@ -76,11 +76,16 @@ export default function HeroSlidesPage() {
   };
 
   const handleFileUpload = async (file: File) => {
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const videoExts = ['mp4', 'webm', 'ogv', 'ogg', 'mov'];
+    const imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif'];
+
+    // Проверяем и по MIME-типу, и по расширению (на Windows type иногда пустой)
+    const isImage = file.type.startsWith('image/') || imageExts.includes(ext);
+    const isVideo = file.type.startsWith('video/') || videoExts.includes(ext);
 
     if (!isImage && !isVideo) {
-      alert('Пожалуйста, выберите изображение (JPG, PNG, WEBP, HEIC) или видео (MP4, WEBM)');
+      alert('Пожалуйста, выберите изображение (JPG, PNG, WEBP, HEIC) или видео (MP4, WEBM, MOV)');
       return false;
     }
 

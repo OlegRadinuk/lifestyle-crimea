@@ -42,12 +42,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Файл не выбран' }, { status: 400 });
     }
 
-    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) || file.type.startsWith('image/');
-    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type) || file.type.startsWith('video/');
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const videoExts = ['mp4', 'webm', 'ogv', 'ogg', 'mov'];
+    const imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif'];
+
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) || file.type.startsWith('image/') || imageExts.includes(ext);
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type) || file.type.startsWith('video/') || videoExts.includes(ext);
 
     if (!isImage && !isVideo) {
       return NextResponse.json(
-        { error: `Неподдерживаемый тип файла: ${file.type}. Разрешены изображения (JPG, PNG, WEBP, HEIC) и видео (MP4, WEBM)` },
+        { error: `Неподдерживаемый тип файла: ${file.type || ext || 'неизвестно'}. Разрешены изображения (JPG, PNG, WEBP, HEIC) и видео (MP4, WEBM, MOV)` },
         { status: 400 }
       );
     }
@@ -74,7 +78,11 @@ export async function POST(request: Request) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
 
-      const ext = file.type === 'video/webm' ? 'webm' : file.type === 'video/ogg' ? 'ogv' : 'mp4';
+      const fileExt = file.name.split('.').pop()?.toLowerCase() ?? '';
+      const ext = file.type === 'video/webm' || fileExt === 'webm' ? 'webm'
+        : file.type === 'video/ogg' || fileExt === 'ogv' || fileExt === 'ogg' ? 'ogv'
+        : file.type === 'video/quicktime' || fileExt === 'mov' ? 'mov'
+        : 'mp4';
       const filename = `hero_${Date.now()}.${ext}`;
       const outputPath = path.join(uploadDir, filename);
 
