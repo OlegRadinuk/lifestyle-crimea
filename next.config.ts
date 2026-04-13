@@ -53,6 +53,20 @@ images: {
         ],
       },
       {
+        source: '/video/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          // Позволяет браузеру запрашивать части видео (range requests)
+          {
+            key: 'Accept-Ranges',
+            value: 'bytes',
+          },
+        ],
+      },
+      {
         source: '/_next/static/:path*',
         headers: [
           {

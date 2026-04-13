@@ -216,6 +216,28 @@ function ensureDatabaseStructure() {
       );
     `);
 
+    // Создаем таблицу hero_slides если нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS hero_slides (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        image_url TEXT NOT NULL,
+        media_type TEXT NOT NULL DEFAULT 'image',
+        title TEXT,
+        subtitle TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Миграция: добавить media_type если таблица уже существует без неё
+    const heroColumns = (db.prepare("PRAGMA table_info(hero_slides)").all() as { name: string }[]).map(c => c.name);
+    if (!heroColumns.includes('media_type')) {
+      db.exec("ALTER TABLE hero_slides ADD COLUMN media_type TEXT NOT NULL DEFAULT 'image'");
+      console.log('✅ Migrated hero_slides: added media_type column');
+    }
+
     // Создаем индексы
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_external_bookings_dates ON external_bookings(check_in, check_out);

@@ -7,6 +7,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 type HeroSlide = {
   id: number;
   image_url: string;
+  media_type: 'image' | 'video';
   title: string | null;
   subtitle: string | null;
   sort_order: number;
@@ -41,9 +42,9 @@ export default function Hero() {
         console.error('Error fetching hero slides:', error);
         // Запасные слайды на случай ошибки
         setSlides([
-          { id: 1, image_url: '/images/hero/hero1.webp', title: 'Стиль жизни', subtitle: 'Ваш стиль жизни у берега Черного моря', sort_order: 1, is_active: 1 },
-          { id: 2, image_url: '/images/hero/hero2.webp', title: 'Премиальные апартаменты', subtitle: 'Премиальные апартаменты в Алуште', sort_order: 2, is_active: 1 },
-          { id: 3, image_url: '/images/hero/hero3.webp', title: 'Комфорт и природа', subtitle: 'Комфорт, эстетика и природа', sort_order: 3, is_active: 1 },
+          { id: 1, image_url: '/images/hero/hero1.webp', media_type: 'image', title: 'Стиль жизни', subtitle: 'Ваш стиль жизни у берега Черного моря', sort_order: 1, is_active: 1 },
+          { id: 2, image_url: '/images/hero/hero2.webp', media_type: 'image', title: 'Премиальные апартаменты', subtitle: 'Премиальные апартаменты в Алуште', sort_order: 2, is_active: 1 },
+          { id: 3, image_url: '/images/hero/hero3.webp', media_type: 'image', title: 'Комфорт и природа', subtitle: 'Комфорт, эстетика и природа', sort_order: 3, is_active: 1 },
         ]);
       } finally {
         setLoading(false);
@@ -207,11 +208,24 @@ export default function Hero() {
       {/* SLIDES */}
       <div className="hero-slides">
         {activeSlides.map((slide, i) => (
-          <div
-            key={slide.id}
-            className={`hero-slide ${i === active ? 'active' : ''}`}
-            style={{ backgroundImage: `url(${slide.image_url})` }}
-          />
+          slide.media_type === 'video' ? (
+            <div key={slide.id} className={`hero-slide hero-slide--video ${i === active ? 'active' : ''}`}>
+              <video
+                src={slide.image_url}
+                autoPlay={i === active}
+                muted
+                loop
+                playsInline
+                preload={i === active ? 'auto' : 'none'}
+              />
+            </div>
+          ) : (
+            <div
+              key={slide.id}
+              className={`hero-slide ${i === active ? 'active' : ''}`}
+              style={{ backgroundImage: `url(${slide.image_url})` }}
+            />
+          )
         ))}
       </div>
 

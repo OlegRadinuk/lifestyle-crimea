@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -7,12 +8,15 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     const data = await request.json();
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
 
     if (data.title !== undefined) {
       updates.push('title = ?');
@@ -45,7 +49,7 @@ export async function PATCH(
     db.prepare(query).run(...values);
 
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Error updating hero slide:', error);
     return NextResponse.json({ error: 'Failed to update slide' }, { status: 500 });
@@ -56,35 +60,39 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
-    // Получаем информацию о слайде
-    const slide = db.prepare('SELECT image_url FROM hero_slides WHERE id = ?').get(id) as any;
-    
+    const slide = db.prepare('SELECT image_url, media_type FROM hero_slides WHERE id = ?').get(id) as {
+      image_url: string;
+      media_type: string;
+    } | undefined;
+
     if (slide) {
-      // Удаляем файл
+      // Удаляем файл (изображение или видео)
       const filepath = path.join(process.cwd(), 'public', slide.image_url);
       try {
         if (fs.existsSync(filepath)) {
           fs.unlinkSync(filepath);
         }
       } catch (e) {
-        console.log('Error deleting file:', e);
+        console.warn('Could not delete media file:', e);
       }
     }
-    
-    // Удаляем из БД
+
     db.prepare('DELETE FROM hero_slides WHERE id = ?').run(id);
-    
+
     // Перенумеровываем sort_order
-    const remaining = db.prepare('SELECT id FROM hero_slides ORDER BY sort_order').all() as any[];
-    remaining.forEach((item: any, index: number) => {
+    const remaining = db.prepare('SELECT id FROM hero_slides ORDER BY sort_order').all() as { id: number }[];
+    remaining.forEach((item, index) => {
       db.prepare('UPDATE hero_slides SET sort_order = ? WHERE id = ?').run(index + 1, item.id);
     });
-    
+
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Error deleting hero slide:', error);
     return NextResponse.json({ error: 'Failed to delete slide' }, { status: 500 });

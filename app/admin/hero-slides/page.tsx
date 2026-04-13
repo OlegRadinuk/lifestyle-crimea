@@ -6,6 +6,7 @@ import Link from 'next/link';
 type HeroSlide = {
   id: number;
   image_url: string;
+  media_type: 'image' | 'video';
   title: string | null;
   subtitle: string | null;
   sort_order: number;
@@ -16,6 +17,7 @@ export default function HeroSlidesPage() {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [editedSlides, setEditedSlides] = useState<Record<number, { title: string; subtitle: string }>>({});
@@ -29,11 +31,14 @@ export default function HeroSlidesPage() {
 
   const fetchSlides = async () => {
     const res = await fetch('/api/admin/hero-slides');
-    const data = await res.json();
+    if (res.status === 401) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    const data = await res.json() as HeroSlide[];
     setSlides(data);
-    // Инициализируем editedSlides
     const edits: Record<number, { title: string; subtitle: string }> = {};
-    data.forEach((slide: HeroSlide) => {
+    data.forEach((slide) => {
       edits[slide.id] = {
         title: slide.title || '',
         subtitle: slide.subtitle || '',
@@ -44,17 +49,11 @@ export default function HeroSlidesPage() {
   };
 
   const handleTitleChange = (id: number, title: string) => {
-    setEditedSlides(prev => ({
-      ...prev,
-      [id]: { ...prev[id], title }
-    }));
+    setEditedSlides(prev => ({ ...prev, [id]: { ...prev[id], title } }));
   };
 
   const handleSubtitleChange = (id: number, subtitle: string) => {
-    setEditedSlides(prev => ({
-      ...prev,
-      [id]: { ...prev[id], subtitle }
-    }));
+    setEditedSlides(prev => ({ ...prev, [id]: { ...prev[id], subtitle } }));
   };
 
   const handleSaveAll = async () => {
@@ -62,19 +61,14 @@ export default function HeroSlidesPage() {
     const promises = Object.entries(editedSlides).map(async ([idStr, data]) => {
       const id = parseInt(idStr);
       const originalSlide = slides.find(s => s.id === id);
-      
       if (originalSlide?.title !== data.title || originalSlide?.subtitle !== data.subtitle) {
         await fetch(`/api/admin/hero-slides/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: data.title || null,
-            subtitle: data.subtitle || null,
-          }),
+          body: JSON.stringify({ title: data.title || null, subtitle: data.subtitle || null }),
         });
       }
     });
-    
     await Promise.all(promises);
     await fetchSlides();
     setSaving(false);
@@ -82,18 +76,23 @@ export default function HeroSlidesPage() {
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Пожалуйста, выберите изображение');
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Пожалуйста, выберите изображение (JPG, PNG, WEBP, HEIC) или видео (MP4, WEBM)');
       return false;
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      alert('Файл слишком большой (макс 20MB)');
+    const maxSize = isVideo ? 200 * 1024 * 1024 : 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert(`Файл слишком большой. Максимум ${isVideo ? '200MB для видео' : '20MB для изображений'}`);
       return false;
     }
 
     setUploading(true);
-    
+    setUploadProgress(isVideo ? 'Загрузка видео...' : 'Обработка и загрузка...');
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -107,16 +106,17 @@ export default function HeroSlidesPage() {
         await fetchSlides();
         return true;
       } else {
-        const error = await res.json();
+        const error = await res.json() as { error?: string };
         alert(error.error || 'Ошибка загрузки');
         return false;
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Ошибка при загрузке');
+      alert('Ошибка при загрузке. Проверьте подключение к интернету.');
       return false;
     } finally {
       setUploading(false);
+      setUploadProgress('');
     }
   };
 
@@ -127,41 +127,29 @@ export default function HeroSlidesPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Drag-n-drop для загрузки
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      setDragActive(true);
-    }
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setDragActive(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setDragActive(false);
-    }
+    if (dragCounter.current === 0) setDragActive(false);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     dragCounter.current = 0;
-    
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      await handleFileUpload(file);
-    }
+    if (files && files.length > 0) await handleFileUpload(files[0]);
   };
 
   const toggleActive = async (id: number, current: boolean) => {
@@ -170,19 +158,12 @@ export default function HeroSlidesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_active: !current }),
     });
-    
-    if (res.ok) {
-      fetchSlides();
-    }
+    if (res.ok) fetchSlides();
   };
 
   const deleteSlide = async (id: number) => {
     if (!confirm('Удалить этот слайд?')) return;
-    
-    const res = await fetch(`/api/admin/hero-slides/${id}`, {
-      method: 'DELETE',
-    });
-    
+    const res = await fetch(`/api/admin/hero-slides/${id}`, { method: 'DELETE' });
     if (res.ok) {
       fetchSlides();
     } else {
@@ -190,33 +171,26 @@ export default function HeroSlidesPage() {
     }
   };
 
-  // Drag-n-drop для сортировки
-  const handleSortDragStart = (index: number) => {
-    setDraggedItem(index);
-  };
+  const handleSortDragStart = (index: number) => { setDraggedItem(index); };
 
   const handleSortDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedItem === null || draggedItem === index) return;
-    
     const newSlides = [...slides];
     const [removed] = newSlides.splice(draggedItem, 1);
     newSlides.splice(index, 0, removed);
-    
     setSlides(newSlides);
     setDraggedItem(index);
   };
 
   const handleSortDragEnd = async () => {
     if (draggedItem === null) return;
-    
     const ids = slides.map(slide => slide.id);
     await fetch('/api/admin/hero-slides/sort', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids }),
     });
-    
     setDraggedItem(null);
     fetchSlides();
   };
@@ -234,7 +208,7 @@ export default function HeroSlidesPage() {
         <div className="card-header">
           <h2>Добавить новый слайд</h2>
         </div>
-        
+
         <div
           className={`upload-area ${dragActive ? 'drag-active' : ''} ${uploading ? 'uploading' : ''}`}
           onDragEnter={handleDragEnter}
@@ -246,7 +220,7 @@ export default function HeroSlidesPage() {
             ref={fileInputRef}
             type="file"
             id="hero-upload"
-            accept="image/jpeg,image/jpg,image/png,image/webp"
+            accept="image/*,video/mp4,video/webm,video/ogg,video/quicktime"
             onChange={handleFileSelect}
             disabled={uploading}
             style={{ display: 'none' }}
@@ -258,24 +232,22 @@ export default function HeroSlidesPage() {
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <h3>
-              {uploading 
-                ? 'Обработка и загрузка...' 
-                : dragActive 
-                  ? 'Отпустите файл для загрузки' 
-                  : 'Нажмите или перетащите изображение'
-              }
+              {uploading
+                ? uploadProgress
+                : dragActive
+                  ? 'Отпустите файл'
+                  : 'Нажмите или перетащите файл'}
             </h3>
-            <p>Поддерживаются JPG, PNG, WEBP (до 12MB)</p>
-            <p className="upload-hint">
-              Автоматическое сжатие в WebP
-            </p>
+            <p>📷 Фото: JPG, PNG, WEBP, HEIC — до 20MB</p>
+            <p>🎬 Видео: MP4, WEBM — до 200MB</p>
+            <p className="upload-hint">Фото автоматически сжимаются в WebP</p>
           </label>
         </div>
-        
+
         {uploading && (
           <div className="upload-progress">
             <div className="spinner"></div>
-            <span>Загрузка и оптимизация...</span>
+            <span>{uploadProgress || 'Загрузка...'}</span>
           </div>
         )}
       </div>
@@ -283,16 +255,12 @@ export default function HeroSlidesPage() {
       <div className="admin-card">
         <div className="card-header">
           <h2>Слайды ({slides.length})</h2>
-          <button 
-            onClick={handleSaveAll} 
-            className="save-all-btn"
-            disabled={saving}
-          >
+          <button onClick={handleSaveAll} className="save-all-btn" disabled={saving}>
             {saving ? 'Сохранение...' : '💾 Сохранить все изменения'}
           </button>
         </div>
         <p className="gallery-hint">💡 Перетаскивайте слайды для изменения порядка</p>
-        
+
         <div className="slides-list">
           {slides.map((slide, index) => (
             <div
@@ -304,15 +272,24 @@ export default function HeroSlidesPage() {
               onDragEnd={handleSortDragEnd}
             >
               <div className="drag-handle">⋮⋮</div>
-              <div className="slide-image">
-                <img src={slide.image_url} alt="" />
+
+              <div className="slide-media">
+                {slide.media_type === 'video' ? (
+                  <video src={slide.image_url} muted playsInline preload="metadata" />
+                ) : (
+                  <img src={slide.image_url} alt="" loading="lazy" />
+                )}
+                {slide.media_type === 'video' && (
+                  <span className="media-badge">🎬</span>
+                )}
               </div>
+
               <div className="slide-info">
                 <input
                   type="text"
                   value={editedSlides[slide.id]?.title || ''}
                   onChange={(e) => handleTitleChange(slide.id, e.target.value)}
-                  placeholder="Заголовок (оставьте пустым для стандартного 'Стиль Жизни')"
+                  placeholder="Заголовок (оставьте пустым для 'Стиль Жизни')"
                   className="slide-title-input"
                 />
                 <input
@@ -323,6 +300,7 @@ export default function HeroSlidesPage() {
                   className="slide-subtitle-input"
                 />
               </div>
+
               <div className="slide-actions">
                 <button
                   onClick={() => toggleActive(slide.id, !!slide.is_active)}
@@ -330,17 +308,14 @@ export default function HeroSlidesPage() {
                 >
                   {slide.is_active ? '🟢 Активен' : '⚪ Неактивен'}
                 </button>
-                <button
-                  onClick={() => deleteSlide(slide.id)}
-                  className="delete-btn"
-                >
+                <button onClick={() => deleteSlide(slide.id)} className="delete-btn">
                   🗑️ Удалить
                 </button>
               </div>
             </div>
           ))}
         </div>
-        
+
         {slides.length === 0 && (
           <div className="empty-state">
             <p>Нет слайдов. Загрузите первый слайд выше!</p>
@@ -356,242 +331,81 @@ export default function HeroSlidesPage() {
           margin-bottom: 24px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        
         .card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 16px;
         }
-        
-        .card-header h2 {
-          margin: 0;
-          font-size: 18px;
-          color: #1a2634;
-        }
-        
+        .card-header h2 { margin: 0; font-size: 18px; color: #1a2634; }
         .save-all-btn {
           padding: 8px 20px;
           background: linear-gradient(135deg, #139ab6, #1fb3cf);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s;
+          color: white; border: none; border-radius: 8px;
+          font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s;
         }
-        
-        .save-all-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(19, 154, 182, 0.3);
-        }
-        
-        .save-all-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        
+        .save-all-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(19,154,182,0.3); }
+        .save-all-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .upload-area {
-          border: 2px dashed #cbd5e1;
-          border-radius: 12px;
-          padding: 40px 20px;
-          text-align: center;
-          transition: all 0.3s;
-          background: #fafbfc;
+          border: 2px dashed #cbd5e1; border-radius: 12px; padding: 40px 20px;
+          text-align: center; transition: all 0.3s; background: #fafbfc; cursor: pointer;
         }
-        
-        .upload-area.drag-active {
-          border-color: #139ab6;
-          background: #e6f7ff;
-          transform: scale(1.02);
-        }
-        
-        .upload-area.uploading {
-          opacity: 0.6;
-          pointer-events: none;
-        }
-        
-        .upload-label {
-          display: block;
-          cursor: pointer;
-        }
-        
-        .upload-label svg {
-          margin-bottom: 16px;
-          color: #64748b;
-        }
-        
-        .upload-label h3 {
-          margin: 0 0 8px;
-          font-size: 18px;
-          color: #1e293b;
-        }
-        
-        .upload-label p {
-          margin: 4px 0;
-          color: #64748b;
-          font-size: 14px;
-        }
-        
-        .upload-hint {
-          font-size: 12px !important;
-          color: #139ab6 !important;
-          margin-top: 8px !important;
-        }
-        
+        .upload-area.drag-active { border-color: #139ab6; background: #e6f7ff; transform: scale(1.02); }
+        .upload-area.uploading { opacity: 0.6; pointer-events: none; }
+        .upload-label { display: block; cursor: pointer; }
+        .upload-label svg { margin-bottom: 16px; color: #64748b; }
+        .upload-label h3 { margin: 0 0 8px; font-size: 18px; color: #1e293b; }
+        .upload-label p { margin: 4px 0; color: #64748b; font-size: 14px; }
+        .upload-hint { font-size: 12px !important; color: #139ab6 !important; margin-top: 8px !important; }
         .upload-progress {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          margin-top: 16px;
-          padding: 12px;
-          background: #f0f9ff;
-          border-radius: 8px;
-          color: #0369a1;
+          display: flex; align-items: center; justify-content: center; gap: 12px;
+          margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px; color: #0369a1;
         }
-        
         .spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid #e2e8f0;
-          border-top-color: #139ab6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
+          width: 20px; height: 20px; border: 2px solid #e2e8f0;
+          border-top-color: #139ab6; border-radius: 50%; animation: spin 1s linear infinite;
         }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        
-        .gallery-hint {
-          font-size: 13px;
-          color: #64748b;
-          margin-bottom: 20px;
-        }
-        
-        .slides-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .gallery-hint { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        .slides-list { display: flex; flex-direction: column; gap: 12px; }
         .slide-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 12px 16px;
-          background: #f8fafc;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-          transition: all 0.2s;
-          cursor: grab;
+          display: flex; align-items: center; gap: 16px; padding: 12px 16px;
+          background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;
+          transition: all 0.2s; cursor: grab;
         }
-        
-        .slide-item.dragging {
-          opacity: 0.5;
-          cursor: grabbing;
+        .slide-item.dragging { opacity: 0.5; cursor: grabbing; }
+        .slide-item:hover { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .drag-handle { font-size: 24px; color: #94a3b8; cursor: grab; user-select: none; width: 32px; text-align: center; }
+        .slide-media {
+          width: 120px; height: 68px; border-radius: 8px;
+          overflow: hidden; background: #f1f5f9; flex-shrink: 0; position: relative;
         }
-        
-        .slide-item:hover {
-          background: white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .slide-media img, .slide-media video { width: 100%; height: 100%; object-fit: cover; }
+        .media-badge {
+          position: absolute; top: 4px; right: 4px;
+          background: rgba(0,0,0,0.6); border-radius: 4px;
+          font-size: 12px; padding: 2px 4px; line-height: 1;
         }
-        
-        .drag-handle {
-          font-size: 24px;
-          color: #94a3b8;
-          cursor: grab;
-          user-select: none;
-          width: 32px;
-          text-align: center;
+        .slide-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .slide-title-input, .slide-subtitle-input {
+          padding: 8px 12px; border: 1px solid #e2e8f0;
+          border-radius: 8px; font-size: 14px; background: white;
         }
-        
-        .slide-image {
-          width: 120px;
-          height: 68px;
-          border-radius: 8px;
-          overflow: hidden;
-          background: #f1f5f9;
-          flex-shrink: 0;
-        }
-        
-        .slide-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        
-        .slide-info {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        .slide-title-input,
-        .slide-subtitle-input {
-          padding: 8px 12px;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          font-size: 14px;
-          background: white;
-        }
-        
-        .slide-title-input:focus,
-        .slide-subtitle-input:focus {
-          outline: none;
-          border-color: #139ab6;
-        }
-        
-        .slide-actions {
-          display: flex;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-        
+        .slide-title-input:focus, .slide-subtitle-input:focus { outline: none; border-color: #139ab6; }
+        .slide-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .status-btn {
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 500;
-          cursor: pointer;
-          border: none;
-          transition: all 0.2s;
+          padding: 8px 16px; border-radius: 8px; font-size: 12px;
+          font-weight: 500; cursor: pointer; border: none; transition: all 0.2s;
         }
-        
-        .status-btn.active {
-          background: #e8f5e9;
-          color: #2e7d32;
-        }
-        
-        .status-btn.inactive {
-          background: #f5f5f5;
-          color: #757575;
-        }
-        
+        .status-btn.active { background: #e8f5e9; color: #2e7d32; }
+        .status-btn.inactive { background: #f5f5f5; color: #757575; }
         .delete-btn {
-          padding: 8px 16px;
-          background: #fee2e2;
-          color: #c62828;
-          border: none;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
+          padding: 8px 16px; background: #fee2e2; color: #c62828;
+          border: none; border-radius: 8px; font-size: 12px;
+          font-weight: 500; cursor: pointer; transition: all 0.2s;
         }
-        
-        .delete-btn:hover {
-          background: #ffcdd2;
-        }
-        
-        .empty-state {
-          text-align: center;
-          padding: 40px;
-          color: #94a3b8;
-        }
+        .delete-btn:hover { background: #ffcdd2; }
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
       `}</style>
     </div>
   );

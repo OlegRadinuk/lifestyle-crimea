@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function POST(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { ids } = await request.json();
     
