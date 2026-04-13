@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { checkAdminAuth } from '@/lib/admin-auth';
 import sharp from 'sharp';
-import fs from 'fs';
+import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import path from 'path';
+
+// Увеличиваем timeout роута до 120 секунд (обработка видео/больших фото)
+export const maxDuration = 120;
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
-const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif'];
+const VIDEO_EXTS = ['mp4', 'webm', 'ogv', 'ogg', 'mov'];
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;   // 20MB
+const MAX_VIDEO_SIZE = 200 * 1024 * 1024;  // 200MB
 
 // GET /api/admin/hero-slides
 export async function GET(request: Request) {
@@ -16,10 +22,7 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const slides = db.prepare(`
-      SELECT * FROM hero_slides ORDER BY sort_order ASC
-    `).all();
-
+    const slides = db.prepare('SELECT * FROM hero_slides ORDER BY sort_order ASC').all();
     return NextResponse.json(slides);
   } catch (error) {
     console.error('Error fetching hero slides:', error);
@@ -42,25 +45,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Файл не выбран' }, { status: 400 });
     }
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-    const videoExts = ['mp4', 'webm', 'ogv', 'ogg', 'mov'];
-    const imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif'];
-
-    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) || file.type.startsWith('image/') || imageExts.includes(ext);
-    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type) || file.type.startsWith('video/') || videoExts.includes(ext);
+    const fileExt = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) || file.type.startsWith('image/') || IMAGE_EXTS.includes(fileExt);
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type) || file.type.startsWith('video/') || VIDEO_EXTS.includes(fileExt);
 
     if (!isImage && !isVideo) {
       return NextResponse.json(
-        { error: `Неподдерживаемый тип файла: ${file.type || ext || 'неизвестно'}. Разрешены изображения (JPG, PNG, WEBP, HEIC) и видео (MP4, WEBM, MOV)` },
+        { error: `Неподдерживаемый тип файла: ${file.type || fileExt || 'неизвестно'}. Разрешены JPG, PNG, WEBP, HEIC и видео MP4, WEBM, MOV` },
         { status: 400 }
       );
     }
 
     const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
     if (file.size > maxSize) {
-      const limitMB = maxSize / 1024 / 1024;
       return NextResponse.json(
-        { error: `Файл слишком большой. Максимум ${limitMB}MB для ${isVideo ? 'видео' : 'изображений'}` },
+        { error: `Файл слишком большой. Максимум ${maxSize / 1024 / 1024}MB` },
         { status: 400 }
       );
     }
@@ -72,87 +71,73 @@ export async function POST(request: Request) {
     let mediaType: 'image' | 'video';
 
     if (isVideo) {
-      // Видео: сохраняем как есть, определяем расширение
       const uploadDir = path.join(process.cwd(), 'public/video/hero');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+      if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase() ?? '';
-      const ext = file.type === 'video/webm' || fileExt === 'webm' ? 'webm'
-        : file.type === 'video/ogg' || fileExt === 'ogv' || fileExt === 'ogg' ? 'ogv'
-        : file.type === 'video/quicktime' || fileExt === 'mov' ? 'mov'
+      const outExt = fileExt === 'webm' ? 'webm'
+        : (fileExt === 'ogv' || fileExt === 'ogg') ? 'ogv'
+        : fileExt === 'mov' ? 'mov'
         : 'mp4';
-      const filename = `hero_${Date.now()}.${ext}`;
+      const filename = `hero_${Date.now()}.${outExt}`;
       const outputPath = path.join(uploadDir, filename);
 
-      fs.writeFileSync(outputPath, buffer);
+      await writeFile(outputPath, buffer);
       mediaUrl = `/video/hero/${filename}`;
       mediaType = 'video';
+      console.log(`🎬 Video saved: ${(buffer.length / 1024 / 1024).toFixed(1)}MB → ${filename}`);
 
-      console.log(`🎬 Hero video saved: ${(buffer.length / 1024 / 1024).toFixed(1)}MB → ${filename}`);
     } else {
-      // Изображение: обрабатываем через sharp
       const uploadDir = path.join(process.cwd(), 'public/images/hero');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+      if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
       const filename = `hero_${Date.now()}.webp`;
       const outputPath = path.join(uploadDir, filename);
 
+      // Читаем метаданные
       let metadata: Awaited<ReturnType<typeof sharp.prototype.metadata>>;
       try {
         metadata = await sharp(buffer).metadata();
-      } catch (sharpErr) {
-        console.error('Sharp cannot read file metadata:', sharpErr);
+      } catch (err) {
+        console.error('Sharp metadata error:', err);
         return NextResponse.json(
-          { error: 'Не удалось прочитать изображение. Убедитесь что файл не повреждён и является корректным изображением.' },
+          { error: 'Не удалось прочитать изображение. Проверьте что файл не повреждён.' },
           { status: 400 }
         );
       }
 
+      // Ограничиваем до 1920px по ширине
       let width = metadata.width ?? 1920;
       let height = metadata.height ?? 1080;
-
       if (width > 1920) {
         height = Math.round((height * 1920) / width);
         width = 1920;
       }
 
+      // Один проход sharp: effort 3 (быстро, качество хорошее)
+      // При больших файлах quality 75 сразу — не нужен второй проход
+      const quality = buffer.length > 5 * 1024 * 1024 ? 75 : 82;
       let processedBuffer: Buffer;
       try {
         processedBuffer = await sharp(buffer)
+          .rotate() // авто-ориентация по EXIF (исправляет повёрнутые iPhone фото)
           .resize(width, height, { fit: 'cover', position: 'center' })
-          .webp({ quality: 85, effort: 6, smartSubsample: true })
+          .webp({ quality, effort: 3 })
           .toBuffer() as Buffer;
 
-        const originalMB = (buffer.length / 1024 / 1024).toFixed(2);
-        const newMB = (processedBuffer.length / 1024 / 1024).toFixed(2);
-        console.log(`📸 Hero image: ${originalMB}MB → ${newMB}MB (${metadata.width}x${metadata.height} → ${width}x${height})`);
-
-        // Если всё ещё >3MB — снижаем качество
-        if (processedBuffer.length > 3 * 1024 * 1024) {
-          console.log('⚠️ Image still >3MB, reducing quality to 75%');
-          processedBuffer = await sharp(buffer)
-            .resize(width, height, { fit: 'cover', position: 'center' })
-            .webp({ quality: 75, effort: 6 })
-            .toBuffer() as Buffer;
-        }
-      } catch (sharpErr) {
-        console.error('Sharp processing failed:', sharpErr);
+        console.log(`📸 Image: ${(buffer.length / 1024 / 1024).toFixed(2)}MB → ${(processedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
+      } catch (err) {
+        console.error('Sharp processing error:', err);
         return NextResponse.json(
-          { error: 'Ошибка обработки изображения. Попробуйте другой формат (JPG или PNG).' },
+          { error: 'Ошибка обработки изображения. Попробуйте JPG или PNG.' },
           { status: 400 }
         );
       }
 
-      fs.writeFileSync(outputPath, processedBuffer);
+      await writeFile(outputPath, processedBuffer);
       mediaUrl = `/images/hero/${filename}`;
       mediaType = 'image';
     }
 
-    // Получаем максимальный sort_order
     const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM hero_slides').get() as { max: number };
     const sortOrder = (maxOrder.max || 0) + 1;
 

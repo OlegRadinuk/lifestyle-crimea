@@ -105,6 +105,7 @@ export default function HeroSlidesPage() {
       const res = await fetch('/api/admin/hero-slides', {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(120_000), // 2 минуты для больших видео
       });
 
       if (res.ok) {
@@ -117,7 +118,11 @@ export default function HeroSlidesPage() {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Ошибка при загрузке. Проверьте подключение к интернету.');
+      if (error instanceof DOMException && error.name === 'TimeoutError') {
+        alert('Файл слишком долго обрабатывается. Попробуйте сжать изображение перед загрузкой.');
+      } else {
+        alert('Ошибка при загрузке. Проверьте консоль сервера (F12 → Network).');
+      }
       return false;
     } finally {
       setUploading(false);
