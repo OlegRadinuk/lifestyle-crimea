@@ -240,11 +240,11 @@ export default function HeroSlidesPage() {
               {uploading
                 ? uploadProgress
                 : dragActive
-                  ? 'Отпустите файл'
-                  : 'Нажмите или перетащите файл'}
+                  ? 'Отпустите файл для загрузки'
+                  : 'Нажмите или перетащите фото / видео'}
             </h3>
-            <p>📷 Фото: JPG, PNG, WEBP, HEIC — до 20MB</p>
-            <p>🎬 Видео: MP4, WEBM — до 200MB</p>
+            <p>📷 Фото — JPG, PNG, WEBP, HEIC до 20MB</p>
+            <p>🎬 Видео — MP4, WEBM, MOV до 200MB</p>
             <p className="upload-hint">Фото автоматически сжимаются в WebP</p>
           </label>
         </div>
