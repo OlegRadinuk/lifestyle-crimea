@@ -25,6 +25,7 @@ export default function Hero() {
   const { register, unregister } = useHeader();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -139,10 +140,23 @@ export default function Hero() {
     };
   }, []);
 
+  /* Управление воспроизведением видео при смене слайда */
+  useEffect(() => {
+    videoRefs.current.forEach((videoEl, slideId) => {
+      const slideIndex = activeSlides.findIndex(s => s.id === slideId);
+      if (slideIndex === active) {
+        videoEl.currentTime = 0;
+        videoEl.play().catch(() => {/* autoplay policy — игнорируем */});
+      } else {
+        videoEl.pause();
+      }
+    });
+  }, [active, activeSlides]);
+
   /* AUTOPLAY - обновлено для работы с динамическими слайдами */
   useEffect(() => {
     if (activeSlides.length <= 1) return;
-    
+
     timeoutRef.current = setTimeout(() => {
       setActive(prev => (prev + 1) % activeSlides.length);
     }, 5000);
@@ -211,12 +225,15 @@ export default function Hero() {
           slide.media_type === 'video' ? (
             <div key={slide.id} className={`hero-slide hero-slide--video ${i === active ? 'active' : ''}`}>
               <video
+                ref={el => {
+                  if (el) videoRefs.current.set(slide.id, el);
+                  else videoRefs.current.delete(slide.id);
+                }}
                 src={slide.image_url}
-                autoPlay={i === active}
                 muted
                 loop
                 playsInline
-                preload={i === active ? 'auto' : 'none'}
+                preload="auto"
               />
             </div>
           ) : (
