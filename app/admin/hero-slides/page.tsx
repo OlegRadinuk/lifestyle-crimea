@@ -111,9 +111,16 @@ export default function HeroSlidesPage() {
       if (res.ok) {
         await fetchSlides();
         return true;
+      } else if (res.status === 413) {
+        alert('Файл слишком большой для сервера. Обратитесь к администратору (нужно увеличить client_max_body_size в nginx).');
+        return false;
       } else {
-        const error = await res.json() as { error?: string };
-        alert(error.error || 'Ошибка загрузки');
+        let errMsg = 'Ошибка загрузки';
+        try {
+          const error = await res.json() as { error?: string };
+          errMsg = error.error || errMsg;
+        } catch { /* сервер вернул не JSON */ }
+        alert(errMsg);
         return false;
       }
     } catch (error) {
