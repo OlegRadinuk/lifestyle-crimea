@@ -106,7 +106,7 @@ images: {
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'lovelifestyle.ru'],
-      bodySizeLimit: '2mb'
+      bodySizeLimit: '250mb'
     }
   },
 
