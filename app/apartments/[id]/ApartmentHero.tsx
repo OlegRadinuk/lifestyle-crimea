@@ -13,7 +13,7 @@ const IC: React.FC<React.SVGProps<SVGSVGElement>> = (p) => (
     strokeWidth={SW} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p} />
 );
 
-const icons: Record<string, JSX.Element> = {
+const icons: Record<string, React.ReactElement> = {
   wifi:        <IC><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></IC>,
   fridge:      <IC><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="9" y1="6" x2="9" y2="8"/><line x1="9" y1="14" x2="9" y2="16"/></IC>,
   snow:        <IC><line x1="12" y1="2" x2="12" y2="22"/><path d="m17 7-5-5-5 5"/><path d="m17 17-5 5-5-5"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m7 7-5 5 5 5"/><path d="m17 7 5 5-5 5"/></IC>,
