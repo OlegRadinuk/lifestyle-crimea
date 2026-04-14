@@ -1,7 +1,11 @@
 /* ===== BASE ===== */
 
 .ap-page {
-  background: #ffffff;
+  background-color: #f4f8fb;
+  background-image: url('/images/backgraund/background.webp');
+  background-repeat: repeat;
+  background-size: 740px auto;
+  background-attachment: local;
   color: #353839;
   min-height: 100vh;
   position: relative;

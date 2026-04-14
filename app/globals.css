@@ -444,8 +444,7 @@ html, body {
 /* =========================
    APARTMENT MODE — тёмная капсула бургера
 ========================= */
-.header--apartment .header__burger,
-.header--panorama .header__burger {
+.header--apartment .header__burger {
   background: rgba(13, 27, 42, 0.70);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -457,17 +456,20 @@ html, body {
   transition: background 0.25s ease;
 }
 
-.header--apartment .header__burger:hover,
-.header--panorama .header__burger:hover {
+.header--apartment .header__burger:hover {
   background: rgba(13, 27, 42, 0.88);
 }
 
-.header--apartment .header__burger::after,
-.header--panorama .header__burger::after {
+.header--apartment .header__burger::after {
   display: none;
 }
 
-.header--apartment .burger-text,
+.header--apartment .burger-text {
+  color: #fff;
+  opacity: 1;
+}
+
+/* Panorama — как hero, без капсулы */
 .header--panorama .burger-text {
   color: #fff;
   opacity: 1;
