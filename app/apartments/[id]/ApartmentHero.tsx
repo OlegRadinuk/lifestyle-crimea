@@ -3,38 +3,59 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
-import {
-  Wifi, Refrigerator, Snowflake, Wind, Home, UtensilsCrossed,
-  Microwave, Flame, ShowerHead, Coffee, Thermometer, Footprints,
-  Tv, Lock, WashingMachine, Car, Bath, type LucideIcon,
-} from 'lucide-react';
 import './apartment.css';
 
-// ===== FEATURE ICONS (Lucide) =====
-const FEATURE_ICON_MAP: Array<{ match: RegExp; Icon: LucideIcon }> = [
-  { match: /интернет|wi-?fi/i,        Icon: Wifi },
-  { match: /холодильник/i,            Icon: Refrigerator },
-  { match: /кондиционер/i,            Icon: Snowflake },
-  { match: /фен/i,                    Icon: Wind },
-  { match: /балкон|терраса/i,         Icon: Home },
-  { match: /кухн/i,                   Icon: UtensilsCrossed },
-  { match: /микроволновк/i,           Icon: Microwave },
-  { match: /плит/i,                   Icon: Flame },
-  { match: /душ/i,                    Icon: ShowerHead },
-  { match: /кофе/i,                   Icon: Coffee },
-  { match: /подогрев/i,               Icon: Thermometer },
-  { match: /тапочк/i,                 Icon: Footprints },
-  { match: /телевизор|^тв$/i,         Icon: Tv },
-  { match: /сейф/i,                   Icon: Lock },
-  { match: /стиральн/i,               Icon: WashingMachine },
-  { match: /парковк/i,                Icon: Car },
-  { match: /джакузи|ванн/i,           Icon: Bath },
+// ===== FEATURE ICONS (inline SVG, no external deps) =====
+const S = 15;
+const SW = 2;
+const IC: React.FC<React.SVGProps<SVGSVGElement>> = (p) => (
+  <svg width={S} height={S} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth={SW} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p} />
+);
+
+const icons: Record<string, JSX.Element> = {
+  wifi:        <IC><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></IC>,
+  fridge:      <IC><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="9" y1="6" x2="9" y2="8"/><line x1="9" y1="14" x2="9" y2="16"/></IC>,
+  snow:        <IC><line x1="12" y1="2" x2="12" y2="22"/><path d="m17 7-5-5-5 5"/><path d="m17 17-5 5-5-5"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m7 7-5 5 5 5"/><path d="m17 7 5 5-5 5"/></IC>,
+  wind:        <IC><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></IC>,
+  home:        <IC><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></IC>,
+  kitchen:     <IC><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></IC>,
+  microwave:   <IC><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M7 12h10"/><path d="M17 6V4"/><circle cx="17" cy="10" r="1"/></IC>,
+  flame:       <IC><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></IC>,
+  shower:      <IC><path d="M4 4h1"/><path d="M4 8h1"/><path d="M4 12h1"/><path d="M4 16h1"/><path d="M8 4h1"/><path d="M12 4a8 8 0 0 1 8 8v8H4v-8a8 8 0 0 1 8-8"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/></IC>,
+  coffee:      <IC><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></IC>,
+  thermo:      <IC><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></IC>,
+  slippers:    <IC><path d="M2 12C2 8.13 5.13 5 9 5h4c1.1 0 2 .9 2 2v2h1a3 3 0 0 1 3 3v4H5a3 3 0 0 1-3-3v-1z"/><path d="M5 19v2"/><path d="M19 19v2"/></IC>,
+  tv:          <IC><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></IC>,
+  lock:        <IC><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></IC>,
+  washer:      <IC><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="2"/><path d="M7 6h.01M11 6h2"/></IC>,
+  car:         <IC><path d="M19 17H5a2 2 0 0 1-2-2V9l2.5-5h9L17 9h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></IC>,
+  bath:        <IC><path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" y1="5" x2="8" y2="7"/><line x1="2" y1="12" x2="22" y2="12"/></IC>,
+};
+
+const FEATURE_ICON_MAP: Array<{ match: RegExp; key: keyof typeof icons }> = [
+  { match: /интернет|wi-?fi/i,    key: 'wifi' },
+  { match: /холодильник/i,        key: 'fridge' },
+  { match: /кондиционер/i,        key: 'snow' },
+  { match: /фен/i,                key: 'wind' },
+  { match: /балкон|терраса/i,     key: 'home' },
+  { match: /кухн/i,               key: 'kitchen' },
+  { match: /микроволновк/i,       key: 'microwave' },
+  { match: /плит/i,               key: 'flame' },
+  { match: /душ/i,                key: 'shower' },
+  { match: /кофе/i,               key: 'coffee' },
+  { match: /подогрев/i,           key: 'thermo' },
+  { match: /тапочк/i,             key: 'slippers' },
+  { match: /телевизор|^тв$/i,     key: 'tv' },
+  { match: /сейф/i,               key: 'lock' },
+  { match: /стиральн/i,           key: 'washer' },
+  { match: /парковк/i,            key: 'car' },
+  { match: /джакузи|ванн/i,       key: 'bath' },
 ];
 
 function FeatureIcon({ name }: { name: string }) {
   const entry = FEATURE_ICON_MAP.find(({ match }) => match.test(name));
-  const Icon = entry?.Icon ?? Wind; // Wind — нейтральная иконка по умолчанию
-  return <Icon size={15} strokeWidth={2} aria-hidden="true" />;
+  return icons[entry?.key ?? 'wind'] ?? icons.wind;
 }
 
 type Props = {
