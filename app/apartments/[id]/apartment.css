@@ -6,11 +6,13 @@
   overflow: hidden;
   position: relative;
   color: #fff;
-  background-color: #d6e8f0;
-  background-image: url('/images/backgraund/bg.webp');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: linear-gradient(160deg,
+    #ffffff 0%,
+    #e8f6fa 25%,
+    #c8eaf2 50%,
+    #a0d8e8 70%,
+    #139AB6 100%
+  );
 }
 
 /* ===== SLIDER STYLES ===== */
