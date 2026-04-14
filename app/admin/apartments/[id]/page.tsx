@@ -201,7 +201,7 @@ export default function EditApartmentPage({ params }: PageProps) {
               checked={apartment.has_terrace}
               onChange={(e) => setApartment({ ...apartment, has_terrace: e.target.checked })}
             />
-            Есть терраса
+            Есть балкон
           </label>
         </div>
 

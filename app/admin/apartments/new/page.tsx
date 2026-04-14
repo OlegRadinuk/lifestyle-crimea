@@ -141,7 +141,7 @@ export default function NewApartmentPage() {
               checked={formData.has_terrace}
               onChange={(e) => setFormData({ ...formData, has_terrace: e.target.checked })}
             />
-            Есть терраса
+            Есть балкон
           </label>
         </div>
 

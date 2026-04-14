@@ -12,7 +12,7 @@ export const PANORAMAS: Panorama[] = [
     title: ' Art Sweet Caramel',
     image: '/panoramas/LS-Art-Sweet-Caramel.webp',
     maxGuests: 4,
-    meta: ['До 4 гостей', '85 м²', 'Панорамные окна', 'Терраса'],
+    meta: ['До 4 гостей', '85 м²', 'Панорамные окна', 'Балкон'],
   },
   {
     id: 'ls-lux-flower-kiss',
@@ -40,14 +40,14 @@ export const PANORAMAS: Panorama[] = [
     title: ' Lux Sunny Mood',
     image: '/panoramas/LS-Lux-Sunny-Mood.webp',
     maxGuests: 4,
-    meta: ['До 4 гостей', '95 м²', 'Панорамные окна', 'Терраса'],
+    meta: ['До 4 гостей', '95 м²', 'Панорамные окна', 'Балкон'],
   },
   {
     id: 'ls-lux-beautiful-days',
     title: ' Lux Beautiful Days',
     image: '/panoramas/LS-Lux-Beautiful-Days.webp',
     maxGuests: 2,
-    meta: ['До 2 гостей', '120 м²', 'Вид на море', 'Просторная терраса'],
+    meta: ['До 2 гостей', '120 м²', 'Вид на море', 'Просторный балкон'],
   },
   {
     id: 'ls-lux-sun-rays',
@@ -68,7 +68,7 @@ export const PANORAMAS: Panorama[] = [
     title: ' Lux Fly Birds',
     image: '/panoramas/LS-Lux-Fly-Birds.webp',
     maxGuests: 4,
-    meta: ['До 4 гостей', '92 м²', 'Панорамные окна', 'Терраса'],
+    meta: ['До 4 гостей', '92 м²', 'Панорамные окна', 'Балкон'],
   },
   {
     id: 'ls-lux-fly-mood',
@@ -82,7 +82,7 @@ export const PANORAMAS: Panorama[] = [
     title: ' Lux Fly Sky',
     image: '/panoramas/LS-Lux-Fly-Sky.webp',
     maxGuests: 4,
-    meta: ['До 4 гостей', '100 м²', 'Панорамные окна', 'Терраса'],
+    meta: ['До 4 гостей', '100 м²', 'Панорамные окна', 'Балкон'],
   },
   {
     id: 'ls-lux-only-you',
@@ -96,6 +96,6 @@ export const PANORAMAS: Panorama[] = [
     title: ' Art Dream Vacation',
     image: '/panoramas/LS-Art-Dream-Vacation.webp',
     maxGuests: 4,
-    meta: ['До 4 гостей', '90 м²', 'Панорамные окна', 'Терраса'],
+    meta: ['До 4 гостей', '90 м²', 'Панорамные окна', 'Балкон'],
   },
 ];
