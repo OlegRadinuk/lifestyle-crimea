@@ -1,8 +1,12 @@
 // app/api/telegram/send/route.ts
 import { NextResponse } from 'next/server';
 import { notificationService } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function POST(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { message, bookingId, type, parseMode = 'HTML' } = await request.json();
 

@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     console.log('🔍 API GET called for ID:', id);
     
@@ -81,8 +85,11 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     const data = await request.json();
     console.log('📝 Updating apartment:', id, data);

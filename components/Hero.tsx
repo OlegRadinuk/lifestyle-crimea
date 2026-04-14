@@ -38,7 +38,11 @@ export default function Hero() {
       try {
         const res = await fetch('/api/hero-slides');
         const data = await res.json();
-        setSlides(data);
+        if (data.length > 0) {
+          setSlides(data);
+        } else {
+          throw new Error('no slides');
+        }
       } catch (error) {
         console.error('Error fetching hero slides:', error);
         // Запасные слайды на случай ошибки
@@ -129,13 +133,14 @@ export default function Hero() {
       hero.style.setProperty('--rx', `${currentY}deg`);
       hero.style.setProperty('--ry', `${currentX}deg`);
 
-      requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
     };
 
-    animate();
+    let rafId = requestAnimationFrame(animate);
     window.addEventListener('mousemove', onMouseMove);
 
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('mousemove', onMouseMove);
     };
   }, []);
@@ -156,6 +161,7 @@ export default function Hero() {
   /* AUTOPLAY - обновлено для работы с динамическими слайдами */
   useEffect(() => {
     if (activeSlides.length <= 1) return;
+    if (isHovered) return;
 
     timeoutRef.current = setTimeout(() => {
       setActive(prev => (prev + 1) % activeSlides.length);

@@ -33,72 +33,68 @@ html, body {
 }
 
 /* ДЕСКТОП — sticky + спейсеры (эффект наплыва) */
-@media (min-width: 769px) {
-  .main-container.desktop {
-    scroll-behavior: smooth;
-  }
-
-  .main-container.desktop .scene {
-    position: sticky !important;
-    top: 0 !important;
-    height: 100vh !important;
-    width: 100%;
-    overflow: hidden;
-    will-change: transform;
-  }
-
-  .scene-spacer {
-    height: 30vh;
-    width: 100%;
-    pointer-events: none;
-  }
-
-  /* Затемнение при уходе */
-  .scene--hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
-    pointer-events: none;
-    transition: opacity 0.6s ease;
-    opacity: 0;
-  }
-
-  .scene--hero.is-behind::after {
-    opacity: 1;
-  }
+.main-container.desktop {
+  scroll-behavior: smooth;
 }
 
-@media (max-width: 768px) {
-  .main-container.mobile {
-    scroll-snap-type: y mandatory;
-  }
+.main-container.desktop .scene {
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
+  width: 100%;
+  overflow: hidden;
+  will-change: transform;
+}
 
-  .main-container.mobile .scene {
-    position: relative !important;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    width: 100%;
-    overflow: hidden;
-    /* ⚠️ ВАЖНО: добавляем явную высоту */
-    height: 100vh !important;
-  }
+.scene-spacer {
+  height: 30vh;
+  width: 100%;
+  pointer-events: none;
+}
 
-  .main-container.mobile .scene--hero,
-  .main-container.mobile .scene--panorama {
-    height: 100vh !important;
-  }
+/* Затемнение при уходе */
+.scene--hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
 
-  /* ✅ Добавляем это */
-  .main-container.mobile .scene--reviews-footer {
-    height: 100vh !important;
-    display: flex;
-    flex-direction: column;
-  }
+.scene--hero.is-behind::after {
+  opacity: 1;
+}
 
-  .scene-spacer {
-    display: none;
-  }
+.main-container.mobile {
+  scroll-snap-type: y mandatory;
+}
+
+.main-container.mobile .scene {
+  position: relative !important;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  width: 100%;
+  overflow: hidden;
+  /* ⚠️ ВАЖНО: добавляем явную высоту */
+  height: 100vh !important;
+}
+
+.main-container.mobile .scene--hero,
+.main-container.mobile .scene--panorama {
+  height: 100vh !important;
+}
+
+/* ✅ Добавляем это */
+.main-container.mobile .scene--reviews-footer {
+  height: 100vh !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-container.mobile .scene-spacer {
+  display: none;
 }
 
 
@@ -687,8 +683,8 @@ html, body {
   background-position: center;
   opacity: 0;
   transition: opacity 1.2s ease-in-out;
-  transform: scale(1.15);
-  animation: heroZoom 16s linear infinite;
+  animation: heroZoom 20s ease-in-out infinite;
+  will-change: transform;
 }
 
 .hero-slide.active {
@@ -696,7 +692,8 @@ html, body {
 }
 
 @keyframes heroZoom {
-  0% { transform: scale(1.15); }
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
 
@@ -2590,7 +2587,7 @@ html, body {
 /* =========================
    МОБИЛЬНЫЕ СТИЛИ (ВСЁ ТВОЁ)
 ========================= */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header {
     left: 26px;
     padding: 0 20px;
@@ -3328,7 +3325,7 @@ html, body {
   }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .header__mobile-book-btn,
   .mobile-sheet-overlay,
   .mobile-sheet,
@@ -3340,390 +3337,6 @@ html, body {
   }
 }
 
-
-/* =========================
-   REVIEWS + FOOTER - ОДНА СЦЕНА (ДЕСКТОП И МОБИЛКА)
-========================= */
-
-/* === БАЗОВЫЕ СТИЛИ (для всех устройств) === */
-.reviews {
-  background: linear-gradient(180deg, #ffffff, #f4fbfd);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.reviews__container {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 60px 40px 40px;
-  width: 100%;
-}
-
-.reviews__title {
-  text-align: center;
-  max-width: 900px;
-  margin: 0 auto 40px;
-  font-size: 42px;
-  font-weight: 500;
-  color: #139AB6;
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-}
-
-.reviews.is-visible .reviews__title {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reviews__outer {
-  max-width: 1600px;
-  margin: 0 auto;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-}
-
-.reviews__viewport {
-  flex: 1;
-  overflow: hidden;
-  padding: 20px 0;
-}
-
-.reviews__track {
-  display: flex;
-  gap: 24px;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-  justify-content: center;
-}
-
-.review-card {
-  flex: 0 0 380px;
-  background: #ffffff;
-  border-radius: 28px;
-  padding: 40px 32px;
-  border: 1px solid rgba(19, 154, 182, 0.14);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-  transition: all 0.4s ease;
-  opacity: 0;
-  transform: translateY(30px);
-  animation: cardFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  position: relative;
-  overflow: hidden;
-}
-
-.review-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(145deg, rgba(19,154,182,0.1) 0%, rgba(19,154,182,0) 70%);
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.review-card:hover::before {
-  opacity: 1;
-}
-
-.review-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 30px 50px rgba(19, 154, 182, 0.25);
-  border-color: rgba(19, 154, 182, 0.4);
-}
-
-@keyframes cardFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.review-card:nth-child(1) { animation-delay: 0.1s; }
-.review-card:nth-child(2) { animation-delay: 0.2s; }
-.review-card:nth-child(3) { animation-delay: 0.3s; }
-
-.review-card__text {
-  font-size: 17px;
-  line-height: 1.7;
-  color: #2b3a42;
-  margin-bottom: 28px;
-  font-style: italic;
-}
-
-.review-card__author {
-  font-weight: 600;
-  color: #139ab6;
-  text-align: right;
-  border-top: 1px solid rgba(19, 154, 182, 0.14);
-  padding-top: 18px;
-  font-size: 19px;
-}
-
-.reviews__arrow {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid rgba(19, 154, 182, 0.25);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  color: #139ab6;
-  font-size: 36px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.reviews__arrow:hover {
-  transform: scale(1.15);
-  border-color: #139ab6;
-  background: #139ab6;
-  color: white;
-  box-shadow: 0 15px 30px rgba(19, 154, 182, 0.3);
-}
-
-.reviews__arrow--left {
-  margin-right: 24px;
-}
-
-.reviews__arrow--right {
-  margin-left: 24px;
-}
-
-.reviews__yandex {
-  display: block;
-  margin: 40px auto 0;
-  text-align: center;
-  color: #139ab6;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  padding: 14px 36px;
-  border-radius: 40px;
-  background: rgba(19, 154, 182, 0.08);
-  width: fit-content;
-  border: 1px solid rgba(19, 154, 182, 0.2);
-}
-
-.reviews__yandex:hover {
-  background: #139ab6;
-  color: white;
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(19, 154, 182, 0.3);
-  border-color: transparent;
-}
-
-/* === СТИЛИ ДЛЯ ФУТЕРА === */
-.footer {
-  background: linear-gradient(180deg, #1c2226, #0f1419);
-  color: #d6dde3;
-  width: 100%;
-  padding: 0;
-}
-
-.footer__inner {
-  max-width: 1600px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 28px;
-  padding: 40px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  width: 100%;
-}
-
-.footer__title {
-  font-size: 26px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  color: #139AB6;
-}
-
-.footer__text {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #b8c4cc;
-  margin-bottom: 24px;
-  max-width: 400px;
-}
-
-.footer__contacts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.footer__contacts a,
-.footer__contacts span {
-  font-size: 14px;
-  color: #139ab6;
-  text-decoration: none;
-  opacity: 0.9;
-}
-
-.footer__copy {
-  margin-top: 24px;
-  font-size: 13px;
-  color: #7f8b93;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 16px;
-}
-
-.footer__map {
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
-  min-height: 220px;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
-}
-
-/* === ДЕСКТОП (от 769px) === */
-@media (min-width: 769px) {
-  .layer--reviews {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .layer--reviews .reviews {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .layer--reviews .footer {
-    flex-shrink: 0;
-  }
-}
-
-/* =========================
-   FOOTER - ИСПРАВЛЯЕМ ПРОЗРАЧНЫЙ КУСОК
-========================= */
-.footer {
-  background: linear-gradient(180deg, #1c2226, #0f1419);
-  color: #d6dde3;
-  width: 100%;
-  padding: 40px 0; /* вертикальные padding для фона */
-}
-
-.footer__inner {
-  max-width: 1600px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 28px;
-  padding: 40px; /* padding внутри контейнера */
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  width: 100%;
-}
-
-/* =========================
-   МОБИЛКА - ФУТЕР
-========================= */
-@media (max-width: 768px) {
-  .footer__inner {
-    padding: 30px 20px;
-    gap: 25px;
-    border-radius: 24px;
-    margin: 0 16px; /* отступы по бокам */
-    width: auto;
-  }
-
-  .footer__title {
-    font-size: 22px;
-    margin-bottom: 12px;
-  }
-
-  .footer__text {
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-
-  .footer__map {
-    min-height: 180px;
-    order: -1;
-  }
-
-  .footer__contacts {
-    gap: 8px;
-  }
-
-  .footer__copy {
-    margin-top: 16px;
-    padding-top: 12px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .footer {
-    padding: 25px 0;
-  }
-
-  .footer__inner {
-    padding: 25px 16px;
-    gap: 20px;
-    margin: 0 12px;
-  }
-
-  .footer__title {
-    font-size: 20px;
-  }
-
-  .footer__text {
-    font-size: 13px;
-  }
-
-  .footer__map {
-    min-height: 160px;
-  }
-}
-
-/* =========================
-   FOOTER - ЦЕНТРИРОВАНИЕ КОНТЕНТА
-========================= */
-.footer {
-  background: linear-gradient(180deg, #1c2226, #0f1419);
-  color: #d6dde3;
-  width: 100%;
-  height: 100%; /* занимает всю высоту сцены */
-  display: flex;
-  align-items: center; /* вертикальное центрирование */
-  justify-content: center; /* горизонтальное центрирование */
-  padding: 0; /* убираем паддинги, они будут на inner */
-}
-
-.footer__inner {
-  max-width: 1600px;
-  width: calc(100% - 80px);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 28px;
-  padding: 63px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
 
 /* ===== REVIEWS FINAL ===== */
 .rf-section {
@@ -4860,7 +4473,7 @@ html, body {
 }
 
 /* ===== BURGER MENU MOBILE FIX ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .burger-overlay {
     align-items: flex-start;
     padding: 0; /* убираем отступы */
@@ -5626,168 +5239,8 @@ html, body {
   pointer-events: auto;
 }
 
-/* ===== FOOTER GLOBAL STYLES ===== */
-.footer {
-  width: 100%;
-  background: linear-gradient(180deg, #1c2226, #0f1419);
-  color: #d6dde3;
-  font-family: var(--font-montserrat), sans-serif;
-  padding: 40px 0;
-  margin: 0;
-}
-
-.footer__inner {
-  max-width: 1280px;
-  width: calc(100% - 80px);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 28px;
-  padding: 40px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-.footer__title {
-  font-size: 26px;
-  font-weight: 500;
-  margin: 0 0 16px 0;
-  color: #139AB6;
-}
-
-.footer__description {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #b8c4cc;
-  margin: 0 0 24px 0;
-  max-width: 400px;
-}
-
-.footer__contacts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.footer__contacts a,
-.footer__contacts span {
-  font-size: 14px;
-  color: #139ab6;
-  text-decoration: none;
-  opacity: 0.9;
-  transition: opacity 0.2s ease;
-}
-
-.footer__contacts a:hover {
-  opacity: 1;
-}
-
-.footer__copyright {
-  margin-top: 24px;
-  font-size: 13px;
-  color: #7f8b93;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 16px;
-}
-
-.footer__map {
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
-  min-height: 220px;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
-  background: #1a1f24;
-}
-
-.footer__map iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-/* Мобильная версия футера */
-@media (max-width: 768px) {
-  .footer {
-    padding: 30px 16px;
-  }
-  
-  .footer__inner {
-    width: 100%;
-    padding: 25px 20px;
-    gap: 25px;
-    grid-template-columns: 1fr;
-    margin: 0;
-  }
-  
-  .footer__map {
-    order: -1;
-    min-height: 180px;
-  }
-  
-  .footer__title {
-    font-size: 22px;
-    margin-bottom: 12px;
-  }
-  
-  .footer__description {
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-  
-  .footer__contacts {
-    gap: 6px;
-  }
-  
-  .footer__contacts a,
-  .footer__contacts span {
-    font-size: 13px;
-  }
-  
-  .footer__copyright {
-    margin-top: 16px;
-    padding-top: 12px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .footer {
-    padding: 20px 12px;
-  }
-  
-  .footer__inner {
-    padding: 20px 16px;
-    gap: 20px;
-  }
-  
-  .footer__map {
-    min-height: 160px;
-  }
-  
-  .footer__title {
-    font-size: 20px;
-  }
-  
-  .footer__description {
-    font-size: 13px;
-  }
-  
-  .footer__contacts a,
-  .footer__contacts span {
-    font-size: 12px;
-  }
-  
-  .footer__copyright {
-    font-size: 11px;
-  }
-}
-
 /* ===== HEADER MOBILE ULTIMATE FIX ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header {
     left: 16px;
     right: 16px;
@@ -6021,7 +5474,7 @@ html, body {
 
 
 /* ===== ПАНОРАМА СЦЕНА ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .panorama-info {
     bottom: 35%;
     left: 16px;
@@ -6701,7 +6154,7 @@ html, body {
 }
 
 /* ===== SIZE ADJUSTMENTS ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header__burger {
     padding: 12px 22px 12px 18px !important;
   }
@@ -6909,7 +6362,7 @@ html, body {
 }
 
 /* ===== BURGER MENU MOBILE PERFECT ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .burger-overlay {
     align-items: center !important;
     padding: 0 !important;
@@ -7142,7 +6595,20 @@ html, body {
 }
 
 /* ===== HEADER MOBILE HERO FIELDS ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  /* Верхний ряд: бургер + кнопка на одной линии */
+  .header__top-row {
+    display: contents; /* на десктопе не влияет */
+  }
+
+  .header__top-row--hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+  }
+
   .header--hero.header--mobile {
     display: flex;
     flex-direction: column;
@@ -7458,11 +6924,17 @@ html, body {
   }
 }
 
+/* ===== TABLET (769px – 1024px) ===== */
 @media (max-width: 1024px) and (min-width: 769px) {
   .header__booking-error {
     left: 72% !important; /* правее на планшетах */
     font-size: 12px !important;
     padding: 8px 20px !important;
+  }
+
+  /* panorama info panel */
+  .panorama-section .panorama-info {
+    padding: 24px 32px;
   }
 }
 
@@ -7480,6 +6952,16 @@ html, body {
 /* Для hero режима - чтобы не прыгало */
 .header--hero .header__booking-wrapper {
   min-width: 520px;
+}
+
+/* Сброс фиксированной ширины на планшетах (isMobile=true при <= 1024px) */
+@media (max-width: 1024px) {
+  .header__booking-wrapper {
+    min-width: unset;
+  }
+  .header--hero .header__booking-wrapper {
+    min-width: unset;
+  }
 }
 
 /* Контейнер для календаря */
@@ -8083,4 +7565,76 @@ html, body {
 .panorama-section.fullscreen-mode .panorama-info {
   opacity: 0;
   pointer-events: none;
+}
+
+/* ===== TABLET OVERRIDES (769px – 1024px) ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* --- HERO: заголовок в левый нижний угол, как на десктопе --- */
+  .hero-text {
+    left: 48px !important;
+    bottom: 60px !important;
+    transform: none !important;
+    text-align: left !important;
+    max-width: 60% !important;
+    width: auto !important;
+  }
+
+  .hero-title {
+    flex-direction: row !important;
+    align-items: baseline !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    font-size: clamp(40px, 5vw, 72px) !important;
+    margin: 0 0 12px 0 !important;
+    width: auto !important;
+  }
+
+  .hero-love {
+    margin-left: 12px !important;
+    font-size: 0.5em !important;
+    text-align: left !important;
+  }
+
+  .hero-description {
+    text-align: left !important;
+    white-space: nowrap !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* --- HERO: цифры навигации в правый нижний угол, вертикально --- */
+  .hero-timeline {
+    right: 48px !important;
+    bottom: 60px !important;
+    transform: none !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .hero-timeline-item.active {
+    transform: translateX(-8px) scale(1.1) !important;
+  }
+
+  /* --- REVIEWS: крупный текст отзывов на планшете --- */
+  .rf-mobile .rf-card {
+    aspect-ratio: unset !important;
+    min-height: 240px !important;
+    padding: 28px 32px !important;
+    justify-content: flex-start !important;
+    gap: 20px !important;
+  }
+
+  .rf-mobile .rf-card-text {
+    font-size: 22px !important;
+    line-height: 1.6 !important;
+    -webkit-line-clamp: 6 !important;
+    margin-bottom: 16px !important;
+  }
+
+  .rf-mobile .rf-card-author {
+    font-size: 18px !important;
+    padding-top: 16px !important;
+  }
 }

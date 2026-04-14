@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 type RawBooking = {
   id: string;
@@ -25,8 +26,11 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     const booking = db.prepare(`
       SELECT b.*, a.title as apartment_title 
@@ -58,8 +62,11 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     const data = await request.json();
     
@@ -107,8 +114,11 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
+
   try {
     db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
     return NextResponse.json({ success: true });

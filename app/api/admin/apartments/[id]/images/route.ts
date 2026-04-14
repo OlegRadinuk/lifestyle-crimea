@@ -3,11 +3,15 @@ import { db } from '@/lib/db';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     
@@ -28,6 +32,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const formData = await request.formData();

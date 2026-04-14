@@ -55,6 +55,8 @@ export default function ReviewsFinal() {
   
   const { register, unregister } = useHeader();
 
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [visible, setVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -62,7 +64,7 @@ export default function ReviewsFinal() {
 
   // Определяем мобилку
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -110,19 +112,22 @@ export default function ReviewsFinal() {
     if (index === currentIndex) return;
     setPaused(true);
     setCurrentIndex(index);
-    setTimeout(() => setPaused(false), 5000);
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => setPaused(false), 5000);
   };
 
   const nextSlide = () => {
     setPaused(true);
     setCurrentIndex(prev => (prev + 1) % REVIEWS.length);
-    setTimeout(() => setPaused(false), 5000);
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => setPaused(false), 5000);
   };
 
   const prevSlide = () => {
     setPaused(true);
     setCurrentIndex(prev => (prev - 1 + REVIEWS.length) % REVIEWS.length);
-    setTimeout(() => setPaused(false), 5000);
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => setPaused(false), 5000);
   };
 
   return (
@@ -160,7 +165,8 @@ export default function ReviewsFinal() {
                       onClick={() => {
                         setPaused(true);
                         setCurrentIndex(idx);
-                        setTimeout(() => setPaused(false), 5000);
+                        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+                        pauseTimeoutRef.current = setTimeout(() => setPaused(false), 5000);
                       }}
                       aria-label={`Перейти к отзыву ${idx + 1}`}
                     />
@@ -196,11 +202,13 @@ export default function ReviewsFinal() {
                       if (position === 0) {
                         setPaused(true);
                         setCurrentIndex(idx);
-                        setTimeout(() => setPaused(false), 3000);
+                        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+                        pauseTimeoutRef.current = setTimeout(() => setPaused(false), 3000);
                       } else if (position === 2) {
                         setPaused(true);
                         setCurrentIndex(idx);
-                        setTimeout(() => setPaused(false), 3000);
+                        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+                        pauseTimeoutRef.current = setTimeout(() => setPaused(false), 3000);
                       }
                     }}
                   >

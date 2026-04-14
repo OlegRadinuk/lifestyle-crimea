@@ -169,7 +169,7 @@ export default function Header({ onBurgerClick }: Props) {
   }, [activeApartment?.id]);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -217,25 +217,36 @@ export default function Header({ onBurgerClick }: Props) {
           ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        <button className="header__burger" onClick={onBurgerClick}>
-          <svg 
-            className="burger-icon-svg" 
-            width="26" 
-            height="18" 
-            viewBox="0 0 26 18" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect y="0" width="26" height="2" fill="white" />
-            <rect y="8" width="26" height="2" fill="white" />
-            <rect y="16" width="26" height="2" fill="white" />
-          </svg>
-          <span className="burger-text">Меню</span>
-        </button>
+        <div className={`header__top-row ${mode === 'hero' && isMobile ? 'header__top-row--hero' : ''}`}>
+          <button className="header__burger" onClick={onBurgerClick}>
+            <svg
+              className="burger-icon-svg"
+              width="26"
+              height="18"
+              viewBox="0 0 26 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect y="0" width="26" height="2" fill="white" />
+              <rect y="8" width="26" height="2" fill="white" />
+              <rect y="16" width="26" height="2" fill="white" />
+            </svg>
+            <span className="burger-text">Меню</span>
+          </button>
+
+          {mode === 'hero' && isMobile && (
+            <button
+              className="header__mobile-book-btn"
+              onClick={handleHeroSearch}
+            >
+              Выбрать апартаменты
+            </button>
+          )}
+        </div>
 
         {mode === 'hero' && (
           <>
-            {!isMobile ? (
+            {!isMobile && (
               /* ДЕСКТОП ВЕРСИЯ */
               <div className="header__booking-wrapper">
                 <div className="header__booking-fields">
@@ -279,16 +290,6 @@ export default function Header({ onBurgerClick }: Props) {
                   Выбрать апартаменты
                 </button>
               </div>
-            ) : (
-              /* МОБИЛЬНАЯ ВЕРСИЯ */
-              <>
-                <button
-                  className="header__mobile-book-btn"
-                  onClick={handleHeroSearch}
-                >
-                  Выбрать апартаменты
-                </button>
-              </>
             )}
 
             {/* Ошибка формы для десктопа */}

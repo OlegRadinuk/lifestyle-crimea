@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { images } = await request.json();

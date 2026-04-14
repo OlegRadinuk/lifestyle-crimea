@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
   try {
     // Брони с сайта
     const websiteBookings = {

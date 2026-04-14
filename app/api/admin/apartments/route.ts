@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
   const { searchParams } = new URL(request.url);
   const simple = searchParams.get('simple') === 'true';
 
@@ -57,6 +60,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const data = await request.json();
     const id = uuidv4();

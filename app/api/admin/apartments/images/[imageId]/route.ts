@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { unlink } from 'fs/promises';
 import path from 'path';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ imageId: string }> }
 ) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const { imageId } = await params;
     
