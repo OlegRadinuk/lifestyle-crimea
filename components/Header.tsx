@@ -130,6 +130,7 @@ export default function Header({ onBurgerClick }: Props) {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
+  const [children, setChildren] = useState(0);
   const [formError, setFormError] = useState('');
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -199,7 +200,7 @@ export default function Header({ onBurgerClick }: Props) {
       return;
     }
     setFormError('');
-    setSearch({ checkIn, checkOut, guests });
+    setSearch({ checkIn, checkOut, guests, children });
     router.push('/apartments');
   };
 
@@ -217,7 +218,7 @@ export default function Header({ onBurgerClick }: Props) {
           ${isMobile ? 'header--mobile' : ''}
         `}
       >
-        <div className={`header__top-row ${mode === 'hero' && isMobile ? 'header__top-row--hero' : ''}`}>
+        <div className="header__top-row">
           <button className="header__burger" onClick={onBurgerClick}>
             <svg
               className="burger-icon-svg"
@@ -234,6 +235,7 @@ export default function Header({ onBurgerClick }: Props) {
             <span className="burger-text">Меню</span>
           </button>
 
+          {/* Hero: кнопка "Выбрать апартаменты" */}
           {mode === 'hero' && isMobile && (
             <button
               className="header__mobile-book-btn"
@@ -241,6 +243,26 @@ export default function Header({ onBurgerClick }: Props) {
             >
               Выбрать апартаменты
             </button>
+          )}
+
+          {/* Panorama / Apartment: кнопка бронирования + назад */}
+          {(mode === 'apartment' || mode === 'panorama') && (
+            <div className="header__apt-actions">
+              {mode === 'apartment' && (
+                <button className="header__back-btn" onClick={() => router.back()}>
+                  Вернуться к списку
+                </button>
+              )}
+              {activeApartment && isActive && (
+                <ApartmentHeaderButton
+                  apartmentId={activeApartment.id}
+                  apartmentTitle={activeApartment.title}
+                  apartmentPrice={apartmentPrice}
+                  isActive={isActive}
+                  loadingPrice={loadingPrice}
+                />
+              )}
+            </div>
           )}
         </div>
 
@@ -275,13 +297,21 @@ export default function Header({ onBurgerClick }: Props) {
                     />
                   </div>
                   <div className="booking-field">
-                    <label>Гости</label>
+                    <label>Взрослые</label>
                     <select value={guests} onChange={e => setGuests(+e.target.value)}>
                       {[1, 2, 3, 4, 5].map(n => (
                         <option key={n} value={n}>
                           {n} {n === 1 ? 'гость' : 'гостя'}
                         </option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="booking-field">
+                    <label>Дети до 6 лет</label>
+                    <select value={children} onChange={e => setChildren(+e.target.value)}>
+                      <option value={0}>Без детей</option>
+                      <option value={1}>1 ребёнок</option>
+                      <option value={2}>2 ребёнка</option>
                     </select>
                   </div>
                 </div>
@@ -327,14 +357,22 @@ export default function Header({ onBurgerClick }: Props) {
                   readOnly
                 />
               </div>
+            </div>
+            <div className="header__mobile-fields-row">
               <div className="mobile-field">
-                <label>Гости</label>
+                <label>Взрослые</label>
                 <select value={guests} onChange={e => setGuests(+e.target.value)}>
                   {[1, 2, 3, 4, 5].map(n => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
+                    <option key={n} value={n}>{n} {n === 1 ? 'гость' : 'гостя'}</option>
                   ))}
+                </select>
+              </div>
+              <div className="mobile-field">
+                <label>Дети до 6 лет</label>
+                <select value={children} onChange={e => setChildren(+e.target.value)}>
+                  <option value={0}>Без детей</option>
+                  <option value={1}>1 ребёнок</option>
+                  <option value={2}>2 ребёнка</option>
                 </select>
               </div>
             </div>
@@ -386,16 +424,6 @@ export default function Header({ onBurgerClick }: Props) {
             </div>
           )}
         </AnimatePresence>
-
-        {mode === 'apartment' && activeApartment && isActive && (
-          <ApartmentHeaderButton
-            apartmentId={activeApartment.id}
-            apartmentTitle={activeApartment.title}
-            apartmentPrice={apartmentPrice}
-            isActive={isActive}
-            loadingPrice={loadingPrice}
-          />
-        )}
 
         {mode === 'dark' && <div className="header__dark-placeholder" />}
       </header>

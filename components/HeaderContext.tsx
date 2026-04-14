@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-export type HeaderMode = 'hero' | 'dark' | 'apartment';
+export type HeaderMode = 'hero' | 'dark' | 'apartment' | 'panorama';
 
 export type SearchParamsFromUrl = {
   checkIn: string;

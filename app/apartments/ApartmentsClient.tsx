@@ -26,6 +26,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
+  const [children, setChildren] = useState(0);
   const [formError, setFormError] = useState('');
 
   // Состояние апартаментов и доступности
@@ -48,25 +49,29 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     let urlCheckIn: string | null = null;
     let urlCheckOut: string | null = null;
     let urlGuests: string | null = null;
-    
+    let urlChildren: string | null = null;
+
     try {
       urlCheckIn = searchParams?.get('checkIn') || null;
       urlCheckOut = searchParams?.get('checkOut') || null;
       urlGuests = searchParams?.get('guests') || null;
+      urlChildren = searchParams?.get('children') || null;
     } catch (e) {
       console.log('SearchParams error, using defaults');
     }
 
     if (urlCheckIn && urlCheckOut && urlGuests) {
-      console.log('📌 Using URL params:', { urlCheckIn, urlCheckOut, urlGuests });
+      console.log('📌 Using URL params:', { urlCheckIn, urlCheckOut, urlGuests, urlChildren });
       setCheckIn(urlCheckIn);
       setCheckOut(urlCheckOut);
       setGuests(parseInt(urlGuests));
+      setChildren(urlChildren ? parseInt(urlChildren) : 0);
     } else if (contextSearch) {
       console.log('📌 Using context search:', contextSearch);
       setCheckIn(contextSearch.checkIn);
       setCheckOut(contextSearch.checkOut);
       setGuests(contextSearch.guests);
+      setChildren(contextSearch.children ?? 0);
     }
   }, [searchParams, contextSearch]);
 
@@ -92,8 +97,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     setCheckingAvailability(true);
     const available = new Set<string>();
 
-    // Фильтруем по количеству гостей
-    const apartmentsToCheck = allApartments.filter(apt => apt.max_guests >= guests);
+    // Фильтруем по количеству гостей и детей
+    // Студии с 3+ спальными местами принимают до 2 детей до 6 лет бесплатно
+    const apartmentsToCheck = allApartments.filter(apt =>
+      apt.max_guests >= guests && (children === 0 || apt.max_guests >= 3)
+    );
     
     console.log('🔍 Checking availability for:', apartmentsToCheck.length, 'apartments (filtered by guests)');
     
@@ -116,7 +124,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     console.log('✅ Available apartments:', available.size);
     setAvailableIds(available);
     setCheckingAvailability(false);
-  }, [checkIn, checkOut, guests, allApartments]);
+  }, [checkIn, checkOut, guests, children, allApartments]);
 
   // Запускаем проверку при изменении дат или количества гостей
   useEffect(() => {
@@ -125,7 +133,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     } else {
       setAvailableIds(new Set());
     }
-  }, [checkIn, checkOut, guests, checkAvailability]);
+  }, [checkIn, checkOut, guests, children, checkAvailability]);
 
   const handleSearch = () => {
     if (!checkIn || !checkOut) {
@@ -137,16 +145,17 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       setFormError('Пожалуйста, укажите количество гостей');
       return;
     }
-    
+
     setFormError('');
-    
+
     // Обновляем URL и контекст
     const params = new URLSearchParams();
     params.set('checkIn', checkIn);
     params.set('checkOut', checkOut);
     params.set('guests', guests.toString());
+    params.set('children', children.toString());
     router.push(`/apartments?${params.toString()}`);
-    setSearch({ checkIn, checkOut, guests });
+    setSearch({ checkIn, checkOut, guests, children });
   };
 
   const handleBookingClick = async (apartment: ApartmentClient) => {
@@ -197,13 +206,19 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   });
 
   const hasSearchParams = checkIn && checkOut;
-  
-  // Фильтруем по количеству гостей для отображения
-  const displayedApartments = sortedApartments.filter(apt => !hasSearchParams || apt.max_guests >= guests);
-  
+
+  // Студия подходит для детей до 6 лет если max_guests >= 3
+  const aptFitsChildren = (apt: ApartmentClient) =>
+    children === 0 || apt.max_guests >= 3;
+
+  // Фильтруем по количеству гостей и детей для отображения
+  const displayedApartments = sortedApartments.filter(apt =>
+    (!hasSearchParams || apt.max_guests >= guests) && aptFitsChildren(apt)
+  );
+
   const availableCount = Array.from(availableIds).filter(id => {
     const apt = allApartments.find(a => a.id === id);
-    return apt && apt.max_guests >= guests;
+    return apt && apt.max_guests >= guests && aptFitsChildren(apt);
   }).length;
   
   const totalCount = displayedApartments.length;
@@ -254,11 +269,19 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                 />
               </div>
               <div className="ap-search-field">
-                <label>Гости</label>
+                <label>Взрослые</label>
                 <select value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
                   {[1, 2, 3, 4, 5, 6].map(n => (
                     <option key={n} value={n}>{n} {n === 1 ? 'гость' : 'гостей'}</option>
                   ))}
+                </select>
+              </div>
+              <div className="ap-search-field">
+                <label>Дети до 6 лет</label>
+                <select value={children} onChange={(e) => setChildren(Number(e.target.value))}>
+                  <option value={0}>Без детей</option>
+                  <option value={1}>1 ребёнок</option>
+                  <option value={2}>2 ребёнка</option>
                 </select>
               </div>
               <button className="ap-search-btn" onClick={handleSearch}>
@@ -327,6 +350,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                           до {apartment.max_guests} гостей
                         </span>
                       </div>
+
+                      {apartment.max_guests >= 3 && (
+                        <div className="ap-children-badge">
+                          Дети до 6 лет — бесплатно
+                        </div>
+                      )}
 
                       <p className="ap-list-description">{apartment.short_description}</p>
 

@@ -66,13 +66,20 @@
   .ap-hero {
     padding: 0 24px 5px;
   }
-  
+
   .ap-hero-container {
     padding-top: 29px; /* Отступ сверху, чтобы контент не уходил под хеддер */
   }
-  
+
   .ap-hero-left {
     margin-top: 0;
+  }
+}
+
+/* ПЛАНШЕТ (MacBook и iPad) - хеддер переходит в мобильный режим с капсулой */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ap-hero-container {
+    padding-top: 120px;
   }
 }
 
@@ -157,7 +164,7 @@
 }
 
 .ap-search-field {
-  min-width: 180px;
+  min-width: 150px;
   flex: 1;
 }
 
@@ -415,6 +422,25 @@
   color: #139ab6;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.ap-children-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0e8a5a;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 20px;
+  padding: 3px 12px;
+  margin-bottom: 10px;
+}
+
+.ap-children-badge::before {
+  content: '✦';
+  font-size: 10px;
 }
 
 .ap-list-description {

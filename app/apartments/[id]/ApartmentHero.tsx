@@ -3,7 +3,39 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
+import {
+  Wifi, Refrigerator, Snowflake, Wind, Home, UtensilsCrossed,
+  Microwave, Flame, ShowerHead, Coffee, Thermometer, Footprints,
+  Tv, Lock, WashingMachine, Car, Bath, type LucideIcon,
+} from 'lucide-react';
 import './apartment.css';
+
+// ===== FEATURE ICONS (Lucide) =====
+const FEATURE_ICON_MAP: Array<{ match: RegExp; Icon: LucideIcon }> = [
+  { match: /интернет|wi-?fi/i,        Icon: Wifi },
+  { match: /холодильник/i,            Icon: Refrigerator },
+  { match: /кондиционер/i,            Icon: Snowflake },
+  { match: /фен/i,                    Icon: Wind },
+  { match: /балкон|терраса/i,         Icon: Home },
+  { match: /кухн/i,                   Icon: UtensilsCrossed },
+  { match: /микроволновк/i,           Icon: Microwave },
+  { match: /плит/i,                   Icon: Flame },
+  { match: /душ/i,                    Icon: ShowerHead },
+  { match: /кофе/i,                   Icon: Coffee },
+  { match: /подогрев/i,               Icon: Thermometer },
+  { match: /тапочк/i,                 Icon: Footprints },
+  { match: /телевизор|^тв$/i,         Icon: Tv },
+  { match: /сейф/i,                   Icon: Lock },
+  { match: /стиральн/i,               Icon: WashingMachine },
+  { match: /парковк/i,                Icon: Car },
+  { match: /джакузи|ванн/i,           Icon: Bath },
+];
+
+function FeatureIcon({ name }: { name: string }) {
+  const entry = FEATURE_ICON_MAP.find(({ match }) => match.test(name));
+  const Icon = entry?.Icon ?? Wind; // Wind — нейтральная иконка по умолчанию
+  return <Icon size={15} strokeWidth={2} aria-hidden="true" />;
+}
 
 type Props = {
   apartment: {
@@ -105,14 +137,12 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
     setTimeout(() => setPaused(false), 2000);
   };
 
-  if (!apartment.images?.length) {
-    return <div>Нет изображений</div>;
-  }
+  const hasImages = apartment.images?.length > 0;
 
   const isActive = apartment.isActive !== false;
 
   const SliderArrows = () => {
-    if (isMobile) return null;
+    if (isMobile || !hasImages || apartment.images.length < 2) return null;
     return (
       <>
         <button className="hero-arrow hero-arrow--left" onClick={goToPrev}>‹</button>
@@ -186,6 +216,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
+        {/* Размытый фоновый слайдер */}
         <div className="hero-slider">
           {apartment.images.map((img, index) => (
             <div
@@ -193,7 +224,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
               className={`hero-slide ${index === activeIndex ? 'active' : ''}`}
               style={{ display: index === activeIndex ? 'block' : 'none' }}
             >
-              <div className="hero-slide-bg" style={{ backgroundImage: `url(${img})` }} />
+              <div className="hero-slide-bg hero-slide-bg--blur" style={{ backgroundImage: `url(${img})` }} />
             </div>
           ))}
           <div className="hero-slide-background" />
@@ -201,34 +232,76 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
         <div className="panorama-overlay" />
 
-        <svg className="hero-frame-svg" viewBox="0 0 1900 1300" preserveAspectRatio="none">
-          <path d="M 0 0 H 1900 V 580 L 1865 650 L 1900 720 V 1300 H 0 V 720 L 35 650 L 0 580 Z" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
-        </svg>
+        {/* Основной split-layout */}
+        <div className="apt-content-grid">
+          {/* Левая колонка */}
+          <div className="apt-col-left">
+            <div className="apt-panel apt-panel-title">
+              <span className="apt-eyebrow">Lifestyle · Luxury</span>
+              <h1 className="apt-title">{apartment.title}</h1>
+              <div className="apt-meta">
+                <span>До {apartment.maxGuests} гостей</span>
+                <span>{apartment.area} м²</span>
+              </div>
+            </div>
+            <div className="apt-panel apt-panel-desc">
+              <p>{apartment.description}</p>
+            </div>
+          </div>
 
-        <div className="panorama-info">
-          <div className="panorama-info-inner">
-            <span className="panorama-info-eyebrow">Lifestyle · Luxury</span>
-            <h2 className="panorama-info-title">{apartment.title}</h2>
-            <p className="panorama-info-description">{apartment.description}</p>
-            
-            <ul className="panorama-info-meta">
-              <li>До {apartment.maxGuests} гостей</li>
-              <li>{apartment.area} м²</li>
-              {apartment.features?.slice(0, 2).map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
+          {/* Правая колонка */}
+          <div className="apt-col-right">
+            <div
+              className={`apt-photo${!hasImages ? ' apt-photo--empty' : ''}`}
+              onClick={() => hasImages ? open(apartment.images, activeIndex) : undefined}
+              title={hasImages ? 'Смотреть фото' : undefined}
+              style={{ cursor: hasImages ? 'zoom-in' : 'default' }}
+            >
+              {hasImages && (
+                <img
+                  src={apartment.images[activeIndex]}
+                  alt={apartment.title}
+                />
+              )}
+              {/* Горизонтальная навигация внутри фото */}
+              {hasImages && apartment.images.length > 1 && (
+                <div className="apt-photo-nav" onClick={e => e.stopPropagation()}>
+                  {apartment.images.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`apt-photo-nav-btn${index === activeIndex ? ' active' : ''}`}
+                      onClick={() => goToSlide(index)}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {!loading && !isActive && (
-              <div className="panorama-unavailable-message">
-                <span className="unavailable-text">Апартамент временно недоступен для бронирования</span>
+            {apartment.features?.length > 0 && (
+              <div className="apt-features-panel">
+                <span className="apt-features-eyebrow">Особенности</span>
+                <ul className="apt-features-list">
+                  {apartment.features.map((feature, i) => (
+                    <li key={i}>
+                      <span className="apt-feature-icon"><FeatureIcon name={feature} /></span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
         </div>
 
+        {!loading && !isActive && (
+          <div className="panorama-unavailable-message">
+            <span className="unavailable-text">Апартамент временно недоступен для бронирования</span>
+          </div>
+        )}
+
         <SliderArrows />
-        <Timeline />
       </section>
     );
   }

@@ -6,6 +6,7 @@ export type SearchParams = {
   checkIn: string;
   checkOut: string;
   guests: number;
+  children: number;
 };
 
 type SearchContextType = {

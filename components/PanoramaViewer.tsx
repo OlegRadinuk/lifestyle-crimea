@@ -182,7 +182,7 @@ export default function PanoramaViewer() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          register(id, { mode: 'apartment', priority: 2 });
+          register(id, { mode: 'panorama', priority: 2 });
         } else {
           unregister(id);
         }

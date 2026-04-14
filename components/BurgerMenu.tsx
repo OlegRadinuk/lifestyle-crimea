@@ -161,13 +161,12 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
               ))}
             </ul>
 
-            <a href="/booking" className="burger-booking" onClick={onClose}>
-              Забронировать
-            </a>
+            <div className="burger-divider" />
 
             <div className="burger-contacts">
-              <a href="tel:+79785036363">+7 (978) 503-63-63</a>
-              <a href="tel:+79786964510">+7 (978) 696-45-10</a>
+              <a href="tel:+79785036363">+7 978 503 63 63</a>
+              <a href="tel:+88007776308">8 800 777 63 08 <span className="burger-phone-note">бесплатный</span></a>
+              <a href="tel:+79786964510">+7 978 696 45 10</a>
               <div className="burger-address">Алушта, Западная ул., 4, корп. 3</div>
               <div className="burger-time">Круглосуточно</div>
             </div>

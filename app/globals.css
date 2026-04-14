@@ -212,7 +212,7 @@ html, body {
 .header__booking-fields {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 22px;
   height: 56px;
   padding-left: 24px;
   z-index: 2;
@@ -397,6 +397,84 @@ html, body {
 
 
 /* =========================
+   APARTMENT HEADER ACTIONS
+========================= */
+/* На десктопе top-row прозрачен — его дети участвуют в flex хедера напрямую */
+.header__top-row {
+  display: contents;
+}
+
+.header__apt-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__back-btn {
+  padding: 10px 22px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(13, 27, 42, 0.85);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(13, 27, 42, 0.22);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(13, 27, 42, 0.08);
+}
+
+.header__back-btn:hover {
+  color: #0d1b2a;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(13, 27, 42, 0.40);
+  box-shadow: 0 4px 14px rgba(13, 27, 42, 0.12);
+}
+
+@media (max-width: 768px) {
+  .header__back-btn {
+    display: none;
+  }
+}
+
+/* =========================
+   APARTMENT MODE — тёмная капсула бургера
+========================= */
+.header--apartment .header__burger,
+.header--panorama .header__burger {
+  background: rgba(13, 27, 42, 0.70);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  padding: 8px 16px 8px 12px;
+  transform: scale(1);
+  transform-origin: left center;
+  transition: background 0.25s ease;
+}
+
+.header--apartment .header__burger:hover,
+.header--panorama .header__burger:hover {
+  background: rgba(13, 27, 42, 0.88);
+}
+
+.header--apartment .header__burger::after,
+.header--panorama .header__burger::after {
+  display: none;
+}
+
+.header--apartment .burger-text,
+.header--panorama .burger-text {
+  color: #fff;
+  opacity: 1;
+}
+
+
+/* =========================
    BURGER MENU (ТВОЙ ПОЛНОСТЬЮ)
 ========================= */
 .burger-overlay {
@@ -494,6 +572,12 @@ html, body {
   color: #139ab6;
   text-decoration: none;
   margin-bottom: 6px;
+}
+
+.burger-phone-note {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .burger-address {
@@ -614,26 +698,16 @@ html, body {
   transform: scale(1.2);
 }
 
+.burger-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #139ab6 30%, #1fb3cf 70%, transparent);
+  margin: 20px 40px;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
 .burger-booking {
-  margin-top: 28px;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-decoration: none;
-  border: none;
-  border-radius: 0;
-  background: linear-gradient(120deg, #139ab6c9, #139ab6e8, #17b6d6ed);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 0 rgba(19, 154, 182, 0);
-  transition: box-shadow 0.4s ease, transform 0.3s ease, filter 0.4s ease;
-  animation: glassPulse 8s ease-in-out infinite;
+  display: none;
 }
 
 .burger-booking:hover,
@@ -2655,52 +2729,63 @@ html, body {
     background: rgba(19, 154, 182, 0.28);
   }
 
-  .header--apartment.header--mobile .header__booking-wrapper {
+  /* Booking wrapper — теперь в flex-ряду, position: static */
+  .header--apartment.header--mobile .header__booking-wrapper,
+  .header--panorama.header--mobile .header__booking-wrapper {
     display: flex;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    position: static;
     background: none;
     width: auto;
-    z-index: 50;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
-  .header--apartment.header--mobile .header__booking.with-apartment {
-    padding: 12px 30px;
-    background: #139ab6a8;
+  /* Кнопка "Проверить доступность / Забронировать" на мобиле */
+  .header--apartment.header--mobile .header__booking.with-apartment,
+  .header--panorama.header--mobile .header__booking.with-apartment {
+    padding: 8px 14px;
+    background: rgba(19, 154, 182, 0.72);
     backdrop-filter: blur(6px);
     border: none;
     border-radius: 999px;
     color: #e6fbff;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    white-space: normal;
     text-align: center;
     line-height: 1.3;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(19, 154, 182, 0.25);
     cursor: pointer;
-    min-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 200px;
   }
 
-  .header--apartment.header--mobile .header__booking-label {
+  .header--apartment.header--mobile .header__booking-label,
+  .header--panorama.header--mobile .header__booking-label {
+    font-size: 10px;
+    opacity: 0.85;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .header--apartment.header--mobile .header__booking-apartment,
+  .header--panorama.header--mobile .header__booking-apartment {
     font-size: 12px;
-    opacity: 0.9;
-    margin-bottom: 2px;
-    letter-spacing: 0.15em;
-  }
-
-  .header--apartment.header--mobile .header__booking-apartment {
-    font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    letter-spacing: 0.05em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    letter-spacing: 0.04em;
   }
 
   .header--apartment.header--mobile .header__calendar-popover {
@@ -3792,6 +3877,12 @@ html, body {
   gap: 8px;
 }
 
+.ff-phone-note {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
 .ff-footer-desktop .ff-phone {
   font-size: 14px;
   color: #139ab6;
@@ -4538,23 +4629,19 @@ html, body {
   }
   
   .burger-booking {
-    margin: 0 20px 20px;
-    padding: 18px 24px;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 50px;
-    background: #139ab6;
-    color: white;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(19, 154, 182, 0.3);
+    display: none;
   }
   
   .burger-contacts {
-    padding: 20px;
+    padding: 16px 20px 20px;
     margin-top: auto;
     font-size: 15px;
-    border-top: 1px solid rgba(19, 154, 182, 0.15);
+    border-top: none;
     text-align: center;
+  }
+
+  .burger-divider {
+    margin: 16px 24px;
   }
   
   .burger-contacts a {
@@ -4592,8 +4679,7 @@ html, body {
   }
   
   .burger-booking {
-    padding: 16px 20px;
-    font-size: 16px;
+    display: none;
   }
   
   .burger-contacts a {
@@ -5338,9 +5424,11 @@ html, body {
     border-radius: 30px;
   }
 
-  /* Кнопка на странице апартаментов (в два ряда) */
-  .header--apartment.header--mobile .header__booking.with-apartment {
-    min-width: 140px;
+  /* Кнопка на странице апартаментов / панорамы */
+  .header--apartment.header--mobile .header__booking.with-apartment,
+  .header--panorama.header--mobile .header__booking.with-apartment {
+    min-width: 120px;
+    max-width: 190px;
     padding: 6px 14px;
     flex-direction: column;
     gap: 0;
@@ -5350,17 +5438,22 @@ html, body {
     border-radius: 30px;
   }
 
-  .header--apartment.header--mobile .header__booking-label {
+  .header--apartment.header--mobile .header__booking-label,
+  .header--panorama.header--mobile .header__booking-label {
     font-size: 9px;
     opacity: 0.9;
     letter-spacing: 0.1em;
     margin-bottom: 0;
   }
 
-  .header--apartment.header--mobile .header__booking-apartment {
+  .header--apartment.header--mobile .header__booking-apartment,
+  .header--panorama.header--mobile .header__booking-apartment {
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
   }
 
   /* Календарь для мобильных в режиме apartment */
@@ -5409,16 +5502,20 @@ html, body {
     font-size: 12px;
   }
 
-  .header--apartment.header--mobile .header__booking.with-apartment {
-    min-width: 130px;
+  .header--apartment.header--mobile .header__booking.with-apartment,
+  .header--panorama.header--mobile .header__booking.with-apartment {
+    min-width: 110px;
+    max-width: 170px;
     padding: 5px 12px;
   }
 
-  .header--apartment.header--mobile .header__booking-label {
+  .header--apartment.header--mobile .header__booking-label,
+  .header--panorama.header--mobile .header__booking-label {
     font-size: 8px;
   }
 
-  .header--apartment.header--mobile .header__booking-apartment {
+  .header--apartment.header--mobile .header__booking-apartment,
+  .header--panorama.header--mobile .header__booking-apartment {
     font-size: 10px;
   }
 }
@@ -5458,16 +5555,20 @@ html, body {
     font-size: 11px;
   }
 
-  .header--apartment.header--mobile .header__booking.with-apartment {
-    min-width: 110px;
+  .header--apartment.header--mobile .header__booking.with-apartment,
+  .header--panorama.header--mobile .header__booking.with-apartment {
+    min-width: 90px;
+    max-width: 150px;
     padding: 4px 10px;
   }
 
-  .header--apartment.header--mobile .header__booking-label {
+  .header--apartment.header--mobile .header__booking-label,
+  .header--panorama.header--mobile .header__booking-label {
     font-size: 7px;
   }
 
-  .header--apartment.header--mobile .header__booking-apartment {
+  .header--apartment.header--mobile .header__booking-apartment,
+  .header--panorama.header--mobile .header__booking-apartment {
     font-size: 9px;
   }
 }
@@ -6043,7 +6144,7 @@ html, body {
   }
 
   .rf-mobile .rf-mobile-slide .rf-card-text {
-    font-size: 15px;
+    font-size: 35px;
     line-height: 1.5;
     -webkit-line-clamp: 4;
     margin-bottom: 10px;
@@ -6438,25 +6539,7 @@ html, body {
   }
 
   .burger-booking {
-    margin: 20px 0 20px !important;
-    padding: 14px 20px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border-radius: 40px !important;
-    background: linear-gradient(135deg, #139ab6, #1fb3cf) !important;
-    color: white !important;
-    text-align: center !important;
-    box-shadow: 0 8px 20px rgba(19, 154, 182, 0.3) !important;
-    border: none !important;
-    width: 100% !important;
-    display: block !important;
-    text-decoration: none !important;
-    flex-shrink: 0 !important;
-  }
-
-  .burger-booking:active {
-    transform: scale(0.98) !important;
-    box-shadow: 0 4px 12px rgba(19, 154, 182, 0.4) !important;
+    display: none !important;
   }
 
   .burger-contacts {
@@ -6531,9 +6614,7 @@ html, body {
   }
 
   .burger-booking {
-    margin: 16px 0 16px !important;
-    padding: 12px 18px !important;
-    font-size: 15px !important;
+    display: none !important;
   }
 
   .burger-contacts a {
@@ -6570,9 +6651,7 @@ html, body {
   }
 
   .burger-booking {
-    margin: 14px 0 14px !important;
-    padding: 10px 16px !important;
-    font-size: 14px !important;
+    display: none !important;
   }
 
   .burger-contacts a {
@@ -6594,21 +6673,14 @@ html, body {
   }
 }
 
-/* ===== HEADER MOBILE HERO FIELDS ===== */
+/* ===== HEADER MOBILE — УНИВЕРСАЛЬНЫЙ TOP ROW ===== */
 @media (max-width: 1024px) {
-  /* Верхний ряд: бургер + кнопка на одной линии */
+  /* Desktop: top-row прозрачный, его дети участвуют в flex хедера напрямую */
   .header__top-row {
-    display: contents; /* на десктопе не влияет */
+    display: contents;
   }
 
-  .header__top-row--hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 12px;
-  }
-
+  /* Mobile hero: flex-column контейнер */
   .header--hero.header--mobile {
     display: flex;
     flex-direction: column;
@@ -6619,12 +6691,22 @@ html, body {
     gap: 12px;
   }
 
-  .header__top-row {
+  /* Mobile apartment/panorama/dark: flex-row хедер */
+  .header--apartment.header--mobile,
+  .header--panorama.header--mobile,
+  .header--dark.header--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Топ-ряд: бургер + действие — на одной линии для всех режимов */
+  .header--mobile .header__top-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    gap: 12px;
+    gap: 8px;
   }
 
   .header--hero.header--mobile .header__mobile-fields {
@@ -6643,6 +6725,10 @@ html, body {
     align-items: center;
     gap: 12px;
     width: 100%;
+  }
+
+  .header__mobile-fields-row + .header__mobile-fields-row {
+    margin-top: 10px;
   }
 
   .mobile-field {
@@ -6989,58 +7075,17 @@ html, body {
   flex-shrink: 0; /* запрещаем сжиматься */
 }
 
-/* ===== Адаптивность для кнопки хеддера на экранах ===== */
-    @media (max-width: 360px) {
-        .header--hero.header--mobile .header__mobile-book-btn {
-            white-space: nowrap;
-            -webkit-backdrop-filter: blur(6px);
-            backdrop-filter: blur(6px);
-            color: #e6fbff;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            cursor: pointer;
-            text-overflow: ellipsis;
-            background: #139ab6f2;
-            border: none;
-            border-radius: 30px;
-            flex-shrink: 1;
-            min-width: 0;
-            max-width: 300px;
-            margin-top: -48px;
-            margin-left: auto;
-            padding: 8px 9px!important;
-            font-size: 13px;
-            font-weight: 500;
-            position: static;
-            overflow: hidden;
-            transform: none;
-            box-shadow: 0 4px 15px #139ab64d;
-        }
-    }
+/* ===== Адаптивность для кнопки хеддера на маленьких экранах ===== */
+@media (max-width: 360px) {
+  .header--hero.header--mobile .header__mobile-book-btn {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+  }
+}
 @media (max-width: 480px) {
-    .header--hero.header--mobile .header__mobile-book-btn {
-    position: static;
-    transform: none;
-    padding: 10px 9px!important;
-    font-size: 12px!important;
-    white-space: nowrap;
-    background: rgba(19, 154, 182, 0.95);
-    backdrop-filter: blur(6px);
-    border-radius: 30px;
-    color: #e6fbff;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(19, 154, 182, 0.3);
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
-    margin-top: -50.5px;
-    margin-left: auto;
+  .header--hero.header--mobile .header__mobile-book-btn {
+    padding: 9px 12px !important;
+    font-size: 12px !important;
   }
 }
 

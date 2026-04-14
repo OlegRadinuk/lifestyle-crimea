@@ -116,23 +116,17 @@ export default async function ApartmentPage({ params }: PageProps) {
     notFound();
   }
 
-  // Получаем фото
+  // Получаем фото из таблицы apartment_images (управляется через админку)
   let images: string[] = [];
   try {
     const imageRows = db.prepare(`
-      SELECT url FROM apartment_images 
-      WHERE apartment_id = ? 
+      SELECT url FROM apartment_images
+      WHERE apartment_id = ?
       ORDER BY sort_order
     `).all(id);
     images = imageRows.map((img: any) => img.url);
   } catch (e) {
-    if (apartment.images) {
-      try {
-        images = JSON.parse(apartment.images);
-      } catch (e) {
-        images = [];
-      }
-    }
+    images = [];
   }
 
   const formattedApartment = {
@@ -146,7 +140,7 @@ export default async function ApartmentPage({ params }: PageProps) {
     view: apartment.view,
     has_terrace: Boolean(apartment.has_terrace),
     features: apartment.features ? JSON.parse(apartment.features) : [],
-    images: images.length > 0 ? images : ['/images/placeholder.jpg'],
+    images: images,
     is_active: Boolean(apartment.is_active),
   };
 
