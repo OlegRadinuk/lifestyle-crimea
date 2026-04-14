@@ -250,7 +250,7 @@ export default function Header({ onBurgerClick }: Props) {
             <div className="header__apt-actions">
               {mode === 'apartment' && (
                 <button className="header__back-btn" onClick={() => router.back()}>
-                  Вернуться к списку
+                  Вернуться к списку апартаментов
                 </button>
               )}
               {activeApartment && isActive && (
