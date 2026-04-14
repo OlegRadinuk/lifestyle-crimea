@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
-import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import './apartment.css';
 
 // ===== FEATURE ICONS (inline SVG, no external deps) =====
@@ -78,7 +77,6 @@ type Props = {
 
 export default function ApartmentHero({ apartment, loading = false }: Props) {
   const { register, unregister } = useHeader();
-  const { open } = usePhotoModal();
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -162,12 +160,12 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const isActive = apartment.isActive !== false;
 
-  const SliderArrows = () => {
-    if (isMobile || !hasImages || apartment.images.length < 2) return null;
+  const PhotoArrows = () => {
+    if (!hasImages || apartment.images.length < 2) return null;
     return (
       <>
-        <button className="hero-arrow hero-arrow--left" onClick={goToPrev}>‹</button>
-        <button className="hero-arrow hero-arrow--right" onClick={goToNext}>›</button>
+        <button className="apt-photo-arrow apt-photo-arrow--left" onClick={(e) => { e.stopPropagation(); goToPrev(); }} aria-label="Предыдущее фото">‹</button>
+        <button className="apt-photo-arrow apt-photo-arrow--right" onClick={(e) => { e.stopPropagation(); goToNext(); }} aria-label="Следующее фото">›</button>
       </>
     );
   };
@@ -272,21 +270,17 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
           {/* Правая колонка */}
           <div className="apt-col-right">
-            <div
-              className={`apt-photo${!hasImages ? ' apt-photo--empty' : ''}`}
-              onClick={() => hasImages ? open(apartment.images, activeIndex) : undefined}
-              title={hasImages ? 'Смотреть фото' : undefined}
-              style={{ cursor: hasImages ? 'zoom-in' : 'default' }}
-            >
+            <div className={`apt-photo${!hasImages ? ' apt-photo--empty' : ''}`}>
               {hasImages && (
                 <img
                   src={apartment.images[activeIndex]}
                   alt={apartment.title}
                 />
               )}
+              <PhotoArrows />
               {/* Горизонтальная навигация внутри фото */}
               {hasImages && apartment.images.length > 1 && (
-                <div className="apt-photo-nav" onClick={e => e.stopPropagation()}>
+                <div className="apt-photo-nav">
                   {apartment.images.map((_, index) => (
                     <button
                       key={index}
@@ -321,8 +315,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             <span className="unavailable-text">Апартамент временно недоступен для бронирования</span>
           </div>
         )}
-
-        <SliderArrows />
       </section>
     );
   }

@@ -152,7 +152,7 @@
   min-height: 0;
   border-radius: 18px;
   overflow: hidden;
-  cursor: zoom-in;
+  cursor: default;
   position: relative;
   background: linear-gradient(135deg, #dbeaf3 0%, #c8dde9 50%, #d6e8f2 100%);
 }
@@ -186,8 +186,8 @@
   opacity: 0.7;
 }
 
-.apartment-hero .apt-photo:hover img {
-  transform: scale(1.03);
+.apartment-hero .apt-photo img {
+  transition: none;
 }
 
 /* ===== ENTRY ANIMATIONS ===== */
@@ -213,18 +213,50 @@
   animation: aptPanelFadeIn 0.6s ease-out 0.15s both;
 }
 
-/* ===== PHOTO HOVER OVERLAY ===== */
-.apartment-hero .apt-photo::after {
-  content: '';
+/* ===== PHOTO ARROWS ===== */
+.apartment-hero .apt-photo-arrow {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0);
-  transition: background 0.3s ease;
-  border-radius: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.32);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  line-height: 1;
+  padding-bottom: 2px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.apartment-hero .apt-photo:hover::after {
-  background: rgba(0, 0, 0, 0.12);
+.apartment-hero .apt-photo-arrow:hover {
+  background: rgba(19, 154, 182, 0.75);
+  color: #fff;
+}
+
+.apartment-hero .apt-photo-arrow--left {
+  left: 14px;
+}
+
+.apartment-hero .apt-photo-arrow--left:hover {
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.apartment-hero .apt-photo-arrow--right {
+  right: 14px;
+}
+
+.apartment-hero .apt-photo-arrow--right:hover {
+  transform: translateY(-50%) translateX(2px);
 }
 
 
@@ -324,41 +356,6 @@
   transform: scale(1.08);
 }
 
-/* ===== ARROWS ===== */
-.apartment-hero .hero-arrow {
-  position: absolute;
-  top: 49.5%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 44px;
-  font-weight: 100;
-  color: rgba(255, 255, 255, 0.75);
-  cursor: pointer;
-  z-index: 100;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.apartment-hero .hero-arrow:hover {
-  color: #ffffff;
-}
-
-.apartment-hero .hero-arrow--left {
-  left: 24px;
-}
-
-.apartment-hero .hero-arrow--left:hover {
-  transform: translate(-6px, -50%);
-}
-
-.apartment-hero .hero-arrow--right {
-  right: 24px;
-}
-
-.apartment-hero .hero-arrow--right:hover {
-  transform: translate(6px, -50%);
-}
 
 /* ===== TIMELINE (десктопный вариант с классами; мобильный таймлайн — inline в компоненте) ===== */
 .apartment-hero .hero-timeline {
