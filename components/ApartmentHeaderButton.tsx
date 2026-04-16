@@ -83,7 +83,7 @@ export default function ApartmentHeaderButton({
             >
               <span className="header__booking-label">Забронировать</span>
               <span className="header__booking-apartment">
-                {apartmentTitle.replace(/^LS\s*/i, '')}
+                {apartmentTitle.replace(/^LS[\s-]*/i, '')}
               </span>
             </button>
           ) : (
@@ -95,7 +95,7 @@ export default function ApartmentHeaderButton({
             >
               <span className="header__booking-label">Проверить доступность</span>
               <span className="header__booking-apartment">
-                {apartmentTitle.replace(/^LS\s*/i, '')}
+                {apartmentTitle.replace(/^LS[\s-]*/i, '')}
               </span>
             </button>
           )}
