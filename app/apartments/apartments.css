@@ -61,14 +61,14 @@
   margin-bottom: 0;
 }
 
-/* ДЕСКТОП - заголовки на одном уровне с кнопкой меню */
-@media (min-width: 769px) {
+/* ДЕСКТОП - заголовок ниже хеддера (header: top 24px + height 80px = 104px снизу) */
+@media (min-width: 1025px) {
   .ap-hero {
     padding: 0 24px 5px;
   }
 
   .ap-hero-container {
-    padding-top: 29px; /* Отступ сверху, чтобы контент не уходил под хеддер */
+    padding-top: 116px; /* Очищает header (104px) + небольшой отступ */
   }
 
   .ap-hero-left {
@@ -78,6 +78,10 @@
 
 /* ПЛАНШЕТ (MacBook и iPad) - хеддер переходит в мобильный режим с капсулой */
 @media (min-width: 769px) and (max-width: 1024px) {
+  .ap-hero {
+    padding: 0 24px 5px;
+  }
+
   .ap-hero-container {
     padding-top: 120px;
   }

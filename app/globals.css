@@ -410,12 +410,12 @@ html, body {
   gap: 12px;
   min-width: 0;
   flex-shrink: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .header__booking-action {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
 }
 
@@ -2093,6 +2093,11 @@ html, body {
 .admin-content {
   max-width: 1400px;
   margin: 0 auto;
+}
+
+/* Мобильный топ-бар — скрыт на десктопе */
+.admin-mobile-topbar {
+  display: none;
 }
 
 .admin-page {
@@ -4972,13 +4977,62 @@ html, body {
     margin: 4px 0;
   }
 
+  /* Мобильный топ-бар */
+  .admin-mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background: #1a2634;
+    padding: 0 16px;
+    z-index: 998;
+  }
+
+  .admin-mobile-menu-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+
+  .admin-mobile-title {
+    color: #139ab6;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
   /* Layout */
   .admin-sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .admin-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
   }
 
   .admin-main {
     padding: 16px;
+    padding-top: 60px;
   }
 
   /* Header */
@@ -5529,7 +5583,8 @@ html, body {
     backdrop-filter: blur(6px);
     border-radius: 30px;
     flex-shrink: 1;
-    overflow: hidden;
+    overflow: visible;
+    height: auto;
   }
 
   .header--apartment.header--mobile .header__booking-label,
@@ -5538,20 +5593,22 @@ html, body {
     opacity: 0.9;
     letter-spacing: 0.1em;
     margin-bottom: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
     max-width: 100%;
+    word-break: break-word;
   }
 
   .header--apartment.header--mobile .header__booking-apartment,
   .header--panorama.header--mobile .header__booking-apartment {
     font-size: 11px;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
     max-width: 100%;
+    word-break: break-word;
   }
 
   /* Календарь для мобильных в режиме apartment / panorama */
@@ -5592,8 +5649,14 @@ html, body {
     font-size: 11px;
   }
 
-  .header__booking-wrapper {
+  .header__booking-wrapper:not(.is-apartment) {
     max-width: calc(100% - 100px);
+  }
+
+  .header__booking-wrapper.is-apartment {
+    max-width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .header__booking,
@@ -6822,7 +6885,7 @@ html, body {
     justify-content: space-between;
     width: 100%;
     gap: 8px;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Бургер не сжимается, содержимое справа — да */
@@ -6833,7 +6896,7 @@ html, body {
   .header--mobile .header__top-row .header__booking-wrapper,
   .header--mobile .header__top-row .header__apt-actions {
     min-width: 0;
-    flex-shrink: 1;
+    flex: 1 1 0;
   }
 
   .header--hero.header--mobile .header__mobile-fields {
@@ -7809,4 +7872,45 @@ html, body {
     font-size: 18px !important;
     padding-top: 16px !important;
   }
+}
+
+
+/* ===== FINAL OVERRIDE: mobile booking button — no clip, allow wrap ===== */
+.header--mobile .header__booking-label,
+.header--mobile .header__booking-apartment {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+  display: block !important;
+}
+.header--mobile .header__booking.with-apartment {
+  overflow: visible !important;
+  width: 100% !important;
+  white-space: normal !important;
+  height: auto !important;
+}
+.header--mobile .header__booking-action {
+  overflow: visible !important;
+  width: 100% !important;
+}
+.header--mobile .header__booking-wrapper.is-apartment {
+  overflow: visible !important;
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+.header--mobile .header__apt-actions {
+  overflow: visible !important;
+  align-items: center !important;
+}
+.header--mobile .header__top-row {
+  overflow: visible !important;
+  align-items: center !important;
+}
+.header--mobile.header--apartment,
+.header--mobile.header--panorama {
+  height: auto !important;
+  min-height: 60px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
 }

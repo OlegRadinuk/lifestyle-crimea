@@ -72,8 +72,8 @@ export default function ApartmentHeaderButton({
 
   return (
     <>
-      <div className="header__booking-wrapper is-apartment">
-        <div className="header__booking-action" style={{ position: 'relative' }}>
+      <div className="header__booking-wrapper is-apartment" style={{ flex: '1 1 0', minWidth: 0, overflow: 'visible' }}>
+        <div className="header__booking-action" style={{ position: 'relative', width: '100%', overflow: 'visible' }}>
           {hasPreselectedDates ? (
             // Кнопка "Забронировать" - открывает модалку с предзаполненными датами
             <button

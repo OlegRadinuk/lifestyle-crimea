@@ -13,6 +13,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
@@ -57,7 +58,26 @@ export default function AdminLayout({
 
   return (
     <div className="admin-layout">
-      <aside className={`admin-sidebar ${collapsed ? 'collapsed' : ''}`}>
+      {/* Мобильный топ-бар */}
+      <div className="admin-mobile-topbar">
+        <button
+          className="admin-mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          ☰
+        </button>
+        <span className="admin-mobile-title">Lifestyle Admin</span>
+      </div>
+
+      {/* Оверлей при открытом мобильном меню */}
+      {mobileMenuOpen && (
+        <div
+          className="admin-mobile-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="admin-sidebar-header">
           {!collapsed ? (
             <h2>Lifestyle Admin</h2>
@@ -79,6 +99,7 @@ export default function AdminLayout({
         href={item.href}
         className={`admin-nav-item ${isActive ? 'active' : ''}`}
         title={collapsed ? item.label : undefined}
+        onClick={() => setMobileMenuOpen(false)}
       >
         <span className="admin-nav-icon">{item.icon}</span>
         {!collapsed && <span>{item.label}</span>}
@@ -88,7 +109,7 @@ export default function AdminLayout({
 </nav>
 
         <div className="admin-sidebar-footer">
-          <button onClick={handleLogout} className="admin-nav-item">
+          <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="admin-nav-item">
             <span className="admin-nav-icon">🚪</span>
             {!collapsed && <span>Выйти</span>}
           </button>
