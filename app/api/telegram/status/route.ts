@@ -1,8 +1,11 @@
 // app/api/telegram/status/route.ts
 import { NextResponse } from 'next/server';
 import { notificationService } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
   try {
     const settings = notificationService.getActiveTelegramSettings();
     

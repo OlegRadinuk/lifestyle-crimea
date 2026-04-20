@@ -3,13 +3,16 @@ import { icsService, externalBookingService, logService } from '@/lib/db';
 import { fetchIcs } from '@/lib/ics/parser';
 import type { IcsSource } from '@/lib/types';
 
-const CRON_SECRET = process.env.CRON_SECRET || 'your-secret-key';
-
 export async function POST(request: Request) {
   const startTime = Date.now();
   try {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      console.error('CRON_SECRET env variable is not set');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

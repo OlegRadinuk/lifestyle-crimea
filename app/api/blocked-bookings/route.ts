@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request: Request) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const apartmentId = searchParams.get('apartment_id');
