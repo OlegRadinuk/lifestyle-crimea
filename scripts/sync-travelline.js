@@ -392,8 +392,13 @@ async function syncBookings() {
     console.log(`💥 Errors:              ${stats.errors}`);
     console.log('='.repeat(80));
 
+    // Force WAL checkpoint to prevent DB corruption from large WAL files
+    db.pragma('wal_checkpoint(TRUNCATE)');
+    console.log('✅ WAL checkpoint done');
+
   } catch (error) {
     console.error('\n❌ SYNC FAILED:', error);
+    db.pragma('wal_checkpoint(TRUNCATE)');
     process.exit(1);
   }
 }
