@@ -54,7 +54,17 @@ const FEATURE_ICON_MAP: Array<{ match: RegExp; key: keyof typeof icons }> = [
 
 function FeatureIcon({ name }: { name: string }) {
   const entry = FEATURE_ICON_MAP.find(({ match }) => match.test(name));
-  return icons[entry?.key ?? 'wind'] ?? icons.wind;
+  return icons[entry?.key ?? 'home'] ?? icons.home;
+}
+
+function renderDescription(text: string) {
+  return text.split(/\n\n+/).map((para, i) => (
+    <p key={i} style={{ marginBottom: '0.9em' }}>
+      {para.split('\n').map((line, j, arr) => (
+        <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+      ))}
+    </p>
+  ));
 }
 
 type Props = {
@@ -263,8 +273,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 <span>{apartment.area} м²</span>
               </div>
             </div>
-            <div className="apt-panel apt-panel-desc">
-              <p>{apartment.description}</p>
+            <div className="apt-panel apt-panel-desc" style={{ fontSize: '16px', lineHeight: 1.7 }}>
+              {renderDescription(apartment.description || '')}
             </div>
           </div>
 
@@ -297,14 +307,14 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             {apartment.features?.length > 0 && (
               <div className="apt-features-panel">
                 <span className="apt-features-eyebrow">Особенности</span>
-                <ul className="apt-features-list">
+                <div className="apt-features-grid">
                   {apartment.features.map((feature, i) => (
-                    <li key={i}>
-                      <span className="apt-feature-icon"><FeatureIcon name={feature} /></span>
-                      {feature}
-                    </li>
+                    <div key={i} className="apt-feature-card">
+                      <span className="apt-feature-card__icon"><FeatureIcon name={feature} /></span>
+                      <span className="apt-feature-card__label">{feature}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>
