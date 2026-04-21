@@ -78,7 +78,7 @@
   right: 60px;
   bottom: 36px;
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 1fr 540px;
   grid-template-rows: 1fr auto;
   gap: 14px;
   z-index: 90;
@@ -362,6 +362,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
+  overflow: hidden;
+  max-height: 180px;
+  transition: max-height 0.35s ease;
+}
+
+.apartment-hero .apt-features-grid.expanded {
+  max-height: 400px;
 }
 
 .apartment-hero .apt-feature-card {

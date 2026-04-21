@@ -139,7 +139,6 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
-  const FEATURES_VISIBLE = 18;
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -362,7 +361,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             <div className="apt-features-panel">
               <div className="apt-features-panel__header">
                 <span className="apt-features-eyebrow">Особенности</span>
-                {apartment.features.length > FEATURES_VISIBLE && (
+                {apartment.features.length > 12 && (
                   <button
                     className="apt-features-toggle"
                     onClick={() => setFeaturesExpanded(e => !e)}
@@ -371,8 +370,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                   </button>
                 )}
               </div>
-              <div className="apt-features-grid">
-                {(featuresExpanded ? apartment.features : apartment.features.slice(0, FEATURES_VISIBLE)).map((feature, i) => (
+              <div className={`apt-features-grid${featuresExpanded ? ' expanded' : ''}`}>
+                {apartment.features.map((feature, i) => (
                   <div key={i} className="apt-feature-card">
                     <span className="apt-feature-card__icon"><FeatureIcon name={feature} /></span>
                     <span className="apt-feature-card__label">{feature}</span>
