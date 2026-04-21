@@ -258,6 +258,36 @@ function ensureDatabaseStructure() {
       );
     `);
 
+    // Миграция: колонки согласия на ПД в bookings
+    try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_at TEXT"); } catch {}
+    try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_ip TEXT"); } catch {}
+    try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_version TEXT"); } catch {}
+
+    // Создаём таблицу apartment_images если нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS apartment_images (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        url TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id)
+      );
+    `);
+
+    // Создаём таблицу blocked_dates если нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS blocked_dates (
+        id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+        apartment_id TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        source TEXT DEFAULT 'manual',
+        booking_number TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+    `);
+
     // Миграция: добавить media_type если таблица уже существует без неё
     const heroColumns = (db.prepare("PRAGMA table_info(hero_slides)").all() as { name: string }[]).map(c => c.name);
     if (!heroColumns.includes('media_type')) {
@@ -356,13 +386,17 @@ export const bookingService = {
     checkOut: string;
     guestsCount: number;
     totalPrice: number;
+    pdConsentAt?: string | null;
+    pdConsentIp?: string | null;
+    pdConsentVersion?: string | null;
   }) => {
     const id = uuidv4();
     const stmt = db.prepare(`
       INSERT INTO bookings (
         id, apartment_id, guest_name, guest_phone, guest_email,
-        check_in, check_out, guests_count, total_price
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        check_in, check_out, guests_count, total_price,
+        pd_consent_at, pd_consent_ip, pd_consent_version
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     stmt.run(
       id,
@@ -373,7 +407,10 @@ export const bookingService = {
       data.checkIn,
       data.checkOut,
       data.guestsCount,
-      data.totalPrice
+      data.totalPrice,
+      data.pdConsentAt ?? null,
+      data.pdConsentIp ?? null,
+      data.pdConsentVersion ?? null
     );
     return { id, ...data };
   },

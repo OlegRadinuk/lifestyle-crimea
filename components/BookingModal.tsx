@@ -203,6 +203,8 @@ export default function BookingModal({
           guestPhone: guestInfo.phone,
           guestEmail: guestInfo.email || null,
           totalPrice: price.total,
+          pdConsentAt: new Date().toISOString(),
+          pdConsentVersion: '2026-04-21',
         }),
       });
 

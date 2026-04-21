@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { bookingService, logService } from '@/lib/db';
 import { APARTMENTS } from '@/data/apartments';
 import { v4 as uuidv4 } from 'uuid';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   let apartmentId: string | undefined;
-  
+
   try {
     const body = await request.json();
     apartmentId = body.apartmentId;
-    
-    const { checkIn, checkOut, guestsCount, guestName, guestPhone, guestEmail } = body;
+
+    const { checkIn, checkOut, guestsCount, guestName, guestPhone, guestEmail, pdConsentAt, pdConsentVersion } = body;
 
     if (!apartmentId || !checkIn || !checkOut || !guestsCount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -35,6 +35,8 @@ export async function POST(request: Request) {
     const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
     const totalPrice = apartment.price_base * nights;
 
+    const pdConsentIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+
     const booking = bookingService.createBooking({
       apartmentId,
       guestName,
@@ -44,6 +46,9 @@ export async function POST(request: Request) {
       checkOut,
       guestsCount,
       totalPrice,
+      pdConsentAt: pdConsentAt || null,
+      pdConsentIp,
+      pdConsentVersion: pdConsentVersion || null,
     });
 
     // Логируем успешное создание брони
