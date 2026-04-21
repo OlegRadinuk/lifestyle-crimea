@@ -141,15 +141,18 @@
   overflow: hidden;
 }
 
-.apartment-hero .apt-panel-desc p {
-  font-size: 15px;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.82);
-  margin: 0;
+.apartment-hero .apt-desc-scroll {
   overflow-y: auto;
   height: 100%;
   scrollbar-width: thin;
   scrollbar-color: rgba(19, 154, 182, 0.4) transparent;
+}
+
+.apartment-hero .apt-panel-desc p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 0.9em;
 }
 
 /* Photo */

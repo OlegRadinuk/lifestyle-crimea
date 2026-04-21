@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   try {
     // Получаем все активные апартаменты
     const apartments = db.prepare(`
-      SELECT * FROM apartments WHERE is_active = 1 ORDER BY price_base ASC
+      SELECT * FROM apartments WHERE is_active = 1 AND deleted_at IS NULL ORDER BY price_base ASC
     `).all();
 
     // Для каждого апартамента получаем фото

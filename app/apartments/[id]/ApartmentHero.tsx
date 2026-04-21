@@ -273,8 +273,10 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 <span>{apartment.area} м²</span>
               </div>
             </div>
-            <div className="apt-panel apt-panel-desc" style={{ fontSize: '16px', lineHeight: 1.7 }}>
-              {renderDescription(apartment.description || '')}
+            <div className="apt-panel apt-panel-desc">
+              <div className="apt-desc-scroll">
+                {renderDescription(apartment.description || '')}
+              </div>
             </div>
           </div>
 

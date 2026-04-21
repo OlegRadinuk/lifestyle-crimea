@@ -19,6 +19,7 @@ type Apartment = {
   breakfast_price: number;
   lunch_price: number;
   dinner_price: number;
+  custom_meal_price: number;
   custom_meal_description: string;
   hot_deal_enabled: boolean;
   hot_deal_discount: number;
@@ -76,6 +77,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         breakfast_price: data.breakfast_price ?? 0,
         lunch_price: data.lunch_price ?? 0,
         dinner_price: data.dinner_price ?? 0,
+        custom_meal_price: Number(data.custom_meal_price ?? 0),
         custom_meal_description: data.custom_meal_description ?? '',
         hot_deal_enabled: Boolean(data.hot_deal_enabled),
         hot_deal_discount: data.hot_deal_discount ?? 10,
@@ -306,7 +308,17 @@ export default function EditApartmentPage({ params }: PageProps) {
               />
             </div>
             <div className="form-group">
-              <label>Индивидуальное питание</label>
+              <label>Индивидуальное питание — цена, ₽</label>
+              <input
+                type="number"
+                min={0}
+                value={apartment.custom_meal_price ?? 0}
+                onChange={(e) => setApartment({ ...apartment, custom_meal_price: Math.max(0, Number(e.target.value) || 0) })}
+                placeholder="0"
+              />
+            </div>
+            <div className="form-group">
+              <label>Индивидуальное питание — описание</label>
               <textarea
                 value={apartment.custom_meal_description}
                 onChange={(e) => setApartment({ ...apartment, custom_meal_description: e.target.value })}
