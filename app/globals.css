@@ -7922,3 +7922,20 @@ html, body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Hot deal calendar dots */
+.rdp-day { position: relative !important; }
+.rdp-day_hot_deal::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #f97316;
+  pointer-events: none;
+}
+.calendar-total-price.is-hot-deal { color: #f97316; }
+.calendar-price-note { font-size: 11px; opacity: 0.8; }

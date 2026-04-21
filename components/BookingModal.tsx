@@ -42,6 +42,7 @@ type Props = {
   initialGuests: number;
   onClose: () => void;
   onConfirm: (data: BookingResult) => void;
+  priceOverride?: number; // предрассчитанная итоговая сумма (с сезоном/скидкой)
 };
 
 /* ===== helpers ===== */
@@ -114,6 +115,7 @@ export default function BookingModal({
   initialGuests,
   onClose,
   onConfirm,
+  priceOverride,
 }: Props) {
   const router = useRouter();
   const [dates] = useState<DateRange | null>(initialRange);
@@ -122,7 +124,7 @@ export default function BookingModal({
   const [pdConsent, setPdConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   const basePrice = apartment.price_base || 8000;
 
   const [guestInfo, setGuestInfo] = useState({
@@ -134,6 +136,21 @@ export default function BookingModal({
 
   const price = useMemo(() => {
     if (!dates) return null;
+    const nights = getNights(dates.from, dates.to);
+    let mealPerGuest = 0;
+    if (meals === 'breakfast') mealPerGuest = 1000;
+    if (meals === 'breakfast_dinner') mealPerGuest = 2000;
+    const mealsTotal = mealPerGuest * guests * nights;
+    // Если есть предрассчитанная цена из календаря (с сезоном/скидкой) — используем её
+    if (priceOverride !== undefined) {
+      return {
+        nights,
+        basePerNight: Math.round(priceOverride / nights),
+        baseTotal: priceOverride,
+        mealsTotal,
+        total: priceOverride + mealsTotal,
+      };
+    }
     return calculatePrice({
       from: dates.from,
       to: dates.to,
@@ -141,7 +158,7 @@ export default function BookingModal({
       meals,
       basePricePerNight: basePrice,
     });
-  }, [dates, guests, meals, basePrice]);
+  }, [dates, guests, meals, basePrice, priceOverride]);
 
   useEffect(() => {
     setMounted(true);

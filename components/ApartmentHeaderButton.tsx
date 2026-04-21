@@ -35,6 +35,7 @@ export default function ApartmentHeaderButton({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
+  const [calculatedTotal, setCalculatedTotal] = useState<number | undefined>(undefined);
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
   // Если есть параметры поиска из URL - показываем кнопку "Забронировать"
@@ -111,6 +112,7 @@ export default function ApartmentHeaderButton({
                   position="right"
                   onConfirm={(range) => {
                     setSelectedRange(range);
+                    setCalculatedTotal(range.calculatedTotal);
                     setCalendarOpen(false);
                     setBookingModalOpen(true);
                   }}
@@ -134,6 +136,7 @@ export default function ApartmentHeaderButton({
             title: apartmentTitle,
             price_base: apartmentPrice,
           }}
+          priceOverride={calculatedTotal}
           initialRange={selectedRange}
           initialGuests={searchParams?.guests || 2}
           onClose={() => setBookingModalOpen(false)}

@@ -30,7 +30,7 @@ type HotDeal = {
 
 type Props = {
   blockedDates: BlockedDate[];
-  onConfirm: (range: { from: Date; to: Date }) => void;
+  onConfirm: (range: { from: Date; to: Date; calculatedTotal?: number }) => void;
   onClose?: () => void;
   position?: 'left' | 'right';
   showPrice?: boolean;
@@ -163,7 +163,7 @@ export default function ApartmentAvailabilityCalendar({
 
   const handleConfirm = () => {
     if (range?.from && range?.to && isValidRange) {
-      onConfirm({ from: range.from, to: range.to });
+      onConfirm({ from: range.from, to: range.to, calculatedTotal: priceInfo?.total });
       if (onClose) onClose();
     }
   };
