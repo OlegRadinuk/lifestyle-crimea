@@ -81,6 +81,14 @@ export default function ApartmentAvailabilityCalendar({
     return disabled;
   }, [blockedDates, today]);
 
+  // Локальный формат YYYY-MM-DD без UTC-сдвига (DayPicker даёт локальные Date)
+  const toLocalDateStr = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
   // Цена за одну ночь с учётом сезона и hot deal
   const getPriceForDate = (dateStr: string): number => {
     let price = apartmentPrice;
@@ -104,7 +112,7 @@ export default function ApartmentAvailabilityCalendar({
     let prevPrice: number | null = null;
     const cur = new Date(from);
     while (cur < to) {
-      const dateStr = cur.toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(cur);
       const price = getPriceForDate(dateStr);
       total += price;
       if (prevPrice !== null && price !== prevPrice) hasVariation = true;
@@ -114,7 +122,7 @@ export default function ApartmentAvailabilityCalendar({
         if (inRange) hasHotDeal = true;
       }
       prevPrice = price;
-      cur.setUTCDate(cur.getUTCDate() + 1);
+      cur.setDate(cur.getDate() + 1);
     }
     return { total, hasVariation, hasHotDeal };
   };
