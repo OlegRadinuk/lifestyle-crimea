@@ -16,12 +16,22 @@ type Apartment = {
   max_guests: number;
   area: number | null;
   price_base: number;
+  breakfast_price: number;
   view: string;
   has_terrace: boolean;
   features: string[];
   images: string[];
   is_active: boolean;
   images_count?: number;
+};
+
+type Season = {
+  id: string;
+  name: string;
+  date_from: string;
+  date_to: string;
+  price_per_night: number;
+  sort_order: number;
 };
 
 export default function EditApartmentPage({ params }: PageProps) {
@@ -34,9 +44,20 @@ export default function EditApartmentPage({ params }: PageProps) {
   const [imagesCount, setImagesCount] = useState(0);
   const [featureInput, setFeatureInput] = useState('');
 
+  // Seasons state
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [seasonForm, setSeasonForm] = useState({
+    name: '',
+    date_from: '',
+    date_to: '',
+    price_per_night: '',
+  });
+  const [savingSeason, setSavingSeason] = useState(false);
+
   useEffect(() => {
     fetchApartment();
     fetchImagesCount();
+    fetchSeasons();
   }, [id]);
 
   const fetchApartment = async () => {
@@ -58,6 +79,60 @@ export default function EditApartmentPage({ params }: PageProps) {
       setImagesCount(data.length || 0);
     } catch (error) {
       console.error('Error fetching images count:', error);
+    }
+  };
+
+  const fetchSeasons = async () => {
+    try {
+      const res = await fetch(`/api/admin/apartments/${id}/seasons`);
+      const data = await res.json();
+      setSeasons(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    }
+  };
+
+  const handleAddSeason = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!seasonForm.name || !seasonForm.date_from || !seasonForm.date_to || !seasonForm.price_per_night) return;
+    setSavingSeason(true);
+    try {
+      const res = await fetch(`/api/admin/apartments/${id}/seasons`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: seasonForm.name,
+          date_from: seasonForm.date_from,
+          date_to: seasonForm.date_to,
+          price_per_night: Number(seasonForm.price_per_night),
+          sort_order: seasons.length,
+        }),
+      });
+      if (res.ok) {
+        setSeasonForm({ name: '', date_from: '', date_to: '', price_per_night: '' });
+        fetchSeasons();
+      } else {
+        const err = await res.json();
+        alert(`Ошибка: ${err.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving season:', error);
+    } finally {
+      setSavingSeason(false);
+    }
+  };
+
+  const handleDeleteSeason = async (seasonId: string) => {
+    if (!confirm('Удалить сезон?')) return;
+    try {
+      await fetch(`/api/admin/apartments/${id}/seasons`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seasonId }),
+      });
+      setSeasons((prev) => prev.filter((s) => s.id !== seasonId));
+    } catch (error) {
+      console.error('Error deleting season:', error);
     }
   };
 
@@ -172,14 +247,25 @@ export default function EditApartmentPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="form-group">
-          <label>Базовая цена (₽/ночь)</label>
-          <input
-            type="number"
-            value={apartment.price_base}
-            onChange={(e) => setApartment({ ...apartment, price_base: +e.target.value })}
-            required
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label>Базовая цена (₽/ночь)</label>
+            <input
+              type="number"
+              value={apartment.price_base}
+              onChange={(e) => setApartment({ ...apartment, price_base: +e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Цена завтрака (₽)</label>
+            <input
+              type="number"
+              value={apartment.breakfast_price ?? 0}
+              onChange={(e) => setApartment({ ...apartment, breakfast_price: +e.target.value })}
+            />
+          </div>
         </div>
 
         <div className="form-group">
@@ -280,6 +366,94 @@ export default function EditApartmentPage({ params }: PageProps) {
             </svg>
             <span>Управление фотографиями ({imagesCount})</span>
           </Link>
+        </div>
+
+        {/* СЕЗОННЫЕ ЦЕНЫ */}
+        <div className="seasons-section">
+          <h3 className="seasons-title">Сезонные цены</h3>
+
+          {seasons.length === 0 && (
+            <p className="seasons-empty">Сезоны не добавлены</p>
+          )}
+
+          {seasons.length > 0 && (
+            <div className="seasons-list">
+              {seasons.map((s) => (
+                <div key={s.id} className="season-item">
+                  <div className="season-item__info">
+                    <span className="season-item__name">{s.name}</span>
+                    <span className="season-item__dates">
+                      {s.date_from} — {s.date_to}
+                    </span>
+                    <span className="season-item__price">
+                      {s.price_per_night.toLocaleString('ru-RU')} ₽/ночь
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSeason(s.id)}
+                    className="admin-button small warning"
+                    title="Удалить сезон"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleAddSeason} className="season-form">
+            <h4 className="season-form__title">Добавить сезон</h4>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Название</label>
+                <input
+                  type="text"
+                  value={seasonForm.name}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, name: e.target.value })}
+                  placeholder="Например: Высокий сезон"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Цена за ночь (₽)</label>
+                <input
+                  type="number"
+                  value={seasonForm.price_per_night}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, price_per_night: e.target.value })}
+                  placeholder="0"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Дата начала</label>
+                <input
+                  type="date"
+                  value={seasonForm.date_from}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, date_from: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Дата окончания</label>
+                <input
+                  type="date"
+                  value={seasonForm.date_to}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, date_to: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="admin-button primary"
+              disabled={savingSeason}
+            >
+              {savingSeason ? 'Сохранение...' : '+ Добавить сезон'}
+            </button>
+          </form>
         </div>
 
         <div className="form-actions">
@@ -555,6 +729,85 @@ export default function EditApartmentPage({ params }: PageProps) {
           font-size: 12px;
         }
         
+        /* Seasons */
+        .seasons-section {
+          margin: 30px 0;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .seasons-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a2634;
+          margin-bottom: 16px;
+        }
+
+        .seasons-empty {
+          color: #94a3b8;
+          font-style: italic;
+          margin-bottom: 20px;
+        }
+
+        .seasons-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 24px;
+        }
+
+        .season-item {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 12px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .season-item__info {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .season-item__name {
+          font-weight: 600;
+          color: #1a2634;
+          font-size: 14px;
+        }
+
+        .season-item__dates {
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .season-item__price {
+          font-size: 13px;
+          font-weight: 500;
+          color: #139ab6;
+        }
+
+        .season-form {
+          border-top: 1px solid #e2e8f0;
+          padding-top: 20px;
+          margin-top: 4px;
+        }
+
+        .season-form__title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #475569;
+          margin-bottom: 12px;
+        }
+
         @media (max-width: 768px) {
           .form-row {
             grid-template-columns: 1fr;

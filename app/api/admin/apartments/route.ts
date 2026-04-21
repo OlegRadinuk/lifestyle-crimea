@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
     // Полный список для админки
     const apartments = db.prepare(`
-      SELECT * FROM apartments ORDER BY title
+      SELECT * FROM apartments WHERE deleted_at IS NULL ORDER BY sort_order ASC, title ASC
     `).all();
 
     // Добавляем количество фото для каждого
@@ -42,7 +42,9 @@ export async function GET(request: Request) {
         short_description: apt.short_description,
         max_guests: apt.max_guests,
         price_base: Number(apt.price_base),
+        breakfast_price: Number((apt as any).breakfast_price || 0),
         is_active: Boolean(apt.is_active),
+        sort_order: Number((apt as any).sort_order || 0),
         images_count: imagesCount,
         created_at: apt.created_at,
         updated_at: apt.updated_at,

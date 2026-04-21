@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { fetchIcs } from '@/lib/ics/parser';
 import { v4 as uuidv4 } from 'uuid';
-import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request: Request) {
-  const authError = checkAdminAuth(request);
-  if (authError) return authError;
+  const cronSecret = request.headers.get('x-cron-secret');
+  if (!cronSecret || cronSecret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const startTime = Date.now();
   const results = [];
 

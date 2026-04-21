@@ -1,38 +1,46 @@
 import { NextResponse } from 'next/server';
-import { generateSessionToken } from '@/lib/admin-auth';
+import { db } from '@/lib/db';
+import {
+  verifyPassword,
+  createSession,
+  destroySession,
+  getTokenFromRequest,
+  getAdminTokenCookieOptions,
+  ADMIN_TOKEN_COOKIE,
+} from '@/lib/admin-auth';
+
+const DUMMY_HASH = 'a'.repeat(32) + ':' + 'b'.repeat(128);
+
+interface AdminUser { id: string; username: string; password_hash: string; }
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json() as { password: string };
-
-    const adminSecret = process.env.ADMIN_SECRET;
-    if (!adminSecret) {
-      return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
+    const { username, password } = await request.json() as { username: string; password: string };
+    if (!username || !password) {
+      return NextResponse.json({ error: 'Введите логин и пароль' }, { status: 400 });
     }
 
-    if (!password || password !== adminSecret) {
-      return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 });
+    const user = db.prepare('SELECT * FROM admin_users WHERE username = ?').get(username) as AdminUser | undefined;
+    // Всегда вызываем verifyPassword чтобы избежать timing attack
+    const ok = verifyPassword(password, user?.password_hash ?? DUMMY_HASH);
+
+    if (!user || !ok) {
+      return NextResponse.json({ error: 'Неверный логин или пароль' }, { status: 401 });
     }
 
-    const sessionToken = generateSessionToken(adminSecret);
+    const token = createSession(user.id);
     const response = NextResponse.json({ success: true });
-
-    response.cookies.set('admin_token', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
+    response.cookies.set(ADMIN_TOKEN_COOKIE, token, getAdminTokenCookieOptions());
     return response;
   } catch {
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const token = getTokenFromRequest(request);
+  if (token) destroySession(token);
   const response = NextResponse.json({ success: true });
-  response.cookies.delete('admin_token');
+  response.cookies.delete(ADMIN_TOKEN_COOKIE);
   return response;
 }

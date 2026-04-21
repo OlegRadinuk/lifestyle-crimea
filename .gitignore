@@ -57,3 +57,21 @@ tsconfig.tsbuildinfo
 data.sqlite-wal
 *.sqlite-shm
 *.sqlite-wal
+
+# Claude Web Studio state
+.claude/
+.serena/
+.playwright-mcp/
+agents/
+CLAUDE.md
+test-results/
+
+# Screenshots / design artifacts
+*.png
+*.jpeg
+*.jpg
+слайды\ херо/
+
+# Playwright
+playwright.config.ts
+tests/

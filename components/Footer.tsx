@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 interface FooterProps {
   isMobile?: boolean;
 }
@@ -29,6 +31,12 @@ export default function Footer({ isMobile = false }: FooterProps) {
 
             <div className="ff-copyright">
               © {new Date().getFullYear()} Стиль Жизни
+            </div>
+
+            <div className="ff-legal">
+              <Link href="/privacy" className="ff-legal-link">
+                Политика конфиденциальности
+              </Link>
             </div>
           </div>
 

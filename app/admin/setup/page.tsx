@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function SetupPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,17 +16,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch('/api/admin/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await res.json() as { error?: string };
+
       if (res.ok) {
-        router.push('/admin');
+        router.push('/admin/login');
       } else {
-        const data = await res.json() as { error?: string };
-        setError(data.error ?? 'Ошибка входа');
+        setError(data.error ?? 'Ошибка');
       }
     } catch {
       setError('Ошибка соединения с сервером');
@@ -38,28 +39,29 @@ export default function LoginPage() {
   return (
     <div className="admin-login">
       <div className="login-card">
-        <h1>Вход в админ-панель</h1>
+        <h1>Первоначальная настройка</h1>
+        <p style={{ color: '#64748b', marginBottom: 20, fontSize: 14 }}>
+          Создайте аккаунт администратора. Это можно сделать только один раз.
+        </p>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            placeholder="Логин"
+            placeholder="Логин (мин. 3 символа)"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             disabled={loading}
             autoFocus
-            autoComplete="username"
           />
           <input
             type="password"
-            placeholder="Пароль"
+            placeholder="Пароль (мин. 6 символов)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
-            autoComplete="current-password"
           />
           {error && <div className="error">{error}</div>}
           <button type="submit" disabled={loading}>
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? 'Создание...' : 'Создать аккаунт'}
           </button>
         </form>
       </div>

@@ -58,11 +58,13 @@ export async function GET(
       max_guests: apartment.max_guests,
       area: apartment.area,
       price_base: Number(apartment.price_base),
+      breakfast_price: Number(apartment.breakfast_price || 0),
       view: apartment.view || 'sea',
       has_terrace: Boolean(apartment.has_terrace),
       features: features,
       images: images,
       is_active: Boolean(apartment.is_active),
+      sort_order: Number(apartment.sort_order || 0),
       images_count: imagesCount,
       created_at: apartment.created_at,
       updated_at: apartment.updated_at,
@@ -127,6 +129,16 @@ export async function PATCH(
       values.push(data.price_base);
     }
 
+    if (data.breakfast_price !== undefined) {
+      updates.push('breakfast_price = ?');
+      values.push(data.breakfast_price);
+    }
+
+    if (data.sort_order !== undefined) {
+      updates.push('sort_order = ?');
+      values.push(data.sort_order);
+    }
+
     if (data.view !== undefined) {
       updates.push('view = ?');
       values.push(data.view);
@@ -165,12 +177,36 @@ export async function PATCH(
     db.prepare(query).run(...values);
 
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('❌ Error updating apartment:', error);
     return NextResponse.json(
-      { error: 'Failed to update apartment' }, 
+      { error: 'Failed to update apartment' },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authError = checkAdminAuth(request);
+  if (authError) return authError;
+
+  const { id } = await params;
+
+  try {
+    const apartment = db.prepare('SELECT id FROM apartments WHERE id = ? AND deleted_at IS NULL').get(id);
+    if (!apartment) {
+      return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
+    }
+
+    db.prepare('UPDATE apartments SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(id);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error deleting apartment:', error);
+    return NextResponse.json({ error: 'Failed to delete apartment' }, { status: 500 });
   }
 }

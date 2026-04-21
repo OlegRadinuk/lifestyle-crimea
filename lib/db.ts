@@ -12,13 +12,26 @@ export interface Apartment {
   max_guests: number;
   area: number | null;
   price_base: number;
+  breakfast_price: number;
   view: string;
   has_terrace: number;
   is_active: number;
+  sort_order: number;
   features: string | null;
   images: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ApartmentPricingSeason {
+  id: string;
+  apartment_id: string;
+  name: string;
+  date_from: string;
+  date_to: string;
+  price_per_night: number;
+  sort_order: number;
 }
 
 export interface Booking {
@@ -231,12 +244,64 @@ function ensureDatabaseStructure() {
       );
     `);
 
+    // Создаем таблицу сезонных цен
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS apartment_pricing_seasons (
+        id TEXT PRIMARY KEY,
+        apartment_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        date_from TEXT NOT NULL,
+        date_to TEXT NOT NULL,
+        price_per_night INTEGER NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE
+      );
+    `);
+
     // Миграция: добавить media_type если таблица уже существует без неё
     const heroColumns = (db.prepare("PRAGMA table_info(hero_slides)").all() as { name: string }[]).map(c => c.name);
     if (!heroColumns.includes('media_type')) {
       db.exec("ALTER TABLE hero_slides ADD COLUMN media_type TEXT NOT NULL DEFAULT 'image'");
       console.log('✅ Migrated hero_slides: added media_type column');
     }
+
+    // Миграция: новые колонки apartments
+    const aptColumns = (db.prepare("PRAGMA table_info(apartments)").all() as { name: string }[]).map(c => c.name);
+    if (!aptColumns.includes('breakfast_price')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN breakfast_price INTEGER DEFAULT 0");
+      console.log('✅ Migrated apartments: added breakfast_price column');
+    }
+    if (!aptColumns.includes('sort_order')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN sort_order INTEGER DEFAULT 0");
+      // Проставляем начальный порядок по title
+      db.exec(`
+        UPDATE apartments SET sort_order = (
+          SELECT COUNT(*) FROM apartments a2 WHERE a2.title < apartments.title
+        )
+      `);
+      console.log('✅ Migrated apartments: added sort_order column');
+    }
+    if (!aptColumns.includes('deleted_at')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN deleted_at DATETIME DEFAULT NULL");
+      console.log('✅ Migrated apartments: added deleted_at column');
+    }
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_sessions (
+        token TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES admin_users(id) ON DELETE CASCADE
+      );
+    `);
 
     // Создаем индексы
     db.exec(`
@@ -620,5 +685,35 @@ export function getBookingStats(apartmentId?: string) {
   const stmt = db.prepare(query);
   return stmt.get(...params);
 }
+
+// Сервис сезонных цен
+export const pricingService = {
+  getSeasons: (apartmentId: string): ApartmentPricingSeason[] => {
+    return db.prepare(`
+      SELECT * FROM apartment_pricing_seasons
+      WHERE apartment_id = ?
+      ORDER BY sort_order ASC, date_from ASC
+    `).all(apartmentId) as ApartmentPricingSeason[];
+  },
+
+  upsertSeason: (season: Omit<ApartmentPricingSeason, 'id'> & { id?: string }) => {
+    const id = season.id || uuidv4();
+    db.prepare(`
+      INSERT INTO apartment_pricing_seasons (id, apartment_id, name, date_from, date_to, price_per_night, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        date_from = excluded.date_from,
+        date_to = excluded.date_to,
+        price_per_night = excluded.price_per_night,
+        sort_order = excluded.sort_order
+    `).run(id, season.apartment_id, season.name, season.date_from, season.date_to, season.price_per_night, season.sort_order || 0);
+    return id;
+  },
+
+  deleteSeason: (id: string) => {
+    db.prepare('DELETE FROM apartment_pricing_seasons WHERE id = ?').run(id);
+  },
+};
 
 export { db };

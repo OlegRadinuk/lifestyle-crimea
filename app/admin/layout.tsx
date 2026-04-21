@@ -17,22 +17,21 @@ export default function AdminLayout({
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Проверка авторизации
-    if (pathname === '/admin/login') {
+    if (pathname === '/admin/login' || pathname === '/admin/setup') {
       setIsAuthorized(true);
       return;
     }
 
-    const auth = localStorage.getItem('admin_auth');
-    if (auth !== 'true') {
-      router.push('/admin/login');
-    } else {
-      setIsAuthorized(true);
-    }
+    fetch('/api/admin/me').then(res => {
+      if (res.ok) {
+        setIsAuthorized(true);
+      } else {
+        router.push('/admin/login');
+      }
+    }).catch(() => router.push('/admin/login'));
   }, [pathname, router]);
 
-  // На странице логина показываем только контент
-  if (pathname === '/admin/login') {
+  if (pathname === '/admin/login' || pathname === '/admin/setup') {
     return <>{children}</>;
   }
 
@@ -51,8 +50,8 @@ export default function AdminLayout({
   { href: '/admin/settings', label: 'Настройки', icon: '⚙️' },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_auth');
+  const handleLogout = async () => {
+    await fetch('/api/admin/login', { method: 'DELETE' });
     router.push('/admin/login');
   };
 

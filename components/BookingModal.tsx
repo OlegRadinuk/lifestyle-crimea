@@ -119,6 +119,7 @@ export default function BookingModal({
   const [dates] = useState<DateRange | null>(initialRange);
   const [guests, setGuests] = useState(initialGuests);
   const [meals, setMeals] = useState<Meals>('none');
+  const [pdConsent, setPdConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
   
@@ -423,9 +424,42 @@ export default function BookingModal({
               </>
             )}
 
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px',
+                fontSize: '13px',
+                color: '#555',
+                lineHeight: '1.5',
+                cursor: 'pointer',
+                marginBottom: '12px',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={pdConsent}
+                onChange={e => setPdConsent(e.target.checked)}
+                disabled={isSubmitting}
+                style={{ marginTop: '3px', flexShrink: 0, accentColor: '#139AB6' }}
+              />
+              <span>
+                Я согласен на{' '}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#139AB6', textDecoration: 'underline' }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  обработку персональных данных
+                </a>
+              </span>
+            </label>
+
             <button
               className="confirm-booking"
-              disabled={!price || isSubmitting}
+              disabled={!price || isSubmitting || !pdConsent}
               onClick={handleConfirm}
             >
               {isSubmitting ? (
