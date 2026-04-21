@@ -17,6 +17,11 @@ type Apartment = {
   area: number | null;
   price_base: number;
   breakfast_price: number;
+  lunch_price: number;
+  dinner_price: number;
+  custom_meal_description: string;
+  hot_deal_enabled: boolean;
+  hot_deal_discount: number;
   view: string;
   has_terrace: boolean;
   features: string[];
@@ -64,7 +69,15 @@ export default function EditApartmentPage({ params }: PageProps) {
     try {
       const res = await fetch(`/api/admin/apartments/${id}`);
       const data = await res.json();
-      setApartment(data);
+      setApartment({
+        ...data,
+        breakfast_price: data.breakfast_price ?? 0,
+        lunch_price: data.lunch_price ?? 0,
+        dinner_price: data.dinner_price ?? 0,
+        custom_meal_description: data.custom_meal_description ?? '',
+        hot_deal_enabled: Boolean(data.hot_deal_enabled),
+        hot_deal_discount: data.hot_deal_discount ?? 10,
+      });
     } catch (error) {
       console.error('Error fetching apartment:', error);
     } finally {
@@ -247,25 +260,95 @@ export default function EditApartmentPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Базовая цена (₽/ночь)</label>
-            <input
-              type="number"
-              value={apartment.price_base}
-              onChange={(e) => setApartment({ ...apartment, price_base: +e.target.value })}
-              required
-            />
-          </div>
+        <div className="form-group">
+          <label>Базовая цена (₽/ночь)</label>
+          <input
+            type="number"
+            value={apartment.price_base}
+            onChange={(e) => setApartment({ ...apartment, price_base: +e.target.value })}
+            required
+          />
+        </div>
 
-          <div className="form-group">
-            <label>Цена завтрака (₽)</label>
-            <input
-              type="number"
-              value={apartment.breakfast_price ?? 0}
-              onChange={(e) => setApartment({ ...apartment, breakfast_price: +e.target.value })}
-            />
+        {/* Блок Питание */}
+        <div className="meal-section">
+          <h3 className="meal-section__title">Питание (₽ / на чел. / день)</h3>
+          <div className="meal-grid">
+            <div className="form-group">
+              <label>Завтрак</label>
+              <input
+                type="number"
+                value={apartment.breakfast_price}
+                onChange={(e) => setApartment({ ...apartment, breakfast_price: +e.target.value })}
+                min={0}
+              />
+            </div>
+            <div className="form-group">
+              <label>Обед</label>
+              <input
+                type="number"
+                value={apartment.lunch_price}
+                onChange={(e) => setApartment({ ...apartment, lunch_price: +e.target.value })}
+                min={0}
+              />
+            </div>
+            <div className="form-group">
+              <label>Ужин</label>
+              <input
+                type="number"
+                value={apartment.dinner_price}
+                onChange={(e) => setApartment({ ...apartment, dinner_price: +e.target.value })}
+                min={0}
+              />
+            </div>
+            <div className="form-group">
+              <label>Индивидуальное питание</label>
+              <textarea
+                value={apartment.custom_meal_description}
+                onChange={(e) => setApartment({ ...apartment, custom_meal_description: e.target.value })}
+                placeholder="Опишите варианты для особых диет (ЗОЖ, веган, безглютен...)"
+                rows={2}
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Блок Горячее предложение */}
+        <div className={`hot-deal-section${apartment.hot_deal_enabled ? ' hot-deal-section--active' : ''}`}>
+          <div className="hot-deal-header">
+            <span className="hot-deal-title">🔥 Горячее предложение</span>
+            <div className="hot-deal-controls">
+              <label className="toggle-switch" aria-label="Включить горячее предложение">
+                <input
+                  type="checkbox"
+                  checked={apartment.hot_deal_enabled}
+                  onChange={(e) => setApartment({ ...apartment, hot_deal_enabled: e.target.checked })}
+                />
+                <span className="toggle-slider" />
+              </label>
+              <div className="hot-deal-discount-field">
+                <span>Скидка:</span>
+                <input
+                  type="number"
+                  value={apartment.hot_deal_discount}
+                  onChange={(e) => setApartment({ ...apartment, hot_deal_discount: Math.max(1, Math.min(99, +e.target.value || 1)) })}
+                  min={1}
+                  max={99}
+                  disabled={!apartment.hot_deal_enabled}
+                  className="discount-input"
+                />
+                <span>%</span>
+              </div>
+            </div>
+          </div>
+          {apartment.hot_deal_enabled && (
+            <div className="hot-deal-preview">
+              Цена со скидкой:{' '}
+              <strong>
+                {Math.round(apartment.price_base * (1 - apartment.hot_deal_discount / 100)).toLocaleString('ru-RU')} ₽/ночь
+              </strong>
+            </div>
+          )}
         </div>
 
         <div className="form-group">
@@ -467,6 +550,155 @@ export default function EditApartmentPage({ params }: PageProps) {
       </form>
 
       <style jsx>{`
+        /* Блок Питание */
+        .meal-section {
+          margin: 0 0 20px;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .meal-section__title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a2634;
+          margin-bottom: 16px;
+        }
+
+        .meal-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+          .meal-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* Блок Горячее предложение */
+        .hot-deal-section {
+          margin: 0 0 24px;
+          padding: 16px 20px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .hot-deal-section--active {
+          background: #fff7ed;
+          border-color: #f97316;
+        }
+
+        .hot-deal-header {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+
+        .hot-deal-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a2634;
+        }
+
+        .hot-deal-controls {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+          position: relative;
+          display: inline-block;
+          width: 44px;
+          height: 24px;
+          cursor: pointer;
+          margin-bottom: 0;
+        }
+
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+          position: absolute;
+        }
+
+        .toggle-slider {
+          position: absolute;
+          inset: 0;
+          background: #cbd5e1;
+          border-radius: 24px;
+          transition: background 0.2s;
+        }
+
+        .toggle-slider::before {
+          content: '';
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          left: 3px;
+          top: 3px;
+          background: white;
+          border-radius: 50%;
+          transition: transform 0.2s;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+          background: #f97316;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+          transform: translateX(20px);
+        }
+
+        .hot-deal-discount-field {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 14px;
+          color: #475569;
+        }
+
+        .discount-input {
+          width: 60px;
+          padding: 6px 8px;
+          border: 1px solid #d0d9e2;
+          border-radius: 6px;
+          font-size: 14px;
+          text-align: center;
+          transition: border-color 0.2s;
+        }
+
+        .discount-input:focus {
+          outline: none;
+          border-color: #f97316;
+        }
+
+        .discount-input:disabled {
+          background: #f1f5f9;
+          color: #94a3b8;
+          cursor: not-allowed;
+        }
+
+        .hot-deal-preview {
+          margin-top: 12px;
+          font-size: 14px;
+          color: #ea580c;
+        }
+
+        .hot-deal-preview strong {
+          font-size: 16px;
+          font-weight: 700;
+        }
+
         .photo-section {
           margin: 30px 0;
           padding: 20px;

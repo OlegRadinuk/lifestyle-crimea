@@ -66,6 +66,11 @@ export async function GET(
       is_active: Boolean(apartment.is_active),
       sort_order: Number(apartment.sort_order || 0),
       images_count: imagesCount,
+      hot_deal_enabled: Boolean(apartment.hot_deal_enabled),
+      hot_deal_discount: Number(apartment.hot_deal_discount ?? 10),
+      lunch_price: Number(apartment.lunch_price || 0),
+      dinner_price: Number(apartment.dinner_price || 0),
+      custom_meal_description: apartment.custom_meal_description || '',
       created_at: apartment.created_at,
       updated_at: apartment.updated_at,
     };
@@ -162,6 +167,31 @@ export async function PATCH(
     if (data.is_active !== undefined) {
       updates.push('is_active = ?');
       values.push(data.is_active ? 1 : 0);
+    }
+
+    if (data.hot_deal_enabled !== undefined) {
+      updates.push('hot_deal_enabled = ?');
+      values.push(data.hot_deal_enabled ? 1 : 0);
+    }
+
+    if (data.hot_deal_discount !== undefined) {
+      updates.push('hot_deal_discount = ?');
+      values.push(Number(data.hot_deal_discount));
+    }
+
+    if (data.lunch_price !== undefined) {
+      updates.push('lunch_price = ?');
+      values.push(data.lunch_price);
+    }
+
+    if (data.dinner_price !== undefined) {
+      updates.push('dinner_price = ?');
+      values.push(data.dinner_price);
+    }
+
+    if (data.custom_meal_description !== undefined) {
+      updates.push('custom_meal_description = ?');
+      values.push(data.custom_meal_description);
     }
 
     if (updates.length === 0) {

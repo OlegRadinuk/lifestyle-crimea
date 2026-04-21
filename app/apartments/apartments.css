@@ -683,3 +683,32 @@
     width: 100%;
   }
 }
+
+/* ===== HOT DEAL ===== */
+
+.hot-deal-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+  z-index: 2;
+}
+
+.price-original {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 13px;
+  display: block;
+}
+
+.price-discounted {
+  color: #f97316;
+  font-weight: 700;
+  font-size: 18px;
+}

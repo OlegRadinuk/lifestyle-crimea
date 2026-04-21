@@ -20,6 +20,11 @@ export interface Apartment {
   features: string | null;
   images: string | null;
   deleted_at: string | null;
+  hot_deal_enabled: number;
+  hot_deal_discount: number;
+  lunch_price: number;
+  dinner_price: number;
+  custom_meal_description: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -314,6 +319,26 @@ function ensureDatabaseStructure() {
     if (!aptColumns.includes('deleted_at')) {
       db.exec("ALTER TABLE apartments ADD COLUMN deleted_at DATETIME DEFAULT NULL");
       console.log('✅ Migrated apartments: added deleted_at column');
+    }
+    if (!aptColumns.includes('hot_deal_enabled')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_enabled INTEGER DEFAULT 0");
+      console.log('✅ Migrated apartments: added hot_deal_enabled column');
+    }
+    if (!aptColumns.includes('hot_deal_discount')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_discount INTEGER DEFAULT 10");
+      console.log('✅ Migrated apartments: added hot_deal_discount column');
+    }
+    if (!aptColumns.includes('lunch_price')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN lunch_price INTEGER DEFAULT 0");
+      console.log('✅ Migrated apartments: added lunch_price column');
+    }
+    if (!aptColumns.includes('dinner_price')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN dinner_price INTEGER DEFAULT 0");
+      console.log('✅ Migrated apartments: added dinner_price column');
+    }
+    if (!aptColumns.includes('custom_meal_description')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN custom_meal_description TEXT DEFAULT NULL");
+      console.log('✅ Migrated apartments: added custom_meal_description column');
     }
 
     db.exec(`

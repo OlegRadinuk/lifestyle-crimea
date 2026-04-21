@@ -48,6 +48,8 @@ async function getApartments(): Promise<ApartmentClient[]> {
         features: apt.features ? JSON.parse(apt.features) : [],
         images: images.length > 0 ? images : ['/images/placeholder.jpg'],
         is_active: Boolean(apt.is_active),
+        hot_deal_enabled: Boolean(apt.hot_deal_enabled),
+        hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
       };
     }));
 

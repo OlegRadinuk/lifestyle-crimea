@@ -29,6 +29,11 @@ export interface ApartmentClient {
   is_active: boolean; // boolean для клиента
   features: string[]; // массив для клиента
   images: string[]; // массив для клиента
+  hot_deal_enabled?: boolean;
+  hot_deal_discount?: number;
+  lunch_price?: number;
+  dinner_price?: number;
+  custom_meal_description?: string | null;
   created_at?: string; // опционально, не всегда нужно на клиенте
   updated_at?: string; // опционально, не всегда нужно на клиенте
 }

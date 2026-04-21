@@ -329,9 +329,9 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                     style={{ animationDelay: `${index * 80}ms` }}
                   >
                     <div className="ap-list-image">
-                      <img 
-                        src={apartment.images?.[0] || '/images/placeholder.jpg'} 
-                        alt={apartment.title} 
+                      <img
+                        src={apartment.images?.[0] || '/images/placeholder.jpg'}
+                        alt={apartment.title}
                       />
                       <button
                         className="ap-list-gallery-btn"
@@ -339,6 +339,9 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                       >
                         Смотреть фото
                       </button>
+                      {apartment.hot_deal_enabled && (
+                        <div className="hot-deal-badge">🔥 Скидка {apartment.hot_deal_discount}%</div>
+                      )}
                       {!isAvailable && hasSearchParams && (
                         <div className="unavailable-badge">Нет мест</div>
                       )}
@@ -371,9 +374,18 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                       )}
 
                       <div className="ap-list-footer">
-                        <div className="ap-list-price">
-                          от {apartment.price_base.toLocaleString()} ₽ / ночь
-                        </div>
+                        {apartment.hot_deal_enabled ? (
+                          <div className="ap-list-price">
+                            <span className="price-original">{apartment.price_base.toLocaleString()} ₽</span>
+                            <span className="price-discounted">
+                              {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString()} ₽ / ночь
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="ap-list-price">
+                            от {apartment.price_base.toLocaleString()} ₽ / ночь
+                          </div>
+                        )}
 
                         <div className="ap-list-actions">
                           <Link href={apartmentUrl} className="btn-outline">
