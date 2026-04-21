@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const apartment = db.prepare(`
     SELECT title, short_description, description, max_guests, area, view, features, price_base
-    FROM apartments WHERE id = ? AND is_active = 1
+    FROM apartments WHERE id = ? AND is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')
   `).get(id) as any;
 
   if (!apartment) {
@@ -109,7 +109,7 @@ export default async function ApartmentPage({ params }: PageProps) {
   const { id } = await params;
 
   const apartment = db.prepare(`
-    SELECT * FROM apartments WHERE id = ? AND is_active = 1
+    SELECT * FROM apartments WHERE id = ? AND is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')
   `).get(id) as any;
 
   if (!apartment) {

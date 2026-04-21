@@ -7923,20 +7923,16 @@ html, body {
   }
 }
 
-/* Hot deal calendar dots — v9: modifier class на кнопке rdp-day_button */
-.rdp-day { position: relative !important; }
-.rdp-day_button { position: relative !important; }
-.rdp-day_hot_deal::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #f97316;
-  pointer-events: none;
+/* Hot deal calendar dots — radial-gradient не требует position:relative */
+.rdp-day_hot_deal {
+  background-image: radial-gradient(circle at 50% calc(100% - 4px), #f97316 2.5px, transparent 2.5px) !important;
+  background-repeat: no-repeat !important;
+}
+.rdp-day_hot_deal.rdp-day_selected,
+.rdp-day_hot_deal.rdp-day_range_start,
+.rdp-day_hot_deal.rdp-day_range_end,
+.rdp-day_hot_deal.rdp-day_range_middle {
+  background-image: radial-gradient(circle at 50% calc(100% - 4px), rgba(255,255,255,0.8) 2.5px, transparent 2.5px) !important;
 }
 .calendar-total-price.is-hot-deal { color: #f97316; }
 .calendar-price-note { font-size: 11px; opacity: 0.8; }

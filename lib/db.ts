@@ -345,6 +345,18 @@ function ensureDatabaseStructure() {
       db.exec("ALTER TABLE apartments ADD COLUMN custom_meal_description TEXT DEFAULT NULL");
       console.log('✅ Migrated apartments: added custom_meal_description column');
     }
+    if (!aptColumns.includes('hot_deal_date_from')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_date_from TEXT DEFAULT NULL");
+      console.log('✅ Migrated apartments: added hot_deal_date_from column');
+    }
+    if (!aptColumns.includes('hot_deal_date_to')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_date_to TEXT DEFAULT NULL");
+      console.log('✅ Migrated apartments: added hot_deal_date_to column');
+    }
+    if (!aptColumns.includes('custom_meal_price')) {
+      db.exec("ALTER TABLE apartments ADD COLUMN custom_meal_price INTEGER DEFAULT 0");
+      console.log('✅ Migrated apartments: added custom_meal_price column');
+    }
 
     db.exec(`
       CREATE TABLE IF NOT EXISTS admin_users (
