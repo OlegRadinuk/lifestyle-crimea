@@ -3,6 +3,8 @@ import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
+export const DEFAULT_HOT_DEAL_DISCOUNT = 10;
+
 // Типы
 export interface Apartment {
   id: string;
@@ -22,8 +24,11 @@ export interface Apartment {
   deleted_at: string | null;
   hot_deal_enabled: number;
   hot_deal_discount: number;
+  hot_deal_date_from: string | null;
+  hot_deal_date_to: string | null;
   lunch_price: number;
   dinner_price: number;
+  custom_meal_price: number;
   custom_meal_description: string | null;
   created_at: string;
   updated_at: string;
@@ -775,6 +780,52 @@ export const pricingService = {
 
   deleteSeason: (id: string) => {
     db.prepare('DELETE FROM apartment_pricing_seasons WHERE id = ?').run(id);
+  },
+
+  getPriceForDates: (apartmentId: string, checkIn: string, checkOut: string): {
+    total: number;
+    breakdown: Array<{ date: string; price: number; seasonName?: string; isHotDeal?: boolean }>;
+  } => {
+    const apartment = db.prepare(
+      'SELECT price_base, hot_deal_enabled, hot_deal_discount, hot_deal_date_from, hot_deal_date_to FROM apartments WHERE id = ?'
+    ).get(apartmentId) as any;
+
+    if (!apartment) return { total: 0, breakdown: [] };
+
+    const seasons = db.prepare(
+      'SELECT * FROM apartment_pricing_seasons WHERE apartment_id = ? ORDER BY sort_order ASC'
+    ).all(apartmentId) as ApartmentPricingSeason[];
+
+    const breakdown: Array<{ date: string; price: number; seasonName?: string; isHotDeal?: boolean }> = [];
+
+    // Итерируем по каждой ночи в UTC, чтобы избежать смещения из-за локальной TZ сервера
+    const cur = new Date(checkIn + 'T00:00:00Z');
+    const end = new Date(checkOut + 'T00:00:00Z');
+
+    while (cur < end) {
+      const dateStr = cur.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+      // Ищем подходящий сезон (сравнение строк YYYY-MM-DD корректно лексикографически)
+      const season = seasons.find(s => dateStr >= s.date_from && dateStr <= s.date_to);
+      let price = season ? season.price_per_night : apartment.price_base;
+      let isHotDeal = false;
+
+      // Применяем hot deal если активен и дата в диапазоне
+      if (apartment.hot_deal_enabled) {
+        const hasDateRange = apartment.hot_deal_date_from && apartment.hot_deal_date_to;
+        const inRange = !hasDateRange || (dateStr >= apartment.hot_deal_date_from && dateStr <= apartment.hot_deal_date_to);
+        if (inRange) {
+          price = Math.round(price * (1 - (apartment.hot_deal_discount || DEFAULT_HOT_DEAL_DISCOUNT) / 100));
+          isHotDeal = true;
+        }
+      }
+
+      breakdown.push({ date: dateStr, price, seasonName: season?.name, isHotDeal });
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+
+    const total = breakdown.reduce((sum, d) => sum + d.price, 0);
+    return { total, breakdown };
   },
 };
 

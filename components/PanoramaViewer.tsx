@@ -31,8 +31,8 @@ export default function PanoramaViewer() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
   const [transitioning, setTransitioning] = useState(false);
-  const [isActive, setIsActive] = useState(true);
-  const [checkingStatus, setCheckingStatus] = useState(false);
+  // is_active: /api/panoramas фильтрует по is_active = 1, дополнительный fetch не нужен
+  const isActive = true;
 
   const transitionTimer = useRef<NodeJS.Timeout | null>(null);
   const fadeAnimationRef = useRef<number | null>(null);
@@ -114,31 +114,13 @@ export default function PanoramaViewer() {
     return map[id] || 3;
   };
 
-  useEffect(() => {
-    if (!currentPano?.id) return;
-    const checkStatus = async () => {
-      setCheckingStatus(true);
-      try {
-        const res = await fetch(`/api/apartments/${currentPano.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setIsActive(data.is_active === true);
-        } else {
-          setIsActive(false);
-        }
-      } catch (error) {
-        console.error('Error checking status:', error);
-        setIsActive(false);
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-    checkStatus();
-  }, [currentPano?.id]);
+  // N+1 fetch по is_active удалён: /api/panoramas уже фильтрует is_active = 1.
+  // Все панорамы в массиве гарантированно активны.
 
   const cleanTitle = (title: string) => title.replace(/^LS\s*/i, '').trim();
 
   const changePanorama = (index: number) => {
+    if (panoramas.length === 0) return;
     if (index === currentApartmentIndex) return;
     
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
@@ -446,11 +428,12 @@ export default function PanoramaViewer() {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       
-      const sectionElementClean = sectionRef.current;
-      if (sectionElementClean) {
-        sectionElementClean.removeEventListener('touchstart', handleTouchStart);
-        sectionElementClean.removeEventListener('touchmove', handleTouchMove);
-        sectionElementClean.removeEventListener('touchend', handleTouchEnd);
+      // Используем sectionElement из closure, а не sectionRef.current
+      // (ref может измениться к моменту cleanup)
+      if (sectionElement) {
+        sectionElement.removeEventListener('touchstart', handleTouchStart);
+        sectionElement.removeEventListener('touchmove', handleTouchMove);
+        sectionElement.removeEventListener('touchend', handleTouchEnd);
       }
       
       if (rendererRef.current) {
@@ -553,6 +536,17 @@ export default function PanoramaViewer() {
     };
   }, [currentApartmentIndex]);
 
+  // --- Guard: безопасный рендер при пустом массиве ---
+  if (panoramas.length === 0) {
+    return (
+      <section id="panorama" className="panorama-section">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'rgba(255,255,255,0.5)' }}>
+          Загрузка...
+        </div>
+      </section>
+    );
+  }
+
   // --- Рендер ---
   return (
     <section
@@ -584,27 +578,26 @@ export default function PanoramaViewer() {
         <div className="panorama-info">
           <div className="panorama-info-inner">
             <span className="panorama-info-eyebrow">Lifestyle · Luxury</span>
-            <h2 className="panorama-info-title">{cleanTitle(currentPano.title)}</h2>
+            <h2 className="panorama-info-title">{cleanTitle(currentPano?.title ?? '')}</h2>
             <p className="panorama-info-description">Просторные премиальные апартаменты с панорамным видом на Чёрное море.</p>
-            <ul className="panorama-info-meta">{currentPano.meta.map((item, i) => (<li key={i}>{item}</li>))}</ul>
+            <ul className="panorama-info-meta">{(currentPano?.meta ?? []).map((item, i) => (<li key={i}>{item}</li>))}</ul>
 
-            {!checkingStatus && (
-              <div className="panorama-desktop-actions">
+            <div className="panorama-desktop-actions">
                 {isActive ? (
                   <>
-                    <Link href={`/apartments/${currentPano.id}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
-                    
+                    <Link href={`/apartments/${currentPano?.id ?? ''}`} className="panorama-desktop-btn primary">Перейти в апартамент</Link>
+
                     <button
                       className="panorama-desktop-btn secondary"
                       onClick={() => {
-                        const folder = getPhotoFolder(currentPano.id);
-                        const count = getPhotoCount(currentPano.id);
-                        
+                        const folder = getPhotoFolder(currentPano?.id ?? '');
+                        const count = getPhotoCount(currentPano?.id ?? '');
+
                         const images = [];
                         for (let i = 1; i <= count; i++) {
                           images.push(`/images/apartments/${folder}/${i}.webp`);
                         }
-                        
+
                         open(images, 0);
                       }}
                     >
@@ -615,7 +608,6 @@ export default function PanoramaViewer() {
                   <div className="panorama-unavailable-message"><span className="unavailable-text">Апартамент временно недоступен для бронирования</span></div>
                 )}
               </div>
-            )}
           </div>
         </div>
       )}
@@ -716,12 +708,12 @@ export default function PanoramaViewer() {
       <div className="panorama-actions-bottom">
         {isActive ? (
           <>
-            <Link href={`/apartments/${currentPano.id}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
+            <Link href={`/apartments/${currentPano?.id ?? ''}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
             <button
               className="panorama-action-btn secondary"
               onClick={() => {
-                const folder = getPhotoFolder(currentPano.id);
-                const count = getPhotoCount(currentPano.id);
+                const folder = getPhotoFolder(currentPano?.id ?? '');
+                const count = getPhotoCount(currentPano?.id ?? '');
                 
                 const images = [];
                 for (let i = 1; i <= count; i++) {
@@ -752,7 +744,7 @@ export default function PanoramaViewer() {
             }}
           >
             <span className="arrow-icon">←</span>
-            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length].title)}</span>
+            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex - 1 + panoramas.length) % panoramas.length]?.title ?? '')}</span>
           </button>
 
           <div className="panorama-center">
@@ -777,7 +769,7 @@ export default function PanoramaViewer() {
               changePanorama(next);
             }}
           >
-            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length].title)}</span>
+            <span className="arrow-label">{cleanTitle(panoramas[(currentApartmentIndex + 1) % panoramas.length]?.title ?? '')}</span>
             <span className="arrow-icon">→</span>
           </button>
         </div>

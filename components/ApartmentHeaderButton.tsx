@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHeader } from './HeaderContext';
+import { useApartment } from '@/components/ApartmentContext';
 import ApartmentAvailabilityCalendar from './ApartmentAvailabilityCalendar';
 import BookingModal from './BookingModal';
 import { useAvailability } from '@/hooks/useAvailability';
@@ -28,8 +29,9 @@ export default function ApartmentHeaderButton({
   loadingPrice,
 }: Props) {
   const { searchParams } = useHeader();
+  const { currentDBApartment } = useApartment();
   const { blockedDates } = useAvailability(apartmentId);
-  
+
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>(null);
@@ -43,7 +45,7 @@ export default function ApartmentHeaderButton({
     if (searchParams) {
       const from = new Date(searchParams.checkIn);
       const to = new Date(searchParams.checkOut);
-      
+
       setSelectedRange({ from, to });
       setBookingModalOpen(true);
     }
@@ -57,13 +59,13 @@ export default function ApartmentHeaderButton({
   // Закрытие календаря при клике вне
   useEffect(() => {
     if (!calendarOpen) return;
-    
+
     const handleClickOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setCalendarOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [calendarOpen]);
@@ -115,6 +117,8 @@ export default function ApartmentHeaderButton({
                   onClose={() => setCalendarOpen(false)}
                   showPrice={true}
                   apartmentPrice={apartmentPrice}
+                  seasons={currentDBApartment?.seasons}
+                  hotDeal={currentDBApartment?.hotDeal}
                   customClass="calendar--apartment"
                 />
               </div>

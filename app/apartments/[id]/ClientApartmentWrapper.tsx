@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParamsFromUrl } from '@/hooks/useSearchParamsFromUrl';
 import { useHeader } from '@/components/HeaderContext';
-import { useApartment } from '@/components/ApartmentContext';
+import { useApartment, Season, HotDeal } from '@/components/ApartmentContext';
 import ApartmentHero from './ApartmentHero';
 
 type Props = {
@@ -27,11 +27,13 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   const { setCurrentDBApartment } = useApartment();
   const { setSearchParams } = useHeader();
   const searchParamsFromUrl = useSearchParamsFromUrl();
-  
+
   const [price, setPrice] = useState(apartment.price_base);
   const [isActive, setIsActive] = useState(apartment.is_active !== false);
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState(apartment.images);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [hotDeal, setHotDeal] = useState<HotDeal | undefined>(undefined);
 
   // Передаем параметры поиска в контекст хедера
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
       console.log('📅 [Apartment] Setting dates:', searchParamsFromUrl);
       setSearchParams(searchParamsFromUrl);
     }
-    
+
     return () => {
       setSearchParams(null);
     };
@@ -60,6 +62,17 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
           if (data.images && data.images.length > 0) {
             setImages(data.images);
           }
+          setSeasons(data.seasons || []);
+          if (data.hot_deal_enabled) {
+            setHotDeal({
+              enabled: true,
+              discount: data.hot_deal_discount || 10,
+              date_from: data.hot_deal_date_from || null,
+              date_to: data.hot_deal_date_to || null,
+            });
+          } else {
+            setHotDeal(undefined);
+          }
         }
       } catch (error) {
         console.error('Error fetching apartment data:', error);
@@ -79,13 +92,16 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   useEffect(() => {
     setCurrentDBApartment({
       id: apartment.id,
-      title: apartment.title
+      title: apartment.title,
+      price_base: price,
+      seasons,
+      hotDeal,
     });
-    
+
     return () => {
       setCurrentDBApartment(null);
     };
-  }, [apartment.id, apartment.title, setCurrentDBApartment]);
+  }, [apartment.id, apartment.title, price, seasons, hotDeal, setCurrentDBApartment]);
 
   // Преобразуем в формат, который ожидает ApartmentHero
   const apartmentForHero = {

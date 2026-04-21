@@ -18,7 +18,7 @@ export async function GET(
 
     if (!apartment) {
       return NextResponse.json(
-        { error: 'Apartment not found' }, 
+        { error: 'Apartment not found' },
         { status: 404 }
       );
     }
@@ -36,6 +36,11 @@ export async function GET(
       images = [];
     }
 
+    // Получаем сезоны
+    const seasons = db.prepare(
+      'SELECT id, name, date_from, date_to, price_per_night FROM apartment_pricing_seasons WHERE apartment_id = ? ORDER BY date_from ASC'
+    ).all(id);
+
     // Форматируем данные
     const formatted = {
       id: apartment.id,
@@ -50,13 +55,23 @@ export async function GET(
       features: apartment.features ? JSON.parse(apartment.features) : [],
       images: images,
       is_active: Boolean(apartment.is_active),
+      breakfast_price: Number(apartment.breakfast_price || 0),
+      lunch_price: Number(apartment.lunch_price || 0),
+      dinner_price: Number(apartment.dinner_price || 0),
+      custom_meal_price: Number(apartment.custom_meal_price || 0),
+      custom_meal_description: apartment.custom_meal_description || null,
+      hot_deal_enabled: Boolean(apartment.hot_deal_enabled),
+      hot_deal_discount: Number(apartment.hot_deal_discount ?? 10),
+      hot_deal_date_from: apartment.hot_deal_date_from || null,
+      hot_deal_date_to: apartment.hot_deal_date_to || null,
+      seasons: seasons,
     };
 
     return NextResponse.json(formatted);
   } catch (error) {
     console.error('Error fetching apartment:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch apartment' }, 
+      { error: 'Failed to fetch apartment' },
       { status: 500 }
     );
   }

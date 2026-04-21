@@ -22,6 +22,8 @@ type Apartment = {
   custom_meal_description: string;
   hot_deal_enabled: boolean;
   hot_deal_discount: number;
+  hot_deal_date_from: string | null;
+  hot_deal_date_to: string | null;
   view: string;
   has_terrace: boolean;
   features: string[];
@@ -77,6 +79,8 @@ export default function EditApartmentPage({ params }: PageProps) {
         custom_meal_description: data.custom_meal_description ?? '',
         hot_deal_enabled: Boolean(data.hot_deal_enabled),
         hot_deal_discount: data.hot_deal_discount ?? 10,
+        hot_deal_date_from: data.hot_deal_date_from ?? null,
+        hot_deal_date_to: data.hot_deal_date_to ?? null,
       });
     } catch (error) {
       console.error('Error fetching apartment:', error);
@@ -347,6 +351,28 @@ export default function EditApartmentPage({ params }: PageProps) {
               <strong>
                 {Math.round(apartment.price_base * (1 - apartment.hot_deal_discount / 100)).toLocaleString('ru-RU')} ₽/ночь
               </strong>
+            </div>
+          )}
+          {apartment.hot_deal_enabled && (
+            <div className="hot-deal-dates">
+              <div className="form-group">
+                <label>Начало акции</label>
+                <input
+                  type="date"
+                  value={apartment.hot_deal_date_from ?? ''}
+                  onChange={(e) => setApartment({ ...apartment, hot_deal_date_from: e.target.value || null })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Конец акции</label>
+                <input
+                  type="date"
+                  value={apartment.hot_deal_date_to ?? ''}
+                  onChange={(e) => setApartment({ ...apartment, hot_deal_date_to: e.target.value || null })}
+                  min={apartment.hot_deal_date_from ?? undefined}
+                />
+              </div>
+              <small style={{color: '#94a3b8', fontSize: '12px'}}>Если даты не указаны — скидка действует всегда</small>
             </div>
           )}
         </div>

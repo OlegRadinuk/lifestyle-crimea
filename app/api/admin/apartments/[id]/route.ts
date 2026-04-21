@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, DEFAULT_HOT_DEAL_DISCOUNT } from '@/lib/db';
 import { checkAdminAuth } from '@/lib/admin-auth';
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(
   request: Request,
@@ -12,15 +14,12 @@ export async function GET(
   const { id } = await params;
 
   try {
-    console.log('🔍 API GET called for ID:', id);
-    
     // Получаем конкретный апартамент по ID
     const apartment = db.prepare(`
       SELECT * FROM apartments WHERE id = ?
     `).get(id) as any;
-    
+
     if (!apartment) {
-      console.log('❌ Apartment not found:', id);
       return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
 
@@ -32,7 +31,7 @@ export async function GET(
       `).get(id) as { count: number };
       imagesCount = count?.count || 0;
     } catch (e) {
-      console.log('⚠️ Error getting images count:', e);
+      console.error('Error getting images count:', e);
     }
 
     // Парсим JSON поля
@@ -40,14 +39,14 @@ export async function GET(
     try {
       features = apartment.features ? JSON.parse(apartment.features) : [];
     } catch (e) {
-      console.log('⚠️ Error parsing features:', e);
+      console.error('Error parsing features:', e);
     }
 
     let images = [];
     try {
       images = apartment.images ? JSON.parse(apartment.images) : [];
     } catch (e) {
-      console.log('⚠️ Error parsing images:', e);
+      console.error('Error parsing images:', e);
     }
 
     const formattedApartment = {
@@ -67,7 +66,10 @@ export async function GET(
       sort_order: Number(apartment.sort_order || 0),
       images_count: imagesCount,
       hot_deal_enabled: Boolean(apartment.hot_deal_enabled),
-      hot_deal_discount: Number(apartment.hot_deal_discount ?? 10),
+      hot_deal_discount: Number(apartment.hot_deal_discount ?? DEFAULT_HOT_DEAL_DISCOUNT),
+      hot_deal_date_from: apartment.hot_deal_date_from || null,
+      hot_deal_date_to: apartment.hot_deal_date_to || null,
+      custom_meal_price: Number(apartment.custom_meal_price || 0),
       lunch_price: Number(apartment.lunch_price || 0),
       dinner_price: Number(apartment.dinner_price || 0),
       custom_meal_description: apartment.custom_meal_description || '',
@@ -75,14 +77,12 @@ export async function GET(
       updated_at: apartment.updated_at,
     };
 
-    console.log('✅ Sending apartment:', formattedApartment);
-    
     return NextResponse.json(formattedApartment);
-    
+
   } catch (error) {
-    console.error('❌ Error fetching apartment:', error);
+    console.error('Error fetching apartment:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch apartment' }, 
+      { error: 'Failed to fetch apartment' },
       { status: 500 }
     );
   }
@@ -99,8 +99,7 @@ export async function PATCH(
 
   try {
     const data = await request.json();
-    console.log('📝 Updating apartment:', id, data);
-    
+
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -176,7 +175,7 @@ export async function PATCH(
 
     if (data.hot_deal_discount !== undefined) {
       updates.push('hot_deal_discount = ?');
-      values.push(Number(data.hot_deal_discount));
+      values.push(Math.max(1, Math.min(99, Number(data.hot_deal_discount) || DEFAULT_HOT_DEAL_DISCOUNT)));
     }
 
     if (data.lunch_price !== undefined) {
@@ -194,6 +193,32 @@ export async function PATCH(
       values.push(data.custom_meal_description);
     }
 
+    if (data.hot_deal_date_from !== undefined) {
+      const validFrom = typeof data.hot_deal_date_from === 'string' && DATE_RE.test(data.hot_deal_date_from)
+        ? data.hot_deal_date_from
+        : null;
+      updates.push('hot_deal_date_from = ?');
+      values.push(validFrom);
+    }
+
+    if (data.hot_deal_date_to !== undefined) {
+      const validTo = typeof data.hot_deal_date_to === 'string' && DATE_RE.test(data.hot_deal_date_to)
+        ? data.hot_deal_date_to
+        : null;
+      // hot_deal_date_to must be >= hot_deal_date_from when both are provided
+      const fromVal: string | null = data.hot_deal_date_from !== undefined
+        ? (typeof data.hot_deal_date_from === 'string' && DATE_RE.test(data.hot_deal_date_from) ? data.hot_deal_date_from : null)
+        : null;
+      const sanitizedTo = (validTo && fromVal && validTo < fromVal) ? null : validTo;
+      updates.push('hot_deal_date_to = ?');
+      values.push(sanitizedTo);
+    }
+
+    if (data.custom_meal_price !== undefined) {
+      updates.push('custom_meal_price = ?');
+      values.push(Math.max(0, Number(data.custom_meal_price) || 0));
+    }
+
     if (updates.length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
@@ -202,14 +227,12 @@ export async function PATCH(
     values.push(id);
 
     const query = `UPDATE apartments SET ${updates.join(', ')} WHERE id = ?`;
-    console.log('📝 SQL:', query);
-    
     db.prepare(query).run(...values);
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('❌ Error updating apartment:', error);
+    console.error('Error updating apartment:', error);
     return NextResponse.json(
       { error: 'Failed to update apartment' },
       { status: 500 }
@@ -236,7 +259,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('❌ Error deleting apartment:', error);
+    console.error('Error deleting apartment:', error);
     return NextResponse.json({ error: 'Failed to delete apartment' }, { status: 500 });
   }
 }
