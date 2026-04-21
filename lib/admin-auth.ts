@@ -6,7 +6,7 @@ export const ADMIN_TOKEN_COOKIE = 'admin_token';
 
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.scryptSync(password, salt, 64, { N: 2**15, r: 8, p: 1 });
+  const hash = crypto.scryptSync(password, salt, 64, { N: 2**15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
   return `${salt}:${hash.toString('hex')}`;
 }
 
@@ -16,7 +16,7 @@ export function verifyPassword(password: string, stored: string): boolean {
   const [salt, hash] = parts;
   try {
     const storedBuf = Buffer.from(hash, 'hex');
-    const computedBuf = crypto.scryptSync(password, salt, 64, { N: 2**15, r: 8, p: 1 });
+    const computedBuf = crypto.scryptSync(password, salt, 64, { N: 2**15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
     if (storedBuf.length !== computedBuf.length) return false;
     return crypto.timingSafeEqual(storedBuf, computedBuf);
   } catch {
