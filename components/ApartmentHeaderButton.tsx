@@ -47,7 +47,32 @@ export default function ApartmentHeaderButton({
       const from = new Date(searchParams.checkIn);
       const to = new Date(searchParams.checkOut);
 
+      // Считаем цену с учётом сезонов и hot deal
+      const seasons = currentDBApartment?.seasons || [];
+      const hotDeal = currentDBApartment?.hotDeal;
+      const toLocalDateStr = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+      let total = 0;
+      const cur = new Date(from);
+      while (cur < to) {
+        const dateStr = toLocalDateStr(cur);
+        let price = apartmentPrice;
+        if (seasons.length > 0) {
+          const season = seasons.find(s => dateStr >= s.date_from && dateStr <= s.date_to);
+          if (season) price = season.price_per_night;
+        }
+        if (hotDeal?.enabled && hotDeal.discount > 0) {
+          const inRange = !hotDeal.date_from || !hotDeal.date_to ||
+            (dateStr >= hotDeal.date_from && dateStr <= hotDeal.date_to);
+          if (inRange) price = Math.round(price * (1 - hotDeal.discount / 100));
+        }
+        total += price;
+        cur.setDate(cur.getDate() + 1);
+      }
+
       setSelectedRange({ from, to });
+      setCalculatedTotal(total > 0 ? total : undefined);
       setBookingModalOpen(true);
     }
   };

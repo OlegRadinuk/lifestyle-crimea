@@ -7923,8 +7923,9 @@ html, body {
   }
 }
 
-/* Hot deal calendar dots */
+/* Hot deal calendar dots — v9: modifier class на кнопке rdp-day_button */
 .rdp-day { position: relative !important; }
+.rdp-day_button { position: relative !important; }
 .rdp-day_hot_deal::after {
   content: '';
   position: absolute;
