@@ -4,6 +4,51 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const PRESET_FEATURES: { label: string; icon: string }[] = [
+  { label: 'Интернет', icon: '📶' },
+  { label: 'Wi-Fi', icon: '📶' },
+  { label: 'Холодильник', icon: '🧊' },
+  { label: 'Кондиционер', icon: '❄️' },
+  { label: 'Фен', icon: '💨' },
+  { label: 'Балкон', icon: '🏠' },
+  { label: 'Терраса', icon: '🌿' },
+  { label: 'Садовая мебель', icon: '🪑' },
+  { label: 'Кухня', icon: '🍳' },
+  { label: 'Кухонная зона', icon: '🍳' },
+  { label: 'Микроволновка', icon: '📦' },
+  { label: 'Плита', icon: '🔥' },
+  { label: 'Индукционная варочная панель', icon: '🔥' },
+  { label: 'Электрический чайник', icon: '☕' },
+  { label: 'Кофемашина', icon: '☕' },
+  { label: 'Набор посуды', icon: '🍽️' },
+  { label: 'Столовые приборы', icon: '🍽️' },
+  { label: 'Обеденный стол', icon: '🪑' },
+  { label: 'Душевая кабина', icon: '🚿' },
+  { label: 'Душ', icon: '🚿' },
+  { label: 'Ванная комната', icon: '🛁' },
+  { label: 'Пол с подогревом', icon: '🌡️' },
+  { label: 'Тапочки', icon: '👟' },
+  { label: 'Одноразовые тапочки', icon: '👟' },
+  { label: 'Банные халаты', icon: '🩱' },
+  { label: 'Халаты по запросу', icon: '🩱' },
+  { label: 'Банные полотенца', icon: '🛁' },
+  { label: 'Постельные принадлежности', icon: '🛏️' },
+  { label: 'Косметические средства', icon: '🧴' },
+  { label: 'Телевизор', icon: '📺' },
+  { label: 'SMART TV', icon: '📺' },
+  { label: 'Сейф', icon: '🔒' },
+  { label: 'Стиральная машина', icon: '🔄' },
+  { label: 'Сушилка для белья', icon: '🔄' },
+  { label: 'Рабочее место', icon: '💼' },
+  { label: 'Шкаф', icon: '🚪' },
+  { label: 'Утюг', icon: '👔' },
+  { label: 'Гладильная доска', icon: '👔' },
+  { label: 'Кровать Queen-size 160 × 200', icon: '🛏️' },
+  { label: 'Парковка', icon: '🚗' },
+  { label: 'Полотенца для животных', icon: '🐾' },
+  { label: 'Расстояние до моря от 650 м', icon: '📍' },
+];
+
 type PageProps = {
   params: Promise<{ id: string }>
 };
@@ -50,7 +95,6 @@ export default function EditApartmentPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [imagesCount, setImagesCount] = useState(0);
-  const [featureInput, setFeatureInput] = useState('');
 
   // Seasons state
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -178,30 +222,6 @@ export default function EditApartmentPage({ params }: PageProps) {
       alert('Ошибка при сохранении');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const addFeature = () => {
-    if (!featureInput.trim() || !apartment) return;
-    setApartment({
-      ...apartment,
-      features: [...(apartment.features || []), featureInput.trim()]
-    });
-    setFeatureInput('');
-  };
-
-  const removeFeature = (index: number) => {
-    if (!apartment) return;
-    setApartment({
-      ...apartment,
-      features: apartment.features.filter((_, i) => i !== index)
-    });
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addFeature();
     }
   };
 
@@ -423,48 +443,63 @@ export default function EditApartmentPage({ params }: PageProps) {
           </label>
         </div>
 
-        {/* ПОЛЕ ДЛЯ ОСОБЕННОСТЕЙ - ДОБАВЛЕНО */}
-        <div className="form-group">
-          <label>Особенности</label>
-          <div className="features-list">
-            {apartment.features?.map((feature, index) => (
-              <div key={index} className="feature-item">
-                <span>{feature}</span>
+        {/* Характеристики */}
+        <div className="form-section">
+          <h3>Характеристики</h3>
+
+          {/* Чипы с пресетами */}
+          <div className="features-preset-grid">
+            {PRESET_FEATURES.map((preset) => {
+              const isSelected = apartment.features.includes(preset.label);
+              return (
                 <button
+                  key={preset.label}
                   type="button"
-                  onClick={() => removeFeature(index)}
-                  className="remove-feature"
-                  title="Удалить"
+                  className={`feature-chip-btn${isSelected ? ' selected' : ''}`}
+                  onClick={() => {
+                    if (isSelected) {
+                      setApartment({ ...apartment, features: apartment.features.filter(f => f !== preset.label) });
+                    } else {
+                      setApartment({ ...apartment, features: [...apartment.features, preset.label] });
+                    }
+                  }}
                 >
-                  ×
+                  <span className="chip-icon">{preset.icon}</span>
+                  <span className="chip-label">{preset.label}</span>
                 </button>
-              </div>
-            ))}
-            {(!apartment.features || apartment.features.length === 0) && (
-              <div className="no-features">Нет добавленных особенностей</div>
-            )}
+              );
+            })}
           </div>
-          <div className="add-feature">
-            <input
-              type="text"
-              value={featureInput}
-              onChange={(e) => setFeatureInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Например: Wi-Fi, Кондиционер, Кухня"
-              className="feature-input"
-            />
-            <button 
-              type="button" 
-              onClick={addFeature} 
-              className="add-feature-btn"
-              disabled={!featureInput.trim()}
-            >
-              Добавить
-            </button>
+
+          {/* Кастомные характеристики */}
+          <div className="form-group" style={{ marginTop: '16px' }}>
+            <label>Дополнительные (через Enter)</label>
+            <div className="custom-features-list">
+              {apartment.features.filter(f => !PRESET_FEATURES.some(p => p.label === f)).map((feature, i) => (
+                <div key={i} className="custom-feature-tag">
+                  <span>{feature}</span>
+                  <button
+                    type="button"
+                    onClick={() => setApartment({ ...apartment, features: apartment.features.filter(f2 => f2 !== feature) })}
+                  >✕</button>
+                </div>
+              ))}
+              <input
+                type="text"
+                placeholder="Введите и нажмите Enter..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = (e.target as HTMLInputElement).value.trim();
+                    if (val && !apartment.features.includes(val)) {
+                      setApartment({ ...apartment, features: [...apartment.features, val] });
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }
+                }}
+              />
+            </div>
           </div>
-          <small className="feature-hint">
-            Нажмите Enter или кнопку "Добавить" чтобы добавить особенность
-          </small>
         </div>
 
         {/* КНОПКА ДЛЯ УПРАВЛЕНИЯ ФОТО */}
@@ -908,95 +943,92 @@ export default function EditApartmentPage({ params }: PageProps) {
           width: auto;
         }
         
-        /* Стили для особенностей */
-        .features-list {
+        /* Секция характеристик */
+        .form-section {
+          margin: 0 0 20px;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .form-section h3 {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a2634;
+          margin-bottom: 16px;
+        }
+
+        .features-preset-grid {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 15px;
-          min-height: 40px;
-          padding: 8px;
-          background: #f9f9f9;
-          border-radius: 8px;
-          border: 1px solid #eaeef2;
-        }
-        
-        .feature-item {
-          background: #e6f7ff;
-          border: 1px solid #139ab6;
-          border-radius: 20px;
-          padding: 5px 12px;
-          display: inline-flex;
-          align-items: center;
           gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .feature-chip-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 20px;
+          background: #f9fafb;
+          cursor: pointer;
+          font-size: 13px;
+          color: #374151;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+
+        .feature-chip-btn:hover {
+          border-color: #6366f1;
+          background: #eef2ff;
+        }
+
+        .feature-chip-btn.selected {
+          background: #4f46e5;
+          border-color: #4f46e5;
+          color: white;
+        }
+
+        .chip-icon { font-size: 14px; }
+        .chip-label { font-size: 13px; }
+
+        .custom-features-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .custom-feature-tag {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          background: #fef3c7;
+          border: 1px solid #f59e0b;
+          border-radius: 12px;
           font-size: 13px;
         }
-        
-        .remove-feature {
+
+        .custom-feature-tag button {
           background: none;
           border: none;
-          color: #64748b;
           cursor: pointer;
-          font-size: 16px;
-          padding: 0 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .remove-feature:hover {
-          color: #c62828;
-        }
-        
-        .no-features {
-          color: #94a3b8;
-          font-style: italic;
-          padding: 4px 8px;
-        }
-        
-        .add-feature {
-          display: flex;
-          gap: 10px;
-        }
-        
-        .feature-input {
-          flex: 1;
-          padding: 10px 12px;
-          border: 1px solid #d0d9e2;
-          border-radius: 8px;
-          font-size: 14px;
-        }
-        
-        .feature-input:focus {
-          outline: none;
-          border-color: #139ab6;
-        }
-        
-        .add-feature-btn {
-          padding: 10px 20px;
-          background: #139ab6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .add-feature-btn:hover:not(:disabled) {
-          background: #0f7a91;
-        }
-        
-        .add-feature-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .feature-hint {
-          display: block;
-          margin-top: 6px;
-          color: #94a3b8;
+          color: #92400e;
           font-size: 12px;
+          padding: 0;
+        }
+
+        .custom-features-list input {
+          border: 1px dashed #d1d5db;
+          border-radius: 12px;
+          padding: 4px 12px;
+          font-size: 13px;
+          outline: none;
+          min-width: 200px;
         }
         
         /* Seasons */
