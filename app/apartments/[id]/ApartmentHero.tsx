@@ -43,45 +43,59 @@ const icons: Record<string, React.ReactElement> = {
   outdoor:     <IC><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></IC>,
   cosmetics:   <IC><path d="M9 3h6l1 7H8L9 3z"/><path d="M8 10c0 5 4 9 4 9s4-4 4-9"/><line x1="12" y1="19" x2="12" y2="22"/></IC>,
   table:       <IC><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></IC>,
+  dishwasher:  <IC><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><circle cx="8" cy="6" r="1"/><circle cx="16" cy="6" r="1"/><path d="M8 14h8M8 17h5"/></IC>,
+  oven:        <IC><rect x="3" y="4" width="18" height="17" rx="2"/><rect x="7" y="9" width="10" height="8" rx="1"/><line x1="7" y1="4" x2="7" y2="2"/><line x1="17" y1="4" x2="17" y2="2"/><circle cx="8.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="12" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></IC>,
+  sofa:        <IC><path d="M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><path d="M2 11a2 2 0 0 1 4 0v2H2v-2z"/><path d="M22 11a2 2 0 0 0-4 0v2h4v-2z"/><path d="M4 13v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/><line x1="6" y1="19" x2="6" y2="21"/><line x1="18" y1="19" x2="18" y2="21"/></IC>,
+  lounger:     <IC><path d="M2 17h20"/><path d="M6 17V10l-4 7"/><path d="M6 10h12a2 2 0 0 1 2 2v5"/><line x1="6" y1="17" x2="6" y2="20"/><line x1="18" y1="17" x2="18" y2="20"/></IC>,
+  walk:        <IC><circle cx="12" cy="4" r="2"/><path d="M9.5 8.5L8 20"/><path d="M14.5 8.5L16 20"/><path d="M7 12h10"/></IC>,
+  baby:        <IC><rect x="2" y="10" width="20" height="11" rx="2"/><line x1="6" y1="10" x2="6" y2="4"/><line x1="12" y1="10" x2="12" y2="4"/><line x1="18" y1="10" x2="18" y2="4"/><circle cx="12" cy="16" r="2"/></IC>,
+  trekking:    <IC><line x1="7" y1="22" x2="12" y2="2"/><line x1="17" y1="22" x2="12" y2="2"/><line x1="9" y1="13" x2="15" y2="13"/></IC>,
 };
 
 const FEATURE_ICON_MAP: Array<{ match: RegExp; key: keyof typeof icons }> = [
-  { match: /кровать|queen|king|двуспальн/i,           key: 'bed' },
-  { match: /халат/i,                                   key: 'robe' },
-  { match: /рабочее место|письменный стол/i,           key: 'desk' },
-  { match: /животн|питомец|лапа|paw/i,                 key: 'paw' },
-  { match: /посуда|столовые прибор|вилк|ложк/i,        key: 'utensils' },
-  { match: /чайник/i,                                  key: 'kettle' },
-  { match: /утюг|гладильн/i,                           key: 'iron' },
-  { match: /полотенц/i,                                key: 'towel' },
-  { match: /шкаф|гардероб/i,                           key: 'wardrobe' },
-  { match: /расстояние|море|до моря|км|м от/i,         key: 'pin' },
-  { match: /садовая мебель|кресло.кокон|уличн/i,       key: 'outdoor' },
-  { match: /косметик|гель|шампун/i,                    key: 'cosmetics' },
-  { match: /стол|обеденн|консольн/i,                   key: 'table' },
-  { match: /сушилка|сушка для белья/i,                 key: 'washer' },
-  { match: /постельн|бельё|подушк|одеял/i,             key: 'towel' },
-  { match: /wi-?fi|вай.фай/i,                          key: 'wifi' },
-  { match: /варочн|индукцион|вытяжк/i,                 key: 'flame' },
-  { match: /кресло|диван|раскладн/i,                   key: 'slippers' },
-  { match: /ванная|ванн.комнат/i,                      key: 'bath' },
-  { match: /душевая|душ\b/i,                           key: 'shower' },
-  { match: /интернет/i,           key: 'wifi' },
-  { match: /холодильник/i,        key: 'fridge' },
-  { match: /кондиционер/i,        key: 'snow' },
-  { match: /фен/i,                key: 'wind' },
-  { match: /балкон|терраса/i,     key: 'home' },
-  { match: /кухн/i,               key: 'kitchen' },
-  { match: /микроволновк/i,       key: 'microwave' },
-  { match: /плит/i,               key: 'flame' },
-  { match: /кофе/i,               key: 'coffee' },
-  { match: /подогрев/i,           key: 'thermo' },
-  { match: /тапочк/i,             key: 'slippers' },
-  { match: /телевизор|^тв$/i,     key: 'tv' },
-  { match: /сейф/i,               key: 'lock' },
-  { match: /стиральн/i,           key: 'washer' },
-  { match: /парковк/i,            key: 'car' },
-  { match: /джакузи/i,            key: 'bath' },
+  { match: /посудомоечн/i,                              key: 'dishwasher' },
+  { match: /духовой|духовка|вытяжк/i,                   key: 'oven' },
+  { match: /диван|раскладн.кресло/i,                    key: 'sofa' },
+  { match: /шезлонг/i,                                  key: 'lounger' },
+  { match: /расстояние|до моря|от моря/i,               key: 'walk' },
+  { match: /манеж/i,                                    key: 'baby' },
+  { match: /треккинг|палки для/i,                       key: 'trekking' },
+  { match: /надувн/i,                                   key: 'outdoor' },
+  { match: /раскладушка/i,                              key: 'bed' },
+  { match: /матрас/i,                                   key: 'bed' },
+  { match: /кровать|queen|king|двуспальн|односпальн/i,  key: 'bed' },
+  { match: /халат/i,                                    key: 'robe' },
+  { match: /компьютерн.стол|рабочее место|письменный/i, key: 'desk' },
+  { match: /животн|питомец|лапа/i,                      key: 'paw' },
+  { match: /посуда|столовые прибор/i,                   key: 'utensils' },
+  { match: /чайник/i,                                   key: 'kettle' },
+  { match: /утюг|гладильн/i,                            key: 'iron' },
+  { match: /полотенц/i,                                 key: 'towel' },
+  { match: /гардеробная|гардероб|шкаф/i,                key: 'wardrobe' },
+  { match: /кресло.кокон|садовая мебель/i,              key: 'outdoor' },
+  { match: /косметик/i,                                 key: 'cosmetics' },
+  { match: /стол|обеденн|консольн/i,                    key: 'table' },
+  { match: /сушилка/i,                                  key: 'washer' },
+  { match: /постельн/i,                                 key: 'towel' },
+  { match: /wi-?fi|вай.фай|интернет/i,                  key: 'wifi' },
+  { match: /варочн|индукцион/i,                         key: 'flame' },
+  { match: /ванная|ванн.комнат|собственная ванн/i,      key: 'bath' },
+  { match: /^ванна$|джакузи/i,                          key: 'bath' },
+  { match: /душевая|душ\b/i,                            key: 'shower' },
+  { match: /холодильник/i,                              key: 'fridge' },
+  { match: /кондиционер/i,                              key: 'snow' },
+  { match: /фен/i,                                      key: 'wind' },
+  { match: /балкон|лоджия|терраса/i,                    key: 'home' },
+  { match: /кухн/i,                                     key: 'kitchen' },
+  { match: /микроволновк|микроволновая/i,               key: 'microwave' },
+  { match: /плит/i,                                     key: 'flame' },
+  { match: /кофе/i,                                     key: 'coffee' },
+  { match: /подогрев/i,                                 key: 'thermo' },
+  { match: /тапочк/i,                                   key: 'slippers' },
+  { match: /телевизор|smart.tv|^тв$/i,                  key: 'tv' },
+  { match: /сейф/i,                                     key: 'lock' },
+  { match: /стиральн/i,                                 key: 'washer' },
+  { match: /парковк/i,                                  key: 'car' },
 ];
 
 function FeatureIcon({ name }: { name: string }) {
@@ -122,7 +136,9 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
+  const [featuresExpanded, setFeaturesExpanded] = useState(false);
+  const FEATURES_VISIBLE = 18;
+
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -312,7 +328,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             </div>
           </div>
 
-          {/* Правая колонка */}
+          {/* Правая колонка — только фото */}
           <div className="apt-col-right">
             <div className={`apt-photo${!hasImages ? ' apt-photo--empty' : ''}`}>
               {hasImages && (
@@ -337,21 +353,32 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 </div>
               )}
             </div>
-
-            {apartment.features?.length > 0 && (
-              <div className="apt-features-panel">
-                <span className="apt-features-eyebrow">Особенности</span>
-                <div className="apt-features-grid">
-                  {apartment.features.map((feature, i) => (
-                    <div key={i} className="apt-feature-card">
-                      <span className="apt-feature-card__icon"><FeatureIcon name={feature} /></span>
-                      <span className="apt-feature-card__label">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Панель особенностей — на всю ширину (grid-column: 1/-1) */}
+          {apartment.features?.length > 0 && (
+            <div className="apt-features-panel">
+              <div className="apt-features-panel__header">
+                <span className="apt-features-eyebrow">Особенности</span>
+                {apartment.features.length > FEATURES_VISIBLE && (
+                  <button
+                    className="apt-features-toggle"
+                    onClick={() => setFeaturesExpanded(e => !e)}
+                  >
+                    {featuresExpanded ? 'Свернуть' : `Все (${apartment.features.length}) →`}
+                  </button>
+                )}
+              </div>
+              <div className="apt-features-grid">
+                {(featuresExpanded ? apartment.features : apartment.features.slice(0, FEATURES_VISIBLE)).map((feature, i) => (
+                  <div key={i} className="apt-feature-card">
+                    <span className="apt-feature-card__icon"><FeatureIcon name={feature} /></span>
+                    <span className="apt-feature-card__label">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {!loading && !isActive && (
