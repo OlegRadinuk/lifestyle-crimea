@@ -26,6 +26,16 @@ export default function Hero() {
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!timelineRef.current) return;
+    const btn = timelineRef.current.querySelector('.hero-timeline-item.active') as HTMLElement;
+    if (!btn) return;
+    const container = timelineRef.current;
+    const scrollLeft = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
+    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  }, [active]);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -325,7 +335,7 @@ export default function Hero() {
         </div>
 
         {/* TIMELINE */}
-        <div className="hero-timeline">
+        <div className="hero-timeline" ref={timelineRef}>
           {activeSlides.map((_, i) => (
             <button
               key={i}

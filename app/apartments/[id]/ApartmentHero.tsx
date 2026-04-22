@@ -142,6 +142,16 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const mobileTimelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mobileTimelineRef.current) return;
+    const btn = mobileTimelineRef.current.querySelector('[data-active="true"]') as HTMLElement;
+    if (!btn) return;
+    const container = mobileTimelineRef.current;
+    const scrollLeft = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
+    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  }, [activeIndex]);
 
   // Определяем мобилку
   useEffect(() => {
@@ -434,14 +444,27 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           ))}
         </div>
 
+        {hasImages && apartment.images.length > 1 && (
+          <div className="apt-timeline-horizontal" ref={mobileTimelineRef}>
+            {apartment.images.map((_, index) => (
+              <button
+                key={index}
+                data-active={index === activeIndex}
+                className={`apt-timeline-h-btn${index === activeIndex ? ' active' : ''}`}
+                onClick={() => goToSlide(index)}
+              >
+                {String(index + 1).padStart(2, '0')}
+              </button>
+            ))}
+          </div>
+        )}
+
         {!loading && !isActive && (
           <div className="panorama-unavailable-message mobile">
             <span className="unavailable-text">Апартамент временно недоступен</span>
           </div>
         )}
       </div>
-
-      <Timeline />
     </section>
   );
 }
