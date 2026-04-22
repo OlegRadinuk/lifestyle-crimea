@@ -144,5 +144,90 @@ export default async function ApartmentPage({ params }: PageProps) {
     is_active: Boolean(apartment.is_active),
   };
 
-  return <ClientApartmentWrapper key={id} apartment={formattedApartment} />;
+  const viewLabels: Record<string, string> = {
+    sea: 'вид на море',
+    mountain: 'вид на горы',
+    city: 'вид на город',
+    garden: 'вид во двор',
+    mixed: 'вид на море и горы',
+  };
+
+  const roomSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HotelRoom',
+    name: apartment.title,
+    description: apartment.short_description || apartment.description,
+    url: `https://lovelifestyle.ru/apartments/${id}`,
+    image: formattedApartment.images[0]
+      ? `https://lovelifestyle.ru${formattedApartment.images[0]}`
+      : 'https://lovelifestyle.ru/og-image.jpg',
+    occupancy: {
+      '@type': 'QuantitativeValue',
+      maxValue: apartment.max_guests,
+    },
+    floorSize: {
+      '@type': 'QuantitativeValue',
+      value: apartment.area,
+      unitCode: 'MTK',
+    },
+    bed: {
+      '@type': 'BedDetails',
+      numberOfBeds: 1,
+    },
+    amenityFeature: [
+      { '@type': 'LocationFeatureSpecification', name: viewLabels[apartment.view] || 'вид на море', value: true },
+      { '@type': 'LocationFeatureSpecification', name: 'Бесплатный Wi-Fi', value: true },
+      { '@type': 'LocationFeatureSpecification', name: 'Кондиционер', value: true },
+      { '@type': 'LocationFeatureSpecification', name: 'Кухня', value: true },
+      { '@type': 'LocationFeatureSpecification', name: 'Балкон', value: Boolean(apartment.has_terrace) },
+    ],
+    containedInPlace: {
+      '@type': 'Hotel',
+      name: 'Life Style Crimea',
+      url: 'https://lovelifestyle.ru',
+      telephone: '8 800 777 63 08',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Западная ул., 4',
+        addressLocality: 'Алушта',
+        addressRegion: 'Республика Крым',
+        addressCountry: 'RU',
+      },
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Главная',
+        item: 'https://lovelifestyle.ru',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Апартаменты',
+        item: 'https://lovelifestyle.ru/apartments',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: apartment.title,
+        item: `https://lovelifestyle.ru/apartments/${id}`,
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([roomSchema, breadcrumbSchema]) }}
+      />
+      <ClientApartmentWrapper key={id} apartment={formattedApartment} />
+    </>
+  );
 }

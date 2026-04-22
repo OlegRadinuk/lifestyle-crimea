@@ -305,58 +305,25 @@ function ensureDatabaseStructure() {
       console.log('✅ Migrated hero_slides: added media_type column');
     }
 
-    // Миграция: новые колонки apartments
+    // Миграция: новые колонки apartments (try-catch защищает от параллельного добавления при build)
+    const safeAddColumn = (sql: string, label: string) => {
+      try { db.exec(sql); console.log(`✅ Migrated apartments: added ${label} column`); } catch { /* already exists */ }
+    };
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN breakfast_price INTEGER DEFAULT 0", 'breakfast_price');
     const aptColumns = (db.prepare("PRAGMA table_info(apartments)").all() as { name: string }[]).map(c => c.name);
-    if (!aptColumns.includes('breakfast_price')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN breakfast_price INTEGER DEFAULT 0");
-      console.log('✅ Migrated apartments: added breakfast_price column');
-    }
     if (!aptColumns.includes('sort_order')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN sort_order INTEGER DEFAULT 0");
-      // Проставляем начальный порядок по title
-      db.exec(`
-        UPDATE apartments SET sort_order = (
-          SELECT COUNT(*) FROM apartments a2 WHERE a2.title < apartments.title
-        )
-      `);
-      console.log('✅ Migrated apartments: added sort_order column');
+      safeAddColumn("ALTER TABLE apartments ADD COLUMN sort_order INTEGER DEFAULT 0", 'sort_order');
+      db.exec(`UPDATE apartments SET sort_order = (SELECT COUNT(*) FROM apartments a2 WHERE a2.title < apartments.title)`);
     }
-    if (!aptColumns.includes('deleted_at')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN deleted_at DATETIME DEFAULT NULL");
-      console.log('✅ Migrated apartments: added deleted_at column');
-    }
-    if (!aptColumns.includes('hot_deal_enabled')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_enabled INTEGER DEFAULT 0");
-      console.log('✅ Migrated apartments: added hot_deal_enabled column');
-    }
-    if (!aptColumns.includes('hot_deal_discount')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_discount INTEGER DEFAULT 10");
-      console.log('✅ Migrated apartments: added hot_deal_discount column');
-    }
-    if (!aptColumns.includes('lunch_price')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN lunch_price INTEGER DEFAULT 0");
-      console.log('✅ Migrated apartments: added lunch_price column');
-    }
-    if (!aptColumns.includes('dinner_price')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN dinner_price INTEGER DEFAULT 0");
-      console.log('✅ Migrated apartments: added dinner_price column');
-    }
-    if (!aptColumns.includes('custom_meal_description')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN custom_meal_description TEXT DEFAULT NULL");
-      console.log('✅ Migrated apartments: added custom_meal_description column');
-    }
-    if (!aptColumns.includes('hot_deal_date_from')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_date_from TEXT DEFAULT NULL");
-      console.log('✅ Migrated apartments: added hot_deal_date_from column');
-    }
-    if (!aptColumns.includes('hot_deal_date_to')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN hot_deal_date_to TEXT DEFAULT NULL");
-      console.log('✅ Migrated apartments: added hot_deal_date_to column');
-    }
-    if (!aptColumns.includes('custom_meal_price')) {
-      db.exec("ALTER TABLE apartments ADD COLUMN custom_meal_price INTEGER DEFAULT 0");
-      console.log('✅ Migrated apartments: added custom_meal_price column');
-    }
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN deleted_at DATETIME DEFAULT NULL", 'deleted_at');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_enabled INTEGER DEFAULT 0", 'hot_deal_enabled');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_discount INTEGER DEFAULT 10", 'hot_deal_discount');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN lunch_price INTEGER DEFAULT 0", 'lunch_price');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN dinner_price INTEGER DEFAULT 0", 'dinner_price');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN custom_meal_description TEXT DEFAULT NULL", 'custom_meal_description');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_date_from TEXT DEFAULT NULL", 'hot_deal_date_from');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_date_to TEXT DEFAULT NULL", 'hot_deal_date_to');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN custom_meal_price INTEGER DEFAULT 0", 'custom_meal_price');
 
     db.exec(`
       CREATE TABLE IF NOT EXISTS admin_users (
