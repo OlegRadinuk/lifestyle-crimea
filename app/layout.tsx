@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import JsonLdHotel from './json-ld-hotel';
@@ -9,6 +9,11 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
   weight: ['300', '400', '500', '600', '700'],
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://lovelifestyle.ru'),
