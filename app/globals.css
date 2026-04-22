@@ -3178,6 +3178,15 @@ html, body {
     transform: translateX(50%);
     flex-direction: row;
     gap: 24px;
+    max-width: 280px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hero-timeline::-webkit-scrollbar {
+    display: none;
   }
 
   .hero-timeline-item.active {

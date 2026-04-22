@@ -156,6 +156,13 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     params.set('children', children.toString());
     router.push(`/apartments?${params.toString()}`);
     setSearch({ checkIn, checkOut, guests, children });
+
+    // Скролл к результатам на мобилке
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setTimeout(() => {
+        document.getElementById('ap-results-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
   };
 
   const handleBookingClick = async (apartment: ApartmentClient) => {
@@ -293,7 +300,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         </div>
 
         {/* Результаты - только счетчик */}
-        <div className="ap-results">
+        <div id="ap-results-anchor" className="ap-results">
           <div className="ap-results-header">
             <span>
               {hasSearchParams ? (

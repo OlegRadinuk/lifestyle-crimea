@@ -625,14 +625,20 @@
 
   .apartment-hero .apartment-info-mobile {
     position: absolute;
-    bottom: 120px;
-    left: 20px;
-    right: 20px;
+    bottom: 100px;
+    left: 16px;
+    right: 16px;
     z-index: 20;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.52);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .apartment-hero .apartment-info-header {

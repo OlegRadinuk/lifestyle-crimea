@@ -233,13 +233,18 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const Timeline = () => {
     const containerStyle: React.CSSProperties = {
       position: 'absolute',
-      right: isMobile ? '20px' : '60px',
-      bottom: isMobile ? '120px' : '60px',
+      right: isMobile ? '16px' : '60px',
+      bottom: isMobile ? '100px' : '60px',
       display: 'flex',
       flexDirection: 'column',
       gap: isMobile ? '8px' : '14px',
       pointerEvents: 'auto',
       zIndex: 100,
+      maxHeight: isMobile ? '210px' : 'none',
+      overflowY: isMobile ? 'auto' : 'visible',
+      overflowX: 'hidden',
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none' as React.CSSProperties['msOverflowStyle'],
     };
 
     const getItemStyle = (index: number): React.CSSProperties => {

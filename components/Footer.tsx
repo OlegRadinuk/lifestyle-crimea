@@ -24,8 +24,8 @@ export default function Footer({ isMobile = false }: FooterProps) {
 
             <div className="ff-contacts">
               <a href="tel:+79785036363" className="ff-phone">+7 978 503 63 63</a>
-              <a href="tel:+88007776308" className="ff-phone">8 800 777 63 08 <span className="ff-phone-note">бесплатный</span></a>
               <a href="tel:+79786964510" className="ff-phone">+7 978 696 45 10</a>
+              <a href="tel:88007776308" className="ff-phone">8 800 777 63 08 <span className="ff-phone-note">бесплатный</span></a>
               <span className="ff-address">Алушта, Западная ул., 4, корп. 3</span>
             </div>
 
