@@ -27,6 +27,11 @@ export default function Hero() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const timelineRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [active, setActive] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!timelineRef.current) return;
@@ -36,11 +41,6 @@ export default function Hero() {
     const scrollLeft = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
     container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
   }, [active]);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [active, setActive] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-  const [slides, setSlides] = useState<HeroSlide[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Загружаем слайды из БД
   useEffect(() => {
