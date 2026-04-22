@@ -17,7 +17,8 @@ export async function GET(request: Request) {
     }
 
     // Проверяем, что бот активен
-    const testUrl = `https://api.telegram.org/bot${settings.bot_token}/getMe`;
+    const telegramBase = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
+    const testUrl = `${telegramBase}/bot${settings.bot_token}/getMe`;
     const response = await fetch(testUrl);
     const data = await response.json();
 

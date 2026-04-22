@@ -18,7 +18,8 @@ export async function POST(request: Request) {
     }
 
     // Проверяем, что токен рабочий
-    const testUrl = `https://api.telegram.org/bot${botToken}/getMe`;
+    const telegramBase = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
+    const testUrl = `${telegramBase}/bot${botToken}/getMe`;
     const testResponse = await fetch(testUrl);
     const testData = await testResponse.json();
 
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     const settings = notificationService.saveTelegramSettings(botToken, chatId);
 
     // Отправляем тестовое сообщение
-    const testMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const testMessageUrl = `${telegramBase}/bot${botToken}/sendMessage`;
     await fetch(testMessageUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

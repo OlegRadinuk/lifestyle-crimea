@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     }
 
     // Отправляем сообщение через Telegram API
-    const telegramApiUrl = `https://api.telegram.org/bot${settings.bot_token}/sendMessage`;
+    const telegramBase = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
+    const telegramApiUrl = `${telegramBase}/bot${settings.bot_token}/sendMessage`;
     
     const response = await fetch(telegramApiUrl, {
       method: 'POST',
