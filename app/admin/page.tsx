@@ -19,9 +19,18 @@ type DashboardStats = {
   };
 };
 
+type BotStats = {
+  sessions: number;
+  messages: number;
+  leads: number;
+  active: boolean;
+} | null;
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [botStats, setBotStats] = useState<BotStats>(null);
+  const [botLoading, setBotLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/admin/stats')
@@ -31,6 +40,17 @@ export default function AdminDashboard() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    fetch('https://optisphere.tech/api/bots/lifestyle-crimea/stats')
+      .then(res => {
+        if (!res.ok) throw new Error('not ok');
+        return res.json();
+      })
+      .then(data => {
+        setBotStats(data);
+        setBotLoading(false);
+      })
+      .catch(() => setBotLoading(false));
   }, []);
 
   if (loading) return <div className="admin-loading">Загрузка...</div>;
@@ -111,6 +131,57 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* AI-ассистент Яна */}
+      <div className="yana-section">
+        <h2>AI-ассистент Яна</h2>
+        <div className="yana-card">
+          <div className="yana-header">
+            <div className="yana-icon">🤖</div>
+            <div className="yana-meta">
+              <div className="yana-title">Яна</div>
+              {botLoading ? (
+                <div className="yana-status loading">Загрузка…</div>
+              ) : botStats === null ? (
+                <div className="yana-status offline">Нет данных</div>
+              ) : (
+                <div className={`yana-status ${botStats.active ? 'online' : 'offline'}`}>
+                  <span className={`yana-dot ${botStats.active ? 'online' : 'offline'}`} />
+                  {botStats.active ? 'Активна' : 'Выкл'}
+                </div>
+              )}
+            </div>
+            <a
+              href="https://optisphere.tech/aiadmin/lifestyle-crimea"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="yana-link"
+            >
+              Подробнее →
+            </a>
+          </div>
+          <div className="yana-stats">
+            <div className="yana-stat">
+              <div className="yana-stat-value">
+                {botLoading ? '—' : botStats === null ? '—' : botStats.sessions}
+              </div>
+              <div className="yana-stat-label">Диалогов</div>
+            </div>
+            <div className="yana-stat">
+              <div className="yana-stat-value">
+                {botLoading ? '—' : botStats === null ? '—' : botStats.messages}
+              </div>
+              <div className="yana-stat-label">Сообщений</div>
+            </div>
+            <div className="yana-stat">
+              <div className="yana-stat-value">
+                {botLoading ? '—' : botStats === null ? '—' : botStats.leads}
+              </div>
+              <div className="yana-stat-label">Заявок</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="dashboard-sections">
         <div className="dashboard-section">
@@ -224,6 +295,108 @@ export default function AdminDashboard() {
           color: #139ab6;
           text-decoration: none;
           font-size: 14px;
+        }
+        .yana-section {
+          margin-bottom: 30px;
+        }
+        .yana-section h2 {
+          font-size: 18px;
+          margin-bottom: 16px;
+          color: #1e293b;
+        }
+        .yana-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          border-left: 4px solid #0891b2;
+        }
+        .yana-header {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 20px;
+        }
+        .yana-icon {
+          font-size: 28px;
+          width: 52px;
+          height: 52px;
+          background: #f0f9ff;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .yana-meta {
+          flex: 1;
+        }
+        .yana-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a2634;
+          line-height: 1.3;
+        }
+        .yana-status {
+          font-size: 13px;
+          margin-top: 2px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .yana-status.online {
+          color: #16a34a;
+        }
+        .yana-status.offline {
+          color: #94a3b8;
+        }
+        .yana-status.loading {
+          color: #94a3b8;
+        }
+        .yana-dot {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .yana-dot.online {
+          background: #16a34a;
+        }
+        .yana-dot.offline {
+          background: #94a3b8;
+        }
+        .yana-link {
+          color: #0891b2;
+          text-decoration: none;
+          font-size: 14px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .yana-link:hover {
+          text-decoration: underline;
+        }
+        .yana-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+        .yana-stat {
+          background: #f8fafc;
+          border-radius: 8px;
+          padding: 14px;
+          text-align: center;
+        }
+        .yana-stat-value {
+          font-size: 24px;
+          font-weight: 600;
+          color: #1a2634;
+          line-height: 1.2;
+        }
+        .yana-stat-label {
+          color: #64748b;
+          font-size: 13px;
+          margin-top: 2px;
         }
       `}</style>
     </div>

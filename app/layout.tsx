@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Montserrat } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import JsonLdHotel from './json-ld-hotel';
 import { AppProviders } from '@/components/AppProviders';
@@ -92,6 +93,15 @@ export default function RootLayout({
       </head>
       <body className={montserrat.variable}>
         <AppProviders>{children}</AppProviders>
+        <Script
+          src="https://optisphere.tech/widget.js"
+          data-bot="lifestyle-crimea"
+          data-color="#0891b2"
+          data-title="Яна"
+          data-placeholder="Спросите об апартаментах…"
+          data-greeting-delay="4000"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );
