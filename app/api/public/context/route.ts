@@ -126,6 +126,9 @@ export async function GET() {
     lines.push(
       `=== Данные о доступности апартаментов (актуально: ${weekdayStr}, ${dateStr}, ${timeStr} МСК) ===`,
       '',
+      'Для проверки конкретного апартамента используй: GET https://lovelifestyle.ru/api/public/availability?slug=[slug]&from=YYYY-MM-DD&to=YYYY-MM-DD',
+      'Пример: https://lovelifestyle.ru/api/public/availability?slug=ls-black-strong&from=2025-05-10&to=2025-05-12',
+      '',
     );
 
     // Ближайшие выходные
