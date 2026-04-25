@@ -100,7 +100,7 @@ export default function RootLayout({
           data-title="Яна"
           data-placeholder="Спросите об апартаментах…"
           data-greeting-delay="4000"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
       </body>
     </html>
