@@ -90,11 +90,19 @@ export default function RootLayout({
 
         {/* JSON-LD разметка для главной */}
         <JsonLdHotel />
-        {/* Widget position override */}
+        {/* Widget position + mobile */}
         <style>{`
-          #opsph-btn { right: 130px !important; bottom: 72px !important; }
-          #opsph-bubble { right: 130px !important; }
-          #opsph-wrap { right: 126px !important; bottom: 132px !important; }
+          #opsph-btn    { right: 130px !important; bottom: 72px !important; }
+          #opsph-bubble { right: 130px !important; bottom: 132px !important; }
+          #opsph-wrap   { right: 126px !important; bottom: 132px !important; }
+          @media (max-width: 480px) {
+            #opsph-btn    { right: 16px !important; bottom: 16px !important; }
+            #opsph-bubble { right: 16px !important; bottom: 76px !important; max-width: calc(100vw - 32px) !important; }
+            #opsph-wrap   { right: 0 !important; left: 0 !important; bottom: 0 !important;
+                            width: 100vw !important; max-width: 100vw !important;
+                            height: 100dvh !important; max-height: 100dvh !important;
+                            border-radius: 0 !important; }
+          }
         `}</style>
       </head>
       <body className={montserrat.variable}>
@@ -104,6 +112,7 @@ export default function RootLayout({
           data-bot="lifestyle-crimea"
           data-color="#0891b2"
           data-title="Яна"
+          data-avatar="https://lovelifestyle.ru/images/logo/logo-white.webp"
           data-placeholder="Спросите об апартаментах…"
           data-greeting-delay="4000"
           strategy="afterInteractive"
