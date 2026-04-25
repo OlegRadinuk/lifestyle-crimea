@@ -95,6 +95,14 @@ export default function RootLayout({
           #opsph-btn    { right: 130px !important; bottom: 72px !important; }
           #opsph-bubble { right: 130px !important; bottom: 132px !important; }
           #opsph-wrap   { right: 126px !important; bottom: 132px !important; }
+
+          /* Avatar logo padding */
+          #opsph-btn-ava img, #opsph-head-ava img,
+          #opsph-bubble-ava img, .opsph-row-ava img {
+            padding: 4px !important;
+            object-fit: contain !important;
+          }
+
           @media (max-width: 480px) {
             #opsph-btn    { right: 16px !important; bottom: 16px !important; }
             #opsph-bubble { right: 16px !important; bottom: 76px !important; max-width: calc(100vw - 32px) !important; }
@@ -102,6 +110,10 @@ export default function RootLayout({
                             width: 100vw !important; max-width: 100vw !important;
                             height: 100dvh !important; max-height: 100dvh !important;
                             border-radius: 0 !important; }
+            /* Hide floating button when chat is open — use ✕ in header instead */
+            body:has(#opsph-wrap.open) #opsph-btn { display: none !important; }
+            /* Extra bottom padding for input area so keyboard doesn't hide it */
+            #opsph-form { padding-bottom: env(safe-area-inset-bottom, 8px) !important; }
           }
         `}</style>
       </head>
