@@ -100,6 +100,8 @@ export default function RootLayout({
           data-title="Яна"
           data-placeholder="Спросите об апартаментах…"
           data-greeting-delay="4000"
+          data-right="130"
+          data-bottom="72"
           strategy="afterInteractive"
         />
       </body>
