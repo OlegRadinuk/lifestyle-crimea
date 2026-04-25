@@ -107,12 +107,12 @@ export default function RootLayout({
       </head>
       <body className={montserrat.variable}>
         <AppProviders>{children}</AppProviders>
+        <script dangerouslySetInnerHTML={{ __html: `window._opsphCfg={"lifestyle-crimea":{avatar:"https://lovelifestyle.ru/images/logo/logo-white.webp"}};` }} />
         <Script
           src="https://optisphere.tech/widget.js"
           data-bot="lifestyle-crimea"
           data-color="#0891b2"
           data-title="Яна"
-          data-avatar="https://lovelifestyle.ru/images/logo/logo-white.webp"
           data-placeholder="Спросите об апартаментах…"
           data-greeting-delay="4000"
           strategy="afterInteractive"
