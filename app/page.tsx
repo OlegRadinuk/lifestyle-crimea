@@ -65,17 +65,8 @@ export default function HomePage() {
     return () => window.removeEventListener('pageshow', onPageShow);
   }, []);
 
-  // Только при возврате во вкладку — новый ключ, без двойного mount при каждом заходе на /
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        setMountKey(Date.now());
-        resetHomeScroll();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  // visibilitychange намеренно не сбрасывает скролл и не пересоздаёт компоненты:
+  // пользователь мог уйти в другую вкладку с середины страницы и ожидает вернуться туда же.
 
   return (
     <>
