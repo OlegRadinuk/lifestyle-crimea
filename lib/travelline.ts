@@ -304,10 +304,10 @@ class TravellineService {
     try {
       // Получаем время последней синхронизации
       const lastSync = db.prepare(
-        'SELECT last_sync FROM sync_log WHERE source = ? ORDER BY last_sync DESC LIMIT 1'
-      ).get('travelline') as { last_sync: string } | undefined;
+        "SELECT created_at FROM sync_logs WHERE source_name = ? AND status = 'success' ORDER BY created_at DESC LIMIT 1"
+      ).get('travelline') as { created_at: string } | undefined;
 
-      const lastSyncDate = lastSync ? new Date(lastSync.last_sync) : undefined;
+      const lastSyncDate = lastSync ? new Date(lastSync.created_at) : undefined;
       console.log(`📅 Last sync: ${lastSyncDate?.toISOString() || 'never'}`);
 
       // Получаем только изменённые брони
@@ -377,12 +377,13 @@ class TravellineService {
 
       // Логируем результат
       db.prepare(`
-        INSERT INTO sync_log (source, last_sync, status, message)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO sync_logs (id, source_name, action, status, events_count, error_message)
+        VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, ?)
       `).run(
-        'travelline', 
-        new Date().toISOString(), 
-        'success', 
+        'travelline',
+        'import',
+        'success',
+        stats.saved,
         `Total:${stats.total}, Saved:${stats.saved}, Cancelled:${stats.cancelled}, NoMap:${stats.noMapping}, Errors:${stats.errors}`
       );
 
@@ -403,12 +404,13 @@ class TravellineService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       
       db.prepare(`
-        INSERT INTO sync_log (source, last_sync, status, message)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO sync_logs (id, source_name, action, status, events_count, error_message)
+        VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, ?)
       `).run(
-        'travelline', 
-        new Date().toISOString(), 
-        'error', 
+        'travelline',
+        'import',
+        'error',
+        0,
         errorMessage
       );
     }

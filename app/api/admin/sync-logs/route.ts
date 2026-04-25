@@ -31,10 +31,11 @@ export async function GET(request: Request) {
     }
 
     const stats = {
-      total:      (db.prepare('SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ?').get(source) as { count: number }).count,
-      successful: (db.prepare("SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ? AND status = 'success'").get(source) as { count: number }).count,
-      failed:     (db.prepare("SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ? AND status = 'error'").get(source) as { count: number }).count,
-      lastSync:   (db.prepare('SELECT created_at FROM sync_logs WHERE source_name = ? ORDER BY created_at DESC LIMIT 1').get(source) as { created_at: string } | undefined)?.created_at ?? null,
+      total:         (db.prepare('SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ?').get(source) as { count: number }).count,
+      successful:    (db.prepare("SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ? AND status = 'success'").get(source) as { count: number }).count,
+      failed:        (db.prepare("SELECT COUNT(*) as count FROM sync_logs WHERE source_name = ? AND status = 'error'").get(source) as { count: number }).count,
+      lastSync:      (db.prepare('SELECT created_at FROM sync_logs WHERE source_name = ? ORDER BY created_at DESC LIMIT 1').get(source) as { created_at: string } | undefined)?.created_at ?? null,
+      blockedFuture: (db.prepare("SELECT COUNT(*) as count FROM blocked_dates WHERE start_date > date('now')").get() as { count: number }).count,
     };
 
     return NextResponse.json({ dbLogs, fileLogs, stats });
