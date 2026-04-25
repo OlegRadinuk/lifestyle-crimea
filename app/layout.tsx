@@ -90,6 +90,12 @@ export default function RootLayout({
 
         {/* JSON-LD разметка для главной */}
         <JsonLdHotel />
+        {/* Widget position override */}
+        <style>{`
+          #opsph-btn { right: 130px !important; bottom: 72px !important; }
+          #opsph-bubble { right: 130px !important; }
+          #opsph-wrap { right: 126px !important; bottom: 132px !important; }
+        `}</style>
       </head>
       <body className={montserrat.variable}>
         <AppProviders>{children}</AppProviders>
@@ -100,8 +106,6 @@ export default function RootLayout({
           data-title="Яна"
           data-placeholder="Спросите об апартаментах…"
           data-greeting-delay="4000"
-          data-right="130"
-          data-bottom="72"
           strategy="afterInteractive"
         />
       </body>
