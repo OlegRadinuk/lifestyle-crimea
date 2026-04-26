@@ -48,6 +48,11 @@ export async function GET() {
       WHERE apartment_id = ?
         AND check_out > date('now')
         AND check_in  < date('now', '+60 days')
+      UNION ALL
+      SELECT start_date AS check_in, end_date AS check_out FROM blocked_dates
+      WHERE apartment_id = ?
+        AND end_date > date('now')
+        AND start_date < date('now', '+60 days')
       ORDER BY check_in
     `);
 
@@ -62,7 +67,7 @@ export async function GET() {
     ];
 
     for (const apt of apartments) {
-      const periods = periodQuery.all(apt.id, apt.id) as BookingPeriod[];
+      const periods = periodQuery.all(apt.id, apt.id, apt.id) as BookingPeriod[];
 
       lines.push(apt.title);
 
