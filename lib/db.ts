@@ -268,6 +268,20 @@ function ensureDatabaseStructure() {
       );
     `);
 
+    // Глобальные шаблоны сезонов (общие даты, цена — в апартаменте)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS season_templates (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        date_from TEXT NOT NULL,
+        date_to TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0
+      );
+    `);
+
+    // Миграция: привязка сезона апартамента к шаблону
+    try { db.exec("ALTER TABLE apartment_pricing_seasons ADD COLUMN template_id TEXT REFERENCES season_templates(id) ON DELETE SET NULL"); } catch {}
+
     // Миграция: колонки согласия на ПД в bookings
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_at TEXT"); } catch {}
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_ip TEXT"); } catch {}
@@ -805,6 +819,68 @@ export const pricingService = {
 
     const total = breakdown.reduce((sum, d) => sum + d.price, 0);
     return { total, breakdown };
+  },
+};
+
+// ── Сервис шаблонов сезонов ────────────────────────────────────────────────────
+export type SeasonTemplate = {
+  id: string;
+  name: string;
+  date_from: string;
+  date_to: string;
+  sort_order: number;
+};
+
+export const seasonTemplateService = {
+  getAll: (): SeasonTemplate[] =>
+    db.prepare('SELECT * FROM season_templates ORDER BY sort_order ASC, date_from ASC').all() as SeasonTemplate[],
+
+  upsert: (tpl: Omit<SeasonTemplate, 'id'> & { id?: string }): string => {
+    const id = tpl.id || uuidv4();
+    db.prepare(`
+      INSERT INTO season_templates (id, name, date_from, date_to, sort_order)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        date_from = excluded.date_from,
+        date_to = excluded.date_to,
+        sort_order = excluded.sort_order
+    `).run(id, tpl.name, tpl.date_from, tpl.date_to, tpl.sort_order ?? 0);
+    return id;
+  },
+
+  delete: (id: string): void => {
+    db.prepare('DELETE FROM season_templates WHERE id = ?').run(id);
+  },
+
+  // Получить цены апартамента по шаблонам (JOIN)
+  getApartmentPrices: (apartmentId: string): Array<SeasonTemplate & { price_per_night: number | null; season_id: string | null }> => {
+    return db.prepare(`
+      SELECT t.*, s.price_per_night, s.id as season_id
+      FROM season_templates t
+      LEFT JOIN apartment_pricing_seasons s
+        ON s.template_id = t.id AND s.apartment_id = ?
+      ORDER BY t.sort_order ASC, t.date_from ASC
+    `).all(apartmentId) as any[];
+  },
+
+  // Установить/обновить цену апартамента для шаблона
+  setApartmentPrice: (apartmentId: string, templateId: string, price: number): void => {
+    const tpl = db.prepare('SELECT * FROM season_templates WHERE id = ?').get(templateId) as SeasonTemplate | undefined;
+    if (!tpl) return;
+    const existing = db.prepare('SELECT id FROM apartment_pricing_seasons WHERE apartment_id = ? AND template_id = ?').get(apartmentId, templateId) as { id: string } | undefined;
+    if (existing) {
+      db.prepare('UPDATE apartment_pricing_seasons SET price_per_night = ?, name = ?, date_from = ?, date_to = ?, sort_order = ? WHERE id = ?')
+        .run(price, tpl.name, tpl.date_from, tpl.date_to, tpl.sort_order, existing.id);
+    } else {
+      db.prepare('INSERT INTO apartment_pricing_seasons (id, apartment_id, template_id, name, date_from, date_to, price_per_night, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        .run(uuidv4(), apartmentId, templateId, tpl.name, tpl.date_from, tpl.date_to, price, tpl.sort_order);
+    }
+  },
+
+  // Удалить цену апартамента для шаблона
+  removeApartmentPrice: (apartmentId: string, templateId: string): void => {
+    db.prepare('DELETE FROM apartment_pricing_seasons WHERE apartment_id = ? AND template_id = ?').run(apartmentId, templateId);
   },
 };
 

@@ -136,6 +136,17 @@ type Season = {
   date_to: string;
   price_per_night: number;
   sort_order: number;
+  template_id?: string | null;
+};
+
+type TemplatePrice = {
+  id: string;           // template id
+  name: string;
+  date_from: string;
+  date_to: string;
+  sort_order: number;
+  price_per_night: number | null;  // null = не задана для этого апартамента
+  season_id: string | null;        // id строки в apartment_pricing_seasons
 };
 
 export default function EditApartmentPage({ params }: PageProps) {
@@ -157,10 +168,16 @@ export default function EditApartmentPage({ params }: PageProps) {
   });
   const [savingSeason, setSavingSeason] = useState(false);
 
+  // Template-based pricing
+  const [templatePrices, setTemplatePrices] = useState<TemplatePrice[]>([]);
+  const [tplPriceInputs, setTplPriceInputs] = useState<Record<string, string>>({});
+  const [savingTpl, setSavingTpl] = useState<string | null>(null);
+
   useEffect(() => {
     fetchApartment();
     fetchImagesCount();
     fetchSeasons();
+    fetchTemplatePrices();
   }, [id]);
 
   const fetchApartment = async () => {
@@ -204,6 +221,48 @@ export default function EditApartmentPage({ params }: PageProps) {
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
+  };
+
+  const fetchTemplatePrices = async () => {
+    try {
+      const res = await fetch(`/api/admin/apartments/${id}/template-prices`);
+      if (res.ok) {
+        const data: TemplatePrice[] = await res.json();
+        setTemplatePrices(data);
+        const inputs: Record<string, string> = {};
+        data.forEach(t => { inputs[t.id] = t.price_per_night !== null ? String(t.price_per_night) : ''; });
+        setTplPriceInputs(inputs);
+      }
+    } catch (e) {
+      console.error('Error fetching template prices:', e);
+    }
+  };
+
+  const handleSaveTplPrice = async (templateId: string) => {
+    const price = Number(tplPriceInputs[templateId]);
+    if (!price || price <= 0) return alert('Введите цену больше 0');
+    setSavingTpl(templateId);
+    try {
+      const res = await fetch(`/api/admin/apartments/${id}/template-prices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId, price }),
+      });
+      if (res.ok) await fetchTemplatePrices();
+      else alert('Ошибка при сохранении');
+    } finally {
+      setSavingTpl(null);
+    }
+  };
+
+  const handleRemoveTplPrice = async (templateId: string) => {
+    if (!confirm('Убрать сезонную цену для этого апартамента?')) return;
+    await fetch(`/api/admin/apartments/${id}/template-prices`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templateId }),
+    });
+    await fetchTemplatePrices();
   };
 
   const handleAddSeason = async () => {
@@ -578,38 +637,75 @@ export default function EditApartmentPage({ params }: PageProps) {
         <div className="seasons-section">
           <h3 className="seasons-title">Сезонные цены</h3>
 
-          {seasons.length === 0 && (
-            <p className="seasons-empty">Сезоны не добавлены</p>
-          )}
-
-          {seasons.length > 0 && (
-            <div className="seasons-list">
-              {seasons.map((s) => (
-                <div key={s.id} className="season-item">
-                  <div className="season-item__info">
-                    <span className="season-item__name">{s.name}</span>
-                    <span className="season-item__dates">
-                      {s.date_from} — {s.date_to}
-                    </span>
-                    <span className="season-item__price">
-                      {s.price_per_night.toLocaleString('ru-RU')} ₽/ночь
-                    </span>
+          {/* Шаблонные сезоны */}
+          {templatePrices.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 13, color: '#64748b', marginBottom: 10 }}>
+                Укажите цену для каждого сезона. Даты берутся из <a href="/admin/season-templates" style={{ color: '#0891b2' }}>глобальных шаблонов</a>.
+              </p>
+              {templatePrices.map(t => (
+                <div key={t.id} className="season-item" style={{ alignItems: 'center' }}>
+                  <div className="season-item__info" style={{ flex: 1 }}>
+                    <span className="season-item__name">{t.name}</span>
+                    <span className="season-item__dates">{t.date_from} — {t.date_to}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteSeason(s.id)}
-                    className="admin-button small warning"
-                    title="Удалить сезон"
-                  >
-                    Удалить
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number"
+                      value={tplPriceInputs[t.id] ?? ''}
+                      onChange={e => setTplPriceInputs(prev => ({ ...prev, [t.id]: e.target.value }))}
+                      placeholder="₽/ночь"
+                      style={{ width: 110, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14 }}
+                    />
+                    <button
+                      type="button"
+                      className="admin-button small primary"
+                      disabled={savingTpl === t.id}
+                      onClick={() => handleSaveTplPrice(t.id)}
+                    >
+                      {savingTpl === t.id ? '...' : 'Сохранить'}
+                    </button>
+                    {t.price_per_night !== null && (
+                      <button type="button" className="admin-button small warning" onClick={() => handleRemoveTplPrice(t.id)}>
+                        Убрать
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
+          {templatePrices.length === 0 && (
+            <p className="seasons-empty" style={{ marginBottom: 12 }}>
+              Глобальные шаблоны не настроены.{' '}
+              <a href="/admin/season-templates" style={{ color: '#0891b2' }}>Настроить шаблоны</a>
+            </p>
+          )}
+
+          {/* Кастомные сезоны (без шаблона) */}
+          {seasons.filter(s => !s.template_id).length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>Кастомные сезоны (заданы вручную):</p>
+              <div className="seasons-list">
+                {seasons.filter(s => !s.template_id).map((s) => (
+                  <div key={s.id} className="season-item">
+                    <div className="season-item__info">
+                      <span className="season-item__name">{s.name}</span>
+                      <span className="season-item__dates">{s.date_from} — {s.date_to}</span>
+                      <span className="season-item__price">{s.price_per_night.toLocaleString('ru-RU')} ₽/ночь</span>
+                    </div>
+                    <button type="button" onClick={() => handleDeleteSeason(s.id)} className="admin-button small warning">
+                      Удалить
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="season-form">
-            <h4 className="season-form__title">Добавить сезон</h4>
+            <h4 className="season-form__title">Добавить кастомный сезон</h4>
             <div className="form-row">
               <div className="form-group">
                 <label>Название</label>
@@ -618,7 +714,6 @@ export default function EditApartmentPage({ params }: PageProps) {
                   value={seasonForm.name}
                   onChange={(e) => setSeasonForm({ ...seasonForm, name: e.target.value })}
                   placeholder="Например: Высокий сезон"
-                  required
                 />
               </div>
               <div className="form-group">
@@ -628,7 +723,6 @@ export default function EditApartmentPage({ params }: PageProps) {
                   value={seasonForm.price_per_night}
                   onChange={(e) => setSeasonForm({ ...seasonForm, price_per_night: e.target.value })}
                   placeholder="0"
-                  required
                 />
               </div>
             </div>
@@ -639,7 +733,6 @@ export default function EditApartmentPage({ params }: PageProps) {
                   type="date"
                   value={seasonForm.date_from}
                   onChange={(e) => setSeasonForm({ ...seasonForm, date_from: e.target.value })}
-                  required
                 />
               </div>
               <div className="form-group">
@@ -648,7 +741,6 @@ export default function EditApartmentPage({ params }: PageProps) {
                   type="date"
                   value={seasonForm.date_to}
                   onChange={(e) => setSeasonForm({ ...seasonForm, date_to: e.target.value })}
-                  required
                 />
               </div>
             </div>
