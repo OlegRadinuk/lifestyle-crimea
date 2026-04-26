@@ -206,8 +206,7 @@ export default function EditApartmentPage({ params }: PageProps) {
     }
   };
 
-  const handleAddSeason = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddSeason = async () => {
     if (!seasonForm.name || !seasonForm.date_from || !seasonForm.date_to || !seasonForm.price_per_night) return;
     setSavingSeason(true);
     try {
@@ -609,7 +608,7 @@ export default function EditApartmentPage({ params }: PageProps) {
             </div>
           )}
 
-          <form onSubmit={handleAddSeason} className="season-form">
+          <div className="season-form">
             <h4 className="season-form__title">Добавить сезон</h4>
             <div className="form-row">
               <div className="form-group">
@@ -654,13 +653,14 @@ export default function EditApartmentPage({ params }: PageProps) {
               </div>
             </div>
             <button
-              type="submit"
+              type="button"
               className="admin-button primary"
               disabled={savingSeason}
+              onClick={handleAddSeason}
             >
               {savingSeason ? 'Сохранение...' : '+ Добавить сезон'}
             </button>
-          </form>
+          </div>
         </div>
 
         <div className="form-actions">
