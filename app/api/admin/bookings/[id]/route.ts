@@ -120,6 +120,11 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    const existing = db.prepare('SELECT id FROM bookings WHERE id = ?').get(id);
+    if (!existing) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
     db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
     return NextResponse.json({ success: true });
   } catch (error) {

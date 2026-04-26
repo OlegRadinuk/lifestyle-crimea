@@ -37,6 +37,7 @@ export default function LoginPage() {
 
   return (
     <div className="admin-login">
+      <style>{`#opsph-btn,#opsph-bubble,#opsph-wrap,#opsph-overlay{display:none!important}`}</style>
       <div className="login-card">
         <h1>Вход в админ-панель</h1>
         <form onSubmit={handleSubmit}>

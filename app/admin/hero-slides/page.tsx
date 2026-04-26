@@ -423,6 +423,39 @@ export default function HeroSlidesPage() {
         }
         .delete-btn:hover { background: #ffcdd2; }
         .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
+
+        @media (max-width: 768px) {
+          .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+          .save-all-btn { width: 100%; }
+
+          .slide-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            cursor: default;
+          }
+
+          .slide-item > .drag-handle {
+            display: none;
+          }
+
+          .slide-media {
+            width: 100%;
+            height: 160px;
+          }
+
+          .slide-actions {
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .slide-actions .status-btn,
+          .slide-actions .delete-btn {
+            width: 100%;
+            text-align: center;
+            padding: 10px 16px;
+          }
+        }
       `}</style>
     </div>
   );

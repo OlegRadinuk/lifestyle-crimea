@@ -124,6 +124,7 @@ export default function BookingModal({
   const [pdConsent, setPdConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   const basePrice = apartment.price_base || 8000;
 
@@ -179,7 +180,7 @@ export default function BookingModal({
       return false;
     }
     if (guestInfo.phone.replace(/\D/g, '').length < 10) {
-      alert('Введите корректный номер телефона');
+      setPhoneError('Укажите телефон для связи');
       return false;
     }
     return true;
@@ -381,15 +382,25 @@ export default function BookingModal({
                   disabled={isSubmitting}
                   required
                 />
-                <input
-                  placeholder="+7 (999) 123 45 67 *"
-                  value={guestInfo.phone}
-                  onChange={e =>
-                    setGuestInfo({ ...guestInfo, phone: formatPhone(e.target.value) })
-                  }
-                  disabled={isSubmitting}
-                  required
-                />
+                <div>
+                  <input
+                    placeholder="+7 (999) 123 45 67 *"
+                    value={guestInfo.phone}
+                    onChange={e => {
+                      setGuestInfo({ ...guestInfo, phone: formatPhone(e.target.value) });
+                      setPhoneError('');
+                    }}
+                    disabled={isSubmitting}
+                    required
+                    aria-describedby={phoneError ? 'phone-error' : undefined}
+                    style={phoneError ? { borderColor: '#c62828' } : undefined}
+                  />
+                  {phoneError && (
+                    <p id="phone-error" className="field-error" aria-live="polite">
+                      {phoneError}
+                    </p>
+                  )}
+                </div>
                 <input
                   placeholder="Email (необязательно)"
                   type="email"

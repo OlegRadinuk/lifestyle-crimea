@@ -2160,6 +2160,16 @@ html, body {
   background: #ffcdd2;
 }
 
+.admin-button.danger {
+  background: #c62828;
+  border-color: #b71c1c;
+  color: #fff;
+}
+
+.admin-button.danger:hover {
+  background: #b71c1c;
+}
+
 .admin-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -5090,9 +5100,30 @@ html, body {
     grid-column: span 1;
   }
 
+  /* Booking detail — status buttons stack */
+  .status-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Info rows — label stays narrow */
+  .info-label {
+    width: 90px;
+    font-size: 13px;
+  }
+
+  .info-value {
+    font-size: 13px;
+  }
+
   /* Mini stats */
   .admin-stats-cards {
     flex-direction: column;
+  }
+
+  /* Admin page padding reduction */
+  .admin-page {
+    padding: 12px;
   }
 }
 
@@ -7595,6 +7626,13 @@ html, body {
   outline: none;
   border-color: #139ab6;
   background: #ffffff;
+}
+
+.field-error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #c62828;
+  line-height: 1.4;
 }
 
 .booking-modal__right {

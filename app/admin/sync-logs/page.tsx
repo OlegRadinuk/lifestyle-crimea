@@ -372,6 +372,61 @@ export default function SyncLogsPage() {
           padding: 40px;
           font-style: italic;
         }
+
+        @media (max-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+
+          .stat-card {
+            padding: 14px;
+            gap: 10px;
+          }
+
+          .stat-icon {
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+          }
+
+          .stat-value {
+            font-size: 22px;
+          }
+
+          .header-controls {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            width: 100%;
+          }
+
+          .header-controls .admin-button {
+            width: 100%;
+            text-align: center;
+          }
+
+          .tabs {
+            gap: 6px;
+          }
+
+          .tab {
+            font-size: 14px;
+            padding: 7px 12px;
+          }
+
+          /* Таблица логов — compact на мобиле */
+          .logs-table th,
+          .logs-table td {
+            padding: 8px 6px;
+            font-size: 12px;
+          }
+
+          .log-message {
+            font-size: 11px;
+            max-width: 160px;
+          }
+        }
       `}</style>
     </div>
   );

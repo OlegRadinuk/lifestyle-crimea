@@ -398,6 +398,70 @@ export default function AdminDashboard() {
           font-size: 13px;
           margin-top: 2px;
         }
+
+        @media (max-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+
+          .stat-card {
+            padding: 14px;
+            gap: 10px;
+          }
+
+          .stat-icon {
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+          }
+
+          .stat-value {
+            font-size: 22px;
+          }
+
+          .sources-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+
+          .dashboard-sections {
+            grid-template-columns: 1fr;
+          }
+
+          .yana-header {
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+
+          .yana-link {
+            order: 3;
+            width: 100%;
+            text-align: right;
+          }
+
+          .yana-stats {
+            gap: 8px;
+          }
+
+          .yana-stat {
+            padding: 10px;
+          }
+
+          .yana-stat-value {
+            font-size: 20px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .stats-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .sources-grid {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </div>
   );

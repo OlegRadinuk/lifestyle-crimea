@@ -57,6 +57,10 @@ export default function AdminLayout({
 
   return (
     <div className="admin-layout">
+      {/* Скрыть виджет Sofia (optisphere) в админке */}
+      <style>{`
+        #opsph-btn, #opsph-bubble, #opsph-wrap, #opsph-overlay { display: none !important; }
+      `}</style>
       {/* Мобильный топ-бар */}
       <div className="admin-mobile-topbar">
         <button

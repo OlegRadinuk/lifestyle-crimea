@@ -59,7 +59,8 @@ export default function TravellineBookingsPage() {
         </div>
       </div>
 
-      <div className="admin-table-container">
+      {/* Десктоп: таблица */}
+      <div className="admin-table-container tl-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
@@ -95,6 +96,35 @@ export default function TravellineBookingsPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Мобиль: карточки */}
+      <div className="tl-cards-wrap">
+        {bookings.map((booking) => {
+          const isActive = new Date(booking.check_out) > new Date();
+          return (
+            <div key={booking.id} className="tl-card">
+              <div className="tl-card__top">
+                <Link href={`/admin/apartments/${booking.apartment_id}`} className="apartment-link tl-card__apt">
+                  {booking.apartment_title}
+                </Link>
+                <span className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+                  {isActive ? '🟢 Активна' : '⚪ Завершена'}
+                </span>
+              </div>
+              <div className="tl-card__dates">
+                {new Date(booking.check_in).toLocaleDateString()} — {new Date(booking.check_out).toLocaleDateString()}
+              </div>
+              {booking.external_id && (
+                <div className="tl-card__id">ID: {booking.external_id}</div>
+              )}
+              <div className="tl-card__sync">Синхр.: {new Date(booking.created_at).toLocaleString()}</div>
+            </div>
+          );
+        })}
+        {bookings.length === 0 && (
+          <p style={{ color: '#64748b', padding: '24px 0' }}>Нет броней из Travelline</p>
+        )}
       </div>
 
       <style jsx>{`
@@ -134,6 +164,66 @@ export default function TravellineBookingsPage() {
           border-radius: 20px;
           font-size: 14px;
           color: #475569;
+        }
+
+        /* Мобиль: прячем таблицу */
+        .tl-cards-wrap { display: none; }
+
+        @media (max-width: 768px) {
+          .admin-stats-cards {
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .stat-mini-card {
+            padding: 12px 16px;
+          }
+
+          .tl-table-wrap { display: none; }
+          .tl-cards-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .tl-card {
+            background: white;
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+          }
+
+          .tl-card__top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+          }
+
+          .tl-card__apt {
+            font-weight: 600;
+            font-size: 14px;
+          }
+
+          .tl-card__dates {
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 4px;
+          }
+
+          .tl-card__id {
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: monospace;
+            margin-bottom: 4px;
+          }
+
+          .tl-card__sync {
+            font-size: 12px;
+            color: #94a3b8;
+          }
         }
       `}</style>
     </div>

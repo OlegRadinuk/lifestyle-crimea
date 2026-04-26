@@ -644,18 +644,18 @@ export default function EditApartmentPage({ params }: PageProps) {
                 Укажите цену для каждого сезона. Даты берутся из <a href="/admin/season-templates" style={{ color: '#0891b2' }}>глобальных шаблонов</a>.
               </p>
               {templatePrices.map(t => (
-                <div key={t.id} className="season-item" style={{ alignItems: 'center' }}>
-                  <div className="season-item__info" style={{ flex: 1 }}>
+                <div key={t.id} className="season-item tpl-season-item">
+                  <div className="season-item__info">
                     <span className="season-item__name">{t.name}</span>
                     <span className="season-item__dates">{t.date_from} — {t.date_to}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="tpl-price-controls">
                     <input
                       type="number"
                       value={tplPriceInputs[t.id] ?? ''}
                       onChange={e => setTplPriceInputs(prev => ({ ...prev, [t.id]: e.target.value }))}
                       placeholder="₽/ночь"
-                      style={{ width: 110, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14 }}
+                      className="tpl-price-input"
                     />
                     <button
                       type="button"
@@ -1253,6 +1253,26 @@ export default function EditApartmentPage({ params }: PageProps) {
           margin-bottom: 12px;
         }
 
+        /* Template price controls */
+        .tpl-price-controls {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        .tpl-price-input {
+          width: 110px;
+          padding: 6px 10px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+
+        .tpl-season-item {
+          align-items: center;
+        }
+
         @media (max-width: 768px) {
           .form-row {
             grid-template-columns: 1fr;
@@ -1284,6 +1304,27 @@ export default function EditApartmentPage({ params }: PageProps) {
             gap: 10px;
           }
 
+          .tpl-season-item {
+            align-items: stretch;
+          }
+
+          .tpl-price-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+          }
+
+          .tpl-price-input {
+            flex: 1;
+            width: auto;
+            min-width: 80px;
+          }
+
+          .tpl-price-controls .admin-button {
+            flex-shrink: 0;
+          }
+
           .season-item > div:last-child {
             display: flex;
             gap: 8px;
@@ -1297,6 +1338,21 @@ export default function EditApartmentPage({ params }: PageProps) {
 
           .season-item > div:last-child .admin-button {
             flex-shrink: 0;
+          }
+
+          /* hot-deal dates в одну колонку */
+          .hot-deal-dates .form-group {
+            width: 100%;
+          }
+
+          /* features preset grid — уменьшаем чипы */
+          .feature-chip-btn {
+            font-size: 12px;
+            padding: 5px 10px;
+          }
+
+          .chip-label {
+            font-size: 12px;
           }
         }
       `}</style>

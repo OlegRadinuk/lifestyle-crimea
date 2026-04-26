@@ -81,7 +81,8 @@ export default function SettingsPage() {
       <div className="settings-section">
         <h2>Пользователи</h2>
         <div className="admin-form-card">
-          <table className="admin-table" style={{ marginBottom: 24 }}>
+          {/* Десктоп: таблица */}
+          <table className="admin-table settings-users-table" style={{ marginBottom: 24 }}>
             <thead>
               <tr>
                 <th>Логин</th>
@@ -107,8 +108,26 @@ export default function SettingsPage() {
             </tbody>
           </table>
 
+          {/* Мобиль: карточки */}
+          <div className="settings-users-cards">
+            {users.map(user => (
+              <div key={user.id} className="settings-user-row">
+                <div className="settings-user-info">
+                  <span className="settings-user-name">{user.username}</span>
+                  <span className="settings-user-date">{new Date(user.created_at).toLocaleDateString('ru-RU')}</span>
+                </div>
+                <button
+                  className="admin-button small warning"
+                  onClick={() => handleDelete(user.id, user.username)}
+                >
+                  Удалить
+                </button>
+              </div>
+            ))}
+          </div>
+
           <h3 style={{ marginBottom: 12, fontSize: 15 }}>Добавить пользователя</h3>
-          <form onSubmit={handleAddUser} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <form onSubmit={handleAddUser} className="settings-add-form">
             <div className="form-group" style={{ margin: 0 }}>
               <input
                 type="text"
@@ -116,7 +135,6 @@ export default function SettingsPage() {
                 value={newUsername}
                 onChange={e => setNewUsername(e.target.value)}
                 disabled={loadingAdd}
-                style={{ minWidth: 160 }}
               />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
@@ -126,7 +144,6 @@ export default function SettingsPage() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 disabled={loadingAdd}
-                style={{ minWidth: 160 }}
               />
             </div>
             <button type="submit" className="admin-button primary" disabled={loadingAdd}>
@@ -157,6 +174,91 @@ export default function SettingsPage() {
           <button className="admin-button primary">Сохранить</button>
         </div>
       </div>
+
+      <style jsx>{`
+        .settings-section {
+          margin-bottom: 32px;
+        }
+
+        .settings-section h2 {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1a2634;
+          margin-bottom: 12px;
+        }
+
+        .settings-add-form {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: flex-end;
+        }
+
+        .settings-add-form .form-group input {
+          min-width: 160px;
+        }
+
+        /* Мобиль: карточки вместо таблицы */
+        .settings-users-cards { display: none; }
+
+        @media (max-width: 768px) {
+          .settings-users-table { display: none; }
+
+          .settings-users-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+          }
+
+          .settings-user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            gap: 10px;
+          }
+
+          .settings-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+
+          .settings-user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a2634;
+          }
+
+          .settings-user-date {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .settings-add-form {
+            flex-direction: column;
+          }
+
+          .settings-add-form .form-group {
+            width: 100%;
+          }
+
+          .settings-add-form .form-group input {
+            min-width: unset;
+            width: 100%;
+          }
+
+          .settings-add-form .admin-button.primary {
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }

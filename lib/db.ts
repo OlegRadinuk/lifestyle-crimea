@@ -482,11 +482,18 @@ export const bookingService = {
 
   getBookingsByApartment: (apartmentId: string): Booking[] => {
     const stmt = db.prepare(`
-      SELECT * FROM bookings 
-      WHERE apartment_id = ? 
+      SELECT * FROM bookings
+      WHERE apartment_id = ?
       ORDER BY check_in ASC
     `);
     return stmt.all(apartmentId) as Booking[];
+  },
+
+  deleteBooking: (id: string | number): boolean => {
+    const existing = db.prepare('SELECT id FROM bookings WHERE id = ?').get(String(id));
+    if (!existing) return false;
+    db.prepare('DELETE FROM bookings WHERE id = ?').run(String(id));
+    return true;
   },
 };
 
