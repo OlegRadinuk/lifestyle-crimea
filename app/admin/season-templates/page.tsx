@@ -72,59 +72,39 @@ export default function SeasonTemplatesPage() {
           Здесь задаются глобальные периоды сезонов (название + даты). В карточке каждого апартамента выставляется своя цена за ночь для каждого сезона.
         </p>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#f8fafc' }}>
-              <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 13 }}>Название</th>
-              <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 13 }}>Дата начала</th>
-              <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 13 }}>Дата окончания</th>
-              <th style={{ padding: '8px 12px', width: 120 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {templates.length === 0 && (
-              <tr><td colSpan={4} style={{ padding: 16, color: '#94a3b8', textAlign: 'center', fontSize: 14 }}>Шаблоны не добавлены</td></tr>
-            )}
+        {templates.length === 0 ? (
+          <p style={{ padding: 16, color: '#94a3b8', textAlign: 'center', fontSize: 14 }}>Шаблоны не добавлены</p>
+        ) : (
+          <div className="season-tpl-list">
             {templates.map(t => (
-              <tr key={t.id} style={{ borderTop: '1px solid #e2e8f0' }}>
-                {editingId === t.id ? (
-                  <>
-                    <td style={{ padding: '8px 12px' }}>
-                      <input className="admin-input-inline" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
-                    </td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <input type="date" className="admin-input-inline" value={editForm.date_from} onChange={e => setEditForm({ ...editForm, date_from: e.target.value })} />
-                    </td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <input type="date" className="admin-input-inline" value={editForm.date_to} onChange={e => setEditForm({ ...editForm, date_to: e.target.value })} />
-                    </td>
-                    <td style={{ padding: '8px 12px', display: 'flex', gap: 6 }}>
-                      <button className="admin-button small primary" onClick={() => handleEdit(t.id)}>Сохранить</button>
-                      <button className="admin-button small" onClick={() => setEditingId(null)}>Отмена</button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td style={{ padding: '8px 12px', fontWeight: 600, fontSize: 14 }}>{t.name}</td>
-                    <td style={{ padding: '8px 12px', fontSize: 14, color: '#475569' }}>{t.date_from}</td>
-                    <td style={{ padding: '8px 12px', fontSize: 14, color: '#475569' }}>{t.date_to}</td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="admin-button small" onClick={() => { setEditingId(t.id); setEditForm({ name: t.name, date_from: t.date_from, date_to: t.date_to }); }}>Ред.</button>
-                        <button className="admin-button small warning" onClick={() => handleDelete(t.id)}>Удалить</button>
-                      </div>
-                    </td>
-                  </>
-                )}
-              </tr>
+              editingId === t.id ? (
+                <div key={t.id} className="season-tpl-row season-tpl-row--edit">
+                  <input className="admin-input-inline" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} placeholder="Название" />
+                  <input type="date" className="admin-input-inline" value={editForm.date_from} onChange={e => setEditForm({ ...editForm, date_from: e.target.value })} />
+                  <input type="date" className="admin-input-inline" value={editForm.date_to} onChange={e => setEditForm({ ...editForm, date_to: e.target.value })} />
+                  <div className="season-tpl-actions">
+                    <button className="admin-button small primary" onClick={() => handleEdit(t.id)}>Сохранить</button>
+                    <button className="admin-button small" onClick={() => setEditingId(null)}>Отмена</button>
+                  </div>
+                </div>
+              ) : (
+                <div key={t.id} className="season-tpl-row">
+                  <div className="season-tpl-name">{t.name}</div>
+                  <div className="season-tpl-dates">{t.date_from} — {t.date_to}</div>
+                  <div className="season-tpl-actions">
+                    <button className="admin-button small" onClick={() => { setEditingId(t.id); setEditForm({ name: t.name, date_from: t.date_from, date_to: t.date_to }); }}>Ред.</button>
+                    <button className="admin-button small warning" onClick={() => handleDelete(t.id)}>Удалить</button>
+                  </div>
+                </div>
+              )
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
 
       <div className="admin-card">
         <h3 style={{ marginBottom: 16, fontSize: 15 }}>Добавить сезон</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+        <div className="season-tpl-add-form">
           <div className="form-group" style={{ margin: 0 }}>
             <label>Название</label>
             <input className="admin-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Например: Высокий сезон" />
@@ -137,7 +117,7 @@ export default function SeasonTemplatesPage() {
             <label>Дата окончания</label>
             <input type="date" className="admin-input" value={form.date_to} onChange={e => setForm({ ...form, date_to: e.target.value })} />
           </div>
-          <button className="admin-button primary" onClick={handleAdd} disabled={saving} style={{ height: 40 }}>
+          <button className="admin-button primary season-tpl-add-btn" onClick={handleAdd} disabled={saving}>
             {saving ? '...' : '+ Добавить'}
           </button>
         </div>
@@ -147,6 +127,44 @@ export default function SeasonTemplatesPage() {
         .admin-input { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; }
         .admin-input:focus { border-color: #0891b2; }
         .admin-input-inline { width: 100%; padding: 6px 8px; border: 1px solid #0891b2; border-radius: 6px; font-size: 13px; outline: none; }
+
+        .season-tpl-list { display: flex; flex-direction: column; gap: 0; }
+
+        .season-tpl-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border-top: 1px solid #e2e8f0;
+          flex-wrap: wrap;
+        }
+        .season-tpl-row--edit { background: #f0f9ff; border-radius: 8px; }
+        .season-tpl-row--edit input { flex: 1; min-width: 100px; }
+
+        .season-tpl-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 120px; }
+        .season-tpl-dates { font-size: 13px; color: #475569; white-space: nowrap; }
+        .season-tpl-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
+
+        .season-tpl-add-form {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr auto;
+          gap: 12px;
+          align-items: end;
+        }
+        .season-tpl-add-btn { height: 40px; }
+
+        @media (max-width: 768px) {
+          .season-tpl-row { gap: 8px; }
+          .season-tpl-row--edit { flex-direction: column; align-items: stretch; }
+          .season-tpl-row--edit input { width: 100%; }
+          .season-tpl-dates { color: #64748b; font-size: 12px; }
+          .season-tpl-actions { margin-left: 0; }
+
+          .season-tpl-add-form {
+            grid-template-columns: 1fr;
+          }
+          .season-tpl-add-btn { height: 44px; }
+        }
       `}</style>
     </div>
   );

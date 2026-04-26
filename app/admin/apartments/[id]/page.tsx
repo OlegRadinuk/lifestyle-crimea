@@ -1258,24 +1258,45 @@ export default function EditApartmentPage({ params }: PageProps) {
             grid-template-columns: 1fr;
             gap: 0;
           }
-          
+
           .photo-management-btn {
             width: 100%;
             justify-content: center;
           }
-          
+
           .form-actions {
             flex-direction: column;
           }
-          
+
           .admin-button.primary,
           .admin-button.secondary {
             width: 100%;
             text-align: center;
           }
-          
+
           .add-feature {
             flex-direction: column;
+          }
+
+          .season-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+
+          .season-item > div:last-child {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+          }
+
+          .season-item > div:last-child input {
+            flex: 1;
+            width: auto;
+          }
+
+          .season-item > div:last-child .admin-button {
+            flex-shrink: 0;
           }
         }
       `}</style>
