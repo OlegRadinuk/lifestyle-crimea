@@ -8,8 +8,38 @@ import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import BookingModal from '@/components/BookingModal';
 import Footer from '@/components/Footer';
-import { ApartmentClient } from '@/lib/types';
+import { ApartmentClient, ApartmentSeason } from '@/lib/types';
 import './apartments.css';
+
+function calcSeasonalTotal(
+  seasons: ApartmentSeason[] | undefined,
+  hotDealEnabled: boolean | undefined,
+  hotDealDiscount: number | undefined,
+  hotDealFrom: string | null | undefined,
+  hotDealTo: string | null | undefined,
+  basePrice: number,
+  checkInStr: string,
+  checkOutStr: string,
+): number {
+  const cur = new Date(checkInStr + 'T00:00:00Z');
+  const end = new Date(checkOutStr + 'T00:00:00Z');
+  let total = 0;
+  while (cur < end) {
+    const d = cur.toISOString().split('T')[0];
+    let price = basePrice;
+    if (seasons && seasons.length > 0) {
+      const s = seasons.find(s => d >= s.date_from && d <= s.date_to);
+      if (s) price = s.price_per_night;
+    }
+    if (hotDealEnabled && hotDealDiscount) {
+      const inRange = !hotDealFrom || !hotDealTo || (d >= hotDealFrom && d <= hotDealTo);
+      if (inRange) price = Math.round(price * (1 - hotDealDiscount / 100));
+    }
+    total += price;
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return total;
+}
 
 interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
@@ -41,6 +71,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     title: string;
     price_base?: number;
   } | null>(null);
+  const [bookingPriceOverride, setBookingPriceOverride] = useState<number | undefined>(undefined);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
 
@@ -180,11 +211,22 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       const data = await response.json();
 
       if (data.isAvailable === true) {
+        const priceOverride = calcSeasonalTotal(
+          apartment.seasons,
+          apartment.hot_deal_enabled,
+          apartment.hot_deal_discount,
+          apartment.hot_deal_date_from,
+          apartment.hot_deal_date_to,
+          apartment.price_base,
+          checkIn,
+          checkOut,
+        );
         setBookingApartment({
           id: apartment.id,
           title: apartment.title,
           price_base: apartment.price_base,
         });
+        setBookingPriceOverride(priceOverride > 0 ? priceOverride : undefined);
         setBookingOpen(true);
       } else {
         alert('Эти даты уже заняты. Пожалуйста, выберите другие даты.');
@@ -381,18 +423,43 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                       )}
 
                       <div className="ap-list-footer">
-                        {apartment.hot_deal_enabled ? (
-                          <div className="ap-list-price">
-                            <span className="price-original">{apartment.price_base.toLocaleString()} ₽</span>
-                            <span className="price-discounted">
-                              {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString()} ₽ / ночь
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="ap-list-price">
-                            от {apartment.price_base.toLocaleString()} ₽ / ночь
-                          </div>
-                        )}
+                        {(() => {
+                          if (hasSearchParams && checkIn && checkOut) {
+                            const total = calcSeasonalTotal(
+                              apartment.seasons,
+                              apartment.hot_deal_enabled,
+                              apartment.hot_deal_discount,
+                              apartment.hot_deal_date_from,
+                              apartment.hot_deal_date_to,
+                              apartment.price_base,
+                              checkIn,
+                              checkOut,
+                            );
+                            const nights = Math.round((new Date(checkOut + 'T00:00:00Z').getTime() - new Date(checkIn + 'T00:00:00Z').getTime()) / 86400000);
+                            const perNight = nights > 0 ? Math.round(total / nights) : apartment.price_base;
+                            return (
+                              <div className="ap-list-price">
+                                {total.toLocaleString()} ₽
+                                <span style={{ fontSize: '11px', opacity: 0.7, marginLeft: 4 }}>/ {nights} ночей</span>
+                              </div>
+                            );
+                          }
+                          if (apartment.hot_deal_enabled) {
+                            return (
+                              <div className="ap-list-price">
+                                <span className="price-original">{apartment.price_base.toLocaleString()} ₽</span>
+                                <span className="price-discounted">
+                                  {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString()} ₽ / ночь
+                                </span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="ap-list-price">
+                              от {apartment.price_base.toLocaleString()} ₽ / ночь
+                            </div>
+                          );
+                        })()}
 
                         <div className="ap-list-actions">
                           <Link href={apartmentUrl} className="btn-outline">
@@ -432,9 +499,10 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       {bookingOpen && bookingApartment && checkIn && checkOut && (
         <BookingModal
           apartment={bookingApartment}
+          priceOverride={bookingPriceOverride}
           initialRange={{
-            from: new Date(checkIn),
-            to: new Date(checkOut),
+            from: new Date(checkIn + 'T00:00:00Z'),
+            to: new Date(checkOut + 'T00:00:00Z'),
           }}
           initialGuests={guests}
           onClose={() => setBookingOpen(false)}

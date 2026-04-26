@@ -15,6 +15,14 @@ export interface Apartment {
   updated_at: string;
 }
 
+export interface ApartmentSeason {
+  id: string;
+  name: string;
+  date_from: string;
+  date_to: string;
+  price_per_night: number;
+}
+
 // Для использования в клиенте - created_at и updated_at опциональны
 export interface ApartmentClient {
   id: string;
@@ -31,11 +39,14 @@ export interface ApartmentClient {
   images: string[]; // массив для клиента
   hot_deal_enabled?: boolean;
   hot_deal_discount?: number;
+  hot_deal_date_from?: string | null;
+  hot_deal_date_to?: string | null;
+  seasons?: ApartmentSeason[];
   lunch_price?: number;
   dinner_price?: number;
   custom_meal_description?: string | null;
-  created_at?: string; // опционально, не всегда нужно на клиенте
-  updated_at?: string; // опционально, не всегда нужно на клиенте
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Booking {

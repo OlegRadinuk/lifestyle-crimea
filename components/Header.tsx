@@ -37,7 +37,7 @@ export default function Header({ onBurgerClick }: Props) {
   const pathname = usePathname();
   const { setSearch, search: contextSearch } = useSearch(); // 👈 Добавляем useSearch
   const { mode, searchParams } = useHeader();
-  const { currentApartment: panoramaApartment } = useApartment();
+  const { currentApartment: panoramaApartment, setCurrentDBApartment } = useApartment();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -153,6 +153,19 @@ export default function Header({ onBurgerClick }: Props) {
           const data = await res.json();
           setApartmentPrice(data.price_base || 0);
           setIsActive(data.is_active === true);
+          // Сохраняем сезоны/hotDeal в контекст, чтобы ApartmentHeaderButton мог их использовать
+          // (на панораме ClientApartmentWrapper не монтируется, поэтому делаем это здесь)
+          if (!isApartmentPage) {
+            setCurrentDBApartment({
+              id: activeApartment.id,
+              title: activeApartment.title,
+              price_base: data.price_base || 0,
+              seasons: data.seasons || [],
+              hotDeal: data.hot_deal_enabled
+                ? { enabled: true, discount: data.hot_deal_discount || 10, date_from: data.hot_deal_date_from || null, date_to: data.hot_deal_date_to || null }
+                : undefined,
+            });
+          }
         } else {
           setApartmentPrice(0);
           setIsActive(false);

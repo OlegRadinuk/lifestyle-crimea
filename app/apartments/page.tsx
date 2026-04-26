@@ -35,6 +35,10 @@ async function getApartments(): Promise<ApartmentClient[]> {
         }
       }
 
+      const seasons = db.prepare(
+        'SELECT id, name, date_from, date_to, price_per_night FROM apartment_pricing_seasons WHERE apartment_id = ? ORDER BY date_from ASC'
+      ).all(apt.id) as { id: string; name: string; date_from: string; date_to: string; price_per_night: number }[];
+
       return {
         id: apt.id,
         title: apt.title,
@@ -50,6 +54,9 @@ async function getApartments(): Promise<ApartmentClient[]> {
         is_active: Boolean(apt.is_active),
         hot_deal_enabled: Boolean(apt.hot_deal_enabled),
         hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
+        hot_deal_date_from: apt.hot_deal_date_from || null,
+        hot_deal_date_to: apt.hot_deal_date_to || null,
+        seasons,
       };
     }));
 
