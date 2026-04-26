@@ -163,7 +163,7 @@ export default function SeasonTemplatesPage() {
           .season-tpl-add-form {
             grid-template-columns: 1fr;
           }
-          .season-tpl-add-btn { height: 44px; }
+          .season-tpl-add-btn { height: 44px; width: 100%; }
         }
       `}</style>
     </div>

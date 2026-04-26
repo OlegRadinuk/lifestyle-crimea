@@ -1268,8 +1268,8 @@ export default function EditApartmentPage({ params }: PageProps) {
             flex-direction: column;
           }
 
-          .admin-button.primary,
-          .admin-button.secondary {
+          .form-actions .admin-button.primary,
+          .form-actions .admin-button.secondary {
             width: 100%;
             text-align: center;
           }
