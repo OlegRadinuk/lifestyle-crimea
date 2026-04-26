@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       date_from: data.date_from,
       date_to: data.date_to,
       sort_order: Number(data.sort_order ?? 0),
+      parking_price: data.parking_price != null ? Number(data.parking_price) : null,
     });
     return NextResponse.json({ success: true, id });
   } catch (error) {

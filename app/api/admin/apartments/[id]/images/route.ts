@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
+import { existsSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import sharp from 'sharp';
 import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(
@@ -44,41 +46,80 @@ export async function POST(
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    // Создаём уникальное имя файла
+    // Читаем файл
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
+
     // Убеждаемся, что папка существует
-    const uploadDir = path.join(process.cwd(), 'public/images/apartments', id);
+    const uploadDir = path.join(process.cwd(), 'public', 'images', 'apartments', id);
     await mkdir(uploadDir, { recursive: true });
-    
-    const filename = `${uuidv4()}.webp`;
+
+    const imageId = uuidv4();
+    const filename = `${imageId}.webp`;
     const filepath = path.join(uploadDir, filename);
-    
+
+    // Конвертируем в WebP через sharp (исправляет ориентацию по EXIF, уменьшает до 1920px)
+    let processedBuffer: Buffer;
+    try {
+      const meta = await sharp(buffer).metadata();
+      let width = meta.width ?? 1920;
+      let height = meta.height ?? 1080;
+      if (width > 1920) {
+        height = Math.round((height * 1920) / width);
+        width = 1920;
+      }
+      const quality = buffer.length > 5 * 1024 * 1024 ? 75 : 82;
+      processedBuffer = await sharp(buffer)
+        .rotate()
+        .resize(width, height, { fit: 'inside', withoutEnlargement: true })
+        .webp({ quality, effort: 3 })
+        .toBuffer() as Buffer;
+    } catch (sharpErr) {
+      console.error('Sharp processing error:', sharpErr);
+      return NextResponse.json(
+        { error: 'Не удалось обработать изображение. Проверьте формат файла (JPG, PNG, WEBP, HEIC).' },
+        { status: 400 }
+      );
+    }
+
     // Сохраняем файл
-    await writeFile(filepath, buffer);
-    
+    await writeFile(filepath, processedBuffer);
+
+    // Проверяем, что файл реально записался на диск
+    if (!existsSync(filepath)) {
+      throw new Error(`File was not saved to disk: ${filepath}`);
+    }
+
     // Получаем следующий порядковый номер
     const maxSort = db.prepare(`
       SELECT MAX(sort_order) as max FROM apartment_images WHERE apartment_id = ?
     `).get(id) as { max: number };
-    
+
     const sortOrder = (maxSort.max || 0) + 1;
-    
-    // Сохраняем в БД
+
+    // Сохраняем в БД (только после успешной записи файла)
     const imageUrl = `/images/apartments/${id}/${filename}`;
-    
+
     const stmt = db.prepare(`
-      INSERT INTO apartment_images (apartment_id, url, sort_order)
-      VALUES (?, ?, ?)
+      INSERT INTO apartment_images (id, apartment_id, url, sort_order)
+      VALUES (?, ?, ?, ?)
     `);
-    
-    const result = stmt.run(id, imageUrl, sortOrder);
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    let result;
+    try {
+      result = stmt.run(imageId, id, imageUrl, sortOrder);
+    } catch (dbErr) {
+      // Откатываем файл если запись в БД не удалась
+      try { await unlink(filepath); } catch {}
+      throw dbErr;
+    }
+
+    console.log(`📸 Image uploaded: ${(processedBuffer.length / 1024).toFixed(0)}KB → ${filepath}`);
+
+    return NextResponse.json({
+      success: true,
       id: result.lastInsertRowid,
-      url: imageUrl 
+      url: imageUrl
     });
     
   } catch (error) {

@@ -282,6 +282,9 @@ function ensureDatabaseStructure() {
     // Миграция: привязка сезона апартамента к шаблону
     try { db.exec("ALTER TABLE apartment_pricing_seasons ADD COLUMN template_id TEXT REFERENCES season_templates(id) ON DELETE SET NULL"); } catch {}
 
+    // Миграция: цена парковки в сезонном шаблоне
+    try { db.exec("ALTER TABLE season_templates ADD COLUMN parking_price INTEGER DEFAULT NULL"); } catch {}
+
     // Миграция: колонки согласия на ПД в bookings
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_at TEXT"); } catch {}
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_ip TEXT"); } catch {}
@@ -836,6 +839,7 @@ export type SeasonTemplate = {
   date_from: string;
   date_to: string;
   sort_order: number;
+  parking_price: number | null;
 };
 
 export const seasonTemplateService = {
@@ -845,15 +849,25 @@ export const seasonTemplateService = {
   upsert: (tpl: Omit<SeasonTemplate, 'id'> & { id?: string }): string => {
     const id = tpl.id || uuidv4();
     db.prepare(`
-      INSERT INTO season_templates (id, name, date_from, date_to, sort_order)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO season_templates (id, name, date_from, date_to, sort_order, parking_price)
+      VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         date_from = excluded.date_from,
         date_to = excluded.date_to,
-        sort_order = excluded.sort_order
-    `).run(id, tpl.name, tpl.date_from, tpl.date_to, tpl.sort_order ?? 0);
+        sort_order = excluded.sort_order,
+        parking_price = excluded.parking_price
+    `).run(id, tpl.name, tpl.date_from, tpl.date_to, tpl.sort_order ?? 0, tpl.parking_price ?? null);
     return id;
+  },
+
+  updateParkingPrice: (templateId: string, price: number | null): void => {
+    const affected = db.prepare(
+      'UPDATE season_templates SET parking_price = ? WHERE id = ?'
+    ).run(price, templateId);
+    if (affected.changes === 0) {
+      throw new Error(`Season template not found: ${templateId}`);
+    }
   },
 
   delete: (id: string): void => {

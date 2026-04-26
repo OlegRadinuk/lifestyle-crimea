@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
 type Template = {
@@ -9,6 +9,7 @@ type Template = {
   date_from: string;
   date_to: string;
   sort_order: number;
+  parking_price: number | null;
 };
 
 export default function SeasonTemplatesPage() {
@@ -17,10 +18,27 @@ export default function SeasonTemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', date_from: '', date_to: '' });
+  // parkingInputs: временные значения пока пользователь печатает
+  const [parkingInputs, setParkingInputs] = useState<Record<string, string>>({});
+  // savedIds: id шаблонов где только что показываем «Сохранено ✓»
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const savedTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const fetch_ = async () => {
-    const res = await fetch('/api/admin/season-templates');
-    if (res.ok) setTemplates(await res.json());
+    // Используем parking-price endpoint — возвращает те же поля + parking_price
+    const res = await fetch('/api/admin/parking-price');
+    if (res.ok) {
+      const data: Template[] = await res.json();
+      setTemplates(data);
+      // Инициализируем локальные значения инпутов парковки
+      const inputs: Record<string, string> = {};
+      data.forEach(t => {
+        inputs[t.id] = t.parking_price !== null && t.parking_price !== undefined
+          ? String(t.parking_price)
+          : '';
+      });
+      setParkingInputs(inputs);
+    }
   };
 
   useEffect(() => { fetch_(); }, []);
@@ -60,6 +78,36 @@ export default function SeasonTemplatesPage() {
     fetch_();
   };
 
+  const handleParkingBlur = async (templateId: string) => {
+    const raw = parkingInputs[templateId] ?? '';
+    const price = raw === '' ? null : parseInt(raw, 10);
+    // Не сохраняем если значение не изменилось
+    const current = templates.find(t => t.id === templateId)?.parking_price ?? null;
+    if (price === current) return;
+
+    const res = await fetch('/api/admin/parking-price', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templateId, price }),
+    });
+    if (res.ok) {
+      // Обновляем локальный стейт без перезагрузки всего списка
+      setTemplates(prev => prev.map(t =>
+        t.id === templateId ? { ...t, parking_price: price } : t
+      ));
+      // Показываем «Сохранено ✓» на 2 секунды
+      setSavedIds(prev => new Set(prev).add(templateId));
+      if (savedTimers.current[templateId]) clearTimeout(savedTimers.current[templateId]);
+      savedTimers.current[templateId] = setTimeout(() => {
+        setSavedIds(prev => {
+          const next = new Set(prev);
+          next.delete(templateId);
+          return next;
+        });
+      }, 2000);
+    }
+  };
+
   return (
     <div className="admin-page">
       <div className="admin-header">
@@ -91,6 +139,25 @@ export default function SeasonTemplatesPage() {
                 <div key={t.id} className="season-tpl-row">
                   <div className="season-tpl-name">{t.name}</div>
                   <div className="season-tpl-dates">{t.date_from} — {t.date_to}</div>
+                  <div className="season-tpl-parking">
+                    <label className="parking-label" htmlFor={`parking-${t.id}`}>Парковка ₽/сутки</label>
+                    <div className="parking-input-wrap">
+                      <input
+                        id={`parking-${t.id}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="admin-input-parking"
+                        placeholder="не задано"
+                        value={parkingInputs[t.id] ?? ''}
+                        onChange={e => setParkingInputs(prev => ({ ...prev, [t.id]: e.target.value }))}
+                        onBlur={() => handleParkingBlur(t.id)}
+                      />
+                      {savedIds.has(t.id) && (
+                        <span className="parking-saved" aria-live="polite">Сохранено ✓</span>
+                      )}
+                    </div>
+                  </div>
                   <div className="season-tpl-actions">
                     <button className="admin-button small" onClick={() => { setEditingId(t.id); setEditForm({ name: t.name, date_from: t.date_from, date_to: t.date_to }); }}>Ред.</button>
                     <button className="admin-button small warning" onClick={() => handleDelete(t.id)}>Удалить</button>
@@ -145,6 +212,42 @@ export default function SeasonTemplatesPage() {
         .season-tpl-dates { font-size: 13px; color: #475569; white-space: nowrap; }
         .season-tpl-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
 
+        .season-tpl-parking {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          flex-shrink: 0;
+        }
+        .parking-label {
+          font-size: 11px;
+          color: #94a3b8;
+          white-space: nowrap;
+          line-height: 1;
+        }
+        .parking-input-wrap {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .admin-input-parking {
+          width: 90px;
+          padding: 5px 8px;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          font-size: 13px;
+          outline: none;
+          color: #1e293b;
+        }
+        .admin-input-parking:focus { border-color: #0891b2; }
+        .admin-input-parking::-webkit-inner-spin-button,
+        .admin-input-parking::-webkit-outer-spin-button { opacity: 0.5; }
+        .parking-saved {
+          font-size: 11px;
+          color: #16a34a;
+          white-space: nowrap;
+          font-weight: 500;
+        }
+
         .season-tpl-add-form {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr auto;
@@ -159,6 +262,11 @@ export default function SeasonTemplatesPage() {
           .season-tpl-row--edit input { width: 100%; }
           .season-tpl-dates { color: #64748b; font-size: 12px; }
           .season-tpl-actions { margin-left: 0; }
+
+          .season-tpl-parking { flex-direction: row; align-items: center; gap: 8px; width: 100%; }
+          .parking-label { white-space: nowrap; flex-shrink: 0; }
+          .parking-input-wrap { flex: 1; }
+          .admin-input-parking { width: 100%; min-width: 0; }
 
           .season-tpl-add-form {
             grid-template-columns: 1fr;
