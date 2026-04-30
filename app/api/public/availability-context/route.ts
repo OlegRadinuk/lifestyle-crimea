@@ -27,6 +27,12 @@ function formatDate(isoDate: string): string {
   return `${day}.${month}.${year}`;
 }
 
+function subtractOneDay(isoDate: string): string {
+  const d = new Date(isoDate + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 export async function GET() {
   try {
     const apartments = db
@@ -75,7 +81,7 @@ export async function GET() {
         lines.push('Свободно на все 60 дней');
       } else {
         const formatted = periods
-          .map((p) => `${formatDate(p.check_in)}–${formatDate(p.check_out)}`)
+          .map((p) => `${formatDate(p.check_in)}–${formatDate(subtractOneDay(p.check_out))}`)
           .join(', ');
         lines.push(`Занято: ${formatted}`);
       }
@@ -84,6 +90,9 @@ export async function GET() {
     }
 
     lines.push('---');
+    lines.push(
+      'ВАЖНО: диапазон "ДД.ММ–ДД.ММ" = последняя занятая ночь включительно. Дата ПОСЛЕ диапазона свободна для заезда (выезд до 12:00, заезд с 14:00). Например, занято 01.05–09.05 → 10 мая апартамент свободен.',
+    );
     lines.push(
       'ВАЖНО: если гость спрашивает о датах НЕ из этого списка (более 60 дней вперёд) — скажи что не можешь проверить и направь к менеджеру.',
     );
