@@ -54,8 +54,8 @@ export async function POST(
     const uploadDir = path.join(process.cwd(), 'public', 'images', 'apartments', id);
     await mkdir(uploadDir, { recursive: true });
 
-    const imageId = uuidv4();
-    const filename = `${imageId}.webp`;
+    const fileUuid = uuidv4();
+    const filename = `${fileUuid}.webp`;
     const filepath = path.join(uploadDir, filename);
 
     // Конвертируем в WebP через sharp (исправляет ориентацию по EXIF, уменьшает до 1920px)
@@ -101,15 +101,14 @@ export async function POST(
     const imageUrl = `/images/apartments/${id}/${filename}`;
 
     const stmt = db.prepare(`
-      INSERT INTO apartment_images (id, apartment_id, url, sort_order)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO apartment_images (apartment_id, url, sort_order)
+      VALUES (?, ?, ?)
     `);
 
     let result;
     try {
-      result = stmt.run(imageId, id, imageUrl, sortOrder);
+      result = stmt.run(id, imageUrl, sortOrder);
     } catch (dbErr) {
-      // Откатываем файл если запись в БД не удалась
       try { await unlink(filepath); } catch {}
       throw dbErr;
     }
@@ -118,7 +117,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      id: imageId,
+      id: Number(result.lastInsertRowid),
       url: imageUrl
     });
     

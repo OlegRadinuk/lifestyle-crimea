@@ -4,14 +4,14 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 
 interface GalleryImage {
-  id: string;
+  id: number;
   url: string;
   sort_order: number;
 }
 
 interface ImageGalleryProps {
   images: GalleryImage[];
-  onDelete: (imageId: string) => void;
+  onDelete: (imageId: number) => void;
   onSort: (images: GalleryImage[]) => void;
   onEdit?: (image: GalleryImage) => void;
 }
@@ -75,7 +75,7 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
     onSort(updated.map((img, idx) => ({ ...img, sort_order: idx + 1 })));
   };
 
-  const handleDelete = async (imageId: string) => {
+  const handleDelete = async (imageId: number) => {
     if (!confirm('Удалить фото?')) return;
     try {
       const res = await fetch(`/api/admin/apartments/images/${imageId}`, { method: 'DELETE' });

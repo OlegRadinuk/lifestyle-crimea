@@ -9,7 +9,7 @@ import ImageCropper from './ImageCropper';
 import RedeployButton from './RedeployButton';
 
 interface Image {
-  id: string;
+  id: number;
   url: string;
   sort_order: number;
 }
@@ -52,13 +52,13 @@ export default function ApartmentImagesPage() {
     }
   };
 
-  const handleUpload = (newImage: { id: string; url: string }) => {
+  const handleUpload = (newImage: { id: number; url: string }) => {
     setImages(prev => [...prev, { ...newImage, sort_order: prev.length + 1 }]);
     window.dispatchEvent(new CustomEvent('apartment-images-updated'));
     setShowRedeploy(true);
   };
 
-  const handleDelete = (imageId: string) => {
+  const handleDelete = (imageId: number) => {
     setImages(prev => prev.filter(img => img.id !== imageId));
     window.dispatchEvent(new CustomEvent('apartment-images-updated'));
     setShowRedeploy(true);

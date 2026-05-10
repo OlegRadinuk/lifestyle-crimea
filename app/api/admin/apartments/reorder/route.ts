@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { checkAdminAuth } from '@/lib/admin-auth';
 
 const ReorderItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   sort_order: z.number().int().min(0),
 });
 

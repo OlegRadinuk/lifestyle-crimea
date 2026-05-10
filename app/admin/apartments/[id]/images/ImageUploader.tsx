@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 
 interface ImageUploaderProps {
   apartmentId: string;
-  onUpload: (image: { id: string; url: string }) => void;
+  onUpload: (image: { id: number; url: string }) => void;
 }
 
 // Функция для сжатия изображения
