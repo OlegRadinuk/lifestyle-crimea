@@ -19,50 +19,49 @@ interface ImageGalleryProps {
 export default function ImageGallery({ images, onDelete, onSort, onEdit }: ImageGalleryProps) {
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOverItem, setDraggedOverItem] = useState<number | null>(null);
-  const touchDragIndex = useRef<number | null>(null);
+  const touchDragIdx = useRef<number | null>(null);
 
-  // === Desktop drag (HTML5) ===
+  // === Desktop HTML5 drag — только на handle ===
   const handleDragStart = (index: number) => setDraggedItem(index);
-  const handleDragOver = (index: number) => setDraggedOverItem(index);
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDraggedOverItem(index);
+  };
+  const handleDrop = (index: number) => {
+    if (draggedItem !== null) performMove(draggedItem, index);
+    setDraggedItem(null);
+    setDraggedOverItem(null);
+  };
   const handleDragEnd = () => {
-    if (draggedItem !== null && draggedOverItem !== null && draggedItem !== draggedOverItem) {
-      performMove(draggedItem, draggedOverItem);
-    }
     setDraggedItem(null);
     setDraggedOverItem(null);
   };
 
-  // === Mobile touch drag ===
+  // === Mobile touch drag — только на handle ===
   const handleTouchStart = (e: React.TouchEvent, index: number) => {
-    touchDragIndex.current = index;
+    touchDragIdx.current = index;
     setDraggedItem(index);
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchDragIndex.current === null) return;
+    if (touchDragIdx.current === null) return;
     const touch = e.touches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const item = el?.closest('[data-gallery-idx]') as HTMLElement | null;
-    if (item) {
-      const idx = parseInt(item.dataset.galleryIdx ?? '-1', 10);
-      if (idx >= 0 && idx !== touchDragIndex.current) setDraggedOverItem(idx);
+    const card = el?.closest('[data-gallery-idx]') as HTMLElement | null;
+    if (card) {
+      const idx = parseInt(card.dataset.galleryIdx ?? '-1', 10);
+      if (idx >= 0 && idx !== touchDragIdx.current) setDraggedOverItem(idx);
     }
   };
-
   const handleTouchEnd = () => {
-    if (
-      touchDragIndex.current !== null &&
-      draggedOverItem !== null &&
-      touchDragIndex.current !== draggedOverItem
-    ) {
-      performMove(touchDragIndex.current, draggedOverItem);
+    if (touchDragIdx.current !== null && draggedOverItem !== null) {
+      performMove(touchDragIdx.current, draggedOverItem);
     }
-    touchDragIndex.current = null;
+    touchDragIdx.current = null;
     setDraggedItem(null);
     setDraggedOverItem(null);
   };
 
-  // === Arrow-button reorder (always reliable) ===
+  // === Кнопки ← → ===
   const moveImage = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= images.length) return;
     performMove(fromIndex, toIndex);
@@ -75,6 +74,7 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
     onSort(updated.map((img, idx) => ({ ...img, sort_order: idx + 1 })));
   };
 
+  // === Удаление ===
   const handleDelete = async (imageId: number) => {
     if (!confirm('Удалить фото?')) return;
     try {
@@ -91,23 +91,13 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
 
   if (!images.length) {
     return (
-      <div className="gallery-empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: 12 }}>
           <rect x="2" y="2" width="20" height="20" rx="2" ry="2" />
           <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
           <polyline points="21 15 16 10 5 21" />
         </svg>
-        <p>Фотографии пока не добавлены</p>
-
-        <style jsx>{`
-          .gallery-empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-          }
-          .gallery-empty svg { margin-bottom: 12px; }
-          .gallery-empty p { margin: 0; font-size: 14px; }
-        `}</style>
+        <p style={{ margin: 0, fontSize: 14 }}>Фотографии пока не добавлены</p>
       </div>
     );
   }
@@ -120,22 +110,32 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
             key={image.id}
             data-gallery-idx={index}
             className={`gallery-item ${draggedItem === index ? 'dragging' : ''} ${draggedOverItem === index ? 'drag-over' : ''}`}
-            draggable
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, index)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={() => handleDrop(index)}
           >
-            {/* Номер позиции */}
+            {/* Номер */}
             <div className="image-badge">{index + 1}</div>
 
+            {/* Drag handle — ТОЛЬКО здесь touch/drag события */}
+            <div
+              className="drag-handle"
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragEnd={handleDragEnd}
+              onTouchStart={(e) => handleTouchStart(e, index)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              title="Перетащить"
+            >
+              ⠿
+            </div>
+
+            {/* Фото */}
             <div className="image-container">
               <Image src={image.url} alt="" fill sizes="160px" className="object-cover" />
             </div>
 
-            {/* Кнопки управления */}
+            {/* Кнопки — обычные onClick, никаких touch-конфликтов */}
             <div className="image-controls">
               <div className="move-btns">
                 <button
@@ -143,14 +143,14 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
                   className="ctrl-btn"
                   onClick={() => moveImage(index, index - 1)}
                   disabled={index === 0}
-                  title="Переместить влево"
+                  title="Левее"
                 >‹</button>
                 <button
                   type="button"
                   className="ctrl-btn"
                   onClick={() => moveImage(index, index + 1)}
                   disabled={index === images.length - 1}
-                  title="Переместить вправо"
+                  title="Правее"
                 >›</button>
               </div>
               <div className="action-btns">
@@ -179,32 +179,24 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
           gap: 12px;
-          padding-bottom: 8px;
         }
 
         .gallery-item {
           position: relative;
           border-radius: 10px;
-          overflow: hidden;
           border: 2px solid #e2e8f0;
           background: #f8fafc;
-          cursor: grab;
-          user-select: none;
-          touch-action: none;
-          transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+          display: flex;
+          flex-direction: column;
+          transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+          /* НЕТ overflow:hidden — не режем кнопки */
         }
 
-        .gallery-item:active { cursor: grabbing; }
-
-        .gallery-item.dragging {
-          opacity: 0.4;
-          transform: scale(0.96);
-        }
+        .gallery-item.dragging { opacity: 0.4; }
 
         .gallery-item.drag-over {
           border-color: #139ab6;
           box-shadow: 0 0 0 3px rgba(19, 154, 182, 0.25);
-          transform: scale(1.02);
         }
 
         .image-badge {
@@ -225,19 +217,43 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
           pointer-events: none;
         }
 
+        .drag-handle {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          z-index: 2;
+          background: rgba(0,0,0,0.4);
+          color: #fff;
+          font-size: 14px;
+          width: 24px;
+          height: 24px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: grab;
+          touch-action: none;
+          user-select: none;
+        }
+
+        .drag-handle:active { cursor: grabbing; }
+
         .image-container {
           position: relative;
           width: 100%;
           aspect-ratio: 4/3;
+          overflow: hidden;
+          border-radius: 8px 8px 0 0;
         }
 
         .image-controls {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 6px 6px 6px 6px;
+          padding: 6px;
           background: #f1f5f9;
           border-top: 1px solid #e2e8f0;
+          border-radius: 0 0 8px 8px;
           gap: 4px;
         }
 
@@ -247,59 +263,46 @@ export default function ImageGallery({ images, onDelete, onSort, onEdit }: Image
         }
 
         .ctrl-btn {
-          min-width: 32px;
-          min-height: 32px;
+          min-width: 34px;
+          min-height: 34px;
           border: 1px solid #d0d9e2;
           border-radius: 6px;
           background: white;
-          font-size: 15px;
+          font-size: 16px;
           line-height: 1;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           color: #475569;
-          transition: background 0.15s, color 0.15s;
           padding: 0;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        .ctrl-btn:disabled {
-          opacity: 0.3;
-          cursor: default;
-        }
-
-        .ctrl-btn:not(:disabled):hover {
-          background: #e2e8f0;
-        }
+        .ctrl-btn:disabled { opacity: 0.3; cursor: default; }
+        .ctrl-btn:not(:disabled):active { background: #e2e8f0; }
 
         .ctrl-btn.del {
           color: #dc2626;
-          border-color: #fecaca;
+          border-color: #fca5a5;
+          background: #fff5f5;
+          font-size: 14px;
+          font-weight: 700;
         }
 
-        .ctrl-btn.del:hover {
-          background: #fee2e2;
-        }
+        .ctrl-btn.del:active { background: #fee2e2; }
 
-        .ctrl-btn.edit {
-          color: #0891b2;
-          border-color: #bae6fd;
-        }
-
-        .ctrl-btn.edit:hover {
-          background: #e0f2fe;
-        }
+        .ctrl-btn.edit { color: #0891b2; border-color: #bae6fd; }
+        .ctrl-btn.edit:active { background: #e0f2fe; }
 
         @media (max-width: 480px) {
           .image-gallery {
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
           }
-
           .ctrl-btn {
-            min-width: 36px;
-            min-height: 36px;
-            font-size: 16px;
+            min-width: 38px;
+            min-height: 38px;
           }
         }
       `}</style>

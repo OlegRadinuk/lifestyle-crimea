@@ -216,6 +216,14 @@ export default function ApartmentsPage() {
                 Редактировать
               </Link>
 
+              <Link
+                href={`/admin/apartments/${apt.id}/images`}
+                className="admin-button small photo-btn"
+                title="Фотографии"
+              >
+                📷 Фото
+              </Link>
+
               <button
                 type="button"
                 onClick={() => handleDelete(apt.id, apt.title)}
@@ -373,6 +381,17 @@ export default function ApartmentsPage() {
           justify-content: center;
           font-size: 16px;
           padding: 0;
+        }
+
+        .photo-btn {
+          background: #e0f2fe;
+          color: #0369a1;
+          border-color: #bae6fd;
+          text-decoration: none;
+        }
+
+        .photo-btn:hover {
+          background: #bae6fd;
         }
 
         @media (min-width: 640px) {
