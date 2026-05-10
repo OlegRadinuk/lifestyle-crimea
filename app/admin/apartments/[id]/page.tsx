@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 // ===== FEATURE ICONS (inline SVG, same as frontend) =====
@@ -151,11 +150,11 @@ type TemplatePrice = {
 
 export default function EditApartmentPage({ params }: PageProps) {
   const { id } = use(params);
-  
-  const router = useRouter();
+
   const [apartment, setApartment] = useState<Apartment | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [imagesCount, setImagesCount] = useState(0);
 
   // Seasons state
@@ -313,15 +312,17 @@ export default function EditApartmentPage({ params }: PageProps) {
     if (!apartment) return;
 
     setSaving(true);
+    setSaveSuccess(false);
     try {
       const res = await fetch(`/api/admin/apartments/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apartment),
       });
-      
+
       if (res.ok) {
-        router.push('/admin/apartments');
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         const error = await res.json();
         alert(`Ошибка: ${error.error}`);
@@ -343,6 +344,12 @@ export default function EditApartmentPage({ params }: PageProps) {
         <h1 className="admin-title">Редактирование: {apartment.title}</h1>
         <Link href="/admin/apartments" className="admin-button">← Назад</Link>
       </div>
+
+      {saveSuccess && (
+        <div className="save-success-banner">
+          Сохранено успешно
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="admin-form">
         {/* Основные поля формы */}
@@ -760,12 +767,73 @@ export default function EditApartmentPage({ params }: PageProps) {
             {saving ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
           <Link href="/admin/apartments" className="admin-button secondary">
-            Отмена
+            ← К списку
           </Link>
         </div>
       </form>
 
+      {/* Sticky save на мобиле */}
+      <div className="sticky-save">
+        <button
+          type="button"
+          className="admin-button primary"
+          disabled={saving}
+          onClick={handleSubmit as unknown as React.MouseEventHandler}
+        >
+          {saving ? 'Сохранение...' : saveSuccess ? '✓ Сохранено' : 'Сохранить'}
+        </button>
+      </div>
+
       <style jsx>{`
+        /* Success banner */
+        .save-success-banner {
+          background: #dcfce7;
+          color: #166534;
+          border: 1px solid #86efac;
+          border-radius: 10px;
+          padding: 12px 20px;
+          margin-bottom: 16px;
+          font-weight: 500;
+          font-size: 14px;
+          animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sticky save button (mobile only) */
+        .sticky-save {
+          display: none;
+        }
+
+        @media (max-width: 640px) {
+          .sticky-save {
+            display: block;
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 100;
+          }
+
+          .sticky-save .admin-button.primary {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(19, 154, 182, 0.5);
+            text-align: center;
+            justify-content: center;
+          }
+
+          /* Отступ снизу чтобы форма не перекрывалась */
+          .admin-form {
+            padding-bottom: 80px;
+          }
+        }
+
         /* Блок Питание */
         .meal-section {
           margin: 0 0 20px;

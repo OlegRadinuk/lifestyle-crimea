@@ -118,7 +118,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      id: result.lastInsertRowid,
+      id: imageId,
       url: imageUrl
     });
     
