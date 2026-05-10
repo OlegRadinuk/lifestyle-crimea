@@ -45,28 +45,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
   const viewText = viewMap[apartment.view] || 'с видом на море';
 
-  // Формируем ключевые особенности для description (не более 3)
-  const topFeatures = featuresList.slice(0, 3).join(', ');
-  
-  // Формируем title
-  const title = `${apartment.title} | Апартаменты в Алуште ${viewText} | Life Style Crimea`;
+  // Человекочитаемое название (убираем LS- префикс для title)
+  const displayName = apartment.title.replace(/^LS-(?:LUX-|ART-)?/i, '').trim();
 
-  // Формируем description (макс 160 символов)
-  let description = `${apartment.title} в Алуште. ${apartment.area} м², до ${apartment.max_guests} гостей. ${viewText.charAt(0).toUpperCase() + viewText.slice(1)}.`;
-  if (topFeatures) {
-    description += ` В номере: ${topFeatures}.`;
-  }
-  description += ` Бронирование онлайн, лучшие цены напрямую.`;
+  // Формируем title (без "Life Style Crimea" — добавляет layout template)
+  const title = `Апартаменты «${displayName}» ${viewText} | ${apartment.area} м² | Алушта`;
 
-  // Обрезаем если длиннее 155 символов
-  if (description.length > 155) {
-    description = description.slice(0, 152) + '...';
+  // Формируем description — используем short_description из БД если есть
+  let description: string;
+  if (apartment.short_description) {
+    description = apartment.short_description.length > 155
+      ? apartment.short_description.slice(0, 152) + '...'
+      : apartment.short_description;
+  } else {
+    const topFeatures = featuresList.slice(0, 3).join(', ');
+    description = `Апартаменты в Алуште ${viewText}. ${apartment.area} м², до ${apartment.max_guests} гостей.`;
+    if (topFeatures) description += ` ${topFeatures}.`;
+    description += ` Бронирование напрямую, лучшие цены.`;
+    if (description.length > 155) description = description.slice(0, 152) + '...';
   }
 
   // Формируем ключевые слова
   const keywords = [
-    apartment.title,
-    'апартаменты алушта',
+    `апартаменты ${displayName.toLowerCase()} алушта`,
+    'апартаменты в алуште',
     viewText,
     `апартаменты ${apartment.area} м²`,
     `апартаменты на ${apartment.max_guests} гостей`,
