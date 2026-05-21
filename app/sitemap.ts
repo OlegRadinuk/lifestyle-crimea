@@ -21,14 +21,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Динамические страницы апартаментов
+  // Используем created_at — у каждого апартамента уникальная дата создания
+  // Это даёт Яндексу честный сигнал о том, что страницы разные (не batch-спам)
   const apartments = db.prepare(`
-    SELECT id, updated_at FROM apartments WHERE is_active = 1
-  `).all() as { id: string; updated_at: string }[];
+    SELECT id, created_at FROM apartments WHERE is_active = 1
+  `).all() as { id: string; created_at: string }[];
 
   const apartmentPages: MetadataRoute.Sitemap = apartments.map((apt) => ({
     url: `${baseUrl}/apartments/${apt.id}`,
-    lastModified: new Date(apt.updated_at),
-    changeFrequency: 'daily',
+    lastModified: new Date(apt.created_at),
+    changeFrequency: 'weekly',
     priority: 0.8,
   }));
 

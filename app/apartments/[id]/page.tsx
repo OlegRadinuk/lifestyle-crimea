@@ -7,9 +7,17 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-// Отключаем кэширование
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// ISR: пере-генерируем страницу раз в сутки (данные апартамента меняются редко)
+// Для реального времени (наличие, цены) используется клиентский API
+export const revalidate = 86400;
+
+// Пре-генерируем все активные страницы апартаментов при сборке
+export async function generateStaticParams() {
+  const apartments = db.prepare(
+    "SELECT id FROM apartments WHERE is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')"
+  ).all() as { id: string }[];
+  return apartments.map((a) => ({ id: a.id }));
+}
 
 // Функция для генерации мета-тегов
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
