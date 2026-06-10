@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
     title: 'Апартаменты',
     href: '/apartments',
     type: 'slider',
-    images: Array.from({ length: 9 }, (_, i) => `/images/apartments/${i + 1}.webp`),
+    images: Array.from({ length: 12 }, (_, i) => `/images/apartments/${i + 1}.webp`),
   },
   {
     title: 'Услуги',

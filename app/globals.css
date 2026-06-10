@@ -77,18 +77,23 @@ html, body {
   scroll-snap-stop: always;
   width: 100%;
   overflow: hidden;
-  /* ⚠️ ВАЖНО: добавляем явную высоту */
-  height: 100vh !important;
+  height: 100vh !important;   /* fallback */
+  height: 100dvh !important;  /* dvh: не прыгает при появлении/скрытии адрес-бара Safari */
 }
 
 .main-container.mobile .scene--hero,
 .main-container.mobile .scene--panorama {
-  height: 100vh !important;
+  height: 100vh !important;   /* fallback */
+  height: 100dvh !important;
 }
 
-/* ✅ Добавляем это */
+/* reviews-footer — фиксированная полноэкранная сцена (dvh) */
 .main-container.mobile .scene--reviews-footer {
-  height: 100vh !important;
+  height: 100vh !important;   /* fallback для старых браузеров */
+  height: 100dvh !important;  /* Safari-safe: учитывает появление/скрытие адрес-бара */
+  overflow: hidden !important;
+  scroll-snap-align: start;   /* залипает как остальные сцены */
+  scroll-snap-stop: always;
   display: flex;
   flex-direction: column;
 }
@@ -3489,6 +3494,14 @@ html, body {
   overflow: hidden;
 }
 
+/* Мобилка: rf-section заполняет сцену (flex-column, 100% высоты) */
+.main-container.mobile .scene--reviews-footer .rf-section {
+  flex: 1;
+  height: auto;    /* переопределяем базовый height: 100vh */
+  min-height: 0;
+  overflow: hidden;
+}
+
 .rf-section.rf-visible {
   opacity: 1;
 }
@@ -3733,21 +3746,21 @@ html, body {
 }
 
 .rf-mobile .rf-container-mobile {
-  flex: 0 0 60%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding: 40px 16px 10px 16px;
+  padding: 20px 16px 8px 16px;
   overflow: hidden;
-  min-height: 0;
 }
 
 .rf-mobile .rf-title {
   text-align: center;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 500;
   color: #139AB6;
-  margin: 20px 0 15px 40px;;
+  margin: 0 0 10px 40px;
   flex-shrink: 0;
 }
 
@@ -3836,14 +3849,14 @@ html, body {
 
 .rf-mobile .rf-yandex-link {
   display: block;
-  margin: 15px auto 0;
+  margin: 8px auto 0;
   text-align: center;
   color: #139ab6;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 12px 24px;
-  min-height: 44px;
+  padding: 8px 20px;
+  min-height: 36px;
   border-radius: 30px;
   background: rgba(19, 154, 182, 0.08);
   width: fit-content;
@@ -3854,12 +3867,12 @@ html, body {
 /* Маленькие телефоны */
 @media (max-width: 480px) {
   .rf-mobile .rf-container-mobile {
-    padding: 40px 16px 10px 16px;
+    padding: 16px 14px 6px 14px;
   }
   
   .rf-mobile .rf-title {
-    font-size: 24px;
-    margin-bottom: 12px;
+    font-size: 20px;
+    margin-bottom: 8px;
   }
   
   .rf-mobile .rf-card {
@@ -3984,10 +3997,10 @@ html, body {
 
 /* Мобилка футер */
 .ff-footer-mobile {
-  flex: 0 0 40%;
+  flex: 0 0 auto;
   display: flex;
-  align-items: center;
-  padding: 0 16px;
+  align-items: flex-start;
+  padding: 0 12px 8px 12px;
   min-height: 0;
 }
 
@@ -4001,10 +4014,10 @@ html, body {
 .ff-footer-mobile .ff-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 24px;
-  padding: 20px 16px;
+  border-radius: 20px;
+  padding: 12px 14px;
   width: 100%;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
@@ -4017,10 +4030,10 @@ html, body {
   order: 1;
   position: relative;
   width: 100%;
-  height: 140px;
-  border-radius: 16px;
+  height: 120px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   background: #1a1f24;
 }
 
@@ -4034,24 +4047,25 @@ html, body {
 }
 
 .ff-footer-mobile .ff-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
-  margin: 0 0 12px 0;
+  margin: 0 0 6px 0;
   color: #139AB6;
 }
 
 .ff-footer-mobile .ff-description {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #b8c4cc;
-  margin: 0 0 16px 0;
+  display: block; /* видно на 375+ — влезает; на ≤360 скрываем отдельным @media ниже */
+  font-size: 11px;
+  color: #7f8b93;
+  line-height: 1.4;
+  margin: 0 0 6px 0;
 }
 
 .ff-footer-mobile .ff-contacts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 12px;
+  gap: 4px 10px;
+  margin-bottom: 6px;
 }
 
 .ff-footer-mobile .ff-phone {
@@ -4068,11 +4082,11 @@ html, body {
 }
 
 .ff-footer-mobile .ff-copyright {
-  font-size: 12px;
+  font-size: 11px;
   color: #7f8b93;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 12px;
-  margin-top: 8px;
+  padding-top: 6px;
+  margin-top: 4px;
 }
 
 .ff-legal-link {
@@ -4092,36 +4106,32 @@ html, body {
 /* Маленькие телефоны - футер */
 @media (max-width: 480px) {
   .ff-footer-mobile {
-    padding: 0 12px;
+    padding: 0 10px 6px 10px;
   }
   
   .ff-footer-mobile .ff-grid {
-    padding: 16px 12px;
-    gap: 12px;
+    padding: 10px 12px;
+    gap: 6px;
   }
   
   .ff-footer-mobile .ff-map {
-    height: 120px;
+    height: 100px;
   }
   
   .ff-footer-mobile .ff-title {
-    font-size: 18px;
-    margin-bottom: 8px;
-  }
-  
-  .ff-footer-mobile .ff-description {
-    font-size: 12px;
-    margin-bottom: 12px;
+    font-size: 14px;
+    margin-bottom: 4px;
   }
   
   .ff-footer-mobile .ff-phone,
   .ff-footer-mobile .ff-address {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .ff-footer-mobile .ff-copyright {
-    font-size: 12px;
-    padding-top: 8px;
+    font-size: 11px;
+    padding-top: 4px;
+    margin-top: 2px;
   }
 }
 
@@ -4454,20 +4464,20 @@ html, body {
 }
 
 .rf-mobile .rf-container-mobile {
-  flex: 0 0 50%; /* 50% на отзывы */
+  flex: 1;       /* вырастает на оставшееся место после ff-footer-mobile */
   display: flex;
   flex-direction: column;
-  padding: 20px 16px 10px 16px;
+  padding: 20px 16px 8px 16px;
   overflow: hidden;
   min-height: 0;
 }
 
 .rf-mobile .rf-title {
   text-align: right;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 500;
   color: #139AB6;
-  margin: 10px 0 15px 0;
+  margin: 0 0 10px 0;
   padding-right: 20px;
   flex-shrink: 0;
 }
@@ -4494,7 +4504,7 @@ html, body {
 .rf-mobile .rf-mobile-nav-container {
   position: relative;
   width: 24px;
-  height: 280px; /* фиксированная высота под карточку */
+  height: 200px; /* уменьшено для компактной укладки в 100dvh */
   margin: 0 auto;
 }
 
@@ -4605,20 +4615,20 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Маленькие телефоны */
+/* Маленькие телефоны (второй блок) */
 @media (max-width: 480px) {
   .rf-mobile .rf-container-mobile {
-    padding: 16px 12px 8px 12px;
+    padding: 14px 12px 6px 12px;
   }
   
   .rf-mobile .rf-title {
-    font-size: 24px;
-    margin-bottom: 12px;
+    font-size: 20px;
+    margin-bottom: 8px;
   }
   
   .rf-mobile .rf-mobile-slide .rf-card {
-    padding: 18px;
-    aspect-ratio: 16/9; /* чуть ниже на маленьких */
+    padding: 14px;
+    aspect-ratio: 16/9;
   }
   
   .rf-mobile .rf-mobile-slide .rf-card-text {
@@ -4632,7 +4642,7 @@ html, body {
   }
   
   .rf-mobile .rf-mobile-nav-container {
-    height: 240px; /* меньше под меньшую карточку */
+    height: 180px; /* уменьшено для компактной укладки */
   }
   
   .rf-mobile .rf-mobile-nav-item {
@@ -5508,14 +5518,6 @@ html, body {
     inset: auto 177px -489px;
 }
 
-/* Мобилка футер - 50% */
-.ff-footer-mobile {
-  flex: 0 0 50% !important; /* важно перебить предыдущие стили */
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  min-height: 0;
-}
 
 /* ===== BURGER MENU PREVIEW (ПРАВАЯ ЧАСТЬ) ===== */
 .burger-preview {
@@ -6370,8 +6372,9 @@ html, body {
 /* ===== ОТЗЫВЫ ===== */
 @media (max-width: 768px) {
   .rf-mobile .rf-container-mobile {
-    flex: 0 0 50%;
-    padding: 20px 16px 10px 16px;
+    flex: 1;          /* занимает оставшееся место после футера */
+    min-height: 0;
+    padding: 18px 16px 8px 16px;
   }
 
   .rf-mobile .rf-title {
@@ -6386,7 +6389,7 @@ html, body {
   }
 
   .rf-mobile .rf-mobile-nav-container {
-    height: 260px;
+    height: 190px;
   }
 
   .rf-mobile .rf-mobile-nav-item {
@@ -6430,17 +6433,17 @@ html, body {
 
 @media (max-width: 480px) {
   .rf-mobile .rf-container-mobile {
-    padding: 16px 12px 8px 12px;
+    padding: 14px 12px 6px 12px;
   }
 
   .rf-mobile .rf-title {
-    font-size: 24px;
-    margin-bottom: 12px;
-    padding-right: 16px;
+    font-size: 20px;
+    margin-bottom: 8px;
+    padding-right: 14px;
   }
 
   .rf-mobile .rf-mobile-nav-container {
-    height: 240px;
+    height: 170px;
   }
 
   .rf-mobile .rf-mobile-nav-item {
@@ -6475,17 +6478,17 @@ html, body {
 
 @media (max-width: 360px) {
   .rf-mobile .rf-container-mobile {
-    padding: 14px 10px 6px 10px;
+    padding: 12px 10px 4px 10px;
   }
 
   .rf-mobile .rf-title {
-    font-size: 22px;
-    margin-bottom: 12px;
-    padding-right: 14px;
+    font-size: 18px;
+    margin-bottom: 6px;
+    padding-right: 12px;
   }
 
   .rf-mobile .rf-mobile-nav-container {
-    height: 200px;
+    height: 150px;
   }
 
   .rf-mobile .rf-mobile-nav-item {
@@ -7452,6 +7455,24 @@ html, body {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
     background: #ffffff !important;
     padding: 20px 16px !important;
+  }
+}
+
+/* ===== ФУТЕР 320px (iPhone SE 1 gen, 320×568) ===== */
+/* На 375+ описание видно (ff-footer-mobile .ff-description = display:block).
+   На ≤360px высоты не хватает — скрываем описание (54px) чтобы copyright не уехал за край. */
+@media (max-width: 360px) {
+  .ff-footer-mobile .ff-description {
+    display: none !important;
+  }
+
+  /* Дополнительное уплотнение на случай если 320×568 всё ещё тесно */
+  .ff-footer-mobile .ff-map {
+    height: 95px;
+  }
+
+  .ff-footer-mobile .ff-grid {
+    gap: 6px;
   }
 }
 
