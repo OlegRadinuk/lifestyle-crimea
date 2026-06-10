@@ -47,7 +47,8 @@
 }
 
 .ap-hero-right {
-  flex: 0 0 70%;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .ap-hero-description {
@@ -55,6 +56,7 @@
   line-height: 1.6;
   color: #4a5a63;
   margin: 0 0 20px 0;
+  overflow-wrap: anywhere;
 }
 
 .ap-hero-description:last-child {
@@ -368,7 +370,8 @@
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 20px;
-  padding: 10px 18px;
+  padding: 12px 18px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -499,12 +502,15 @@
   border: 1px solid rgba(53, 56, 57, 0.25);
   border-radius: 20px;
   padding: 10px 20px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s ease;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-outline:hover {
@@ -519,13 +525,16 @@
   border: none;
   border-radius: 22px;
   padding: 12px 26px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(19, 154, 182, 0.35);
   transition: all 0.3s ease;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary:hover {

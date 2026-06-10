@@ -18,7 +18,7 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: visible;
-  overflow-x: hidden; /* если нужно скрыть горизонтальный скролл */
+  overflow-x: clip; /* clip — не создаёт scroll-контекст, не ломает sticky */
 }
 
 /* =========================
@@ -106,7 +106,6 @@ html, body {
   top: 24px;
   left: 45px;
   right: 24px;
-  width: 97.5%;
   height: 80px;
   padding: 0 40px;
   display: flex;
@@ -135,7 +134,8 @@ html, body {
   gap: 14px;
   background: none;
   border: none;
-  padding: 0;
+  padding: 5px 0;
+  min-height: 44px;
   cursor: pointer;
   color: #fff;
   transform: scale(1.5);
@@ -228,7 +228,7 @@ html, body {
 }
 
 .booking-field label {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.65);
@@ -242,7 +242,7 @@ html, body {
   border: none;
   background: transparent;
   outline: none;
-  font-size: 15px;
+  font-size: 16px; /* >= 16px — iOS не зумит при фокусе */
   font-weight: 500;
   color: #ffffff;
   padding: 0;
@@ -421,6 +421,7 @@ html, body {
 
 .header__back-btn {
   padding: 10px 22px;
+  min-height: 44px;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -865,7 +866,7 @@ html, body {
   position: absolute;
   left: 60px;
   bottom: 60px;
-  max-width: 100%;
+  max-width: calc(100% - 120px);
   color: #fff;
   pointer-events: auto;
   animation: heroTextIn 1.5s ease both;
@@ -883,7 +884,8 @@ html, body {
   font-size: clamp(48px, 6vw, 88px);
   font-weight: 500;
   line-height: 1;
-  white-space: nowrap;
+  white-space: normal;
+  flex-wrap: wrap;
   color: #139AB6;
   margin: 0 0 14px 0;
 }
@@ -894,7 +896,7 @@ html, body {
   margin-left: 12px;
   display: inline-block;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   vertical-align: baseline;
   color: #fff;
   opacity: 0.8;
@@ -918,7 +920,8 @@ html, body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.65);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .hero-timeline {
@@ -941,6 +944,12 @@ html, body {
   transition: color 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
   opacity: 0.6;
   animation: timelineReveal 0.6s ease-out forwards;
+  /* минимальный тач-таргет на мобилах */
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-timeline-item:nth-child(1) { animation-delay: 0.6s; }
@@ -2735,6 +2744,7 @@ html, body {
     transform: translateY(-50%);
     max-width: calc(100vw - 145px);
     padding: 11px 16px;
+    min-height: 44px;
     background: #139ab6a8;
     backdrop-filter: blur(6px);
     border: none;
@@ -2773,12 +2783,13 @@ html, body {
   .header--apartment.header--mobile .header__booking.with-apartment,
   .header--panorama.header--mobile .header__booking.with-apartment {
     padding: 8px 14px;
+    min-height: 44px;
     background: rgba(19, 154, 182, 0.72);
     backdrop-filter: blur(6px);
     border: none;
     border-radius: 999px;
     color: #e6fbff;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -2797,7 +2808,7 @@ html, body {
 
   .header--apartment.header--mobile .header__booking-label,
   .header--panorama.header--mobile .header__booking-label {
-    font-size: 9px;
+    font-size: 12px;
     opacity: 0.85;
     letter-spacing: 0.1em;
     white-space: normal !important;
@@ -3383,7 +3394,7 @@ html, body {
   }
 
   .panorama-info-meta {
-    font-size: 11px;
+    font-size: 12px;
     color: #139ab6;
   }
 
@@ -3517,7 +3528,8 @@ html, body {
 .rf-desktop .rf-slider {
   position: relative;
   width: 100%;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   padding: 40px 0;
   margin: -40px 0;
 }
@@ -3830,7 +3842,8 @@ html, body {
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  padding: 10px 24px;
+  padding: 12px 24px;
+  min-height: 44px;
   border-radius: 30px;
   background: rgba(19, 154, 182, 0.08);
   width: fit-content;
@@ -3920,7 +3933,7 @@ html, body {
 }
 
 .ff-phone-note {
-  font-size: 11px;
+  font-size: 12px;
   color: #94a3b8;
   font-weight: 400;
 }
@@ -4055,11 +4068,25 @@ html, body {
 }
 
 .ff-footer-mobile .ff-copyright {
-  font-size: 11px;
+  font-size: 12px;
   color: #7f8b93;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 12px;
   margin-top: 8px;
+}
+
+.ff-legal-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #7f8b93;
+  text-decoration: underline;
+  font-size: 12px;
+  transition: color 0.2s ease;
+}
+
+.ff-legal-link:hover {
+  color: #139ab6;
 }
 
 /* Маленькие телефоны - футер */
@@ -4089,11 +4116,11 @@ html, body {
   
   .ff-footer-mobile .ff-phone,
   .ff-footer-mobile .ff-address {
-    font-size: 11px;
+    font-size: 12px;
   }
-  
+
   .ff-footer-mobile .ff-copyright {
-    font-size: 10px;
+    font-size: 12px;
     padding-top: 8px;
   }
 }
@@ -4164,7 +4191,8 @@ html, body {
 .rf-desktop .rf-slider {
   position: relative;
   width: 100%;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   padding: 40px 0;
   margin: -40px 0;
 }
@@ -4483,6 +4511,17 @@ html, body {
   padding: 0;
   transition: all 0.3s ease;
   transform: translateY(-50%); /* центрирование по позиции */
+  /* расширяем зону касания до 44×44 не меняя визуал */
+  -webkit-tap-highlight-color: transparent;
+}
+.rf-mobile .rf-mobile-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
 }
 
 .rf-mobile .rf-mobile-nav-active {
@@ -5581,6 +5620,7 @@ html, body {
   /* Кнопка бронирования */
   .header__booking {
     padding: 10px 18px;
+    min-height: 44px;
     font-size: 13px;
     white-space: nowrap;
     min-width: 0;
@@ -5598,6 +5638,7 @@ html, body {
     position: static;
     transform: none;
     padding: 10px 18px;
+    min-height: 44px;
     font-size: 13px;
     white-space: nowrap;
     flex-shrink: 1;
@@ -5614,8 +5655,9 @@ html, body {
   .header--apartment.header--mobile .header__booking.with-apartment,
   .header--panorama.header--mobile .header__booking.with-apartment {
     min-width: 0;
+    min-height: 44px;
     max-width: calc(100vw - 168px);
-    padding: 6px 14px;
+    padding: 8px 14px;
     flex-direction: column;
     gap: 0;
     line-height: 1.2;
@@ -5629,7 +5671,7 @@ html, body {
 
   .header--apartment.header--mobile .header__booking-label,
   .header--panorama.header--mobile .header__booking-label {
-    font-size: 9px;
+    font-size: 12px;
     opacity: 0.9;
     letter-spacing: 0.1em;
     margin-bottom: 0;
@@ -5642,7 +5684,7 @@ html, body {
 
   .header--apartment.header--mobile .header__booking-apartment,
   .header--panorama.header--mobile .header__booking-apartment {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     white-space: normal;
     overflow: visible;
@@ -5817,7 +5859,7 @@ html, body {
   }
 
   .panorama-info-meta {
-    font-size: 11px;
+    font-size: 12px;
     gap: 8px 12px;
   }
 
@@ -5879,7 +5921,7 @@ html, body {
   }
 
   .panorama-info-meta {
-    font-size: 10px;
+    font-size: 12px;
     gap: 6px 10px;
   }
 
@@ -5905,7 +5947,7 @@ html, body {
   }
 
   .panorama-swipe-hint .swipe-text {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
@@ -5920,7 +5962,7 @@ html, body {
   }
 
   .panorama-info-eyebrow {
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .panorama-info-title {
@@ -5928,11 +5970,11 @@ html, body {
   }
 
   .panorama-info-description {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .panorama-info-meta {
-    font-size: 9px;
+    font-size: 12px;
     gap: 4px 8px;
   }
 
@@ -5943,8 +5985,10 @@ html, body {
 
   .panorama-action-btn {
     padding: 8px 4px;
-    font-size: 11px;
-    height: 36px;
+    font-size: 12px;
+    height: 44px;
+    white-space: normal;
+    line-height: 1.2;
   }
 
   .panorama-fullscreen-button {
@@ -5959,7 +6003,26 @@ html, body {
   }
 
   .panorama-swipe-hint .swipe-text {
-    font-size: 10px;
+    font-size: 12px;
+  }
+}
+
+/* ===== PANORAMA ACTIONS: iPhone SE / малый Android 320px ===== */
+@media (max-width: 320px) {
+  .panorama-actions-bottom {
+    flex-direction: column;
+    gap: 6px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .panorama-action-btn {
+    width: 100%;
+    flex: none;
+    height: 40px;
+    font-size: 12px;
+    padding: 8px 12px;
+    white-space: nowrap;
   }
 }
 
@@ -6279,7 +6342,7 @@ html, body {
   }
 
   .ap-list-guests {
-    font-size: 10px;
+    font-size: 12px;
     padding: 2px 8px;
   }
 
@@ -6289,7 +6352,7 @@ html, body {
   }
 
   .ap-list-features li {
-    font-size: 10px;
+    font-size: 12px;
     padding: 2px 10px;
   }
 
@@ -6300,7 +6363,7 @@ html, body {
   .ap-list-actions .btn-outline,
   .ap-list-actions .btn-primary {
     padding: 8px 6px;
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
@@ -6969,7 +7032,7 @@ html, body {
   }
 
   .mobile-field label {
-    font-size: 9px;
+    font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.7);
@@ -6982,11 +7045,12 @@ html, body {
     border: none;
     background: transparent;
     outline: none;
-    font-size: 13px;
+    font-size: 16px; /* >= 16px — iOS не зумит при фокусе */
     font-weight: 500;
     color: #ffffff;
-    padding: 4px 0;
+    padding: 8px 0;
     line-height: 1.2;
+    min-height: 44px;
     cursor: pointer;
     border-bottom: 1px solid rgba(255, 255, 255, 0.35);
     width: 100%;
@@ -7126,7 +7190,7 @@ html, body {
   }
 
   .hero-description {
-    font-size: 11px !important;
+    font-size: 12px !important;
     letter-spacing: 0.1em !important;
   }
 }
@@ -7866,8 +7930,9 @@ html, body {
     flex-direction: row !important;
     align-items: baseline !important;
     justify-content: flex-start !important;
+    flex-wrap: wrap !important;
     text-align: left !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
     font-size: clamp(40px, 5vw, 72px) !important;
     margin: 0 0 12px 0 !important;
     width: auto !important;
@@ -7877,11 +7942,13 @@ html, body {
     margin-left: 12px !important;
     font-size: 0.5em !important;
     text-align: left !important;
+    white-space: nowrap !important;
   }
 
   .hero-description {
     text-align: left !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
     max-width: none !important;
     margin: 0 !important;
   }

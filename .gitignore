@@ -75,3 +75,6 @@ test-results/
 # Playwright
 playwright.config.ts
 tests/
+
+# responsive-audit output
+.audit*/
