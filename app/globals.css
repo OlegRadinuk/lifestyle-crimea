@@ -634,6 +634,7 @@ html, body {
 }
 
 .burger__slide {
+  position: relative;
   width: 100%;
   height: 100%;
   background-size: cover;
@@ -643,6 +644,104 @@ html, body {
 
 .burger__slide:hover {
   transform: scale(1.05);
+}
+
+/* =========================================================
+   ЭМОЦИОНАЛЬНЫЙ ЦВЕТНОЙ ОВЕРЛЕЙ ПУНКТОВ МЕНЮ
+   Тонкий фирменный градиент поверх фото — разный мягкий оттенок
+   на каждый пункт (морской/изумруд/песочный/лавандовый и т.п.),
+   premium и читаемо, без аляповатости. soft-light не "красит"
+   фото в плоский цвет, а мягко тонирует, сохраняя детали.
+========================================================= */
+.preview-media::before,
+.burger__slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+  transition: opacity 0.4s ease;
+  background: linear-gradient(
+    160deg,
+    rgba(19, 154, 182, 0.55) 0%,
+    rgba(13, 27, 42, 0.15) 55%,
+    transparent 100%
+  );
+}
+
+/* Дополнительная тонкая затемняющая подложка снизу — для читаемости
+   декоративных элементов (точки/стрелки слайдера) над фото */
+.preview-media::after,
+.burger__slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(8, 16, 22, 0.45) 100%);
+}
+
+/* Морской — главная (фирменный тил) */
+.burger-preview[data-tint='sea'] .preview-media::before {
+  background: linear-gradient(
+    160deg,
+    rgba(19, 154, 182, 0.6) 0%,
+    rgba(15, 90, 140, 0.18) 55%,
+    transparent 100%
+  );
+}
+
+/* Тил — апартаменты (слайдер) */
+.burger-preview[data-tint='teal'] .burger__slide::before {
+  background: linear-gradient(
+    160deg,
+    rgba(31, 179, 207, 0.55) 0%,
+    rgba(13, 27, 42, 0.16) 55%,
+    transparent 100%
+  );
+}
+
+/* Изумруд — услуги */
+.burger-preview[data-tint='emerald'] .preview-media::before {
+  background: linear-gradient(
+    160deg,
+    rgba(34, 153, 122, 0.55) 0%,
+    rgba(13, 27, 42, 0.16) 55%,
+    transparent 100%
+  );
+}
+
+/* Лавандовый — уникальный концепт */
+.burger-preview[data-tint='lavender'] .preview-media::before {
+  background: linear-gradient(
+    160deg,
+    rgba(130, 124, 209, 0.5) 0%,
+    rgba(13, 27, 42, 0.16) 55%,
+    transparent 100%
+  );
+}
+
+/* Песочный — новости и предложения */
+.burger-preview[data-tint='sand'] .preview-media::before {
+  background: linear-gradient(
+    160deg,
+    rgba(214, 178, 122, 0.5) 0%,
+    rgba(13, 27, 42, 0.14) 55%,
+    transparent 100%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Закатный — ремонтно-строительная компания */
+.burger-preview[data-tint='dusk'] .preview-media::before {
+  background: linear-gradient(
+    160deg,
+    rgba(199, 110, 99, 0.5) 0%,
+    rgba(13, 27, 42, 0.18) 55%,
+    transparent 100%
+  );
 }
 
 .burger__nav {
@@ -5619,33 +5718,36 @@ html, body {
     display: none;
   }
 
-  /* Кнопка бронирования */
+  /* Кнопка бронирования — без ellipsis, текст переносится при нехватке места */
   .header__booking {
     padding: 10px 18px;
     min-height: 44px;
     font-size: 13px;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
     min-width: 0;
     flex-shrink: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
     max-width: 100%;
     background: rgba(19, 154, 182, 0.9);
     backdrop-filter: blur(6px);
     border-radius: 30px;
   }
 
-  /* Кнопка "Забронировать" на главной */
+  /* Кнопка "Забронировать" на главной — текст не обрезаем (no ellipsis),
+     при нехватке места переносим на 2 строки, читаемо */
   .header__mobile-book-btn {
     position: static;
     transform: none;
     padding: 10px 18px;
     min-height: 44px;
     font-size: 13px;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
     flex-shrink: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
     max-width: 100%;
     margin: 0;
     background: rgba(19, 154, 182, 0.9);
@@ -5730,7 +5832,7 @@ html, body {
   }
 
   .burger-text {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .header__booking-wrapper:not(.is-apartment) {
@@ -5787,8 +5889,8 @@ html, body {
   }
 
   .burger-text {
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 12px;
+    letter-spacing: 0.06em;
   }
 
   .header__booking-wrapper {
@@ -5799,7 +5901,7 @@ html, body {
   .header__booking,
   .header__mobile-book-btn {
     padding: 6px 12px;
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .header--apartment.header--mobile .header__booking.with-apartment,
@@ -6622,7 +6724,7 @@ html, body {
   .header__booking,
   .header__mobile-book-btn {
     padding: 7px 10px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 
   .header--apartment.header--mobile .header__booking.with-apartment,
@@ -6654,13 +6756,13 @@ html, body {
   }
 
   .burger-text {
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 
   .header__booking,
   .header__mobile-book-btn {
     padding: 6px 10px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 
   .header--apartment.header--mobile .header__booking.with-apartment,
@@ -7347,6 +7449,92 @@ html, body {
   }
 }
 
+/* =========================================================
+   LAPTOP COMPACT (1025px – 1366px)
+   isMobile=false здесь (JS switch на 1024), значит рендерится
+   ПОЛНАЯ десктопная форма бронирования. На этих ширинах ей не
+   хватает места рядом с бургером — раньше бургер визуально
+   "наезжал" на поля Заезд/Выезд/Взрослые/Дети (scale(1.5) не
+   занимает место в layout, но рисуется крупнее своего бокса).
+   Решение: убираем визуальный оверфлоу бургера + сжимаем
+   форму бронирования без потери полей (no overflow/no ellipsis).
+========================================================= */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .header {
+    padding: 0 24px;
+  }
+
+  /* Бургер: убираем scale(1.5), который раньше рисовал кнопку
+     крупнее её layout-бокса и наезжал на соседний блок */
+  .header__burger {
+    transform: scale(1);
+    gap: 10px;
+  }
+
+  .header__burger::after {
+    inset: -8px;
+  }
+
+  .burger-icon-svg {
+    width: 22px;
+    height: 15px;
+  }
+
+  .burger-text {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+
+  /* Снимаем фиксированный минимум — пусть форма считается по контенту,
+     но контент сам сжат ниже, поэтому ничего не обрезается */
+  .header__booking-wrapper,
+  .header--hero .header__booking-wrapper {
+    min-width: 0;
+    gap: 14px;
+  }
+
+  .header__booking-fields {
+    gap: 14px;
+    padding-left: 12px;
+    height: auto;
+  }
+
+  .booking-field {
+    min-width: 84px;
+    height: auto;
+  }
+
+  .booking-field label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+
+  .booking-field input,
+  .booking-field select {
+    font-size: 13px;
+  }
+
+  .header__booking {
+    padding: 13px 22px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* Декоративный «свечение» бар под формой — сужаем, чтобы не вылезал
+     за пределы хедера на средних ширинах */
+  .header--hero .header__booking-wrapper::after {
+    width: 700px;
+  }
+
+  /* Капсула апартамент-кнопки (apartment/panorama режимы) — чуть компактнее,
+     хотя она и так умеет сжиматься через is-apartment + inline flex:1 1 0 */
+  .header__booking.with-apartment {
+    padding: 9px 16px;
+  }
+}
+
 /* Контейнер для календаря */
 .header__calendar-popover {
   position: absolute;
@@ -7376,7 +7564,7 @@ html, body {
 @media (max-width: 360px) {
   .header--hero.header--mobile .header__mobile-book-btn {
     padding: 8px 10px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 }
 @media (max-width: 480px) {

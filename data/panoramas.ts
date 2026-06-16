@@ -57,7 +57,7 @@ export const PANORAMAS: Panorama[] = [
     meta: ['До 4 гостей', '88 м²', 'Панорамные окна', 'Зона отдыха'],
   },
   {
-    id: 'ls-lux-sunny-mood', // Это дубль! Должно быть для Sunshine
+    id: 'ls-lux-sunshine',
     title: ' Lux Sunshine',
     image: '/panoramas/LS-Lux-Sunshine.webp',
     maxGuests: 2,

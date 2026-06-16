@@ -108,6 +108,21 @@ export interface BlockedDate {
   source: string;
 }
 
+export interface News {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  cover_image: string | null;
+  is_published: number;
+  is_featured: number;
+  sort_order: number;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Путь к базе данных
 const dbPath = path.join(process.cwd(), 'data.sqlite');
 const db = new Database(dbPath);
@@ -252,6 +267,26 @@ function ensureDatabaseStructure() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Создаём таблицу новостей если нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS news (
+        id TEXT PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        excerpt TEXT,
+        content TEXT,
+        cover_image TEXT,
+        is_published INTEGER NOT NULL DEFAULT 0,
+        is_featured INTEGER NOT NULL DEFAULT 0,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        published_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
+      CREATE INDEX IF NOT EXISTS idx_news_published ON news(is_published, published_at);
     `);
 
     // Создаем таблицу сезонных цен
@@ -902,6 +937,149 @@ export const seasonTemplateService = {
   // Удалить цену апартамента для шаблона
   removeApartmentPrice: (apartmentId: string, templateId: string): void => {
     db.prepare('DELETE FROM apartment_pricing_seasons WHERE apartment_id = ? AND template_id = ?').run(apartmentId, templateId);
+  },
+};
+
+// ── Сервис новостей ────────────────────────────────────────────────────────────
+
+// Транслитерация RU → lat + kebab-case для slug
+export function slugifyNews(input: string): string {
+  const map: Record<string, string> = {
+    а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z',
+    и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+    с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch',
+    ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya',
+  };
+  const base = (input || '')
+    .toLowerCase()
+    .split('')
+    .map((ch) => (map[ch] !== undefined ? map[ch] : ch))
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return base || 'news';
+}
+
+export const newsService = {
+  // Уникальный slug: если занят — добавляем суффикс -2, -3 …
+  ensureUniqueSlug: (desired: string, excludeId?: string): string => {
+    let slug = slugifyNews(desired);
+    let candidate = slug;
+    let n = 2;
+    while (true) {
+      const row = db.prepare('SELECT id FROM news WHERE slug = ?').get(candidate) as { id: string } | undefined;
+      if (!row || (excludeId && row.id === excludeId)) return candidate;
+      candidate = `${slug}-${n++}`;
+    }
+  },
+
+  // Все новости (для админки)
+  getAll: (): News[] =>
+    db.prepare('SELECT * FROM news ORDER BY sort_order ASC, COALESCE(published_at, created_at) DESC').all() as News[],
+
+  // Только опубликованные (для публичной части)
+  getPublished: (): News[] =>
+    db.prepare(`
+      SELECT * FROM news
+      WHERE is_published = 1
+      ORDER BY is_featured DESC, sort_order ASC, COALESCE(published_at, created_at) DESC
+    `).all() as News[],
+
+  getById: (id: string): News | undefined =>
+    db.prepare('SELECT * FROM news WHERE id = ?').get(id) as News | undefined,
+
+  getBySlug: (slug: string): News | undefined =>
+    db.prepare('SELECT * FROM news WHERE slug = ?').get(slug) as News | undefined,
+
+  getPublishedBySlug: (slug: string): News | undefined =>
+    db.prepare('SELECT * FROM news WHERE slug = ? AND is_published = 1').get(slug) as News | undefined,
+
+  create: (data: {
+    title: string;
+    slug?: string;
+    excerpt?: string | null;
+    content?: string | null;
+    cover_image?: string | null;
+    is_published?: boolean;
+    is_featured?: boolean;
+    sort_order?: number;
+    published_at?: string | null;
+  }): News => {
+    const id = uuidv4();
+    const slug = newsService.ensureUniqueSlug(data.slug || data.title);
+    const isPublished = data.is_published ? 1 : 0;
+    const publishedAt = data.published_at ?? (isPublished ? new Date().toISOString() : null);
+    const maxOrder = (db.prepare('SELECT MAX(sort_order) as m FROM news').get() as { m: number | null }).m ?? 0;
+    db.prepare(`
+      INSERT INTO news (id, slug, title, excerpt, content, cover_image, is_published, is_featured, sort_order, published_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      slug,
+      data.title,
+      data.excerpt ?? null,
+      data.content ?? null,
+      data.cover_image ?? null,
+      isPublished,
+      data.is_featured ? 1 : 0,
+      data.sort_order ?? maxOrder + 1,
+      publishedAt
+    );
+    return newsService.getById(id)!;
+  },
+
+  update: (id: string, data: Partial<{
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    content: string | null;
+    cover_image: string | null;
+    is_published: boolean;
+    is_featured: boolean;
+    sort_order: number;
+    published_at: string | null;
+  }>): News | undefined => {
+    const existing = newsService.getById(id);
+    if (!existing) return undefined;
+
+    const updates: string[] = [];
+    const values: unknown[] = [];
+
+    if (data.title !== undefined) { updates.push('title = ?'); values.push(data.title); }
+    if (data.slug !== undefined) {
+      updates.push('slug = ?');
+      values.push(newsService.ensureUniqueSlug(data.slug, id));
+    }
+    if (data.excerpt !== undefined) { updates.push('excerpt = ?'); values.push(data.excerpt); }
+    if (data.content !== undefined) { updates.push('content = ?'); values.push(data.content); }
+    if (data.cover_image !== undefined) { updates.push('cover_image = ?'); values.push(data.cover_image); }
+    if (data.is_featured !== undefined) { updates.push('is_featured = ?'); values.push(data.is_featured ? 1 : 0); }
+    if (data.sort_order !== undefined) { updates.push('sort_order = ?'); values.push(data.sort_order); }
+
+    if (data.is_published !== undefined) {
+      const newPub = data.is_published ? 1 : 0;
+      updates.push('is_published = ?'); values.push(newPub);
+      // При первой публикации проставляем дату, если ещё не задана
+      if (newPub === 1 && !existing.published_at && data.published_at === undefined) {
+        updates.push('published_at = ?'); values.push(new Date().toISOString());
+      }
+    }
+    if (data.published_at !== undefined) { updates.push('published_at = ?'); values.push(data.published_at); }
+
+    if (updates.length === 0) return existing;
+
+    updates.push("updated_at = CURRENT_TIMESTAMP");
+    values.push(id);
+    db.prepare(`UPDATE news SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    return newsService.getById(id);
+  },
+
+  delete: (id: string): boolean => {
+    const existing = db.prepare('SELECT id FROM news WHERE id = ?').get(id);
+    if (!existing) return false;
+    db.prepare('DELETE FROM news WHERE id = ?').run(id);
+    return true;
   },
 };
 

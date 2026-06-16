@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
+import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import './apartment.css';
 
 // ===== FEATURE ICONS (inline SVG, no external deps) =====
@@ -135,6 +136,7 @@ type Props = {
 
 export default function ApartmentHero({ apartment, loading = false }: Props) {
   const { register, unregister } = useHeader();
+  const { open: openPhotoModal } = usePhotoModal();
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -228,6 +230,18 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const hasImages = apartment.images?.length > 0;
 
   const isActive = apartment.isActive !== false;
+
+  const openLightbox = useCallback(() => {
+    if (!hasImages) return;
+    openPhotoModal(apartment.images, activeIndex);
+  }, [hasImages, apartment.images, activeIndex, openPhotoModal]);
+
+  const handlePhotoKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openLightbox();
+    }
+  };
 
   const PhotoArrows = () => {
     if (!hasImages || apartment.images.length < 2) return null;
@@ -351,6 +365,12 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
                 <img
                   src={apartment.images[activeIndex]}
                   alt={apartment.title}
+                  className="cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Открыть фото в полноразмерном просмотре"
+                  onClick={openLightbox}
+                  onKeyDown={handlePhotoKeyDown}
                 />
               )}
               <PhotoArrows />
@@ -425,6 +445,25 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
         ))}
         <div className="hero-slide-background" />
       </div>
+
+      {hasImages && (
+        <button
+          type="button"
+          className="cursor-pointer"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 5,
+            width: '100%',
+            height: '100%',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+          }}
+          aria-label="Открыть фото в полноразмерном просмотре"
+          onClick={openLightbox}
+        />
+      )}
 
       <div className="panorama-overlay mobile" />
 

@@ -18,6 +18,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/news`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
   ];
 
   // Динамические страницы апартаментов
@@ -34,5 +40,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...apartmentPages];
+  // Динамические страницы новостей (только опубликованные)
+  let newsPages: MetadataRoute.Sitemap = [];
+  try {
+    const news = db.prepare(`
+      SELECT slug, COALESCE(updated_at, published_at, created_at) AS last_mod
+      FROM news WHERE is_published = 1
+    `).all() as { slug: string; last_mod: string }[];
+
+    newsPages = news.map((n) => ({
+      url: `${baseUrl}/news/${n.slug}`,
+      lastModified: new Date(n.last_mod),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    }));
+  } catch {
+    newsPages = [];
+  }
+
+  return [...staticPages, ...apartmentPages, ...newsPages];
 }

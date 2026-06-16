@@ -12,6 +12,8 @@ type MenuItem = {
   image?: string;
   images?: string[];
   external?: boolean;
+  /** Фирменный цветовой оверлей превью-фото (эмоциональный, но премиальный) */
+  tint?: 'sea' | 'emerald' | 'sand' | 'lavender' | 'teal' | 'dusk';
 };
 
 type Props = {
@@ -25,24 +27,28 @@ const menuItems: MenuItem[] = [
     href: '/',
     type: 'image',
     image: '/images/menu/home.webp',
+    tint: 'sea',
   },
   {
     title: 'Апартаменты',
     href: '/apartments',
     type: 'slider',
     images: Array.from({ length: 12 }, (_, i) => `/images/apartments/${i + 1}.webp`),
+    tint: 'teal',
   },
   {
     title: 'Услуги',
     href: '/services',
     type: 'image',
     image: '/images/menu/services.webp',
+    tint: 'emerald',
   },
   {
     title: 'Уникальный концепт',
     href: '/concept',
     type: 'image',
     image: '/images/menu/concept.webp',
+    tint: 'lavender',
   },
   {
     title: 'Виртуальный тур',
@@ -54,6 +60,7 @@ const menuItems: MenuItem[] = [
     href: '/news',
     type: 'image',
     image: '/images/menu/news.webp',
+    tint: 'sand',
   },
   {
     title: 'Дизайн / Ремонт\nот ООО «Стиль Жизни»',
@@ -61,6 +68,7 @@ const menuItems: MenuItem[] = [
     type: 'image',
     image: '/images/menu/remont.webp',
     external: true,
+    tint: 'dusk',
   },
 ];
 
@@ -175,6 +183,7 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
           {/* RIGHT */}
           <div
             className="burger-preview"
+            data-tint={activeItem.tint ?? undefined}
             onMouseEnter={() => {}}
             onMouseLeave={() => setHoveredItem(null)}
             onTouchStart={onTouchStart}

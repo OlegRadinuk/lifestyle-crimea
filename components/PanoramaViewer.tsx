@@ -95,23 +95,59 @@ export default function PanoramaViewer() {
     return map[id] || id;
   };
 
+  // Кол-во реально существующих файлов N.webp в public/images/apartments/<folder>/
+  // Сверено вручную с диском (см. devops T3, 2026-06-16) — раньше карта завышала
+  // count для 10 из 13 апартаментов, что приводило к 404 на "Смотреть фото".
   const getPhotoCount = (id: string): number => {
     const map: Record<string, number> = {
       'ls-lux-sweet-caramel': 1,
       'ls-lux-flower-kiss': 1,
-      'ls-lux-soft-blue': 3,
-      'ls-art-crystal-blue': 2,
-      'ls-lux-sunny-mood': 3,
-      'ls-lux-beautiful-days': 3,
-      'ls-lux-sun-rays': 3,
-      'ls-lux-sunshine': 2,
-      'ls-lux-fly-birds': 3,
-      'ls-lux-fly-mood': 3,
-      'ls-lux-fly-sky': 3,
+      'ls-lux-soft-blue': 1,
+      'ls-art-crystal-blue': 1,
+      'ls-lux-sunny-mood': 1,
+      'ls-lux-beautiful-days': 1,
+      'ls-lux-sun-rays': 1,
+      'ls-lux-sunshine': 1,
+      'ls-lux-fly-birds': 1,
+      'ls-lux-fly-mood': 1,
+      'ls-lux-fly-sky': 1,
       'ls-lux-only-you': 1,
-      'ls-art-dream-vacation': 3,
+      'ls-art-dream-vacation': 1,
     };
-    return map[id] || 3;
+    return map[id] || 1;
+  };
+
+  // Гард: строит список фото для апартамента и открывает модалку.
+  // Если id пуст или count <= 0 — не открываем модалку молча, а предупреждаем
+  // в консоли (известный паттерн студии "orphaned image records" — раньше
+  // count в карте расходился с реальными файлами на диске и модалка
+  // открывалась с битыми <img> без единого видимого фото).
+  const handleViewPhotos = (apartmentId: string | undefined) => {
+    const id = apartmentId ?? '';
+    if (!id) {
+      console.warn('[PanoramaViewer] handleViewPhotos: пустой id апартамента, фото не открыты');
+      return;
+    }
+
+    const folder = getPhotoFolder(id);
+    const count = getPhotoCount(id);
+
+    if (!count || count <= 0) {
+      console.warn(`[PanoramaViewer] handleViewPhotos: нет фото для "${id}" (folder="${folder}")`);
+      return;
+    }
+
+    const images: string[] = [];
+    for (let i = 1; i <= count; i++) {
+      images.push(`/images/apartments/${folder}/${i}.webp`);
+    }
+
+    if (images.length === 0) {
+      console.warn(`[PanoramaViewer] handleViewPhotos: список фото пуст для "${id}"`);
+      return;
+    }
+
+    open(images, 0);
   };
 
   // N+1 fetch по is_active удалён: /api/panoramas уже фильтрует is_active = 1.
@@ -589,17 +625,7 @@ export default function PanoramaViewer() {
 
                     <button
                       className="panorama-desktop-btn secondary"
-                      onClick={() => {
-                        const folder = getPhotoFolder(currentPano?.id ?? '');
-                        const count = getPhotoCount(currentPano?.id ?? '');
-
-                        const images = [];
-                        for (let i = 1; i <= count; i++) {
-                          images.push(`/images/apartments/${folder}/${i}.webp`);
-                        }
-
-                        open(images, 0);
-                      }}
+                      onClick={() => handleViewPhotos(currentPano?.id)}
                     >
                       Смотреть фото
                     </button>
@@ -711,17 +737,7 @@ export default function PanoramaViewer() {
             <Link href={`/apartments/${currentPano?.id ?? ''}`} className="panorama-action-btn primary">Перейти в апартамент</Link>
             <button
               className="panorama-action-btn secondary"
-              onClick={() => {
-                const folder = getPhotoFolder(currentPano?.id ?? '');
-                const count = getPhotoCount(currentPano?.id ?? '');
-                
-                const images = [];
-                for (let i = 1; i <= count; i++) {
-                  images.push(`/images/apartments/${folder}/${i}.webp`);
-                }
-                
-                open(images, 0);
-              }}
+              onClick={() => handleViewPhotos(currentPano?.id)}
             >
               Смотреть фото
             </button>
