@@ -4,6 +4,7 @@ import Link from 'next/link';
 import JsonLd from '@/components/JsonLd';
 import Footer from '@/components/Footer';
 import ConceptHeaderMode from './ConceptHeaderMode';
+import ConceptReveal from './ConceptReveal';
 import {
   IconBlueprint,
   IconHotel,
@@ -90,11 +91,11 @@ interface LineItem {
 const lines: LineItem[] = [
   {
     name: 'LS-ART',
-    cta: 'Готовы превратить идею в прибыльный объект? Обсудите с нами ваш проект и узнайте о наших кейсах — сделаем следующий шаг вместе. Мы уже готовы начать!',
+    cta: 'Готовы превратить идею в прибыльный объект? Обсудите с нами ваш проект и узнайте о наших кейсах — сделаем следующий шаг вместе.',
   },
   {
     name: 'LS-ART+',
-    cta: 'Готовы превратить идею в прибыльный объект? Обсудите с нами ваш проект и узнайте о наших кейсах — сделаем следующий шаг вместе. Мы уже готовы начать!',
+    cta: 'Готовы превратить идею в прибыльный объект? Обсудите с нами ваш проект и узнайте о наших кейсах — сделаем следующий шаг вместе.',
   },
   {
     name: 'LS-LUX',
@@ -152,10 +153,11 @@ export default function ConceptPage() {
   return (
     <main className="cp-page">
       <ConceptHeaderMode />
+      <ConceptReveal />
       <JsonLd data={jsonLd} />
 
-      {/* ===== HERO ===== */}
-      <section className="cp-hero">
+      {/* ===== HERO FULL-BLEED ===== */}
+      <header className="cp-hero">
         <div className="cp-hero-media">
           <Image
             src="/images/menu/concept.webp"
@@ -166,40 +168,43 @@ export default function ConceptPage() {
           />
         </div>
         <div className="cp-hero-inner">
-          <p className="cp-hero-eyebrow">Уникальный концепт</p>
+          <p className="cp-hero-eyebrow">ИНВЕСТИЦИИ · ЮБК</p>
           <h1 className="cp-hero-title">
             Инвестируйте в <strong>недвижимость</strong> на Южном Берегу Крыма
           </h1>
-          <p className="cp-hero-lead">
+          <p className="cp-hero-subtitle">
             Мы предлагаем готовые инвестиционные проекты в гостиничной сфере, превращая обычную
-            недвижимость в высокодоходный актив. Наша команда создаёт эксклюзивные концептуальные
-            решения, разрабатывает дизайн-проекты и полностью реализует комплексные ремонты. Под
-            профессиональным управлением наших специалистов недвижимость начинает приносить
-            стабильную прибыль инвесторам. Мы берём на себя полный цикл управления объектами — от
-            небольших апартаментов до мини-отелей и баз отдыха.
+            недвижимость в высокодоходный актив. Полный цикл — концепция, дизайн, ремонт под ключ
+            и профессиональное управление.
           </p>
+          <div className="cp-hero-meta">
+            <span className="cp-hero-chip">Готовые проекты</span>
+            <span className="cp-hero-chip">Управление недвижимостью</span>
+            <span className="cp-hero-chip">Алушта · Ялта · Судак</span>
+          </div>
           <div className="cp-hero-actions">
             <a href="#ready-projects" className="cp-btn-primary">
               Готовые проекты
               <IconArrowDown />
             </a>
-            <a href="#management" className="cp-btn-outline">
+            <a href="#management" className="cp-btn-secondary">
               Управление недвижимостью
               <IconArrowDown />
             </a>
           </div>
         </div>
-      </section>
+      </header>
 
       {/* ===== 4 ТЕЗИСА ===== */}
       <section className="cp-section">
-        <p className="cp-eyebrow">Почему это работает</p>
-        <h2 className="cp-section-title">Четыре опоры нашего подхода к инвестициям</h2>
+        <p className="cp-eyebrow cp-reveal">Почему это работает</p>
+        <h2 className="cp-section-title cp-reveal cp-reveal-delay-1">Четыре опоры нашего подхода к инвестициям</h2>
         <div className="cp-thesis-grid">
-          {theses.map((item) => {
+          {theses.map((item, i) => {
             const Icon = item.icon;
+            const delayClass = i === 0 ? '' : i === 1 ? 'cp-reveal-delay-1' : i === 2 ? 'cp-reveal-delay-2' : 'cp-reveal-delay-3';
             return (
-              <div className="cp-thesis-card" key={item.title}>
+              <div className={`cp-thesis-card cp-reveal ${delayClass}`} key={item.title}>
                 <Icon className="cp-thesis-icon" />
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
@@ -209,42 +214,12 @@ export default function ConceptPage() {
         </div>
       </section>
 
-      {/* ===== ДВЕ ГЛАВНЫЕ СЕКЦИИ — переходы ===== */}
-      <section className="cp-section" style={{ paddingTop: 0 }}>
-        <div className="cp-pillars">
-          <a href="#ready-projects" className="cp-pillar-card cp-pillar-card--a">
-            <p className="cp-pillar-eyebrow">Раздел 01</p>
-            <h3>Готовые проекты</h3>
-            <p>
-              Полностью подготовленные объекты для инвестиций — концепция, дизайн, ремонт и
-              оснащение. Объект запускается под ключ.
-            </p>
-            <span className="cp-pillar-link">
-              Перейти к линейкам
-              <IconArrowDown />
-            </span>
-          </a>
-          <a href="#management" className="cp-pillar-card cp-pillar-card--b">
-            <p className="cp-pillar-eyebrow">Раздел 02</p>
-            <h3>Управление недвижимостью</h3>
-            <p>
-              Полный контроль над объектом: бронирование, обслуживание гостей, маркетинг,
-              отчётность и повышение доходности.
-            </p>
-            <span className="cp-pillar-link">
-              Узнать подробнее
-              <IconArrowDown />
-            </span>
-          </a>
-        </div>
-      </section>
-
       {/* ===== (А) ГОТОВЫЕ ПРОЕКТЫ ===== */}
       <section id="ready-projects" className="cp-section--tinted">
         <div className="cp-section--tinted-inner">
-          <p className="cp-eyebrow">01 — Готовые проекты</p>
-          <h2 className="cp-section-title">Объекты, готовые приносить прибыль с первого дня</h2>
-          <p className="cp-section-text">
+          <p className="cp-eyebrow cp-reveal">01 — Готовые проекты</p>
+          <h2 className="cp-section-title cp-reveal cp-reveal-delay-1">Объекты, готовые приносить прибыль с первого дня</h2>
+          <p className="cp-section-text cp-reveal cp-reveal-delay-2">
             Готовые проекты, созданные специалистами компании Стиль Жизни, — это полностью
             подготовленные объекты для инвестиций. Мы создаём концепцию, разрабатываем дизайн,
             выполняем ремонт и оснащение, формируя недвижимость, которая сразу готова приносить
@@ -252,73 +227,86 @@ export default function ConceptPage() {
           </p>
 
           <div className="cp-lines-grid">
-            {lines.map((line) => (
-              <article className="cp-line-card" key={line.name}>
-                <div className="cp-line-photo">
-                  <div className="cp-line-photo-placeholder">
-                    <IconBlueprint />
-                    <span>Фото кейса {line.name} — добавить</span>
+            {lines.map((line, i) => {
+              const delayClass = i % 3 === 0 ? '' : i % 3 === 1 ? 'cp-reveal-delay-1' : 'cp-reveal-delay-2';
+              return (
+                <article className={`cp-line-card cp-reveal ${delayClass}`} key={line.name}>
+                  <div className="cp-line-photo">
+                    <div className="cp-line-photo-placeholder">
+                      <IconBlueprint />
+                      <span>{line.name}</span>
+                    </div>
+                    <div className="cp-line-overlay" />
+                    <div className="cp-line-badge">{line.name}</div>
                   </div>
-                </div>
-                <div className="cp-line-body">
-                  <h3 className="cp-line-name">{line.name}</h3>
-                  <p className="cp-line-tagline">{line.cta}</p>
-                  <a href={PHONE_FREE_TEL} className="cp-btn-outline on-light cp-line-cta">
-                    <IconPhone />
-                    Контакты для связи
-                  </a>
-                </div>
-              </article>
-            ))}
+                  <div className="cp-line-body">
+                    <p className="cp-line-tagline">{line.cta}</p>
+                    <a href={PHONE_FREE_TEL} className="cp-btn-pill">
+                      <IconPhone />
+                      Контакты для связи
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ===== (Б) УПРАВЛЕНИЕ НЕДВИЖИМОСТЬЮ ===== */}
-      <section id="management" className="cp-section">
-        <p className="cp-eyebrow">02 — Управление недвижимостью</p>
-        <h2 className="cp-section-title">Работающий бизнес без забот для инвестора</h2>
-        <p className="cp-section-text">
-          Управление недвижимостью — это полный контроль над объектом: бронирование, обслуживание
-          гостей, уборка, маркетинг, отчётность, ремонт и повышение доходности. Мы превращаем
-          недвижимость в работающий бизнес, освобождая инвестора от всех забот.
-        </p>
-        <p className="cp-section-text">
-          Гостиничная индустрия — один из самых устойчивых и востребованных рынков: люди
-          путешествуют круглый год, поэтому объекты обеспечивают стабильный спрос и высокую
-          загрузку. Ежегодный доход — стабильная прибыль, которую инвестор получает каждый год за
-          счёт заселения, грамотного ценообразования и профессионального управления.
-        </p>
-        <p className="cp-section-text">
-          Мы работаем с любыми объектами в Алуште, Ялте, Судаке: апартаменты, квартиры, дома,
-          мини-отели, виллы и курортные объекты — адаптируем стратегию под каждый формат.
-        </p>
-
-        <div className="cp-cities">
-          {cities.map((city) => (
-            <span className="cp-city-chip" key={city}>
-              <IconPin />
-              {city}
-            </span>
-          ))}
+      <section id="management" className="cp-management">
+        <div className="cp-management-media">
+          <Image
+            src="/images/menu/concept.webp"
+            alt="Управление недвижимостью Life Style Crimea"
+            fill
+            sizes="100vw"
+          />
         </div>
+        <div className="cp-management-inner">
+          <p className="cp-eyebrow cp-eyebrow--light cp-reveal">02 — Управление недвижимостью</p>
+          <h2 className="cp-management-title cp-reveal cp-reveal-delay-1">Работающий бизнес без забот для инвестора</h2>
+          <p className="cp-management-text cp-reveal cp-reveal-delay-2">
+            Управление недвижимостью — это полный контроль над объектом: бронирование, обслуживание
+            гостей, уборка, маркетинг, отчётность, ремонт и повышение доходности. Мы превращаем
+            недвижимость в работающий бизнес, освобождая инвестора от всех забот.
+          </p>
+          <p className="cp-management-text cp-reveal cp-reveal-delay-2">
+            Гостиничная индустрия — один из самых устойчивых рынков: люди путешествуют круглый год.
+            Ежегодный доход — стабильная прибыль за счёт заселения, грамотного ценообразования и
+            профессионального управления.
+          </p>
+          <p className="cp-management-text cp-reveal cp-reveal-delay-3">
+            Мы работаем с любыми объектами в Алуште, Ялте, Судаке: апартаменты, квартиры, дома,
+            мини-отели, виллы и курортные объекты — адаптируем стратегию под каждый формат.
+          </p>
 
-        <div className="cp-pillar-card cp-pillar-card--b" style={{ marginTop: 36, cursor: 'default' }}>
-          <p className="cp-pillar-eyebrow">Форматы объектов</p>
-          <h3>Адаптируем стратегию под каждый формат</h3>
-          <div className="cp-formats">
-            {formats.map((format) => (
-              <div className="cp-format-item" key={format}>
-                {format}
-              </div>
+          <div className="cp-cities cp-reveal cp-reveal-delay-3">
+            {cities.map((city) => (
+              <span className="cp-city-chip" key={city}>
+                <IconPin />
+                {city}
+              </span>
             ))}
+          </div>
+
+          <div className="cp-formats-block cp-reveal">
+            <p className="cp-formats-label">Форматы объектов</p>
+            <div className="cp-formats">
+              {formats.map((format) => (
+                <div className="cp-format-item" key={format}>
+                  {format}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ===== ФИНАЛЬНЫЙ CTA ===== */}
       <section className="cp-final-cta">
-        <div className="cp-final-cta-card">
+        <div className="cp-final-cta-card cp-reveal">
+          <p className="cp-final-eyebrow">Начните сегодня</p>
           <h2>Готовы обсудить ваш инвестиционный проект?</h2>
           <p>
             Расскажите о вашем объекте или идее — подберём концепцию и формат, который начнёт
@@ -329,14 +317,14 @@ export default function ConceptPage() {
               <IconPhone />
               {PHONE_FREE} (бесплатно)
             </a>
-            <a href={PHONE_MAIN_TEL} className="cp-btn-outline">
+            <a href={PHONE_MAIN_TEL} className="cp-btn-secondary">
               <IconPhone />
               {PHONE_MAIN_DISPLAY}
             </a>
           </div>
           <p className="cp-final-cta-note">
             Также смотрите{' '}
-            <Link href="/services" style={{ color: '#fff', textDecoration: 'underline' }}>
+            <Link href="/services" style={{ color: '#4fd0e8', textDecoration: 'underline' }}>
               услуги резидентам апартаментов
             </Link>
           </p>

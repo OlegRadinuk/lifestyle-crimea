@@ -1,23 +1,30 @@
 /* =========================
    CONCEPT PAGE — «Уникальный концепт»
-   Визуальный язык: см. app/apartments/[id]/apartment.css (эталон)
+   Визуальный язык: полное соответствие /news — панорама, кинематограф.
+   Акцент: #139ab6 (морской тил), Montserrat, full-bleed кинофото,
+   градиент-оверлеи, pill-кнопки, eyebrow, чипы-мета.
 ========================= */
 
+/* ── ПЕРЕМЕННЫЕ ─────────────────────────────────────────── */
 .cp-page {
-  background: #ffffff;
-  color: #343a40;
+  --cp-teal: #139ab6;
+  --cp-teal-dark: #0d7e96;
+  --cp-ink: #0d1b22;
+  --cp-muted: rgba(255, 255, 255, 0.7);
+  --cp-bg: #ffffff;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  background: var(--cp-bg);
+  color: #1a2e35;
   min-height: 100vh;
-  position: relative;
   overflow-x: clip;
 }
 
-/* ===== HERO ===== */
-
+/* ── HERO (FULL-BLEED) ──────────────────────────────────── */
 .cp-hero {
   position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   overflow: hidden;
   background: #0d1b22;
 }
@@ -32,126 +39,189 @@
   object-fit: cover;
 }
 
+/* Градиент-оверлей: сверху лёгкий (хедер читаемый), снизу тёмный (текст читаемый) */
 .cp-hero-media::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(8, 18, 24, 0.55) 0%, rgba(8, 18, 24, 0.35) 45%, rgba(8, 18, 24, 0.85) 100%);
+    linear-gradient(
+      180deg,
+      rgba(8, 18, 24, 0.45) 0%,
+      rgba(8, 18, 24, 0.1) 40%,
+      rgba(8, 18, 24, 0.72) 75%,
+      rgba(8, 18, 24, 0.94) 100%
+    );
+  z-index: 1;
 }
 
 .cp-hero-inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
-  padding: 150px 24px 110px;
+  padding: 120px 32px 80px;
 }
 
 .cp-hero-eyebrow {
-  font-size: 13px;
-  letter-spacing: 0.3em;
+  font-size: 12px;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 18px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 20px;
+  font-weight: 500;
 }
 
 .cp-hero-title {
-  font-size: clamp(34px, 5.2vw, 64px);
-  line-height: 1.12;
-  font-weight: 500;
-  color: #ffffff;
-  max-width: 880px;
-  margin: 0 0 28px 0;
+  font-size: clamp(36px, 5.6vw, 72px);
+  line-height: 1.06;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 22px;
+  letter-spacing: -0.02em;
+  max-width: 860px;
 }
 
 .cp-hero-title strong {
   color: #4fd0e8;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.cp-hero-lead {
-  font-size: 17px;
+.cp-hero-subtitle {
+  font-size: clamp(15px, 2vw, 18px);
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.82);
-  max-width: 680px;
-  margin: 0 0 40px 0;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 36px;
+  max-width: 620px;
+  font-weight: 300;
 }
 
-.cp-hero-actions {
+/* Чипы-мета в герое */
+.cp-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 10px;
+  margin: 0 0 36px;
 }
 
-/* ===== BUTTONS (общий стиль с apartments) ===== */
-
-.cp-btn-primary {
-  background: linear-gradient(135deg, #139ab6, #1fb3cf);
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  padding: 16px 32px;
-  min-height: 48px;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(19, 154, 182, 0.35);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-decoration: none;
+.cp-hero-chip {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-}
-
-.cp-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 45px rgba(19, 154, 182, 0.45);
-}
-
-.cp-btn-outline {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 30px;
-  padding: 16px 32px;
-  min-height: 48px;
-  font-size: 14px;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(19, 154, 182, 0.22);
+  border: 1px solid rgba(19, 154, 182, 0.45);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  letter-spacing: 0.04em;
   backdrop-filter: blur(6px);
 }
 
-.cp-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.6);
+/* Кнопки в герое — pill */
+.cp-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
 }
 
-.cp-page .cp-btn-outline.on-light {
+.cp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 32px;
+  border-radius: 999px;
+  background: #139ab6;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14.5px;
+  letter-spacing: 0.02em;
+  transition: background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 8px 24px rgba(19, 154, 182, 0.38);
+  border: none;
+  cursor: pointer;
+}
+
+.cp-btn-primary:hover {
+  background: #0d7e96;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(19, 154, 182, 0.48);
+}
+
+.cp-btn-primary svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.cp-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 32px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14.5px;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+  transition: background 0.22s ease, transform 0.22s ease;
+  cursor: pointer;
+}
+
+.cp-btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.65);
+  transform: translateY(-2px);
+}
+
+.cp-btn-secondary svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Pill-кнопка на светлом фоне (карточки линеек) */
+.cp-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: transparent;
   color: #139ab6;
-  border-color: rgba(19, 154, 182, 0.4);
-  background: rgba(19, 154, 182, 0.06);
+  border: 1px solid rgba(19, 154, 182, 0.45);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+  cursor: pointer;
 }
 
-.cp-page .cp-btn-outline.on-light:hover {
-  background: rgba(19, 154, 182, 0.12);
+.cp-btn-pill:hover {
+  background: rgba(19, 154, 182, 0.08);
   border-color: #139ab6;
+  transform: translateY(-1px);
 }
 
-/* ===== SECTION SHELL ===== */
+.cp-btn-pill svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
 
+/* ── SECTION SHELL ──────────────────────────────────────── */
 .cp-section {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 100px 24px;
+  padding: 100px 32px;
 }
 
 .cp-section--tinted {
@@ -161,25 +231,30 @@
 .cp-section--tinted-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 100px 24px;
+  padding: 100px 32px;
 }
 
 .cp-eyebrow {
-  font-size: 13px;
+  font-size: 11.5px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #139ab6;
+  margin: 0 0 20px;
   font-weight: 600;
-  margin-bottom: 16px;
+}
+
+.cp-eyebrow--light {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cp-section-title {
   font-size: clamp(28px, 3.6vw, 44px);
   line-height: 1.18;
-  font-weight: 500;
-  color: #1a2a33;
-  margin: 0 0 24px 0;
+  font-weight: 600;
+  color: #0d1b22;
+  margin: 0 0 24px;
   max-width: 760px;
+  letter-spacing: -0.01em;
 }
 
 .cp-section-text {
@@ -187,15 +262,11 @@
   line-height: 1.75;
   color: #4a5a63;
   max-width: 760px;
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
+  font-weight: 300;
 }
 
-.cp-section-text:last-of-type {
-  margin-bottom: 0;
-}
-
-/* ===== 4 ТЕЗИСА ===== */
-
+/* ── 4 ТЕЗИСА (ПРЕМИУМ-КАРТОЧКИ) ───────────────────────── */
 .cp-thesis-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -204,202 +275,219 @@
 }
 
 .cp-thesis-card {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(19, 154, 182, 0.16);
-  border-radius: 24px;
-  padding: 32px 26px;
-  box-shadow: 0 16px 40px rgba(15, 35, 45, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  border: 1px solid rgba(19, 154, 182, 0.14);
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 8px 32px rgba(13, 27, 34, 0.06);
+  transition: transform 0.32s ease, box-shadow 0.32s ease;
 }
 
 .cp-thesis-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 55px rgba(19, 154, 182, 0.16);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 56px rgba(19, 154, 182, 0.16);
 }
 
 .cp-thesis-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   color: #139ab6;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  display: block;
 }
 
 .cp-thesis-card h3 {
   font-size: 18px;
-  font-weight: 600;
-  color: #1a2a33;
-  margin: 0 0 10px 0;
-  line-height: 1.35;
+  font-weight: 700;
+  color: #0d1b22;
+  margin: 0 0 12px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .cp-thesis-card p {
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: #5a6b73;
-  margin: 0;
-}
-
-/* ===== ДВЕ ГЛАВНЫЕ СЕКЦИИ — переходы ===== */
-
-.cp-pillars {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  margin-top: 56px;
-}
-
-.cp-pillar-card {
-  position: relative;
-  border-radius: 28px;
-  padding: 44px 40px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.cp-pillar-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 30px 70px rgba(19, 154, 182, 0.18);
-}
-
-.cp-pillar-card--a {
-  background: linear-gradient(150deg, #0d2733 0%, #123d4d 100%);
-  color: #ffffff;
-}
-
-.cp-pillar-card--b {
-  background: linear-gradient(150deg, #139ab6 0%, #0d6b7f 100%);
-  color: #ffffff;
-}
-
-.cp-pillar-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  opacity: 0.7;
-  margin-bottom: 14px;
-}
-
-.cp-pillar-card h3 {
-  font-size: 28px;
-  font-weight: 500;
-  margin: 0 0 16px 0;
-  line-height: 1.25;
-}
-
-.cp-pillar-card p {
   font-size: 15px;
   line-height: 1.65;
-  opacity: 0.88;
-  margin: 0 0 28px 0;
-  max-width: 90%;
+  color: #4a6067;
+  margin: 0;
+  font-weight: 400;
 }
 
-.cp-pillar-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: auto;
-}
-
-.cp-pillar-link svg {
-  width: 16px;
-  height: 16px;
-  transform: rotate(-90deg);
-  transition: transform 0.3s ease;
-}
-
-.cp-pillar-card:hover .cp-pillar-link svg {
-  transform: rotate(-90deg) translateX(3px);
-}
-
-/* ===== ГОТОВЫЕ ПРОЕКТЫ — линейки ===== */
-
+/* ── ЛИНЕЙКИ ПРОЕКТОВ (КИНЕМАТОГРАФИЧНЫЕ КАРТОЧКИ) ─────── */
 .cp-lines-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
   margin-top: 56px;
 }
 
+/* 7-я карточка одна в ряду — ограничиваем ширину */
+.cp-lines-grid .cp-line-card:last-child:nth-child(3n + 1) {
+  grid-column: 1 / 2;
+}
+/* Если JS-рендер не даёт nth-child — fallback: 7 элементов в сетке 3 col */
+
+/* Кинематографичная карточка: фото-фон + градиент-оверлей */
 .cp-line-card {
-  background: #ffffff;
-  border: 1px solid rgba(19, 154, 182, 0.16);
-  border-radius: 24px;
+  position: relative;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(15, 35, 45, 0.05);
+  background: #1a2e35;
+  box-shadow: 0 8px 32px rgba(13, 27, 34, 0.16);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.32s ease, box-shadow 0.32s ease;
+}
+
+.cp-line-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 56px rgba(13, 27, 34, 0.28);
 }
 
 .cp-line-photo {
   position: relative;
   height: 200px;
-  background: linear-gradient(135deg, #eef5f7 0%, #dfeef2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid rgba(19, 154, 182, 0.12);
+  overflow: hidden;
 }
 
 .cp-line-photo-placeholder {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  color: #8aa6ad;
-  text-align: center;
-  padding: 0 20px;
+  background: linear-gradient(135deg, #0d2a35 0%, #1a6878 60%, #139ab6 100%);
+  transition: transform 0.5s ease;
+}
+
+.cp-line-card:hover .cp-line-photo-placeholder {
+  transform: scale(1.05);
 }
 
 .cp-line-photo-placeholder svg {
-  width: 34px;
-  height: 34px;
-  opacity: 0.6;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.18);
 }
 
 .cp-line-photo-placeholder span {
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  line-height: 1.5;
+  display: none;
+}
+
+.cp-line-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 25%,
+      rgba(8, 18, 24, 0.45) 65%,
+      rgba(8, 18, 24, 0.88) 100%
+    );
+  z-index: 1;
+}
+
+/* Бейдж с названием линейки — поверх градиента */
+.cp-line-badge {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  z-index: 2;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
 }
 
 .cp-line-body {
-  padding: 28px 28px 32px;
-}
-
-.cp-line-name {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1a2a33;
-  margin: 0 0 10px 0;
+  padding: 22px 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fff;
+  flex: 1;
 }
 
 .cp-line-tagline {
   font-size: 14px;
-  line-height: 1.6;
-  color: #5a6b73;
-  margin: 0 0 22px 0;
+  line-height: 1.65;
+  color: #4a6067;
+  margin: 0;
+  font-weight: 400;
 }
 
-.cp-line-cta {
-  display: inline-flex;
+/* ── УПРАВЛЕНИЕ НЕДВИЖИМОСТЬЮ (EDITORIAL FULL-BLEED) ────── */
+.cp-management {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  overflow: hidden;
+  background: #0d1b22;
 }
 
-/* ===== УПРАВЛЕНИЕ — ключевые цифры/города ===== */
+.cp-management-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
 
+.cp-management-media img {
+  object-fit: cover;
+  opacity: 0.35;
+}
+
+.cp-management-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(8, 18, 24, 0.96) 0%,
+      rgba(8, 18, 24, 0.82) 50%,
+      rgba(8, 18, 24, 0.45) 100%
+    );
+  z-index: 1;
+}
+
+.cp-management-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 100px 32px;
+}
+
+.cp-management-title {
+  font-size: clamp(30px, 4.2vw, 52px);
+  line-height: 1.1;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 32px;
+  max-width: 640px;
+  letter-spacing: -0.02em;
+}
+
+.cp-management-text {
+  font-size: 16px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 640px;
+  margin: 0 0 18px;
+  font-weight: 300;
+}
+
+/* Чипы городов на тёмном фоне */
 .cp-cities {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
   margin-top: 32px;
 }
 
@@ -407,108 +495,142 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 8px 18px;
   border-radius: 999px;
-  background: rgba(19, 154, 182, 0.08);
-  border: 1px solid rgba(19, 154, 182, 0.2);
-  color: #0d6b7f;
-  font-size: 14px;
+  background: rgba(19, 154, 182, 0.2);
+  border: 1px solid rgba(19, 154, 182, 0.4);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13.5px;
   font-weight: 500;
+  backdrop-filter: blur(6px);
 }
 
 .cp-city-chip svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+  color: #4fd0e8;
+}
+
+/* Форматы объектов — на тёмном фоне */
+.cp-formats-block {
+  margin-top: 40px;
+}
+
+.cp-formats-label {
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 18px;
+  font-weight: 600;
 }
 
 .cp-formats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .cp-format-item {
-  padding: 18px 20px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-size: 14.5px;
-  color: #ffffff;
-  text-align: center;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
 }
 
-/* ===== ФИНАЛЬНЫЙ CTA ===== */
-
+/* ── ФИНАЛЬНЫЙ CTA ──────────────────────────────────────── */
 .cp-final-cta {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px 120px;
+  padding: 100px 32px 120px;
   text-align: center;
+}
+
+.cp-final-eyebrow {
+  font-size: 11.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #139ab6;
+  margin: 0 0 20px;
+  font-weight: 600;
 }
 
 .cp-final-cta-card {
   background: linear-gradient(135deg, #0d2733 0%, #139ab6 100%);
-  border-radius: 32px;
-  padding: 64px 40px;
-  color: #ffffff;
+  border-radius: 28px;
+  padding: 72px 48px;
+  color: #fff;
+  box-shadow: 0 24px 64px rgba(13, 27, 34, 0.24);
 }
 
 .cp-final-cta-card h2 {
-  font-size: clamp(26px, 3.4vw, 38px);
-  font-weight: 500;
-  margin: 0 0 18px 0;
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: 600;
+  margin: 0 0 18px;
+  letter-spacing: -0.01em;
 }
 
-.cp-final-cta-card p {
+.cp-final-cta-card > p {
   font-size: 16px;
   line-height: 1.7;
-  opacity: 0.88;
-  max-width: 620px;
-  margin: 0 auto 36px;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 560px;
+  margin: 0 auto 40px;
+  font-weight: 300;
 }
 
 .cp-final-cta-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .cp-final-cta-note {
-  margin-top: 22px;
+  margin-top: 24px;
   font-size: 13px;
-  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.04em;
 }
 
-/* =========================
-   ДЕСКТОП — выравнивание под фикс-хедер
-========================= */
+/* ── REVEAL-АНИМАЦИИ ────────────────────────────────────── */
+.cp-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.cp-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.cp-reveal-delay-1 { transition-delay: 0.08s; }
+.cp-reveal-delay-2 { transition-delay: 0.16s; }
+.cp-reveal-delay-3 { transition-delay: 0.24s; }
+
+/* ── АДАПТИВ ─────────────────────────────────────────────── */
 
 @media (min-width: 1025px) {
   .cp-hero-inner {
-    padding-top: 168px;
+    padding-top: 140px;
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
-  .cp-hero-inner {
-    padding-top: 150px;
-  }
-}
-
-/* =========================
-   ПЛАНШЕТ
-========================= */
-
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .cp-thesis-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .cp-pillars {
-    grid-template-columns: 1fr;
   }
 
   .cp-lines-grid {
@@ -516,36 +638,22 @@
   }
 }
 
-/* =========================
-   МОБИЛЬНАЯ ВЕРСИЯ
-========================= */
-
 @media (max-width: 768px) {
   .cp-hero {
-    min-height: 100vh;
+    min-height: 100dvh;
+    align-items: flex-end;
   }
 
   .cp-hero-inner {
-    padding: 118px 20px 64px;
+    padding: 100px 20px 64px;
   }
 
   .cp-hero-title {
-    font-size: clamp(28px, 8vw, 40px);
+    font-size: clamp(30px, 9vw, 46px);
   }
 
-  .cp-hero-lead {
-    font-size: 15.5px;
-  }
-
-  .cp-hero-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .cp-btn-primary,
-  .cp-btn-outline {
-    justify-content: center;
-    width: 100%;
+  .cp-hero-subtitle {
+    font-size: 15px;
   }
 
   .cp-section {
@@ -560,69 +668,87 @@
     font-size: clamp(24px, 7vw, 30px);
   }
 
-  .cp-section-text {
-    font-size: 15.5px;
-  }
-
   .cp-thesis-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    margin-top: 36px;
-  }
-
-  .cp-thesis-card {
-    padding: 26px 22px;
-  }
-
-  .cp-pillars {
-    margin-top: 36px;
-    gap: 18px;
-  }
-
-  .cp-pillar-card {
-    padding: 32px 26px;
-    min-height: auto;
-  }
-
-  .cp-pillar-card h3 {
-    font-size: 22px;
-  }
-
-  .cp-pillar-card p {
-    max-width: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 32px;
   }
 
   .cp-lines-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    margin-top: 36px;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  /* На мобиле сбрасываем десктопное правило nth-child */
+  .cp-lines-grid .cp-line-card:last-child:nth-child(3n + 1) {
+    grid-column: auto;
+  }
+  /* Последняя нечётная из 7 — не растягивать */
+  .cp-lines-grid .cp-line-card:last-child:nth-child(odd) {
+    grid-column: 1 / 2;
   }
 
   .cp-line-photo {
-    height: 160px;
+    height: 140px;
+  }
+
+  .cp-line-badge {
+    font-size: 16px;
+    bottom: 12px;
+    left: 14px;
   }
 
   .cp-line-body {
-    padding: 22px 22px 26px;
+    padding: 14px 14px 18px;
+    gap: 12px;
   }
 
-  .cp-formats {
-    grid-template-columns: 1fr 1fr;
+  .cp-line-tagline {
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  .cp-btn-pill {
+    font-size: 12px;
+    padding: 9px 16px;
+  }
+
+  .cp-management {
+    min-height: auto;
+  }
+
+  .cp-management-inner {
+    padding: 72px 20px 80px;
+  }
+
+  .cp-management-title {
+    font-size: clamp(26px, 8vw, 36px);
   }
 
   .cp-final-cta {
-    padding: 0 20px 72px;
+    padding: 64px 20px 80px;
   }
 
   .cp-final-cta-card {
-    padding: 44px 24px;
-    border-radius: 24px;
+    padding: 48px 24px;
+    border-radius: 20px;
+  }
+
+  .cp-final-cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cp-btn-primary,
+  .cp-btn-secondary {
+    justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
   .cp-hero-inner {
-    padding: 104px 16px 52px;
+    padding: 96px 16px 52px;
   }
 
   .cp-section {
@@ -633,7 +759,40 @@
     padding: 52px 16px;
   }
 
-  .cp-formats {
+  .cp-thesis-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .cp-thesis-card {
+    padding: 24px 22px;
+  }
+
+  .cp-thesis-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 16px;
+  }
+
+  .cp-lines-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .cp-line-photo {
+    height: 120px;
+  }
+
+  .cp-management-inner {
+    padding: 56px 16px 64px;
+  }
+
+  .cp-formats {
+    gap: 8px;
+  }
+
+  .cp-format-item {
+    font-size: 12.5px;
+    padding: 7px 14px;
   }
 }

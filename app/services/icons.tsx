@@ -318,3 +318,92 @@ export function IconArrowRight({ className }: IconProps) {
     </svg>
   );
 }
+
+/* === Карта иконок для динамического выбора (страница /services + админка) ===
+ * Ключ → SVG-компонент. И публичная страница, и форма админки используют
+ * этот единый источник, чтобы список доступных иконок не разъезжался.
+ * Менеджер выбирает иконку по ключу в дропдауне; страница рендерит её по ключу
+ * с фолбэком на DEFAULT_SERVICE_ICON_KEY, если ключ пустой/неизвестный.
+ */
+export type ServiceIconComponent = (props: IconProps) => React.ReactElement;
+
+export const SERVICE_ICONS: Record<string, ServiceIconComponent> = {
+  // В апартаментах
+  balcony: IconBalcony,
+  shower: IconShower,
+  tv: IconTv,
+  ac: IconAc,
+  fridge: IconFridge,
+  kettle: IconKettle,
+  induction: IconInduction,
+  coffee: IconCoffee,
+  wifi: IconWifi,
+  plus: IconPlus,
+  // Услуги
+  breakfast: IconBreakfast,
+  'full-board': IconFullBoard,
+  excursion: IconExcursion,
+  cleaning: IconCleaning,
+  iron: IconIron,
+  laundry: IconLaundry,
+  transfer: IconTransfer,
+  taxi: IconTaxi,
+  // Инфраструктура
+  'sea-walk': IconSeaWalk,
+  lounge: IconLounge,
+  bbq: IconBbq,
+  sport: IconSport,
+  playground: IconPlayground,
+  parking: IconParking,
+  store: IconStore,
+  cosmetics: IconCosmetics,
+  pool: IconPool,
+  gazebo: IconGazebo,
+};
+
+// Дефолтная иконка-фолбэк, если ключ пустой/неизвестный.
+export const DEFAULT_SERVICE_ICON_KEY = 'plus';
+
+// Человекочитаемые подписи ключей для дропдауна в админке.
+export const SERVICE_ICON_LABELS: Record<string, string> = {
+  balcony: 'Балкон',
+  shower: 'Душ / ванна',
+  tv: 'Телевизор',
+  ac: 'Кондиционер',
+  fridge: 'Холодильник',
+  kettle: 'Чайник',
+  induction: 'Плита',
+  coffee: 'Кофе',
+  wifi: 'Wi-Fi / Интернет',
+  plus: 'Плюс (по умолчанию)',
+  breakfast: 'Завтрак',
+  'full-board': 'Пансион / время',
+  excursion: 'Экскурсия',
+  cleaning: 'Уборка',
+  iron: 'Глажка',
+  laundry: 'Прачечная',
+  transfer: 'Трансфер',
+  taxi: 'Такси',
+  'sea-walk': 'Море рядом',
+  lounge: 'Лаундж / отдых',
+  bbq: 'Мангал / барбекю',
+  sport: 'Спортплощадка',
+  playground: 'Детская площадка',
+  parking: 'Паркинг',
+  store: 'Магазин / кофейня',
+  cosmetics: 'Косметика',
+  pool: 'Бассейн',
+  gazebo: 'Беседка',
+};
+
+// Список ключей в стабильном порядке (для дропдауна).
+export const SERVICE_ICON_KEYS = Object.keys(SERVICE_ICONS);
+
+/**
+ * Возвращает SVG-компонент иконки по ключу. Если ключ пустой/неизвестный —
+ * отдаёт дефолтную иконку, чтобы страница никогда не падала.
+ */
+export function resolveServiceIcon(key: string | null | undefined): ServiceIconComponent {
+  if (key && SERVICE_ICONS[key]) return SERVICE_ICONS[key];
+  return SERVICE_ICONS[DEFAULT_SERVICE_ICON_KEY];
+}

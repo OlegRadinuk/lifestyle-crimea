@@ -123,6 +123,19 @@ export interface News {
   updated_at: string;
 }
 
+export type ServiceCategory = 'apartment' | 'service' | 'infrastructure';
+
+export interface ServiceItem {
+  id: string;
+  category: ServiceCategory;
+  title: string;
+  icon: string | null;
+  sort_order: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // Путь к базе данных
 const dbPath = path.join(process.cwd(), 'data.sqlite');
 const db = new Database(dbPath);
@@ -287,6 +300,21 @@ function ensureDatabaseStructure() {
       );
       CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
       CREATE INDEX IF NOT EXISTS idx_news_published ON news(is_published, published_at);
+    `);
+
+    // Создаём таблицу пунктов страницы «Услуги» если нет
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS service_items (
+        id TEXT PRIMARY KEY,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        icon TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_service_items_cat_order ON service_items(category, sort_order);
     `);
 
     // Создаем таблицу сезонных цен
@@ -1079,6 +1107,108 @@ export const newsService = {
     const existing = db.prepare('SELECT id FROM news WHERE id = ?').get(id);
     if (!existing) return false;
     db.prepare('DELETE FROM news WHERE id = ?').run(id);
+    return true;
+  },
+};
+
+// ── Сервис пунктов страницы «Услуги» ────────────────────────────────────────────
+export const SERVICE_CATEGORIES: ServiceCategory[] = ['apartment', 'service', 'infrastructure'];
+
+export const serviceItemsService = {
+  // Все пункты (для админки), упорядочены по категории и порядку
+  getAll: (): ServiceItem[] =>
+    db.prepare(`
+      SELECT * FROM service_items
+      ORDER BY category ASC, sort_order ASC, created_at ASC
+    `).all() as ServiceItem[],
+
+  // Активные пункты одной категории (для публичной страницы)
+  getActiveByCategory: (category: ServiceCategory): ServiceItem[] =>
+    db.prepare(`
+      SELECT * FROM service_items
+      WHERE category = ? AND is_active = 1
+      ORDER BY sort_order ASC, created_at ASC
+    `).all(category) as ServiceItem[],
+
+  // Активные пункты, сгруппированные по категориям (для публичной страницы)
+  getActiveGrouped: (): Record<ServiceCategory, ServiceItem[]> => {
+    const rows = db.prepare(`
+      SELECT * FROM service_items
+      WHERE is_active = 1
+      ORDER BY sort_order ASC, created_at ASC
+    `).all() as ServiceItem[];
+    const grouped: Record<ServiceCategory, ServiceItem[]> = {
+      apartment: [],
+      service: [],
+      infrastructure: [],
+    };
+    for (const row of rows) {
+      if (grouped[row.category as ServiceCategory]) {
+        grouped[row.category as ServiceCategory].push(row);
+      }
+    }
+    return grouped;
+  },
+
+  getById: (id: string): ServiceItem | undefined =>
+    db.prepare('SELECT * FROM service_items WHERE id = ?').get(id) as ServiceItem | undefined,
+
+  create: (data: {
+    category: ServiceCategory;
+    title: string;
+    icon?: string | null;
+    sort_order?: number;
+    is_active?: boolean;
+  }): ServiceItem => {
+    const id = uuidv4();
+    const maxOrder = (
+      db.prepare('SELECT MAX(sort_order) as m FROM service_items WHERE category = ?').get(data.category) as { m: number | null }
+    ).m ?? 0;
+    db.prepare(`
+      INSERT INTO service_items (id, category, title, icon, sort_order, is_active)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      data.category,
+      data.title,
+      data.icon ?? null,
+      data.sort_order ?? maxOrder + 1,
+      data.is_active === false ? 0 : 1
+    );
+    return serviceItemsService.getById(id)!;
+  },
+
+  update: (id: string, data: Partial<{
+    category: ServiceCategory;
+    title: string;
+    icon: string | null;
+    sort_order: number;
+    is_active: boolean;
+  }>): ServiceItem | undefined => {
+    const existing = serviceItemsService.getById(id);
+    if (!existing) return undefined;
+
+    const updates: string[] = [];
+    const values: unknown[] = [];
+
+    if (data.category !== undefined) { updates.push('category = ?'); values.push(data.category); }
+    if (data.title !== undefined) { updates.push('title = ?'); values.push(data.title); }
+    if (data.icon !== undefined) { updates.push('icon = ?'); values.push(data.icon); }
+    if (data.sort_order !== undefined) { updates.push('sort_order = ?'); values.push(data.sort_order); }
+    if (data.is_active !== undefined) { updates.push('is_active = ?'); values.push(data.is_active ? 1 : 0); }
+
+    if (updates.length === 0) return existing;
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+    db.prepare(`UPDATE service_items SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    return serviceItemsService.getById(id);
+  },
+
+  delete: (id: string): boolean => {
+    const existing = db.prepare('SELECT id FROM service_items WHERE id = ?').get(id);
+    if (!existing) return false;
+    db.prepare('DELETE FROM service_items WHERE id = ?').run(id);
     return true;
   },
 };

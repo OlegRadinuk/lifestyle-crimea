@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { newsService } from '@/lib/db';
 import { safeNewsHtml } from '../sanitize';
+import NewsHeaderMode from '../NewsHeaderMode';
 import '../news.css';
 
 type PageProps = {
@@ -87,11 +88,11 @@ function renderContent(content: string | null) {
   if (looksLikeHtml) {
     // Санитизируем по строгому whitelist перед вставкой (защита от XSS).
     const safe = safeNewsHtml(content);
-    return <div className="news-article__body" dangerouslySetInnerHTML={{ __html: safe }} />;
+    return <div className="np-article-text" dangerouslySetInnerHTML={{ __html: safe }} />;
   }
   const paragraphs = content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   return (
-    <div className="news-article__body">
+    <div className="np-article-text">
       {paragraphs.map((p, i) => (
         <p key={i}>{p}</p>
       ))}
@@ -139,48 +140,89 @@ export default async function NewsArticlePage({ params }: PageProps) {
   };
 
   return (
-    <div className="news-page news-page--article">
+    <div className="np-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([articleSchema, breadcrumbSchema]) }}
       />
 
-      <article className="news-article">
-        <nav className="news-article__crumbs" aria-label="Хлебные крошки">
-          <Link href="/">Главная</Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/news">Новости</Link>
-        </nav>
+      {/* Фиксирует режим хедера — убирает форму бронирования */}
+      <NewsHeaderMode />
 
-        <header className="news-article__header">
-          {item.published_at && (
-            <time className="news-article__date" dateTime={item.published_at}>
-              {formatDate(item.published_at)}
-            </time>
-          )}
-          <h1 className="news-article__title">{item.title}</h1>
-          {item.excerpt && <p className="news-article__lead">{item.excerpt}</p>}
-        </header>
-
-        {item.cover_image && (
-          <div className="news-article__cover">
+      {/* ── ГЕРОЙ СТАТЬИ ── */}
+      {item.cover_image ? (
+        <header className="np-article-hero">
+          <div className="np-article-hero-media">
             <Image
               src={item.cover_image}
               alt={item.title}
-              width={1200}
-              height={675}
+              fill
               priority
-              sizes="(max-width: 1024px) 100vw, 1024px"
-              className="news-article__cover-img"
+              sizes="100vw"
             />
           </div>
+
+          {/* Хлебные крошки поверх изображения */}
+          <div className="np-article-crumbs-overlay">
+            <nav className="np-article-crumbs" aria-label="Хлебные крошки">
+              <Link href="/">Главная</Link>
+              <span aria-hidden="true">/</span>
+              <Link href="/news">Новости</Link>
+            </nav>
+          </div>
+
+          <div className="np-article-hero-inner">
+            <p className="np-article-hero-eyebrow">
+              {item.is_featured ? 'Специальное предложение' : 'Новость'}
+              {item.published_at && (
+                <>&nbsp;·&nbsp;<time dateTime={item.published_at}>{formatDate(item.published_at)}</time></>
+              )}
+            </p>
+            <h1 className="np-article-hero-title">{item.title}</h1>
+          </div>
+        </header>
+      ) : (
+        /* Без обложки — компактный хедер со светлым фоном */
+        <header className="np-article-header-simple">
+          <nav className="np-article-crumbs" aria-label="Хлебные крошки">
+            <Link href="/">Главная</Link>
+            <span aria-hidden="true">/</span>
+            <Link href="/news">Новости</Link>
+          </nav>
+          <p className="np-article-hero-eyebrow" style={{ marginTop: '24px', color: '#139ab6' }}>
+            {item.is_featured ? 'Специальное предложение' : 'Новость'}
+          </p>
+          <h1 className="np-article-hero-title" style={{ color: '#0d1b22' }}>{item.title}</h1>
+          {item.published_at && (
+            <time
+              dateTime={item.published_at}
+              style={{ display: 'block', marginTop: '16px', color: '#139ab6', fontSize: '13px', fontWeight: 500 }}
+            >
+              {formatDate(item.published_at)}
+            </time>
+          )}
+        </header>
+      )}
+
+      {/* ── EDITORIAL КОНТЕНТ ── */}
+      <article className="np-article-body">
+        {item.excerpt && item.cover_image && (
+          <p className="np-article-lead">{item.excerpt}</p>
         )}
 
         {renderContent(item.content)}
 
-        <footer className="news-article__footer">
-          <Link href="/news" className="news-article__back">← Все новости</Link>
-          <Link href="/apartments" className="news-article__cta">Посмотреть апартаменты</Link>
+        <footer className="np-article-footer">
+          <Link href="/news" className="np-article-back">
+            <span>←</span> Все новости
+          </Link>
+          <Link
+            href="/apartments"
+            className="np-btn-primary"
+            style={{ fontSize: '14px', padding: '12px 26px' }}
+          >
+            Смотреть апартаменты
+          </Link>
         </footer>
       </article>
     </div>

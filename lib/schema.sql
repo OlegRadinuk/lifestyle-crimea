@@ -33,3 +33,16 @@ CREATE TABLE IF NOT EXISTS news (
 );
 CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
 CREATE INDEX IF NOT EXISTS idx_news_published ON news(is_published, published_at);
+
+-- Пункты страницы «Услуги» (управляются из админки)
+CREATE TABLE IF NOT EXISTS service_items (
+    id TEXT PRIMARY KEY,
+    category TEXT NOT NULL,           -- 'apartment' | 'service' | 'infrastructure'
+    title TEXT NOT NULL,
+    icon TEXT,                        -- ключ иконки из набора app/services/icons.tsx
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_service_items_cat_order ON service_items(category, sort_order);
