@@ -3,13 +3,19 @@
 // scripts/sync-travelline.js
 const Database = require('better-sqlite3');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // ============================================
 // КОНФИГУРАЦИЯ
 // ============================================
-const TRAVELLINE_CLIENT_ID = 'api_connection_cd609_643b0e0b30';
-const TRAVELLINE_CLIENT_SECRET = 'ohuU3N07mqvSEdHufhpktuqdlXCV5A5I';
-const TRAVELLINE_PROPERTY_ID = '37777';
+const TRAVELLINE_CLIENT_ID = process.env.TRAVELLINE_CLIENT_ID;
+const TRAVELLINE_CLIENT_SECRET = process.env.TRAVELLINE_CLIENT_SECRET;
+const TRAVELLINE_PROPERTY_ID = process.env.TRAVELLINE_PROPERTY_ID;
+
+if (!TRAVELLINE_CLIENT_ID || !TRAVELLINE_CLIENT_SECRET || !TRAVELLINE_PROPERTY_ID) {
+  console.error('❌ TRAVELLINE_* не заданы в .env (TRAVELLINE_CLIENT_ID, TRAVELLINE_CLIENT_SECRET, TRAVELLINE_PROPERTY_ID)');
+  process.exit(1);
+}
 
 const REQUEST_DELAY_MS = 500;        // 0.5 сек между запросами
 const MAX_PAGES_PER_RUN = 5;         // 5 страниц за запуск
