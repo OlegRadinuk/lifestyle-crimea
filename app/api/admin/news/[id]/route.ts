@@ -8,10 +8,11 @@ import fs from 'fs';
 import { existsSync, mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import { UPLOADS_BASE } from '@/lib/uploads';
 
 export const maxDuration = 120;
 
-const NEWS_DIR = path.join(process.cwd(), 'public', 'images', 'news');
+const NEWS_DIR = path.join(UPLOADS_BASE, 'images', 'news');
 
 /**
  * Безопасно удаляет файл обложки: только если он строго внутри public/images/news.
@@ -40,7 +41,7 @@ async function saveCoverImage(file: File): Promise<string> {
   if (file.size > MAX_IMAGE_SIZE) throw new Error(`Файл слишком большой. Максимум ${MAX_IMAGE_SIZE / 1024 / 1024}MB`);
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const uploadDir = path.join(process.cwd(), 'public/images/news');
+  const uploadDir = NEWS_DIR;
   if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
   const filename = `news_${Date.now()}.webp`;

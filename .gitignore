@@ -66,6 +66,23 @@ agents/
 CLAUDE.md
 test-results/
 
+# Uploaded apartment images (UUID-named files created by the admin upload route).
+# Pattern *-*.webp matches UUIDs (which contain dashes) but NOT the original
+# numbered files (1.webp, 2.webp, …) that are intentionally tracked.
+# Once UPLOADS_ROOT is configured on the server, new uploads land outside the
+# repo entirely and this rule only matters for local development.
+public/images/apartments/*/*-*.webp
+
+# Backup directory (created by devops rotation scripts, not part of source).
+backups/
+# Uploads directory (files stored outside git, served via symlink)
+/uploads/
+
+# DB backups with date suffixes like data.sqlite.backup-20260304.
+# (The patterns *.sqlite and data.sqlite-shm/wal are already above, but
+# date-suffixed backups use a different extension and need an explicit glob.)
+data.sqlite.*
+
 # Screenshots / design artifacts
 *.png
 *.jpeg

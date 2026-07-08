@@ -6,6 +6,7 @@ import { existsSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { checkAdminAuth } from '@/lib/admin-auth';
+import { UPLOADS_BASE } from '@/lib/uploads';
 
 export async function GET(
   request: Request,
@@ -51,7 +52,7 @@ export async function POST(
     const buffer = Buffer.from(bytes);
 
     // Убеждаемся, что папка существует
-    const uploadDir = path.join(process.cwd(), 'public', 'images', 'apartments', id);
+    const uploadDir = path.join(UPLOADS_BASE, 'images', 'apartments', id);
     await mkdir(uploadDir, { recursive: true });
 
     const fileUuid = uuidv4();

@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { existsSync, mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import { UPLOADS_BASE } from '@/lib/uploads';
 
 // Увеличиваем timeout роута до 120 секунд (обработка видео/больших фото)
 export const maxDuration = 120;
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
     let mediaType: 'image' | 'video';
 
     if (isVideo) {
-      const uploadDir = path.join(process.cwd(), 'public/video/hero');
+      const uploadDir = path.join(UPLOADS_BASE, 'video', 'hero');
       if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
       const outExt = fileExt === 'webm' ? 'webm'
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
       console.log(`🎬 Video saved: ${(buffer.length / 1024 / 1024).toFixed(1)}MB → ${filename}`);
 
     } else {
-      const uploadDir = path.join(process.cwd(), 'public/images/hero');
+      const uploadDir = path.join(UPLOADS_BASE, 'images', 'hero');
       if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
       const filename = `hero_${Date.now()}.webp`;

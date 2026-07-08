@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { checkAdminAuth } from '@/lib/admin-auth';
 import fs from 'fs';
 import path from 'path';
+import { UPLOADS_BASE } from '@/lib/uploads';
 
 export async function PATCH(
   request: Request,
@@ -73,7 +74,7 @@ export async function DELETE(
 
     if (slide) {
       // Удаляем файл (изображение или видео)
-      const filepath = path.join(process.cwd(), 'public', slide.image_url);
+      const filepath = path.join(UPLOADS_BASE, slide.image_url);
       try {
         if (fs.existsSync(filepath)) {
           fs.unlinkSync(filepath);

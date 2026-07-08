@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { existsSync, mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import { UPLOADS_BASE } from '@/lib/uploads';
 
 export const maxDuration = 120;
 
@@ -26,7 +27,7 @@ async function saveCoverImage(file: File): Promise<string> {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const uploadDir = path.join(process.cwd(), 'public/images/news');
+  const uploadDir = path.join(UPLOADS_BASE, 'images', 'news');
   if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
   const filename = `news_${Date.now()}.webp`;
