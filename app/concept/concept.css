@@ -796,3 +796,57 @@
     padding: 7px 14px;
   }
 }
+
+/* ── КОНТАКТЫ-ДРОПДАУН (details/summary, no JS) ──────────── */
+.cp-btn-pill-details {
+  display: block;
+  position: relative;
+}
+
+/* Убираем стандартный маркер у summary */
+.cp-btn-pill-details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.cp-btn-pill-details > summary::-webkit-details-marker {
+  display: none;
+}
+/* summary получает стили .cp-btn-pill через класс; убираем ссылочный underline */
+.cp-btn-pill-details > summary.cp-btn-pill {
+  text-decoration: none;
+}
+
+/* Раскрытая панель с двумя номерами */
+.cp-pill-contacts {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid rgba(19, 154, 182, 0.22);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.cp-pill-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #139ab6;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.cp-pill-phone:hover {
+  color: #0d7e96;
+}
+
+.cp-pill-phone-note {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+  margin-left: 2px;
+}

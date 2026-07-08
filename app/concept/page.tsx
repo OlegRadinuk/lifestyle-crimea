@@ -18,8 +18,8 @@ import './concept.css';
 
 const PHONE_FREE = '8 800 777 63 08';
 const PHONE_FREE_TEL = 'tel:88007776308';
-const PHONE_MAIN_TEL = 'tel:+79785036363';
-const PHONE_MAIN_DISPLAY = '+7 978 503 63 63';
+const PHONE_MAIN_TEL = 'tel:+79160200331';
+const PHONE_MAIN_DISPLAY = '+7 916 020 03 31';
 
 export const revalidate = 86400;
 
@@ -133,7 +133,21 @@ export default function ConceptPage() {
           '@type': 'Organization',
           name: 'Life Style Crimea',
           url: 'https://lovelifestyle.ru',
-          telephone: PHONE_FREE_TEL.replace('tel:', ''),
+          telephone: PHONE_MAIN_TEL.replace('tel:', ''),
+          contactPoint: [
+            {
+              '@type': 'ContactPoint',
+              telephone: PHONE_MAIN_TEL.replace('tel:', ''),
+              contactType: 'sales',
+              areaServed: 'RU',
+            },
+            {
+              '@type': 'ContactPoint',
+              telephone: PHONE_FREE_TEL.replace('tel:', ''),
+              contactType: 'customer service',
+              areaServed: 'RU',
+            },
+          ],
         },
         areaServed: cities.map((city) => ({ '@type': 'City', name: city })),
         description:
@@ -241,10 +255,19 @@ export default function ConceptPage() {
                   </div>
                   <div className="cp-line-body">
                     <p className="cp-line-tagline">{line.cta}</p>
-                    <a href={PHONE_FREE_TEL} className="cp-btn-pill">
-                      <IconPhone />
-                      Контакты для связи
-                    </a>
+                    <details className="cp-btn-pill-details">
+                      <summary className="cp-btn-pill">
+                        <IconPhone />
+                        Контакты для связи
+                      </summary>
+                      <div className="cp-pill-contacts">
+                        <a href={PHONE_MAIN_TEL} className="cp-pill-phone">{PHONE_MAIN_DISPLAY}</a>
+                        <a href={PHONE_FREE_TEL} className="cp-pill-phone">
+                          8 800 777 63 08
+                          <span className="cp-pill-phone-note">бесплатный</span>
+                        </a>
+                      </div>
+                    </details>
                   </div>
                 </article>
               );

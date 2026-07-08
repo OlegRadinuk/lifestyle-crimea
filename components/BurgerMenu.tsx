@@ -5,6 +5,17 @@ import { useRouter, usePathname } from 'next/navigation';
 
 type MenuItemType = 'image' | 'slider' | 'tour' | 'video';
 
+type OverlayLarge = {
+  size: 'large';
+  eyebrow?: string;
+  headline: string;
+  ctaLabel: string;
+  ctaHref: string;
+  ctaExternal?: boolean;
+};
+type OverlaySmall = { size: 'small'; tagline: string };
+type MenuOverlay = OverlayLarge | OverlaySmall;
+
 type MenuItem = {
   title: string;
   href: string;
@@ -14,6 +25,7 @@ type MenuItem = {
   external?: boolean;
   /** Фирменный цветовой оверлей превью-фото (эмоциональный, но премиальный) */
   tint?: 'sea' | 'emerald' | 'sand' | 'lavender' | 'teal' | 'dusk';
+  overlay?: MenuOverlay;
 };
 
 type Props = {
@@ -28,13 +40,40 @@ const menuItems: MenuItem[] = [
     type: 'image',
     image: '/images/menu/home.webp',
     tint: 'sea',
+    overlay: {
+      size: 'large',
+      eyebrow: 'Добро пожаловать',
+      headline: 'Мы рады приветствовать вас в апартаментах «Стиль Жизни». Пусть это место станет настоящим островом комфорта, где можно расслабиться, восстановиться и насладиться каждым мгновением.',
+      ctaLabel: 'Выбрать апартаменты для отдыха',
+      ctaHref: '/apartments',
+    },
   },
   {
     title: 'Апартаменты',
     href: '/apartments',
     type: 'slider',
-    images: Array.from({ length: 12 }, (_, i) => `/images/apartments/${i + 1}.webp`),
+    images: [
+      '/images/apartments/8.webp',
+      '/images/apartments/1.webp',
+      '/images/apartments/2.webp',
+      '/images/apartments/3.webp',
+      '/images/apartments/4.webp',
+      '/images/apartments/5.webp',
+      '/images/apartments/6.webp',
+      '/images/apartments/7.webp',
+      '/images/apartments/9.webp',
+      '/images/apartments/10.webp',
+      '/images/apartments/11.webp',
+      '/images/apartments/12.webp',
+    ],
     tint: 'teal',
+    overlay: {
+      size: 'large',
+      eyebrow: 'Найдите своё',
+      headline: 'Откройте широкий выбор апартаментов на любой вкус — от уютных студий до стильных премиум-пространств. Найдите тот самый вариант, который идеально подходит именно вам.',
+      ctaLabel: 'Выбрать апартаменты',
+      ctaHref: '/apartments',
+    },
   },
   {
     title: 'Услуги',
@@ -42,6 +81,13 @@ const menuItems: MenuItem[] = [
     type: 'image',
     image: '/images/menu/services.webp',
     tint: 'emerald',
+    overlay: {
+      size: 'large',
+      eyebrow: 'Всё для вашего отдыха',
+      headline: 'Погрузитесь в «Стиль Жизни», где каждая услуга — это шаг к идеальному отдыху.',
+      ctaLabel: 'Смотреть все услуги',
+      ctaHref: '/services',
+    },
   },
   {
     title: 'Уникальный концепт',
@@ -49,11 +95,22 @@ const menuItems: MenuItem[] = [
     type: 'image',
     image: '/images/menu/concept.webp',
     tint: 'lavender',
+    overlay: {
+      size: 'large',
+      eyebrow: 'Для инвесторов',
+      headline: 'Откройте мир уверенных вложений с компанией «Стиль Жизни» — когда недвижимость становится вашим новым горизонтом.',
+      ctaLabel: 'Сделайте первый шаг',
+      ctaHref: '/concept',
+    },
   },
   {
     title: 'Виртуальный тур',
     href: '/#panorama',
     type: 'tour',
+    overlay: {
+      size: 'small',
+      tagline: 'Почувствуйте атмосферу — в 360°',
+    },
   },
   {
     title: 'Новости и предложения',
@@ -61,6 +118,13 @@ const menuItems: MenuItem[] = [
     type: 'image',
     image: '/images/menu/news.webp',
     tint: 'sand',
+    overlay: {
+      size: 'large',
+      eyebrow: 'Акции и события',
+      headline: 'Специальные предложения, сезонные акции и приятные события апарт-отеля — узнавайте о них первыми.',
+      ctaLabel: 'Смотреть предложения',
+      ctaHref: '/news',
+    },
   },
   {
     title: 'Дизайн / Ремонт\nот ООО «Стиль Жизни»',
@@ -69,6 +133,14 @@ const menuItems: MenuItem[] = [
     image: '/images/menu/remont.webp',
     external: true,
     tint: 'dusk',
+    overlay: {
+      size: 'large',
+      eyebrow: 'ООО «Стиль Жизни»',
+      headline: 'Дизайн интерьеров и ремонт под ключ — создаём пространство, в котором хочется жить.',
+      ctaLabel: 'Перейти на сайт',
+      ctaHref: 'https://lifestyle-crimea.ru',
+      ctaExternal: true,
+    },
   },
 ];
 
@@ -142,6 +214,13 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null;
 
+  const isConcept = activeItem.href.startsWith('/concept');
+  const primaryPhone = isConcept
+    ? { tel: '+79160200331', display: '+7 916 020 03 31' }
+    : { tel: '+79785036363', display: '+7 978 503 63 63' };
+
+  const overlay = activeItem.overlay;
+
   return (
     <div className="burger-overlay" onClick={onClose}>
       <div className="burger-card" onClick={(e) => e.stopPropagation()}>
@@ -172,7 +251,7 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
             <div className="burger-divider" />
 
             <div className="burger-contacts">
-              <a href="tel:+79785036363">+7 978 503 63 63</a>
+              <a href={`tel:${primaryPhone.tel}`}>{primaryPhone.display}</a>
               <a href="tel:+79786964510">+7 978 696 45 10</a>
               <a href="tel:88007776308">8 800 777 63 08 <span className="burger-phone-note">бесплатный</span></a>
               <div className="burger-address">Алушта, Западная ул., 4, корп. 3</div>
@@ -228,9 +307,42 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
             {activeItem.type === 'tour' && (
               <iframe
                 className="preview-map fade"
-                src="https://yandex.com/map-widget/v1/org/stil_zhizni/82645925123/?ll=34.403625%2C44.665482&panorama%5Bdirection%5D=34.541089%2C-18.156205&panorama%5Bfull%5D=true&panorama%5Bpoint%5D=34.404681%2C44.664908&panorama%5Bspan%5D=113.121974%2C60.000000&z=17.2"
+                src="https://yandex.com/map-widget/v1/?from=mapframe&ll=10.854186%2C49.182076&panorama%5Bdirection%5D=271.779286%2C-0.300532&panorama%5Bfull%5D=true&panorama%5Bpoint%5D=34.404344%2C44.665237&panorama%5Bspan%5D=113.121974%2C60.000000&z=4"
                 allowFullScreen
               />
+            )}
+
+            {overlay && (
+              <div
+                key={`${activeItem.title}--pov`}
+                className={`preview-overlay preview-overlay--${overlay.size}`}
+              >
+                <div className="preview-overlay__inner">
+                  {overlay.size === 'large' ? (
+                    <>
+                      {overlay.eyebrow && (
+                        <span className="preview-overlay__eyebrow">{overlay.eyebrow}</span>
+                      )}
+                      <p className="preview-overlay__headline">{overlay.headline}</p>
+                      <button
+                        className="preview-overlay__cta"
+                        onClick={() => {
+                          if (overlay.ctaExternal) {
+                            window.open(overlay.ctaHref, '_blank', 'noopener,noreferrer');
+                          } else {
+                            router.push(overlay.ctaHref);
+                          }
+                          onClose();
+                        }}
+                      >
+                        {overlay.ctaLabel}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="preview-overlay__tagline">{overlay.tagline}</p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
