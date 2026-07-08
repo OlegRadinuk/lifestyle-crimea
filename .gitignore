@@ -77,6 +77,8 @@ public/images/apartments/*/*-*.webp
 backups/
 # Uploads directory (files stored outside git, served via symlink)
 /uploads/
+# Pre-imagefix backup directories (safety copies, not source code)
+*.pre-imagefix/
 
 # DB backups with date suffixes like data.sqlite.backup-20260304.
 # (The patterns *.sqlite and data.sqlite-shm/wal are already above, but
