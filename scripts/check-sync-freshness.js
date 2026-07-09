@@ -31,6 +31,7 @@
 const Database = require('better-sqlite3');
 const path     = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env.local'), override: false });
 
 const DB_PATH         = path.join(__dirname, '..', 'data.sqlite');
 const STALE_HOURS     = parseFloat(process.env.SYNC_STALE_HOURS || '6');
