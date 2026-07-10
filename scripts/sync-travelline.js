@@ -306,6 +306,9 @@ async function syncBookings() {
       
       if (summaries.length === 0) {
         console.log('   ✅ No changes since last sync');
+        // Heartbeat: пишем sync_log даже при 0 изменений, чтобы watchdog видел, что синк жив
+        currentContinueToken = data.continueToken || currentContinueToken;
+        saveProgress(currentContinueToken, stats);
         break;
       }
 
