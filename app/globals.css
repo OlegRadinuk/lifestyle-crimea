@@ -8317,13 +8317,14 @@ html, body {
 /* Полный диапазон ноутбуков: убираем scale(1.5) и фиксированный min-width */
 @media (min-width: 1025px) and (max-width: 1600px) {
   /* Бургер без scale — он не влияет на layout, но визуально «вылезает»
-     на соседние элементы при transform-origin: left center */
-  .header__burger {
+     на соседние элементы при transform-origin: left center.
+     ТОЛЬКО в hero-режиме — в dark/apartment/panorama бургер не трогаем. */
+  .header--hero .header__burger {
     transform: scale(1);
     gap: 10px;
   }
 
-  .header__burger::after {
+  .header--hero .header__burger::after {
     inset: -8px;
   }
 
@@ -8351,16 +8352,16 @@ html, body {
 
 /* Компактный диапазон: 1025px – 1366px (MacBook Air 13", 1280px и ниже) */
 @media (min-width: 1025px) and (max-width: 1366px) {
-  .header {
+  .header--hero {
     padding: 0 24px;
   }
 
-  .burger-icon-svg {
+  .header--hero .burger-icon-svg {
     width: 22px;
     height: 15px;
   }
 
-  .burger-text {
+  .header--hero .burger-text {
     font-size: 12px;
     letter-spacing: 0.12em;
   }
@@ -8404,7 +8405,7 @@ html, body {
 
 /* Средний диапазон: 1367px – 1600px (MacBook Pro 14"/16", обычные ноутбуки) */
 @media (min-width: 1367px) and (max-width: 1600px) {
-  .header {
+  .header--hero {
     padding: 0 32px;
   }
 
