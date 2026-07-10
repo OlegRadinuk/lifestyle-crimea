@@ -8303,3 +8303,188 @@ html, body {
 }
 .calendar-total-price.is-hot-deal { color: #f97316; }
 .calendar-price-note { font-size: 11px; opacity: 0.8; }
+
+/* =================================================================
+   P5 · LAPTOP HEADER FIX — 1025px – 1600px
+   Предотвращает наезд формы брони на бургер на ноутбуках/MacBook.
+
+   Размещено В КОНЦЕ ФАЙЛА намеренно: более ранние глобальные
+   правила (.header__booking-fields { flex-shrink:0; gap:32px })
+   переопределяли медиа-запрос 1025–1366px из середины файла.
+   Последняя позиция в каскаде даёт приоритет без !important.
+================================================================= */
+
+/* Полный диапазон ноутбуков: убираем scale(1.5) и фиксированный min-width */
+@media (min-width: 1025px) and (max-width: 1600px) {
+  /* Бургер без scale — он не влияет на layout, но визуально «вылезает»
+     на соседние элементы при transform-origin: left center */
+  .header__burger {
+    transform: scale(1);
+    gap: 10px;
+  }
+
+  .header__burger::after {
+    inset: -8px;
+  }
+
+  /* Форма брони: снимаем фиксированный минимум и разрешаем flex-сжатие */
+  .header__booking-wrapper,
+  .header--hero .header__booking-wrapper {
+    min-width: 0;
+    gap: 16px;
+    flex-shrink: 1;
+  }
+
+  .header__booking-fields {
+    flex-shrink: 1;  /* override глобального flex-shrink:0 */
+    gap: 16px;       /* override глобального gap:32px */
+    padding-left: 16px;
+    height: auto;
+  }
+
+  /* Кнопка не сжимается — у неё фиксированный текст */
+  .header__booking {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Компактный диапазон: 1025px – 1366px (MacBook Air 13", 1280px и ниже) */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .header {
+    padding: 0 24px;
+  }
+
+  .burger-icon-svg {
+    width: 22px;
+    height: 15px;
+  }
+
+  .burger-text {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+
+  .header__booking-wrapper,
+  .header--hero .header__booking-wrapper {
+    gap: 12px;
+  }
+
+  .header__booking-fields {
+    gap: 12px;
+    padding-left: 10px;
+  }
+
+  .booking-field {
+    min-width: 80px;
+  }
+
+  .booking-field label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+
+  .booking-field input,
+  .booking-field select {
+    font-size: 13px;
+  }
+
+  .header__booking {
+    padding: 13px 20px;
+    font-size: 11px;
+    letter-spacing: 0.10em;
+  }
+
+  /* Декоративный «свечение»-бар — сужаем, чтобы не вылезал за хедер */
+  .header--hero .header__booking-wrapper::after {
+    width: 600px;
+  }
+}
+
+/* Средний диапазон: 1367px – 1600px (MacBook Pro 14"/16", обычные ноутбуки) */
+@media (min-width: 1367px) and (max-width: 1600px) {
+  .header {
+    padding: 0 32px;
+  }
+
+  .header__booking-wrapper,
+  .header--hero .header__booking-wrapper {
+    gap: 14px;
+  }
+
+  .header__booking-fields {
+    gap: 14px;
+    padding-left: 14px;
+  }
+
+  .booking-field {
+    min-width: 96px;
+  }
+
+  .booking-field label {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+
+  .booking-field input,
+  .booking-field select {
+    font-size: 14px;
+  }
+
+  .header__booking {
+    padding: 14px 28px;
+    font-size: 12px;
+    letter-spacing: 0.13em;
+  }
+
+  .header--hero .header__booking-wrapper::after {
+    width: 800px;
+  }
+}
+
+/* =================================================================
+   P1 · BURGER MENU COMPACT FOR SHORT VIEWPORT HEIGHTS (desktop)
+   На ноутбуках высота вьюпорта 700–820px. При 90vh бургер-карточка
+   ~630–740px, и 7 пунктов + контакты с base-отступами не влезают.
+   Уменьшаем padding/gap/font-size по высоте вьюпорта.
+   Мобилку (max-width:1024px) не затрагиваем.
+================================================================= */
+@media (min-width: 1025px) and (max-height: 820px) {
+  .burger-menu {
+    padding: 36px 60px;
+    gap: 18px;
+  }
+
+  .burger-menu li {
+    font-size: 22px;
+  }
+
+  .burger-contacts {
+    padding: 20px 60px;
+  }
+
+  .burger-divider {
+    margin: 10px 40px;
+  }
+}
+
+/* Очень маленький вьюпорт по высоте: ≤700px (редко, но возможно) */
+@media (min-width: 1025px) and (max-height: 700px) {
+  .burger-menu {
+    padding: 22px 60px;
+    gap: 12px;
+  }
+
+  .burger-menu li {
+    font-size: 20px;
+  }
+
+  .burger-contacts {
+    padding: 14px 60px;
+  }
+
+  .burger-divider {
+    margin: 6px 40px;
+  }
+}

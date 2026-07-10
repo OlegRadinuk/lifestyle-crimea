@@ -152,6 +152,9 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   const [slideIndex, setSlideIndex] = useState(0);
   const slideMemory = useRef<Record<string, number>>({});
   const touchStartX = useRef<number | null>(null);
+  // Hover-intent: задержка 120мс перед переключением категории,
+  // чтобы быстрый проход курсора сквозь пункты не вызывал мерцание
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const baseActiveItem = useMemo(() => {
     const found = menuItems.find((item) => {
@@ -172,6 +175,15 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [onClose]);
+
+  // Очищаем таймер hover-intent при размонтировании
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current !== null) {
+        clearTimeout(hoverTimerRef.current);
+      }
+    };
+  }, []);
 
   const nextSlide = () => {
     if (!activeItem.images) return;
@@ -237,8 +249,24 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
                   key={item.title}
                   className={activeItem.title === item.title ? 'active' : ''}
                   onMouseEnter={() => {
-                    setHoveredItem(item);
-                    setSlideIndex(slideMemory.current[item.title] ?? 0);
+                    // Hover-intent: планируем переключение с задержкой 120мс.
+                    // Если курсор уйдёт до срабатывания — таймер отменится
+                    // и категория не переключится (нет мерцания при быстром проходе).
+                    if (hoverTimerRef.current !== null) {
+                      clearTimeout(hoverTimerRef.current);
+                    }
+                    hoverTimerRef.current = setTimeout(() => {
+                      setHoveredItem(item);
+                      setSlideIndex(slideMemory.current[item.title] ?? 0);
+                      hoverTimerRef.current = null;
+                    }, 120);
+                  }}
+                  onMouseLeave={() => {
+                    // Отменяем таймер при уходе с пункта до его срабатывания
+                    if (hoverTimerRef.current !== null) {
+                      clearTimeout(hoverTimerRef.current);
+                      hoverTimerRef.current = null;
+                    }
                   }}
                   onClick={() => handleNavigation(item)}
                   style={{ whiteSpace: 'pre-line' }}
