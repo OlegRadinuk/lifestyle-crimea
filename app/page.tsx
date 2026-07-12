@@ -45,9 +45,45 @@ export default function HomePage() {
     }
   }, [pathname]);
 
+  // Держим лоад-скрин, пока реально не загрузится ПЕРВАЯ картинка hero.
+  // Ждём только «начало» (первый экран), а не весь сайт. С минимальным
+  // временем показа (не мельтешит) и страховочным максимумом (не зависает).
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2500);
-    return () => clearTimeout(timer);
+    let done = false;
+    const start = Date.now();
+    const MIN_MS = 700;
+    const MAX_MS = 5000;
+
+    const finish = () => {
+      if (done) return;
+      done = true;
+      const elapsed = Date.now() - start;
+      window.setTimeout(() => setIsLoading(false), Math.max(0, MIN_MS - elapsed));
+    };
+
+    const maxTimer = window.setTimeout(finish, MAX_MS);
+
+    fetch('/api/hero-slides')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((slides: Array<{ image_url: string; media_type: string; is_active: number; sort_order: number }>) => {
+        const active = Array.isArray(slides)
+          ? slides.filter((s) => s.is_active === 1).sort((a, b) => a.sort_order - b.sort_order)
+          : [];
+        const first = active[0];
+        // Нет слайдов / видео / нет url — не ждём картинку, считаем готовым
+        if (!first || first.media_type === 'video' || !first.image_url) {
+          finish();
+          return;
+        }
+        const img = new window.Image();
+        img.onload = finish;
+        img.onerror = finish;
+        img.src = first.image_url;
+        if (img.complete) finish(); // уже в кэше
+      })
+      .catch(finish);
+
+    return () => window.clearTimeout(maxTimer);
   }, []);
 
   useEffect(() => {

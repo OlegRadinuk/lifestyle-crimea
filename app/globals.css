@@ -46,6 +46,26 @@ html, body {
   will-change: transform;
 }
 
+/* Последняя сцена (отзывы + футер) на десктопе — НЕ клампим в 100vh,
+   иначе футер обрезается снизу на невысоких экранах (ноутбуки ~800px).
+   Даём natural height + relative (это последняя сцена, sticky не нужен),
+   чтобы отзывы + футер помещались целиком и футер был доступен. */
+/* 3-я сцена ОСТАЁТСЯ sticky/100vh/overflow:hidden как остальные сцены
+   (эффект наплыва работает, без шва с предыдущей сценой).
+   Отзывы+футер — компактная группа, центрированная по вертикали внутри
+   экрана: всё помещается, футер виден целиком, без пустого «воздуха».
+   Ключ — компактность контента (ниже), а не хаки с overflow/position. */
+.main-container.desktop .scene--reviews-footer .rf-section {
+  justify-content: center;
+}
+
+/* Отзывы — естественной высоты (не растягиваем на весь экран),
+   чтобы футер шёл сразу под ними, а группа целиком центрировалась. */
+.main-container.desktop .scene--reviews-footer .rf-container-desktop {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+}
+
 .scene-spacer {
   height: 30vh;
   width: 100%;
@@ -376,7 +396,7 @@ html, body {
 .header--hero .header__booking-wrapper::after {
   content: '';
   position: absolute;
-  right: -43px;
+  right: 0;
   bottom: 1px;
   width: 1200px;
   height: 53px;
@@ -8488,4 +8508,56 @@ html, body {
   .burger-divider {
     margin: 6px 40px;
   }
+}
+
+/* =================================================================
+   3-я СЦЕНА (отзывы + футер) — компактная укладка на десктопе.
+   Поджимаем вертикальный «воздух», чтобы отзывы + футер помещались
+   в один экран красиво. Текст отзывов в карточках скроллится, поэтому
+   уменьшение высоты карточек не режет длинные отзывы.
+================================================================= */
+@media (min-width: 1025px) {
+  /* Отзывы: меньше вертикальных пустот */
+  .rf-desktop .rf-container-desktop { padding: 28px 40px; }
+  .rf-desktop .rf-title { font-size: 34px; margin: 0 0 20px 0; }
+  .rf-desktop .rf-slider { padding: 24px 0; margin: -24px 0; }
+  .rf-desktop .rf-card { height: 232px; }
+
+  /* Футер: компактнее, но не тесно */
+  .ff-footer-desktop { min-height: 0; }
+  .ff-footer-desktop .ff-container { padding: 22px 0; }
+  .ff-footer-desktop .ff-grid { gap: 28px; padding: 14px; }
+  .ff-footer-desktop .ff-title { font-size: 22px; margin: 0 0 10px 0; }
+  .ff-footer-desktop .ff-description { margin: 0 0 14px 0; }
+  .ff-footer-desktop .ff-copyright { margin-top: 14px; padding-top: 12px; }
+  .ff-footer-desktop .ff-map { min-height: 200px; }
+}
+
+/* Экран пониже (ноутбуки ~700–820px) — жмём ещё чуть сильнее, чтобы точно влезло */
+@media (min-width: 1025px) and (max-height: 860px) {
+  .rf-desktop .rf-container-desktop { padding: 18px 40px; }
+  .rf-desktop .rf-title { font-size: 30px; margin: 0 0 14px 0; }
+  .rf-desktop .rf-card { height: 210px; }
+  .ff-footer-desktop .ff-container { padding: 16px 0; }
+  .ff-footer-desktop .ff-map { min-height: 180px; }
+}
+
+/* Две кнопки в слайдах новостей бургер-меню: «Подробнее» (основная) +
+   «Все новости и предложения» (второстепенная, ghost). */
+.preview-overlay__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.preview-overlay__cta--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+}
+
+.preview-overlay__cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #ffffff;
 }

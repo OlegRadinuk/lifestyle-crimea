@@ -28,6 +28,13 @@ type MenuItem = {
   overlay?: MenuOverlay;
 };
 
+type NewsSlide = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  cover_image: string | null;
+};
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
@@ -156,6 +163,10 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
   // чтобы быстрый проход курсора сквозь пункты не вызывал мерцание
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Последние новости для слайдера в пункте «Новости и предложения»
+  const [news, setNews] = useState<NewsSlide[]>([]);
+  const [newsIndex, setNewsIndex] = useState(0);
+
   const baseActiveItem = useMemo(() => {
     const found = menuItems.find((item) => {
       const itemPath = item.href.split('#')[0];
@@ -184,6 +195,30 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
       }
     };
   }, []);
+
+  // Подтягиваем последние новости для слайдера в меню (при первом открытии)
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    fetch('/api/news?limit=3')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setNews(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  const nextNews = () => {
+    if (news.length === 0) return;
+    setNewsIndex((prev) => (prev + 1) % news.length);
+  };
+  const prevNews = () => {
+    if (news.length === 0) return;
+    setNewsIndex((prev) => (prev === 0 ? news.length - 1 : prev - 1));
+  };
 
   const nextSlide = () => {
     if (!activeItem.images) return;
@@ -232,6 +267,10 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     : { tel: '+79785036363', display: '+7 978 503 63 63' };
 
   const overlay = activeItem.overlay;
+  // В пункте «Новости и предложения» показываем слайдер последних новостей,
+  // если они есть; иначе — обычная статичная картинка-заглушка.
+  const showNewsSlider = activeItem.href === '/news' && news.length > 0;
+  const currentNews = showNewsSlider ? news[Math.min(newsIndex, news.length - 1)] : null;
 
   return (
     <div className="burger-overlay" onClick={onClose}>
@@ -296,12 +335,78 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            {activeItem.type === 'image' && activeItem.image && (
+            {activeItem.type === 'image' && activeItem.image && !showNewsSlider && (
               <div
                 key={activeItem.image}
                 className="preview-media fade"
                 style={{ backgroundImage: `url(${activeItem.image})` }}
               />
+            )}
+
+            {/* Слайдер последних новостей и предложений (обложка + заголовок + «Читать») */}
+            {showNewsSlider && currentNews && (
+              <div className="burger__slider burger__slider--news">
+                <div
+                  key={currentNews.slug}
+                  className="burger__slide fade"
+                  style={{
+                    backgroundImage: `url(${currentNews.cover_image || '/images/menu/news.webp'})`,
+                  }}
+                />
+                {news.length > 1 && (
+                  <>
+                    <button
+                      className="burger__nav burger__nav--left"
+                      onClick={prevNews}
+                      aria-label="Предыдущая новость"
+                    />
+                    <button
+                      className="burger__nav burger__nav--right"
+                      onClick={nextNews}
+                      aria-label="Следующая новость"
+                    />
+                    <div className="burger__dots">
+                      {news.map((_, i) => (
+                        <span
+                          key={i}
+                          className={`burger__dot ${i === newsIndex ? 'active' : ''}`}
+                          onClick={() => setNewsIndex(i)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div
+                  key={`${currentNews.slug}--pov`}
+                  className="preview-overlay preview-overlay--large"
+                >
+                  <div className="preview-overlay__inner">
+                    <span className="preview-overlay__eyebrow">Новости и предложения</span>
+                    <p className="preview-overlay__headline">{currentNews.title}</p>
+                    <div className="preview-overlay__actions">
+                      <button
+                        className="preview-overlay__cta"
+                        onClick={() => {
+                          router.push(`/news/${currentNews.slug}`);
+                          onClose();
+                        }}
+                      >
+                        Подробнее
+                      </button>
+                      <button
+                        className="preview-overlay__cta preview-overlay__cta--ghost"
+                        onClick={() => {
+                          router.push('/news');
+                          onClose();
+                        }}
+                      >
+                        Все новости и предложения
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {activeItem.type === 'slider' && activeItem.images && (
@@ -340,7 +445,7 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
               />
             )}
 
-            {overlay && (
+            {overlay && !showNewsSlider && (
               <div
                 key={`${activeItem.title}--pov`}
                 className={`preview-overlay preview-overlay--${overlay.size}`}

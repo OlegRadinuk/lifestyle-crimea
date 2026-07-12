@@ -1,28 +1,21 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
+// Презентационный компонент: НЕ управляет своим показом сам.
+// Монтированием/размонтированием (и exit-анимацией) рулит родитель
+// (page.tsx) через <AnimatePresence> — прячет лоадер, когда hero реально готов.
 export function LoadingScreen() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2500);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Разбиваем текст на буквы
   const title = "Стиль Жизни".split("");
   const subtitle = "Алушта · с любовью".split("");
 
   return (
-    <AnimatePresence mode="wait">
-      {isLoading && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           style={{
             background: 'radial-gradient(circle at 30% 30%, #0B2A35, #051015)'
@@ -166,7 +159,5 @@ export function LoadingScreen() {
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
           />
         </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
