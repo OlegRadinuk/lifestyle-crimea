@@ -12,7 +12,11 @@ export function LoadingScreen() {
 
   return (
         <motion.div
-          initial={{ opacity: 0 }}
+          /* Оверлей непрозрачен с ПЕРВОГО кадра (initial={false} → сразу
+             к animate-состоянию, без fade-in). Иначе на 0.6с fade-in сквозь
+             полупрозрачный лоадер виден недогруженный hero — «сначала грузится
+             не то, потом показывается лоадскрин». Плавно уходит только на exit. */
+          initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}

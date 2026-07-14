@@ -1151,6 +1151,19 @@ html, body {
   color: rgba(255, 255, 255, 0.75);
 }
 
+/* Постер-фон под канвой — статичный кадр панорамы. Показывается, если
+   WebGL-канва прозрачна (текстура не загрузилась, напр. на Safari).
+   Стоит ПЕРВЫМ в DOM до .panorama-canvas → порядок отрисовки верный без
+   z-index (иначе положительный z-index на канве перекрыл бы overlay/info). */
+.panorama-poster {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
 .panorama-canvas {
   position: absolute;
   inset: 0;
@@ -8543,12 +8556,28 @@ html, body {
 }
 
 /* Две кнопки в слайдах новостей бургер-меню: «Подробнее» (основная) +
-   «Все новости и предложения» (второстепенная, ghost). */
+   «Все новости и предложения» (второстепенная, ghost).
+   Должны стоять В ОДНУ СТРОКУ (горизонтально). Раньше переносились:
+   контент-ширина .preview-overlay__inner (480−80 padding = 400px) была на
+   ~6px уже суммы кнопок → вторая уходила вниз. Расширяем область под новости
+   и чуть уплотняем кнопки; nowrap гарантирует один ряд на десктопе. */
 .preview-overlay__actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-wrap: nowrap;
+  gap: 10px;
   align-items: center;
+}
+.burger__slider--news .preview-overlay__inner { max-width: 620px; }
+.burger__slider--news .preview-overlay__actions .preview-overlay__cta {
+  padding: 11px 18px;
+  font-size: 12.5px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* На узких экранах (мобильный бургер-превью) — разрешаем перенос обратно,
+   чтобы кнопки не выпирали за карточку. */
+@media (max-width: 640px) {
+  .preview-overlay__actions { flex-wrap: wrap; }
 }
 
 .preview-overlay__cta--ghost {
@@ -8560,4 +8589,45 @@ html, body {
 .preview-overlay__cta--ghost:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: #ffffff;
+}
+
+/* =====================================================================
+   ПОЛИРОВКА HERO-ШАПКИ (июль 2026) — только десктоп (>=1025px)
+   Bug 2: кнопка «Выбрать апартаменты» должна доходить до правого края экрана.
+   Bug 3: 13 цифр слайд-навигации не должны залезать под кнопку на невысоких
+          экранах (ноутбуки/маки ~800px), где длинная колонка выпирала вверх.
+===================================================================== */
+@media (min-width: 1025px) {
+  /* Bug 2 — тянем шапку в hero-режиме до самого правого края вьюпорта
+     (база: right:24 + padding 40 = 64px справа). Без магических чисел:
+     right:0 + padding-right:0 → форма (justify-content:flex-end) прижимает
+     кнопку к краю. Правую кромку кнопки делаем плоской — «состыкована» с краем. */
+  .header--hero {
+    right: 0;
+    padding-right: 0;
+  }
+  .header--hero .header__booking {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  /* Тил-акцент («бирюзовая линия») — тоже до самого края экрана */
+  .header--hero .header__booking-wrapper::after {
+    right: 0;
+  }
+
+  /* Bug 3 — колонку цифр центрируем по вертикали с резервом под шапку,
+     чтобы верхние номера не попадали в зону кнопки. gap сжимается на низких
+     экранах (clamp по vh), 13 пунктов помещаются без наезда. */
+  .hero-timeline {
+    top: 0;
+    bottom: 0;
+    right: 34px;
+    justify-content: center;
+    gap: clamp(2px, 0.9vh, 12px);
+    padding-top: 116px;
+    padding-bottom: 44px;
+  }
+  .hero-timeline-item {
+    min-height: 30px;
+  }
 }

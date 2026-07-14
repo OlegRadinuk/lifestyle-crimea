@@ -45,7 +45,9 @@ const menuItems: MenuItem[] = [
     title: 'Главная',
     href: '/',
     type: 'image',
-    image: '/images/menu/home.webp',
+    // Синий апартамент с картинами (2-й слайд категории «Апартаменты», 1.webp) —
+    // по просьбе заказчицы вместо прежнего home.webp
+    image: '/images/apartments/1.webp',
     tint: 'sea',
     overlay: {
       size: 'large',

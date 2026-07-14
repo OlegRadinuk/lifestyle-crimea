@@ -273,7 +273,12 @@ export default function PanoramaViewer() {
     );
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    // alpha:true + прозрачная очистка — чтобы при несработавшей загрузке
+    // текстуры (Safari/WebGL/память) canvas оставался ПРОЗРАЧНЫМ, а не чёрным,
+    // и сквозь него был виден постер-фон (то же фото плоско). Устраняет «чёрный
+    // прямоугольник в секции панорамы на маке».
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -590,6 +595,14 @@ export default function PanoramaViewer() {
       ref={sectionRef}
       className={`panorama-section ${fullscreenMode ? 'fullscreen-mode' : ''}`}
     >
+      {/* Постер-фон под WebGL-канвой: то же панорамное фото плоско.
+          Виден, только если canvas прозрачен (WebGL/текстура не сработали) —
+          вместо чёрного прямоугольника пользователь видит кадр апартамента. */}
+      <div
+        className="panorama-poster"
+        style={{ backgroundImage: currentPano?.image ? `url(${currentPano.image})` : undefined }}
+      />
+
       <div
         ref={containerRef}
         className="panorama-canvas"
