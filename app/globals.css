@@ -8669,10 +8669,11 @@ html, body {
   .burger-contacts .burger-time { margin-top: clamp(4px, 1vh, 12px); }
 }
 
-/* Виджет «София» не должен торчать поверх открытого бургер-меню —
-   прячем его плавающие части, пока меню открыто (в DOM есть .burger-overlay). */
-body:has(.burger-overlay) #opsph-btn,
-body:has(.burger-overlay) #opsph-bubble,
-body:has(.burger-overlay) #opsph-wrap {
-  display: none !important;
-}
+/* Виджет «София» должен быть ПОВЕРХ бургер-меню — и кнопка, и пузырь, и окно чата.
+   Было: у виджета btn:9999 / bubble:9998 / wrap:9997, а у .burger-overlay тоже 9999 →
+   оверлей перекрывал открытый чат (ничья по z-index решается порядком в DOM, меню позже).
+   Поднимаем виджет над оверлеем, сохраняя его внутренний порядок (wrap < bubble < btn).
+   !important — стили инлайнит сторонний widget.js. */
+#opsph-wrap   { z-index: 10050 !important; }
+#opsph-bubble { z-index: 10052 !important; }
+#opsph-btn    { z-index: 10055 !important; }
