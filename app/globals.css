@@ -4171,6 +4171,45 @@ html, body {
   border: 0;
 }
 
+/* Футер обычных страниц (/services, /concept, /apartments/[id]) на телефоне.
+   Эти страницы рендерят <Footer /> без пропа isMobile → приходит класс
+   ff-footer-desktop, и раскладка в две колонки сплющивалась: текст в узкий
+   столбик, карта обрезана. Компактный ff-footer-mobile сюда не подходит —
+   он рассчитан на сцену главной (шрифт 11px, карта 120px), поэтому даём
+   десктопному футеру нормальную мобильную раскладку: одна колонка. */
+@media (max-width: 768px) {
+  .ff-footer-desktop .ff-container {
+    width: calc(100% - 32px);
+    padding: 28px 0;
+  }
+
+  .ff-footer-desktop .ff-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+
+  .ff-footer-desktop .ff-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .ff-footer-desktop .ff-description {
+    font-size: 14px;
+    max-width: none;
+    margin-bottom: 18px;
+  }
+
+  .ff-footer-desktop .ff-map {
+    min-height: 180px;
+  }
+
+  .ff-footer-desktop .ff-copyright {
+    margin-top: 18px;
+  }
+}
+
 /* Мобилка футер */
 .ff-footer-mobile {
   flex: 0 0 auto;

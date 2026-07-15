@@ -298,6 +298,97 @@ export function IconGazebo({ className }: IconProps) {
   );
 }
 
+/** Стрелка вниз — подсказка «листайте дальше» в герое */
+export function IconArrowDown({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M16 5v22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 18l9 9 9-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* === Аквазона (блок «Аквазона» на /services) ===
+   В реестр SERVICE_ICONS намеренно не добавлены: реестр — это выбор иконки
+   для пунктов из админки, а эти используются только в статичном блоке. */
+
+/** Детский бассейн — мелкая чаша с кругом */
+export function IconPoolKids({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M5 19h22v4a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5v-4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M3 19h26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M11 11h10M16 6c1.8 2.2 1.8 7.8 0 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Джакузи — чаша с пузырьками */
+export function IconJacuzzi({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M4 17h24v5a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6v-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M2 17h28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="11" cy="9" r="2" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="17.5" cy="5.5" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="22" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/** Шезлонг под зонтом */
+export function IconSunbed({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M3 24h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5 24l2-5h11l-1.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7 19l4.5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 24v4M17 24v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M24 28V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M17 12a7 7 0 0 1 14 0H17z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Бар — бокал с трубочкой */
+export function IconBar({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M6 7h20L17 18v9" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M11 27h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M9.5 11h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M21 6l4-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="25.5" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/** Вид на море и горы одновременно */
+export function IconSeaMountains({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="24" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M2 20l7-9 5.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M12 20l6-7.5L24 20" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M2 20h28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 25c2 0 3-1.6 5-1.6s3 1.6 5 1.6 3-1.6 5-1.6 3 1.6 5 1.6 3-1.6 5-1.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 29.5c2 0 3-1.6 5-1.6s3 1.6 5 1.6 3-1.6 5-1.6 3 1.6 5 1.6 3-1.6 5-1.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Информация — для памятки про категории апартаментов */
+export function IconInfo({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M16 14v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="16" cy="9.5" r="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function IconPhone({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

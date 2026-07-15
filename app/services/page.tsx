@@ -5,9 +5,18 @@ import JsonLd from '@/components/JsonLd';
 import Footer from '@/components/Footer';
 import ServicesHeaderMode from './ServicesHeaderMode';
 import ServicesReveal from './ServicesReveal';
+import ServicesAquaGallery, { type AquaPhoto } from './ServicesAquaGallery';
 import {
   IconPhone,
   IconArrowRight,
+  IconArrowDown,
+  IconPool,
+  IconPoolKids,
+  IconJacuzzi,
+  IconSunbed,
+  IconBar,
+  IconSeaMountains,
+  IconInfo,
   resolveServiceIcon,
 } from './icons';
 import { serviceItemsService, type ServiceCategory } from '@/lib/db';
@@ -21,15 +30,15 @@ const PHONE_MAIN_DISPLAY = '+7 978 503 63 63';
 export const revalidate = 86400;
 
 export function generateMetadata(): Metadata {
-  const title = 'Услуги — апартаменты LS у моря в Алуште';
+  const title = 'Аквазона и услуги — апартаменты с бассейном в Алуште';
   const description =
-    'Услуги для гостей апартаментов LS: завтраки и полный пансион, уборка и химчистка, трансфер и такси, экскурсии. Инфраструктура комплекса — бассейн, пляж рядом, кофейня, магазины, паркинг.';
+    'Аквазона апарт-отеля «Стиль Жизни» в Алуште: два больших бассейна круглый год, два детских, джакузи, шезлонги и бар у воды — с видом на море и горы. Плюс завтраки, уборка, трансфер и экскурсии для гостей.';
 
   return {
     title,
     description,
     keywords:
-      'услуги апартаментов алушта, апартаменты с завтраком алушта, инфраструктура комплекса life style crimea, трансфер алушта, уборка апартаментов',
+      'апартаменты с бассейном алушта, отдых с детьми алушта, бассейн алушта круглый год, детский бассейн алушта, аквазона алушта, услуги апартаментов алушта, трансфер алушта',
     alternates: {
       canonical: 'https://lovelifestyle.ru/services',
     },
@@ -39,12 +48,13 @@ export function generateMetadata(): Metadata {
       type: 'website',
       locale: 'ru_RU',
       url: 'https://lovelifestyle.ru/services',
+      siteName: 'Стиль Жизни',
       images: [
         {
-          url: '/images/menu/services.jpg',
-          width: 1200,
-          height: 630,
-          alt: 'Услуги — Life Style Crimea',
+          url: 'https://lovelifestyle.ru/images/aqua/pool-loungers.webp',
+          width: 1448,
+          height: 1086,
+          alt: 'Аквазона апарт-отеля «Стиль Жизни» в Алуште — бассейн с шезлонгами',
         },
       ],
     },
@@ -56,6 +66,36 @@ export function generateMetadata(): Metadata {
     },
   };
 }
+
+/* Кадры аквазоны от заказчицы (июль 2026). Лежат в git, как и /images/menu/. */
+const AQUA_PHOTOS: AquaPhoto[] = [
+  {
+    src: '/images/aqua/pool-loungers.webp',
+    alt: 'Бассейн аквазоны с шезлонгами, зонтами и баром-островом — апарт-отель «Стиль Жизни», Алушта',
+    caption: 'Шезлонги и бар у воды',
+  },
+  {
+    src: '/images/aqua/pool-main.webp',
+    alt: 'Большой бассейн аквазоны апарт-отеля «Стиль Жизни» в Алуште',
+    caption: 'Большой бассейн',
+    desktopOnly: true,
+  },
+  {
+    src: '/images/aqua/sea-mountains.webp',
+    alt: 'Вид на море и горы одновременно от бассейнов комплекса в Алуште',
+    caption: 'Море и горы разом',
+  },
+];
+
+/* Факты аквазоны — со слов заказчицы. */
+const AQUA_FACTS: { Icon: (p: { className?: string }) => React.ReactElement; text: string }[] = [
+  { Icon: IconPool, text: 'Два больших бассейна — круглый год' },
+  { Icon: IconPoolKids, text: 'Два детских бассейна' },
+  { Icon: IconJacuzzi, text: 'Джакузи' },
+  { Icon: IconSunbed, text: 'Шезлонги вдоль бассейнов' },
+  { Icon: IconBar, text: 'Бар прямо в аквазоне' },
+  { Icon: IconSeaMountains, text: 'Вид на море и горы одновременно' },
+];
 
 // Метаданные категорий: заголовок колонки + порядковый эйбрау.
 const CATEGORY_META: { key: ServiceCategory; title: string; eyebrow: string }[] = [
@@ -106,7 +146,46 @@ export default function ServicesPage() {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://lovelifestyle.ru' },
-          { '@type': 'ListItem', position: 2, name: 'Услуги', item: 'https://lovelifestyle.ru/services' },
+          { '@type': 'ListItem', position: 2, name: 'Аквазона и услуги', item: 'https://lovelifestyle.ru/services' },
+        ],
+      },
+      /* FAQ — ровно те вопросы, которые гости задают про бассейн и детей.
+         Даёт расширенный сниппет и ловит запросы «есть ли бассейн», «с детьми». */
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Есть ли бассейн в апартаментах в Алуште?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Да. В аквазоне комплекса два больших бассейна, которые работают круглый год, и два детских. Рядом джакузи, шезлонги вдоль воды и бар. Посещение доступно в некоторых категориях апартаментов — уточните у администратора.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Работает ли бассейн зимой и не в сезон?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Да, два больших бассейна открыты круглый год, а не только в летний сезон.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Подходит ли комплекс для отдыха с детьми?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Да. В аквазоне два отдельных детских бассейна с мелкой водой, а шезлонги стоят рядом — дети плещутся у себя, взрослые отдыхают в нескольких шагах и всё время их видят.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Всем ли гостям доступна аквазона?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Посещение аквазоны доступно в некоторых категориях апартаментов. Уточните у администратора при бронировании по телефону 8 800 777 63 08 — подскажем, какие апартаменты подойдут.',
+            },
+          },
         ],
       },
     ],
@@ -138,23 +217,62 @@ export default function ServicesPage() {
             Здесь вы найдёте не просто апартаменты, а целый образ жизни: утончённый сервис, услуги
             для идеального отдыха и все условия, чтобы почувствовать себя на своём месте.
           </p>
-          <div className="sv-hero-meta">
-            <span className="sv-hero-chip">В апартаментах</span>
-            <span className="sv-hero-chip">Услуги</span>
-            <span className="sv-hero-chip">Инфраструктура</span>
-          </div>
-          <div className="sv-hero-actions">
-            <a href="#amenities" className="sv-btn-primary">
-              Что включено
-              <IconArrowRight />
-            </a>
-            <a href={PHONE_FREE_TEL} className="sv-btn-secondary">
-              <IconPhone />
-              {PHONE_FREE}
-            </a>
-          </div>
+          {/* «Что включено» — не ссылка в никуда, а подсказка листать: сам
+              список ниже на этой же странице. Стрелка ведёт к нему. */}
+          <a href="#amenities" className="sv-hero-scroll">
+            <span className="sv-hero-scroll-label">Что включено</span>
+            <IconArrowDown className="sv-hero-scroll-icon" />
+          </a>
         </div>
       </header>
+
+      {/* ===== АКВАЗОНА — главный аргумент, поэтому сразу после героя ===== */}
+      <section id="aqua" className="sv-aqua">
+        <div className="sv-aqua-inner">
+          <p className="sv-aqua-eyebrow sv-reveal">Аквазона</p>
+          <h2 className="sv-aqua-title sv-reveal sv-reveal-delay-1">
+            Два больших бассейна — и они работают <strong>круглый год</strong>
+          </h2>
+          <p className="sv-aqua-lead sv-reveal sv-reveal-delay-1">
+            Не один бассейн на весь комплекс, а два — плюс два детских рядом, на расстоянии
+            взгляда. Джакузи, шезлонги вдоль воды и бар, до которого не нужно переодеваться.
+            А вокруг — море и горы одновременно.
+          </p>
+
+          <ServicesAquaGallery photos={AQUA_PHOTOS} />
+
+          <ul className="sv-aqua-facts sv-reveal">
+            {AQUA_FACTS.map((fact) => (
+              <li className="sv-aqua-fact" key={fact.text}>
+                <fact.Icon className="sv-aqua-fact-icon" />
+                <span>{fact.text}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Доступ зависит от категории апартаментов — говорим прямо, чтобы
+              гость не приехал с неверным ожиданием, и уводим на звонок. */}
+          <div className="sv-aqua-note sv-reveal">
+            <IconInfo className="sv-aqua-note-icon" />
+            <div className="sv-aqua-note-body">
+              <p className="sv-aqua-note-title">Посещение аквазоны доступно в некоторых категориях апартаментов</p>
+              <p className="sv-aqua-note-text">
+                Уточните у администратора — подскажем, какие апартаменты подойдут именно вам.
+              </p>
+              <div className="sv-aqua-note-actions">
+                <a href={PHONE_FREE_TEL} className="sv-btn-primary">
+                  <IconPhone />
+                  {PHONE_FREE}
+                </a>
+                <Link href="/apartments" className="sv-btn-secondary">
+                  Апартаменты
+                  <IconArrowRight />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ===== БЛОКИ УСЛУГ (из БД) ===== */}
       {hasItems && (

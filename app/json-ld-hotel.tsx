@@ -7,8 +7,13 @@ export default function JsonLdHotel() {
     description: 'Премиальные апартаменты в Алуште с видом на море. 38 дизайнерских номеров с балконами, полностью укомплектованы. Бронирование онлайн. Лучшие цены напрямую.',
     url: 'https://lovelifestyle.ru',
     logo: 'https://lovelifestyle.ru/logo.png',
-    image: 'https://lovelifestyle.ru/og-image.jpg',
-    telephone: '8 800 777 63 08',
+    image: [
+      'https://lovelifestyle.ru/og-image.jpg',
+      'https://lovelifestyle.ru/images/aqua/pool-loungers.webp',
+      'https://lovelifestyle.ru/images/aqua/sea-mountains.webp',
+    ],
+    // Оба номера — в формате E.164, иначе поисковики их игнорируют в сниппете
+    telephone: ['+79785036363', '+78007776308'],
     email: 'info@lovelifestyle.ru',
     address: {
       '@type': 'PostalAddress',
@@ -22,13 +27,31 @@ export default function JsonLdHotel() {
       latitude: '44.6630',
       longitude: '34.4001',
     },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '8 800 777 63 08',
-      contactType: 'reservations',
-      areaServed: 'RU',
-      availableLanguage: 'Russian',
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: '+78007776308',
+        contactType: 'reservations',
+        name: 'Бесплатный по России',
+        areaServed: 'RU',
+        availableLanguage: 'Russian',
+      },
+      {
+        '@type': 'ContactPoint',
+        telephone: '+79785036363',
+        contactType: 'reservations',
+        areaServed: 'RU',
+        availableLanguage: 'Russian',
+      },
+    ],
+    // Приём круглосуточный — Яндекс любит показывать режим работы в сниппете
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '00:00',
+      closes: '23:59',
     },
+    hasMap: 'https://yandex.ru/maps/?text=Алушта, Западная улица, 4к3',
     priceRange: 'от 5 000 ₽',
     checkinTime: '14:00',
     checkoutTime: '12:00',
@@ -38,11 +61,15 @@ export default function JsonLdHotel() {
       ratingValue: '4.9',
       bestRating: '5',
     },
+    /* Реальные цифры с карточки Яндекс.Карт (проверено 16.07.2026): 4.9 из 91.
+       Держать в схеме число, которого нет в источнике, нельзя — это фальшивый
+       отзыв в разметке. Растёт число отзывов — обновляем здесь. */
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.9',
-      ratingCount: '127',
+      reviewCount: '91',
       bestRating: '5',
+      worstRating: '1',
     },
     amenityFeature: [
       { '@type': 'LocationFeatureSpecification', name: 'Бесплатный Wi-Fi', value: true },
