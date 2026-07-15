@@ -67,9 +67,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Standard overlap: booking overlaps [from, to) if check_out > from AND check_in < to
+    /* Standard overlap: занято на [from, to) если end > from AND start < to.
+       blocked_dates (синк Travelline) — ГЛАВНЫЙ источник занятости: именно по нему
+       живёт публичная страница (/api/availability-travelline). Без него ассистент
+       считал свободным всё, что забронировано через Travelline (там 68 будущих
+       блоков), т.к. `bookings` почти пуста, а `external_bookings` пуста совсем. */
     const { count } = db.prepare(`
       SELECT COUNT(*) as count FROM (
+        SELECT id FROM blocked_dates
+        WHERE apartment_id = ?
+          AND end_date > ?
+          AND start_date < ?
+        UNION ALL
         SELECT id FROM bookings
         WHERE apartment_id = ?
           AND status != 'cancelled'
@@ -82,6 +91,7 @@ export async function GET(req: NextRequest) {
           AND check_in < ?
       )
     `).get(
+      apartment.id, from, to,
       apartment.id, from, to,
       apartment.id, from, to,
     ) as CountRow;

@@ -77,29 +77,50 @@ export async function GET() {
       WHERE is_active = 1 AND deleted_at IS NULL
     `).get() as CountRow;
 
-    // --- Запрос: занятые апартаменты на ближайшие выходные ---
-    const occupiedThisWeekend = db.prepare(`
-      SELECT DISTINCT b.apartment_id, a.title
-      FROM bookings b
-      JOIN apartments a ON a.id = b.apartment_id
-      WHERE b.status != 'cancelled'
-        AND b.check_in < ?
-        AND b.check_out > ?
-        AND a.is_active = 1
-        AND a.deleted_at IS NULL
-    `).all(thisMon, thisSatSql) as OccupiedRow[];
+    /* --- Занятость на интервал [from, to) ---
+       ВАЖНО: занятость этого проекта разложена по ТРЁМ таблицам, и раньше здесь
+       читались только `bookings` (заявки с формы сайта — их почти нет) — поэтому
+       ассистент рапортовал «свободно 44 из 44», хотя Travelline держал номера
+       занятыми (на 18–19 июля: реально занято 10, отдавали 0). Гость получал
+       заведомо ложный ответ → риск двойного бронирования.
+       Теперь смотрим все три источника, как и сам сайт:
+         • blocked_dates      — синк Travelline, ГЛАВНЫЙ источник (start_date/end_date)
+         • bookings           — собственные брони с сайта (check_in/check_out)
+         • external_bookings  — импорт iCal (сейчас пусто, но пусть будет)
+       Семантика пересечения — ровно как в /api/availability-travelline,
+       по которому живёт публичная страница: start < to AND end > from. */
+    const occupiedFor = (fromSql: string, toSql: string) =>
+      db.prepare(`
+        SELECT DISTINCT a.id AS apartment_id, a.title
+        FROM apartments a
+        WHERE a.is_active = 1
+          AND a.deleted_at IS NULL
+          AND (
+            EXISTS (
+              SELECT 1 FROM blocked_dates bd
+              WHERE bd.apartment_id = a.id
+                AND bd.start_date < ? AND bd.end_date > ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM bookings b
+              WHERE b.apartment_id = a.id
+                AND b.status != 'cancelled'
+                AND b.check_in < ? AND b.check_out > ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM external_bookings eb
+              WHERE eb.apartment_id = a.id
+                AND eb.check_in < ? AND eb.check_out > ?
+            )
+          )
+        ORDER BY a.title
+      `).all(toSql, fromSql, toSql, fromSql, toSql, fromSql) as OccupiedRow[];
 
-    // --- Запрос: занятые апартаменты на следующие выходные ---
-    const occupiedNextWeekend = db.prepare(`
-      SELECT DISTINCT b.apartment_id, a.title
-      FROM bookings b
-      JOIN apartments a ON a.id = b.apartment_id
-      WHERE b.status != 'cancelled'
-        AND b.check_in < ?
-        AND b.check_out > ?
-        AND a.is_active = 1
-        AND a.deleted_at IS NULL
-    `).all(nextMon, nextSatSql) as OccupiedRow[];
+    // --- Занятые апартаменты на ближайшие выходные ---
+    const occupiedThisWeekend = occupiedFor(thisSatSql, thisMon);
+
+    // --- Занятые апартаменты на следующие выходные ---
+    const occupiedNextWeekend = occupiedFor(nextSatSql, nextMon);
 
     // --- Запрос: горячие предложения ---
     const hotDeals = db.prepare(`
