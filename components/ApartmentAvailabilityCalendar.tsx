@@ -192,7 +192,7 @@ export default function ApartmentAvailabilityCalendar({
       </span>
       {priceInfo && (
         <span className={`calendar-total-price${priceInfo.hasHotDeal ? ' is-hot-deal' : ''}`}>
-          • {priceInfo.hasHotDeal ? '🔥 ' : ''}{priceInfo.total.toLocaleString()} ₽
+          • {priceInfo.hasHotDeal ? '🔥 ' : ''}{priceInfo.total.toLocaleString('ru-RU')} ₽
           {priceInfo.hasVariation && (
             <span className="calendar-price-note"> (сезонная цена)</span>
           )}

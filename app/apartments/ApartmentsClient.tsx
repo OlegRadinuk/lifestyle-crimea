@@ -434,7 +434,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                             const perNight = nights > 0 ? Math.round(total / nights) : apartment.price_base;
                             return (
                               <div className="ap-list-price">
-                                {total.toLocaleString()} ₽
+                                {total.toLocaleString('ru-RU')} ₽
                                 <span style={{ fontSize: '11px', opacity: 0.7, marginLeft: 4 }}>/ {nights} ночей</span>
                               </div>
                             );
@@ -442,16 +442,16 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                           if (apartment.hot_deal_enabled) {
                             return (
                               <div className="ap-list-price">
-                                <span className="price-original">{apartment.price_base.toLocaleString()} ₽</span>
+                                <span className="price-original">{apartment.price_base.toLocaleString('ru-RU')} ₽</span>
                                 <span className="price-discounted">
-                                  {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString()} ₽ / ночь
+                                  {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString('ru-RU')} ₽ / ночь
                                 </span>
                               </div>
                             );
                           }
                           return (
                             <div className="ap-list-price">
-                              от {apartment.price_base.toLocaleString()} ₽ / ночь
+                              от {apartment.price_base.toLocaleString('ru-RU')} ₽ / ночь
                             </div>
                           );
                         })()}

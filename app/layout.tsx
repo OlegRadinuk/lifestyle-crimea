@@ -66,14 +66,12 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <head>
-        {/* Preload главного изображения */}
-        <link
-          rel="preload"
-          as="image"
-          href="/panoramas/LS-Art-Sweet-Caramel.webp"
-          crossOrigin="anonymous"
-          fetchPriority="high"
-        />
+        {/* Панораму (2-я сцена главной) НЕ преложим:
+            (1) в корневом layout это грузило её на КАЖДОЙ странице, где она не нужна
+                (/apartments и др.) → warning «preloaded but not used» в консоли;
+            (2) с fetchPriority=high она отбирала канал у hero-картинки — настоящего LCP
+                главной, которую ждёт лоад-скрин.
+            Панорама ниже сгиба, грузится своим three.js-лоадером, под ней есть постер. */}
 
         {/* ========== ФАВИКОНКИ ========== */}
         <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />

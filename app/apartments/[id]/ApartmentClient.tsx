@@ -260,7 +260,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
                   <div className="ap-list-footer">
                     <div className="ap-list-price">
-                      от {apartment.price_base.toLocaleString()} ₽ / ночь
+                      от {apartment.price_base.toLocaleString('ru-RU')} ₽ / ночь
                     </div>
 
                     <div className="ap-list-actions">

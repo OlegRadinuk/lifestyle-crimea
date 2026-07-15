@@ -252,7 +252,7 @@ export default function BookingModal({
                   ? 'Завтрак'
                   : 'Завтрак + ужин'
               }\n` +
-              `💰 <b>Сумма:</b> ${price.total.toLocaleString()} ₽\n\n` +
+              `💰 <b>Сумма:</b> ${price.total.toLocaleString('ru-RU')} ₽\n\n` +
               `👤 <b>Гость:</b> ${guestInfo.firstName} ${guestInfo.lastName}\n` +
               `📞 <b>Телефон:</b> ${guestInfo.phone}\n` +
               (guestInfo.email ? `📧 <b>Email:</b> ${guestInfo.email}\n\n` : '\n') +
@@ -315,7 +315,7 @@ export default function BookingModal({
               <h3>Апартамент</h3>
               <p className="booking-apartment-title">{apartment.title}</p>
               {apartment.price_base && (
-                <p className="booking-price-info">Базовая цена: {apartment.price_base.toLocaleString()} ₽/ночь</p>
+                <p className="booking-price-info">Базовая цена: {apartment.price_base.toLocaleString('ru-RU')} ₽/ночь</p>
               )}
             </section>
 
@@ -421,14 +421,14 @@ export default function BookingModal({
               <>
                 <div className="price-row">
                   <span>
-                    {price.basePerNight.toLocaleString()} ₽ × {price.nights}{' '}
+                    {price.basePerNight.toLocaleString('ru-RU')} ₽ × {price.nights}{' '}
                     {price.nights === 1
                       ? 'ночь'
                       : price.nights <= 4
                       ? 'ночи'
                       : 'ночей'}
                   </span>
-                  <span>{price.baseTotal.toLocaleString()} ₽</span>
+                  <span>{price.baseTotal.toLocaleString('ru-RU')} ₽</span>
                 </div>
 
                 {meals !== 'none' && (
@@ -437,7 +437,7 @@ export default function BookingModal({
                       Питание (
                       {meals === 'breakfast' ? 'завтрак' : 'завтрак + ужин'})
                     </span>
-                    <span>{price.mealsTotal.toLocaleString()} ₽</span>
+                    <span>{price.mealsTotal.toLocaleString('ru-RU')} ₽</span>
                   </div>
                 )}
 
@@ -445,7 +445,7 @@ export default function BookingModal({
 
                 <div className="price-total">
                   <span>Итого</span>
-                  <strong>{price.total.toLocaleString()} ₽</strong>
+                  <strong>{price.total.toLocaleString('ru-RU')} ₽</strong>
                 </div>
 
                 <div className="price-notice">
