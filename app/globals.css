@@ -8631,3 +8631,48 @@ html, body {
     min-height: 30px;
   }
 }
+
+/* =====================================================================
+   БУРГЕР-МЕНЮ (июль 2026, раунд 2)
+   — Убираем внутренний вертикальный скролл: контент левой колонки всегда
+     влезает в карточку (90vh) за счёт height-адаптивного уплотнения (clamp
+     по vh). НИКАКИХ фикс-хаков: на низком окне padding/gap/шрифт ужимаются,
+     на высоком — держат исходные размеры. Только десктоп (>=769px);
+     мобилка использует полноэкранное меню (@media max-width:768).
+   — Мгновенная визуальная подсказка при наведении (цвет + подчёркивание)
+     ещё до смены превью (hover-intent 120мс), чтобы было ясно: пункт
+     «выбирается», кликать не нужно.
+===================================================================== */
+@media (min-width: 769px) {
+  /* Левая колонка больше НЕ скроллится — всё помещается за счёт clamp ниже */
+  .burger-left { overflow-y: hidden; }
+
+  .burger-menu {
+    padding: clamp(28px, 5.2vh, 60px) clamp(32px, 3vw, 60px) clamp(16px, 2.5vh, 32px);
+    gap: clamp(10px, 2.3vh, 28px);
+  }
+  .burger-menu li {
+    font-size: clamp(18px, 2.5vh, 26px);
+    line-height: 1.12;
+    transition: color 0.18s ease;
+  }
+  /* Подсказка: сразу при hover — цвет темнеет (подчёркивание уже растёт через ::after) */
+  .burger-menu li:hover { color: #0d7f97; }
+
+  .burger-contacts {
+    padding: clamp(14px, 2.6vh, 40px) clamp(32px, 3vw, 60px);
+    font-size: clamp(12.5px, 1.55vh, 15px);
+    line-height: 1.5;
+  }
+  .burger-contacts a { margin-bottom: clamp(2px, 0.5vh, 6px); }
+  .burger-contacts .burger-address,
+  .burger-contacts .burger-time { margin-top: clamp(4px, 1vh, 12px); }
+}
+
+/* Виджет «София» не должен торчать поверх открытого бургер-меню —
+   прячем его плавающие части, пока меню открыто (в DOM есть .burger-overlay). */
+body:has(.burger-overlay) #opsph-btn,
+body:has(.burger-overlay) #opsph-bubble,
+body:has(.burger-overlay) #opsph-wrap {
+  display: none !important;
+}

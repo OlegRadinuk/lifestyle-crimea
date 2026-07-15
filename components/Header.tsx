@@ -57,15 +57,6 @@ export default function Header({ onBurgerClick }: Props) {
   const isPanoramaPage = pathname === '/';
   const isApartmentPage = pathname?.startsWith('/apartments/') && pathname !== '/apartments';
 
-  // Логируем для отладки
-  useEffect(() => {
-    console.log('📌 [Header] mode:', mode);
-    console.log('📌 [Header] searchParams:', searchParams);
-    console.log('📌 [Header] pathname:', pathname);
-    console.log('📌 [Header] isApartmentPage:', pathname?.startsWith('/apartments/') && pathname !== '/apartments');
-    console.log('📌 [Header] activeApartment:', getActiveApartment());
-  }, [mode, searchParams, pathname]);
-
   // Загружаем апартамент из URL если мы на странице апартамента
   useEffect(() => {
     const fetchApartmentFromUrl = async () => {
@@ -451,8 +442,7 @@ export default function Header({ onBurgerClick }: Props) {
           initialRange={selectedRange}
           initialGuests={guests}
           onClose={() => setBookingModalOpen(false)}
-          onConfirm={(data) => {
-            console.log('FINAL BOOKING DATA', data);
+          onConfirm={() => {
             setBookingModalOpen(false);
           }}
         />

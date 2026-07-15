@@ -38,7 +38,6 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   // Передаем параметры поиска в контекст хедера
   useEffect(() => {
     if (searchParamsFromUrl) {
-      console.log('📅 [Apartment] Setting dates:', searchParamsFromUrl);
       setSearchParams(searchParamsFromUrl);
     }
 

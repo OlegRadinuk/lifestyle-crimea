@@ -87,18 +87,15 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       urlCheckOut = searchParams?.get('checkOut') || null;
       urlGuests = searchParams?.get('guests') || null;
       urlChildren = searchParams?.get('children') || null;
-    } catch (e) {
-      console.log('SearchParams error, using defaults');
+    } catch {
     }
 
     if (urlCheckIn && urlCheckOut && urlGuests) {
-      console.log('📌 Using URL params:', { urlCheckIn, urlCheckOut, urlGuests, urlChildren });
       setCheckIn(urlCheckIn);
       setCheckOut(urlCheckOut);
       setGuests(parseInt(urlGuests));
       setChildren(urlChildren ? parseInt(urlChildren) : 0);
     } else if (contextSearch) {
-      console.log('📌 Using context search:', contextSearch);
       setCheckIn(contextSearch.checkIn);
       setCheckOut(contextSearch.checkOut);
       setGuests(contextSearch.guests);
@@ -134,7 +131,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       apt.max_guests >= guests && (children === 0 || apt.max_guests >= 3)
     );
     
-    console.log('🔍 Checking availability for:', apartmentsToCheck.length, 'apartments (filtered by guests)');
     
     await Promise.all(
       apartmentsToCheck.map(async (apt) => {
@@ -152,7 +148,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
       })
     );
 
-    console.log('✅ Available apartments:', available.size);
     setAvailableIds(available);
     setCheckingAvailability(false);
   }, [checkIn, checkOut, guests, children, allApartments]);
@@ -379,12 +374,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                   >
                     <div className="ap-list-image">
                       <img
-                        src={apartment.images?.[0] || '/images/placeholder.jpg'}
+                        src={apartment.images?.[0] || '/images/placeholder.svg'}
                         alt={apartment.title}
                       />
                       <button
                         className="ap-list-gallery-btn"
-                        onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
+                        onClick={() => open(apartment.images || ['/images/placeholder.svg'], 0)}
                       >
                         Смотреть фото
                       </button>

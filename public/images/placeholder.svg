@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Фото готовится">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B2A35"/>
+      <stop offset="1" stop-color="#123c49"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <g fill="none" stroke="#139AB6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+    <rect x="470" y="300" width="260" height="200" rx="14"/>
+    <circle cx="545" cy="360" r="20"/>
+    <path d="M470 452 L556 388 L618 436 L688 372 L730 410"/>
+  </g>
+  <text x="600" y="560" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="30" letter-spacing="6" fill="#8bd3e6" opacity="0.75">ФОТО ГОТОВИТСЯ</text>
+</svg>

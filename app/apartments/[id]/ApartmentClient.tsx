@@ -24,14 +24,12 @@ function formatDate(date: string): string {
 }
 
 export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
-  console.log('🚀 ApartmentsClient mounted, apartments:', initialApartments.length);
 
   const { open } = usePhotoModal();
   const router = useRouter();
   const { search } = useSearch();
   const { register, unregister } = useHeader();
 
-  console.log('🔍 Search params:', search);
 
   const [bookingApartment, setBookingApartment] = useState<{
     id: string;
@@ -91,7 +89,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         return;
       }
 
-      console.log('📅 Checking availability for:', search);
       setLoadingAvailability(true);
       const unavailable = new Set<string>();
 
@@ -104,7 +101,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
             const data = await response.json();
             
             if (!data.isAvailable) {
-              console.log(`❌ ${apt.id} unavailable`);
               unavailable.add(apt.id);
             }
           } catch (error) {
@@ -113,7 +109,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         })
       );
 
-      console.log('🏁 Unavailable:', unavailable.size, 'apartments');
       setUnavailableIds(unavailable);
       setLoadingAvailability(false);
     };
@@ -129,7 +124,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   }, [search, apartments]);
 
   const handleBookingClick = async (apartment: ApartmentClient) => {
-    console.log('🖱️ Booking clicked:', apartment.id);
     
     if (!search) return;
 
@@ -177,7 +171,6 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     (apt) => apt.max_guests >= search.guests && !unavailableIds.has(apt.id)
   );
 
-  console.log('📊 Available apartments:', filteredApartments.length);
 
   if (loadingAvailability) {
     return (
@@ -234,12 +227,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
               >
                 <div className="ap-list-image">
                   <img 
-                    src={apartment.images?.[0] || '/images/placeholder.jpg'} 
+                    src={apartment.images?.[0] || '/images/placeholder.svg'} 
                     alt={apartment.title} 
                   />
                   <button
                     className="ap-list-gallery-btn"
-                    onClick={() => open(apartment.images || ['/images/placeholder.jpg'], 0)}
+                    onClick={() => open(apartment.images || ['/images/placeholder.svg'], 0)}
                   >
                     Смотреть фото
                   </button>

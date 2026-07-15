@@ -213,6 +213,36 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
     };
   }, [isOpen]);
 
+  // Предзагрузка ВСЕХ превью-фото категорий сразу при открытии меню,
+  // чтобы при наведении на пункт картинка уже была в кэше (без мерцания/подгрузки).
+  useEffect(() => {
+    if (!isOpen) return;
+    const urls = new Set<string>();
+    for (const item of menuItems) {
+      if (item.image) urls.add(item.image);
+      if (item.images) item.images.forEach((u) => urls.add(u));
+    }
+    urls.forEach((u) => {
+      const img = new window.Image();
+      img.src = u;
+    });
+  }, [isOpen]);
+
+  // При закрытии меню сбрасываем hover-состояние, чтобы следующее открытие
+  // стартовало с активной категории текущей страницы, а не с прошлого ховера.
+  // ВАЖНО: сбрасываем на закрытии, НЕ при уводе мыши за пределы превью —
+  // иначе увод курсора резко «прыгал» на Главную (жалоба заказчицы).
+  useEffect(() => {
+    if (!isOpen) {
+      setHoveredItem(null);
+      setSlideIndex(0);
+      if (hoverTimerRef.current !== null) {
+        clearTimeout(hoverTimerRef.current);
+        hoverTimerRef.current = null;
+      }
+    }
+  }, [isOpen]);
+
   const nextNews = () => {
     if (news.length === 0) return;
     setNewsIndex((prev) => (prev + 1) % news.length);
@@ -332,8 +362,6 @@ export default function BurgerMenu({ isOpen, onClose }: Props) {
           <div
             className="burger-preview"
             data-tint={activeItem.tint ?? undefined}
-            onMouseEnter={() => {}}
-            onMouseLeave={() => setHoveredItem(null)}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >

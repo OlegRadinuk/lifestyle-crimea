@@ -50,7 +50,7 @@ async function getApartments(): Promise<ApartmentClient[]> {
         view: apt.view,
         has_terrace: Boolean(apt.has_terrace),
         features: apt.features ? JSON.parse(apt.features) : [],
-        images: images.length > 0 ? images : ['/images/placeholder.jpg'],
+        images: images.length > 0 ? images : ['/images/placeholder.svg'],
         is_active: Boolean(apt.is_active),
         hot_deal_enabled: Boolean(apt.hot_deal_enabled),
         hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
@@ -70,7 +70,6 @@ async function getApartments(): Promise<ApartmentClient[]> {
 export default async function ApartmentsPage() {
   const initialApartments = await getApartments();
   
-  console.log('📊 [Server] Apartments loaded:', initialApartments.length);
   
   return <ApartmentsClient initialApartments={initialApartments} />;
 }
