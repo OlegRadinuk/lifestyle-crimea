@@ -107,9 +107,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       locale: 'ru_RU',
       siteName: 'Стиль Жизни, Алушта',
       url: `https://lovelifestyle.ru/apartments/${id}`,
+      /* Фото самого апартамента тут не поставить: все они в webp, а Telegram,
+         WhatsApp и VK не показывают webp в превью ссылки — карточка приходит
+         пустой. Отдаём брендовый JPEG: превью работает всегда. Появятся
+         jpg-версии кадров — можно вернуть фото конкретного апартамента. */
       images: [
         {
-          url: `https://lovelifestyle.ru/images/apartments/${id}/1.webp`,
+          url: 'https://lovelifestyle.ru/og-image.jpg',
           width: 1200,
           height: 630,
           alt: `Апартаменты ${displayName} ${viewText} — Алушта, апарт-отель «Стиль Жизни»`,

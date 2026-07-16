@@ -26,8 +26,17 @@ export async function generateStaticParams() {
   }
 }
 
+/**
+ * Абсолютный URL картинки для превью ссылки.
+ *
+ * WebP отсеиваем осознанно: Telegram, WhatsApp и VK не показывают его в карточке
+ * ссылки — превью приходит пустым. Обложки новостей грузятся через админку и
+ * почти всегда webp, поэтому для таких отдаём брендовый JPEG. Как только у
+ * новости будет jpg/png-обложка — она подхватится сама.
+ */
 function absUrl(url: string | null | undefined): string {
   if (!url) return FALLBACK_OG;
+  if (/\.webp($|\?)/i.test(url)) return FALLBACK_OG;
   return url.startsWith('http') ? url : `${SITE}${url}`;
 }
 
