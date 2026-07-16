@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!apartment) {
     return {
-      title: 'Апартамент не найден | Life Style Crimea',
+      title: 'Апартамент не найден',
       robots: { index: false },
     };
   }
@@ -56,8 +56,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Человекочитаемое название (убираем LS- префикс для title)
   const displayName = apartment.title.replace(/^LS-(?:LUX-|ART-)?/i, '').trim();
 
-  // Формируем title (без "Life Style Crimea" — добавляет layout template)
-  const title = `Апартаменты «${displayName}» ${viewText} | ${apartment.area} м² | Алушта`;
+  /* Title ведёт ЗАПРОСОМ, а не внутренним именем.
+     Было: «Апартаменты «SPACE» с видом на море | 36 м² | Алушта» — первые
+     слова тайтла весят больше всего, а «SPACE»/«COFFEE ICE CREAM» никто не
+     ищет: это наши артикулы, а не язык гостя. Стало: сначала то, что человек
+     набирает («апартаменты с видом на море в Алуште»), потом площадь и число
+     гостей — они же различают карточки между собой, — и лишь в конце имя.
+     `absolute` — чтобы шаблон layout не дописывал хвост и не резал длину
+     (в выдаче видно ~60-70 символов). Этаж НЕ берём: поле floor у всех 44
+     равно 1 (никогда не заполнялось), реальный этаж есть только в тексте. */
+  const title = {
+    absolute: `Апартаменты ${viewText} в Алуште, ${apartment.area} м² — «${displayName}»`,
+  };
 
   // Формируем description — используем short_description из БД если есть
   let description: string;
@@ -73,16 +83,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (description.length > 155) description = description.slice(0, 152) + '...';
   }
 
-  // Формируем ключевые слова
+  /* Ключевые слова — язык гостя, а не наши артикулы.
+     Было `апартаменты space алушта` и `стиль жизни с любовью` — таких запросов
+     не существует. Цель карточки — длинный хвост («апартаменты 36 м² с видом
+     на море Алушта»), голову («апартаменты Алушта») тянут / и /apartments. */
   const keywords = [
-    `апартаменты ${displayName.toLowerCase()} алушта`,
-    'апартаменты в алуште',
-    viewText,
-    `апартаменты ${apartment.area} м²`,
-    `апартаменты на ${apartment.max_guests} гостей`,
-    ...featuresList.slice(0, 5),
-    'life style crimea',
-    'стиль жизни с любовью',
+    `апартаменты ${viewText} алушта`,
+    `апартаменты в алуште на ${apartment.max_guests} гостей`,
+    `апартаменты ${apartment.area} м² алушта`,
+    'снять апартаменты в алуште посуточно',
+    'апартаменты у моря алушта',
+    ...featuresList.slice(0, 4),
   ].join(', ');
 
   return {
@@ -90,16 +101,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     keywords,
     openGraph: {
-      title,
+      title: title.absolute,
       description,
       type: 'website',
       locale: 'ru_RU',
+      siteName: 'Стиль Жизни, Алушта',
+      url: `https://lovelifestyle.ru/apartments/${id}`,
       images: [
         {
-          url: `/images/apartments/${id}/1.webp`,
+          url: `https://lovelifestyle.ru/images/apartments/${id}/1.webp`,
           width: 1200,
           height: 630,
-          alt: apartment.title,
+          alt: `Апартаменты ${displayName} ${viewText} — Алушта, апарт-отель «Стиль Жизни»`,
         },
       ],
     },

@@ -91,6 +91,15 @@ data.sqlite.*
 *.jpg
 слайды\ херо/
 
+# ...но НЕ боевые ассеты сайта. Глухие *.png/*.jpg выше молча съедали всё
+# новое в public/: так `og-image.jpg` (превью для Telegram/WhatsApp/VK) и
+# `logo.png` (logo в schema.org) никогда не доехали до прода и отдавали 404,
+# хотя разметка на них ссылалась. Старые картинки в public/images/ лежат в
+# индексе только потому, что их добавили ДО появления этих правил.
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+
 # Playwright
 playwright.config.ts
 tests/

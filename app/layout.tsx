@@ -39,11 +39,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://lovelifestyle.ru',
   },
+  /* og:* — это то, что видно в мессенджерах и соцсетях, и оно НЕ наследует
+     `title`/`description` выше: заполняется отдельно. Держать синхронно. */
   openGraph: {
-    title: 'Апартаменты в Алуште | Life Style Crimea',
-    description: 'Премиальные апартаменты в Алуште с видом на море. 38 дизайнерских номеров. Бронирование онлайн.',
+    title: 'Апартаменты в Алуште с бассейном у моря — «Стиль Жизни»',
+    description: 'Бассейны круглый год, аквазона с детскими бассейнами, вид на море и горы. Дизайнерские апартаменты с балконами. Бронирование напрямую.',
     url: 'https://lovelifestyle.ru',
-    siteName: 'Life Style Crimea',
+    siteName: 'Стиль Жизни, Алушта',
     locale: 'ru_RU',
     type: 'website',
     images: [
@@ -51,9 +53,15 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Life Style Crimea - апартаменты в Алуште',
+        alt: 'Апарт-отель «Стиль Жизни» в Алуште — бассейн с шезлонгами и вид на море',
       },
     ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Апартаменты в Алуште с бассейном у моря — «Стиль Жизни»',
+    description: 'Бассейны круглый год, аквазона с детскими бассейнами, вид на море и горы. Бронирование напрямую.',
+    images: ['/og-image.jpg'],
   },
   verification: {
     yandex: '439f21885509ad83',

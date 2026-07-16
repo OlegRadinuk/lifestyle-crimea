@@ -4,7 +4,7 @@ export default function JsonLdHotel() {
     '@type': 'Hotel',
     name: 'Life Style Crimea',
     alternateName: 'Стиль Жизни с любовью',
-    description: 'Премиальные апартаменты в Алуште с видом на море. 38 дизайнерских номеров с балконами, полностью укомплектованы. Бронирование онлайн. Лучшие цены напрямую.',
+    description: 'Премиальные апартаменты в Алуште с видом на море. 40 дизайнерских апартаментов с балконами, полностью укомплектованы. Бронирование онлайн. Лучшие цены напрямую.',
     url: 'https://lovelifestyle.ru',
     logo: 'https://lovelifestyle.ru/logo.png',
     image: [
@@ -55,7 +55,7 @@ export default function JsonLdHotel() {
     priceRange: 'от 5 000 ₽',
     checkinTime: '14:00',
     checkoutTime: '12:00',
-    numberOfRooms: 38,
+    numberOfRooms: 40,
     starRating: {
       '@type': 'Rating',
       ratingValue: '4.9',
