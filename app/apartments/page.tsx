@@ -21,14 +21,32 @@ export const revalidate = 0;
 const APARTMENTS_COUNT = 40;
 
 export async function generateMetadata(): Promise<Metadata> {
+  /* Цена в сниппете должна совпадать с тем, что гость увидит на сайте СЕГОДНЯ.
+     `price_base` для этого не годится: это базовая цена карточки, а поверх неё
+     лежат сезоны (`apartment_pricing_seasons`). В июле 2026 база давала «от
+     3 700 ₽», тогда как реальный минимум сезона — 6 500 ₽: человек приходил
+     из поиска по одной цене и видел другую. Берём минимум по сезонам,
+     действующим на сегодня, и только если сезонов нет — падаем на базу. */
   let minPrice = 0;
   try {
-    const row = db.prepare(`
-      SELECT MIN(price_base) AS p
-      FROM apartments
-      WHERE is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')
+    const season = db.prepare(`
+      SELECT MIN(s.price_per_night) AS p
+      FROM apartment_pricing_seasons s
+      JOIN apartments a ON a.id = s.apartment_id
+      WHERE a.is_active = 1 AND (a.deleted_at IS NULL OR a.deleted_at = '')
+        AND date('now') BETWEEN s.date_from AND s.date_to
     `).get() as { p: number | null };
-    minPrice = row?.p ?? 0;
+
+    minPrice = season?.p ?? 0;
+
+    if (!minPrice) {
+      const base = db.prepare(`
+        SELECT MIN(price_base) AS p
+        FROM apartments
+        WHERE is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')
+      `).get() as { p: number | null };
+      minPrice = base?.p ?? 0;
+    }
   } catch {
     // БД недоступна — отдаём метаданные без цены, страница важнее
   }
@@ -40,8 +58,8 @@ export async function generateMetadata(): Promise<Metadata> {
      Алушта» — 1 725, а «снять апартаменты в Алуште» — всего 212. Слово
      «апартаменты» сужало охват примерно в 16 раз, поэтому ведём «жильём»,
      а бренд и «апартаменты» оставляем в хвосте — премиальность сохраняется.
-     Сильные хвосты, которые нам есть чем закрыть: «недорого» (~1 600/мес,
-     у нас от 3 700 ₽) и «без посредников» (~470/мес, бронь напрямую). */
+     Сильные хвосты, которые нам есть чем закрыть: «недорого» (~1 600/мес)
+     и «без посредников» (~470/мес, бронь напрямую). */
   const title = 'Снять жильё в Алуште посуточно у моря — апартаменты «Стиль Жизни»';
   const description =
     `${APARTMENTS_COUNT} апартаментов у моря в Алуште${priceText} — Профессорский уголок, до пляжа 650 м. ` +
