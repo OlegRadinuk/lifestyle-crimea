@@ -11,6 +11,28 @@ import Footer from '@/components/Footer';
 import { ApartmentClient, ApartmentSeason } from '@/lib/types';
 import './apartments.css';
 
+/**
+ * Цена за ночь на СЕГОДНЯ — то, что гость реально заплатит, если заедет сейчас.
+ *
+ * `price_base` для витрины не годится: это базовая ставка карточки, а поверх неё
+ * менеджер выставляет сезоны (`apartment_pricing_seasons`). В июле 2026 база
+ * показывала «от 3 700 ₽», тогда как сезон стоил 6 500–10 000: гость видел одну
+ * цену в списке, выбирал даты — и она почти удваивалась.
+ *
+ * Берём сезон, который действует сегодня; если такого нет (дыра в календаре) —
+ * честно падаем на базовую ставку.
+ */
+function currentNightlyPrice(
+  seasons: ApartmentSeason[] | undefined,
+  basePrice: number,
+): number {
+  if (!seasons || seasons.length === 0) return basePrice;
+  const today = new Date();
+  const d = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const s = seasons.find((s) => d >= s.date_from && d <= s.date_to);
+  return s ? s.price_per_night : basePrice;
+}
+
 function calcSeasonalTotal(
   seasons: ApartmentSeason[] | undefined,
   hotDealEnabled: boolean | undefined,
@@ -246,7 +268,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     
     if (aAvailable && !bAvailable) return -1;
     if (!aAvailable && bAvailable) return 1;
-    return a.price_base - b.price_base;
+    // сортируем по той же цене, что видит гость (сезонной), а не по базовой
+    return (
+      currentNightlyPrice(a.seasons, a.price_base) -
+      currentNightlyPrice(b.seasons, b.price_base)
+    );
   });
 
   const hasSearchParams = checkIn && checkOut;
@@ -439,19 +465,20 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                               </div>
                             );
                           }
+                          const nightly = currentNightlyPrice(apartment.seasons, apartment.price_base);
                           if (apartment.hot_deal_enabled) {
                             return (
                               <div className="ap-list-price">
-                                <span className="price-original">{apartment.price_base.toLocaleString('ru-RU')} ₽</span>
+                                <span className="price-original">{nightly.toLocaleString('ru-RU')} ₽</span>
                                 <span className="price-discounted">
-                                  {Math.round(apartment.price_base * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString('ru-RU')} ₽ / ночь
+                                  {Math.round(nightly * (1 - (apartment.hot_deal_discount ?? 10) / 100)).toLocaleString('ru-RU')} ₽ / ночь
                                 </span>
                               </div>
                             );
                           }
                           return (
                             <div className="ap-list-price">
-                              от {apartment.price_base.toLocaleString('ru-RU')} ₽ / ночь
+                              от {nightly.toLocaleString('ru-RU')} ₽ / ночь
                             </div>
                           );
                         })()}
