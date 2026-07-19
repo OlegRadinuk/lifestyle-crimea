@@ -37,7 +37,7 @@ export function PhotoModal({ images, startIndex, onClose }: Props) {
       
       {/* Backdrop */}
       <motion.div
-        className="absolute inset-0 bg-black/40 backdrop-blur-md"
+        className="photo-modal-backdrop absolute inset-0 bg-black/40 backdrop-blur-md"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -45,9 +45,14 @@ export function PhotoModal({ images, startIndex, onClose }: Props) {
         transition={{ duration: 0.2 }}
       />
 
-      {/* Center Wrapper */}
-      <div className="relative z-10 flex h-full w-full items-center justify-center p-6">
-        
+      {/* Center Wrapper
+          pointer-events-none — обязательно: обёртка растянута на весь экран
+          (h-full w-full) и лежит выше подложки, поэтому без этого она
+          перехватывала и клик, и наведение. Из-за неё клик мимо карточки не
+          закрывал лайтбокс, хотя onClose на подложке висел. События
+          возвращаем ниже, на самой карточке. */}
+      <div className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center p-6">
+
         {/* Animated Container */}
         <motion.div
   layoutId="photo-modal"
@@ -57,7 +62,7 @@ export function PhotoModal({ images, startIndex, onClose }: Props) {
       ease: [0.22, 1, 0.36, 1]
     }
   }}
-  className="relative w-full max-w-6xl rounded-2xl"
+  className="pointer-events-auto relative w-full max-w-6xl rounded-2xl"
 >
           {/* Glow */}
           <div
