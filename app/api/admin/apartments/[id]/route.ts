@@ -73,6 +73,9 @@ export async function GET(
       lunch_price: Number(apartment.lunch_price || 0),
       dinner_price: Number(apartment.dinner_price || 0),
       custom_meal_description: apartment.custom_meal_description || '',
+      long_term_enabled: Boolean(apartment.long_term_enabled),
+      long_term_price: Number(apartment.long_term_price || 0),
+      long_term_note: apartment.long_term_note || '',
       created_at: apartment.created_at,
       updated_at: apartment.updated_at,
     };
@@ -217,6 +220,22 @@ export async function PATCH(
     if (data.custom_meal_price !== undefined) {
       updates.push('custom_meal_price = ?');
       values.push(Math.max(0, Number(data.custom_meal_price) || 0));
+    }
+
+    if (data.long_term_enabled !== undefined) {
+      updates.push('long_term_enabled = ?');
+      values.push(data.long_term_enabled ? 1 : 0);
+    }
+
+    if (data.long_term_price !== undefined) {
+      updates.push('long_term_price = ?');
+      values.push(Math.max(0, Number(data.long_term_price) || 0));
+    }
+
+    if (data.long_term_note !== undefined) {
+      updates.push('long_term_note = ?');
+      const note = typeof data.long_term_note === 'string' ? data.long_term_note.trim().slice(0, 200) : '';
+      values.push(note || null);
     }
 
     if (updates.length === 0) {

@@ -721,3 +721,176 @@
   font-weight: 700;
   font-size: 18px;
 }
+
+/* ===== ПЕРЕКЛЮЧАТЕЛЬ: ПОСУТОЧНО / ДОЛГОСРОЧНО ===== */
+
+.ap-mode-switch {
+  position: relative;
+  display: flex;
+  width: fit-content;
+  margin: 20px auto;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(19, 154, 182, 0.2);
+  border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(19, 154, 182, 0.08);
+}
+
+/* Бегунок под активной вкладкой */
+.ap-mode-switch__thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: linear-gradient(135deg, #139ab6, #1fb3cf);
+  border-radius: 999px;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.ap-mode-switch__btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1 0 auto;
+  min-width: 150px;
+  min-height: 44px;
+  padding: 10px 24px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #4a5a63;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+}
+
+.ap-mode-switch__btn.is-active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ap-mode-switch__btn:not(.is-active):hover {
+  color: #139ab6;
+}
+
+.ap-mode-switch__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(19, 154, 182, 0.12);
+  color: #139ab6;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.ap-mode-switch__btn.is-active .ap-mode-switch__count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Пояснение в режиме долгосрочной аренды */
+.ap-long-hint {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  animation: apLongHintIn 0.3s ease;
+}
+
+@keyframes apLongHintIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ap-long-hint__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a2a33;
+}
+
+.ap-long-hint__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4a5a63;
+}
+
+/* Бейдж на фото в режиме долгосрока */
+.long-term-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #139ab6, #1fb3cf);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(19, 154, 182, 0.4);
+  z-index: 2;
+}
+
+/* Цена за месяц в карточке */
+.ap-list-price--long {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.25;
+}
+
+.long-price-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #139ab6;
+}
+
+.long-price-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5a63;
+}
+
+.long-price-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .ap-mode-switch {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .ap-mode-switch__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .ap-long-hint__title {
+    font-size: 16px;
+  }
+
+  .ap-long-hint__text {
+    font-size: 14px;
+  }
+
+  .long-price-value {
+    font-size: 20px;
+  }
+}

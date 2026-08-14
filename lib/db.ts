@@ -5,6 +5,10 @@ import path from 'path';
 
 export const DEFAULT_HOT_DEAL_DISCOUNT = 10;
 
+// С какого срока проживание считается долгосрочным. Менеджер меняет в админке,
+// это лишь запасное значение, если строки в app_settings ещё нет.
+export const DEFAULT_LONG_TERM_MIN_DAYS = 30;
+
 // Типы
 export interface Apartment {
   id: string;
@@ -404,6 +408,34 @@ function ensureDatabaseStructure() {
     safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_date_from TEXT DEFAULT NULL", 'hot_deal_date_from');
     safeAddColumn("ALTER TABLE apartments ADD COLUMN hot_deal_date_to TEXT DEFAULT NULL", 'hot_deal_date_to');
     safeAddColumn("ALTER TABLE apartments ADD COLUMN custom_meal_price INTEGER DEFAULT 0", 'custom_meal_price');
+    // Долгосрочная аренда: тумблер + цена за месяц (0 = не задана)
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_enabled INTEGER DEFAULT 0", 'long_term_enabled');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_price INTEGER DEFAULT 0", 'long_term_price');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_note TEXT DEFAULT NULL", 'long_term_note');
+
+    // Заявки на долгосрочную аренду отличаются от посуточных броней
+    const bookingColumns = (db.prepare("PRAGMA table_info(bookings)").all() as { name: string }[]).map(c => c.name);
+    if (!bookingColumns.includes('rental_type')) {
+      try { db.exec("ALTER TABLE bookings ADD COLUMN rental_type TEXT DEFAULT 'daily'"); console.log('✅ Migrated bookings: added rental_type column'); } catch { /* already exists */ }
+    }
+    if (!bookingColumns.includes('long_term_months')) {
+      try { db.exec("ALTER TABLE bookings ADD COLUMN long_term_months INTEGER DEFAULT NULL"); console.log('✅ Migrated bookings: added long_term_months column'); } catch { /* already exists */ }
+    }
+    // Колонка есть в CREATE TABLE, но в базах, созданных до её появления, её нет
+    if (!bookingColumns.includes('comment')) {
+      try { db.exec("ALTER TABLE bookings ADD COLUMN comment TEXT DEFAULT NULL"); console.log('✅ Migrated bookings: added comment column'); } catch { /* already exists */ }
+    }
+
+    // Глобальные настройки сайта (key-value), правятся менеджером из админки
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    db.prepare(`INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)`)
+      .run('long_term_min_days', String(DEFAULT_LONG_TERM_MIN_DAYS));
 
     db.exec(`
       CREATE TABLE IF NOT EXISTS admin_users (
@@ -442,6 +474,33 @@ function ensureDatabaseStructure() {
 
 // Вызываем проверку структуры
 ensureDatabaseStructure();
+
+// Глобальные настройки сайта
+export const settingsService = {
+  get: (key: string): string | null => {
+    try {
+      const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get(key) as { value: string } | undefined;
+      return row?.value ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  set: (key: string, value: string): void => {
+    db.prepare(`
+      INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+    `).run(key, value);
+  },
+
+  /** Минимальный срок долгосрочной аренды в сутках. Всегда возвращает валидное число. */
+  getLongTermMinDays: (): number => {
+    const raw = settingsService.get('long_term_min_days');
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed) || parsed < 1) return DEFAULT_LONG_TERM_MIN_DAYS;
+    return Math.round(parsed);
+  },
+};
 
 // Сервис для работы с бронированиями
 export const bookingService = {
@@ -719,7 +778,7 @@ export const notificationService = {
 
   logNotification: (data: {
     bookingId?: string;
-    type: 'new_booking' | 'cancellation' | 'reminder';
+    type: 'new_booking' | 'cancellation' | 'reminder' | 'long_term_request';
     status: 'sent' | 'failed';
     errorMessage?: string;
   }) => {

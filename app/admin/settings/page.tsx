@@ -17,9 +17,53 @@ export default function SettingsPage() {
   const [userSuccess, setUserSuccess] = useState('');
   const [loadingAdd, setLoadingAdd] = useState(false);
 
+  // Долгосрочная аренда
+  const [minDays, setMinDays] = useState('30');
+  const [savingMinDays, setSavingMinDays] = useState(false);
+  const [minDaysMessage, setMinDaysMessage] = useState('');
+  const [minDaysError, setMinDaysError] = useState('');
+
   useEffect(() => {
     fetchUsers();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setMinDays(String(data.long_term_min_days ?? 30));
+      }
+    } catch {}
+  };
+
+  const handleSaveMinDays = async () => {
+    setSavingMinDays(true);
+    setMinDaysMessage('');
+    setMinDaysError('');
+
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ long_term_min_days: Number(minDays) }),
+      });
+      const data = await res.json() as { error?: string; long_term_min_days?: number };
+
+      if (res.ok) {
+        setMinDays(String(data.long_term_min_days ?? minDays));
+        setMinDaysMessage('Сохранено');
+        setTimeout(() => setMinDaysMessage(''), 3000);
+      } else {
+        setMinDaysError(data.error ?? 'Ошибка при сохранении');
+      }
+    } catch {
+      setMinDaysError('Ошибка сервера');
+    } finally {
+      setSavingMinDays(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -156,6 +200,37 @@ export default function SettingsPage() {
       </div>
 
       <div className="settings-section">
+        <h2>Длительная аренда</h2>
+        <div className="admin-form-card">
+          <div className="form-group">
+            <label>С какого срока аренда считается долгосрочной (суток)</label>
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={minDays}
+              onChange={e => setMinDays(e.target.value)}
+              disabled={savingMinDays}
+              style={{ maxWidth: 200 }}
+            />
+            <p className="settings-hint">
+              Это число видит гость на сайте — «от {minDays || '…'} суток» под ценой за месяц
+              и в форме заявки. Саму цену задаёте в карточке каждого апартамента.
+            </p>
+          </div>
+          <button
+            className="admin-button primary"
+            onClick={handleSaveMinDays}
+            disabled={savingMinDays}
+          >
+            {savingMinDays ? 'Сохранение...' : 'Сохранить'}
+          </button>
+          {minDaysError && <div className="error" style={{ marginTop: 8 }}>{minDaysError}</div>}
+          {minDaysMessage && <div style={{ marginTop: 8, color: '#166534' }}>{minDaysMessage}</div>}
+        </div>
+      </div>
+
+      <div className="settings-section">
         <h2>Telegram уведомления</h2>
         <TelegramSettings />
       </div>
@@ -185,6 +260,13 @@ export default function SettingsPage() {
           font-weight: 600;
           color: #1a2634;
           margin-bottom: 12px;
+        }
+
+        .settings-hint {
+          margin: 6px 0 0;
+          font-size: 13px;
+          line-height: 1.5;
+          color: #64748b;
         }
 
         .settings-add-form {

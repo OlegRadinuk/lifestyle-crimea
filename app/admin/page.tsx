@@ -132,14 +132,14 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* AI-ассистент Яна */}
+      {/* AI-ассистент София */}
       <div className="yana-section">
-        <h2>AI-ассистент Яна</h2>
+        <h2>AI-ассистент София</h2>
         <div className="yana-card">
           <div className="yana-header">
             <div className="yana-icon">🤖</div>
             <div className="yana-meta">
-              <div className="yana-title">Яна</div>
+              <div className="yana-title">София</div>
               {botLoading ? (
                 <div className="yana-status loading">Загрузка…</div>
               ) : botStats === null ? (

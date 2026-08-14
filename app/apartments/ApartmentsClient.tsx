@@ -63,11 +63,14 @@ function calcSeasonalTotal(
   return total;
 }
 
+type RentalMode = 'daily' | 'long';
+
 interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
+  longTermMinDays: number;
 }
 
-export default function ApartmentsClient({ initialApartments }: ApartmentsClientProps) {
+export default function ApartmentsClient({ initialApartments, longTermMinDays }: ApartmentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSearch, search: contextSearch } = useSearch();
@@ -81,6 +84,10 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
   const [children, setChildren] = useState(0);
   const [formError, setFormError] = useState('');
 
+  // Режим аренды: посуточно (по умолчанию) или долгосрочно
+  const [rentalMode, setRentalMode] = useState<RentalMode>('daily');
+  const isLongMode = rentalMode === 'long';
+
   // Состояние апартаментов и доступности
   const [allApartments] = useState(initialApartments);
   const [availableIds, setAvailableIds] = useState<Set<string>>(new Set());
@@ -92,7 +99,9 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     id: string;
     title: string;
     price_base?: number;
+    long_term_price?: number;
   } | null>(null);
+  const [bookingMode, setBookingMode] = useState<RentalMode>('daily');
   const [bookingPriceOverride, setBookingPriceOverride] = useState<number | undefined>(undefined);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
@@ -243,6 +252,7 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           title: apartment.title,
           price_base: apartment.price_base,
         });
+        setBookingMode('daily');
         setBookingPriceOverride(priceOverride > 0 ? priceOverride : undefined);
         setBookingOpen(true);
       } else {
@@ -261,6 +271,19 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     }
   };
 
+  // Долгосрочная аренда: заявка без календаря — сроки и условия менеджер обсуждает лично
+  const handleLongTermClick = (apartment: ApartmentClient) => {
+    setBookingApartment({
+      id: apartment.id,
+      title: apartment.title,
+      price_base: apartment.price_base,
+      long_term_price: apartment.long_term_price,
+    });
+    setBookingMode('long');
+    setBookingPriceOverride(undefined);
+    setBookingOpen(true);
+  };
+
   // Сортируем апартаменты: сначала доступные (по цене), потом недоступные (по цене)
   const sortedApartments = [...allApartments].sort((a, b) => {
     const aAvailable = checkIn && checkOut ? availableIds.has(a.id) : true;
@@ -275,16 +298,22 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
     );
   });
 
-  const hasSearchParams = checkIn && checkOut;
+  // В режиме долгосрока даты и доступность не участвуют — цена месячная
+  const hasSearchParams = !isLongMode && Boolean(checkIn && checkOut);
 
   // Студия подходит для детей до 6 лет если max_guests >= 3
   const aptFitsChildren = (apt: ApartmentClient) =>
     children === 0 || apt.max_guests >= 3;
 
+  // Сколько апартаментов вообще сдаётся надолго — нужно для подписи у переключателя
+  const longTermCount = allApartments.filter(apt => apt.long_term_enabled).length;
+
   // Фильтруем по количеству гостей и детей для отображения
-  const displayedApartments = sortedApartments.filter(apt =>
-    (!hasSearchParams || apt.max_guests >= guests) && aptFitsChildren(apt)
-  );
+  const displayedApartments = isLongMode
+    ? sortedApartments.filter(apt => apt.long_term_enabled)
+    : sortedApartments.filter(apt =>
+        (!hasSearchParams || apt.max_guests >= guests) && aptFitsChildren(apt)
+      );
 
   const availableCount = Array.from(availableIds).filter(id => {
     const apt = allApartments.find(a => a.id === id);
@@ -319,6 +348,45 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         {/* Форма поиска */}
         <div className="ap-search-section">
           <div className="ap-search-container">
+            {/* Переключатель режима аренды */}
+            <div className="ap-mode-switch" role="tablist" aria-label="Тип аренды">
+              <span
+                className="ap-mode-switch__thumb"
+                style={{ transform: isLongMode ? 'translateX(100%)' : 'translateX(0)' }}
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!isLongMode}
+                className={`ap-mode-switch__btn${!isLongMode ? ' is-active' : ''}`}
+                onClick={() => setRentalMode('daily')}
+              >
+                Посуточно
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isLongMode}
+                className={`ap-mode-switch__btn${isLongMode ? ' is-active' : ''}`}
+                onClick={() => setRentalMode('long')}
+              >
+                Долгосрочно
+                {longTermCount > 0 && <span className="ap-mode-switch__count">{longTermCount}</span>}
+              </button>
+            </div>
+
+            {isLongMode ? (
+              <div className="ap-long-hint">
+                <p className="ap-long-hint__title">
+                  Аренда от {longTermMinDays} суток — цена указана за месяц
+                </p>
+                <p className="ap-long-hint__text">
+                  Мебель, техника и уборка уже включены. Точный срок, депозит и условия оплаты
+                  обсуждаем индивидуально — оставьте заявку, менеджер свяжется с вами.
+                </p>
+              </div>
+            ) : (
             <div className="ap-search-form">
               <div className="ap-search-field">
                 <label>Заезд</label>
@@ -358,7 +426,8 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                 Найти
               </button>
             </div>
-            {formError && <div className="ap-search-error">{formError}</div>}
+            )}
+            {!isLongMode && formError && <div className="ap-search-error">{formError}</div>}
           </div>
         </div>
 
@@ -366,9 +435,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         <div id="ap-results-anchor" className="ap-results">
           <div className="ap-results-header">
             <span>
-              {hasSearchParams ? (
-                checkingAvailability 
-                  ? 'Проверяем доступность...' 
+              {isLongMode ? (
+                `Сдаются надолго: ${displayedApartments.length} ${getDeclension(displayedApartments.length, 'апартамент', 'апартамента', 'апартаментов')}`
+              ) : hasSearchParams ? (
+                checkingAvailability
+                  ? 'Проверяем доступность...'
                   : `Найдено: ${availableCount} ${getDeclension(availableCount, 'доступный апартамент', 'доступных апартамента', 'доступных апартаментов')}`
               ) : (
                 `Все апартаменты (${allApartments.length})`
@@ -382,7 +453,12 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
           <div className="ap-loading">Загрузка доступных апартаментов...</div>
         ) : (
           <div className="ap-list">
-            {displayedApartments.length === 0 && hasSearchParams ? (
+            {displayedApartments.length === 0 && isLongMode ? (
+              <div className="ap-empty">
+                <p>Сейчас нет апартаментов, сдающихся на длительный срок</p>
+                <p>Позвоните нам — подберём вариант под ваш срок и бюджет</p>
+              </div>
+            ) : displayedApartments.length === 0 && hasSearchParams ? (
               <div className="ap-empty">
                 <p>Нет апартаментов, подходящих под выбранные параметры</p>
                 <p>Попробуйте изменить даты или количество гостей</p>
@@ -409,8 +485,11 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                       >
                         Смотреть фото
                       </button>
-                      {apartment.hot_deal_enabled && (
+                      {apartment.hot_deal_enabled && !isLongMode && (
                         <div className="hot-deal-badge">🔥 Скидка {apartment.hot_deal_discount}%</div>
+                      )}
+                      {isLongMode && (
+                        <div className="long-term-badge">📅 Длительный срок</div>
                       )}
                       {!isAvailable && hasSearchParams && (
                         <div className="unavailable-badge">Нет мест</div>
@@ -445,6 +524,19 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
 
                       <div className="ap-list-footer">
                         {(() => {
+                          if (isLongMode) {
+                            return (
+                              <div className="ap-list-price ap-list-price--long">
+                                <span className="long-price-value">
+                                  {(apartment.long_term_price ?? 0).toLocaleString('ru-RU')} ₽
+                                  <span className="long-price-unit"> / мес</span>
+                                </span>
+                                <span className="long-price-note">
+                                  {apartment.long_term_note || `от ${longTermMinDays} суток`}
+                                </span>
+                              </div>
+                            );
+                          }
                           if (hasSearchParams && checkIn && checkOut) {
                             const total = calcSeasonalTotal(
                               apartment.seasons,
@@ -488,7 +580,14 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
                             Подробнее
                           </Link>
 
-                          {!hasSearchParams ? (
+                          {isLongMode ? (
+                            <button
+                              className="btn-primary"
+                              onClick={() => handleLongTermClick(apartment)}
+                            >
+                              Оставить заявку
+                            </button>
+                          ) : !hasSearchParams ? (
                             <Link href={`/apartments/${apartment.id}`} className="btn-primary">
                               Выбрать даты
                             </Link>
@@ -518,20 +617,26 @@ export default function ApartmentsClient({ initialApartments }: ApartmentsClient
         <Footer isMobile={isMobile} />
       </section>
 
-      {bookingOpen && bookingApartment && checkIn && checkOut && (
+      {bookingOpen && bookingApartment && (bookingMode === 'long' || (checkIn && checkOut)) && (
         <BookingModal
           apartment={bookingApartment}
+          mode={bookingMode}
+          longTermMinDays={longTermMinDays}
           priceOverride={bookingPriceOverride}
-          initialRange={{
-            from: new Date(checkIn + 'T00:00:00Z'),
-            to: new Date(checkOut + 'T00:00:00Z'),
-          }}
+          initialRange={
+            checkIn && checkOut
+              ? {
+                  from: new Date(checkIn + 'T00:00:00Z'),
+                  to: new Date(checkOut + 'T00:00:00Z'),
+                }
+              : null
+          }
           initialGuests={guests}
           onClose={() => setBookingOpen(false)}
           onConfirm={() => {
             setBookingOpen(false);
             window.dispatchEvent(new CustomEvent('booking-completed'));
-            checkAvailability();
+            if (bookingMode === 'daily') checkAvailability();
           }}
         />
       )}

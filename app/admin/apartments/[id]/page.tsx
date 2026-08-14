@@ -120,6 +120,9 @@ type Apartment = {
   hot_deal_discount: number;
   hot_deal_date_from: string | null;
   hot_deal_date_to: string | null;
+  long_term_enabled: boolean;
+  long_term_price: number;
+  long_term_note: string;
   view: string;
   has_terrace: boolean;
   features: string[];
@@ -194,6 +197,9 @@ export default function EditApartmentPage({ params }: PageProps) {
         hot_deal_discount: data.hot_deal_discount ?? 10,
         hot_deal_date_from: data.hot_deal_date_from ?? null,
         hot_deal_date_to: data.hot_deal_date_to ?? null,
+        long_term_enabled: Boolean(data.long_term_enabled),
+        long_term_price: Number(data.long_term_price ?? 0),
+        long_term_note: data.long_term_note ?? '',
       });
     } catch (error) {
       console.error('Error fetching apartment:', error);
@@ -521,6 +527,59 @@ export default function EditApartmentPage({ params }: PageProps) {
                 />
               </div>
               <small style={{color: '#94a3b8', fontSize: '12px'}}>Если даты не указаны — скидка действует всегда</small>
+            </div>
+          )}
+        </div>
+
+        {/* Блок Долгосрочная аренда */}
+        <div className={`long-term-section${apartment.long_term_enabled ? ' long-term-section--active' : ''}`}>
+          <div className="long-term-header">
+            <span className="long-term-title">📅 Длительная аренда</span>
+            <label className="toggle-switch" aria-label="Сдавать этот апартамент надолго">
+              <input
+                type="checkbox"
+                checked={apartment.long_term_enabled}
+                onChange={(e) => setApartment({ ...apartment, long_term_enabled: e.target.checked })}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+
+          {apartment.long_term_enabled && (
+            <div className="long-term-body">
+              <div className="form-group">
+                <label>Цена за месяц, ₽</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={apartment.long_term_price}
+                  onChange={(e) => setApartment({ ...apartment, long_term_price: Math.max(0, +e.target.value || 0) })}
+                  placeholder="Например, 90000"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Подпись под ценой (необязательно)</label>
+                <input
+                  type="text"
+                  maxLength={200}
+                  value={apartment.long_term_note}
+                  onChange={(e) => setApartment({ ...apartment, long_term_note: e.target.value })}
+                  placeholder="Если пусто — покажем «от N суток» из настроек"
+                />
+              </div>
+
+              {apartment.long_term_price > 0 ? (
+                <div className="long-term-preview">
+                  На сайте:{' '}
+                  <strong>{apartment.long_term_price.toLocaleString('ru-RU')} ₽ / мес</strong>
+                </div>
+              ) : (
+                <div className="long-term-warning">
+                  Пока цена не заполнена, апартамент не появится во вкладке «Долгосрочно» на сайте
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -981,6 +1040,72 @@ export default function EditApartmentPage({ params }: PageProps) {
         .hot-deal-preview strong {
           font-size: 16px;
           font-weight: 700;
+        }
+
+        /* Длительная аренда */
+        .long-term-section {
+          margin: 0 0 24px;
+          padding: 16px 20px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .long-term-section--active {
+          background: #ecfeff;
+          border-color: #139ab6;
+        }
+
+        .long-term-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+
+        .long-term-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a2634;
+        }
+
+        .long-term-body {
+          margin-top: 16px;
+          display: grid;
+          grid-template-columns: 200px 1fr;
+          gap: 16px;
+          align-items: start;
+        }
+
+        .long-term-preview,
+        .long-term-warning {
+          grid-column: 1 / -1;
+          font-size: 14px;
+        }
+
+        .long-term-preview {
+          color: #0e7490;
+        }
+
+        .long-term-preview strong {
+          font-size: 16px;
+          font-weight: 700;
+        }
+
+        .long-term-warning {
+          color: #b45309;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
+          padding: 8px 12px;
+        }
+
+        @media (max-width: 768px) {
+          .long-term-body {
+            grid-template-columns: 1fr;
+          }
         }
 
         .photo-section {

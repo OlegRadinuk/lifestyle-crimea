@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bookingService, logService } from '@/lib/db';
+import { notifyTelegram } from '@/lib/telegram-notify';
 import { APARTMENTS } from '@/data/apartments';
 import { v4 as uuidv4 } from 'uuid';
+
+function formatRuDate(value: string) {
+  const d = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
 
 export async function POST(request: NextRequest) {
   let apartmentId: string | undefined;
@@ -60,6 +67,22 @@ export async function POST(request: NextRequest) {
       eventsCount: 1,
       durationMs: 0,
     });
+
+    // Уведомление менеджеру — на сервере. Из браузера гостя оно упиралось
+    // в админ-авторизацию /api/telegram/send и молча терялось.
+    await notifyTelegram(
+      `🔔 <b>Новое бронирование!</b>\n\n` +
+        `🏠 <b>Апартамент:</b> ${apartment.title}\n` +
+        `📅 <b>Даты:</b> ${formatRuDate(checkIn)} — ${formatRuDate(checkOut)}\n` +
+        `🌙 <b>Ночей:</b> ${nights}\n` +
+        `👥 <b>Гостей:</b> ${guestsCount}\n` +
+        `💰 <b>Сумма:</b> ${totalPrice.toLocaleString('ru-RU')} ₽\n\n` +
+        `👤 <b>Гость:</b> ${guestName || '—'}\n` +
+        `📞 <b>Телефон:</b> ${guestPhone || '—'}\n` +
+        (guestEmail ? `📧 <b>Email:</b> ${guestEmail}\n` : '') +
+        `\n🆔 <b>ID брони:</b> ${booking.id}`,
+      { bookingId: booking.id, type: 'new_booking' }
+    );
 
     return NextResponse.json({ success: true, booking });
   } catch (error) {

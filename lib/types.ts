@@ -45,6 +45,9 @@ export interface ApartmentClient {
   lunch_price?: number;
   dinner_price?: number;
   custom_meal_description?: string | null;
+  long_term_enabled?: boolean;
+  long_term_price?: number; // ₽ в месяц
+  long_term_note?: string | null;
   created_at?: string;
   updated_at?: string;
 }

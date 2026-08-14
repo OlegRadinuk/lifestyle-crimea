@@ -8953,3 +8953,68 @@ select:focus-visible,
   outline: 2px solid #139ab6;
   outline-offset: 3px;
 }
+/* ===== Модалка: режим длительной аренды ===== */
+
+/* «Ориентировочно» длиннее «Итого» — не даём сумме переноситься */
+.price-total {
+  gap: 12px;
+}
+
+.price-total strong {
+  white-space: nowrap;
+}
+
+.long-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.long-label {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.long-fields input[type='date'] {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-family: inherit;
+  min-height: 46px;
+}
+
+.long-fields input[type='date']:focus {
+  outline: none;
+  border-color: #139ab6;
+  background: #ffffff;
+}
+
+.long-comment {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.long-comment:focus {
+  outline: none;
+  border-color: #139ab6;
+  background: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .long-fields {
+    grid-template-columns: 1fr;
+  }
+}

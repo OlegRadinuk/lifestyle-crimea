@@ -32,17 +32,22 @@ export type BookingResult = {
 
 /* ===== props ===== */
 
+export type BookingMode = 'daily' | 'long';
+
 type Props = {
   apartment: {
     id: string;
     title: string;
     price_base?: number;
+    long_term_price?: number;
   };
   initialRange: DateRange | null;
   initialGuests: number;
   onClose: () => void;
   onConfirm: (data: BookingResult) => void;
   priceOverride?: number; // предрассчитанная итоговая сумма (с сезоном/скидкой)
+  mode?: BookingMode; // 'long' = заявка на длительную аренду, без расчёта по ночам
+  longTermMinDays?: number;
 };
 
 /* ===== helpers ===== */
@@ -116,8 +121,11 @@ export default function BookingModal({
   onClose,
   onConfirm,
   priceOverride,
+  mode = 'daily',
+  longTermMinDays = 30,
 }: Props) {
   const router = useRouter();
+  const isLong = mode === 'long';
   const [dates] = useState<DateRange | null>(initialRange);
   const [guests, setGuests] = useState(initialGuests);
   const [meals, setMeals] = useState<Meals>('none');
@@ -126,7 +134,14 @@ export default function BookingModal({
   const [mounted, setMounted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
+  // Поля режима долгосрочной аренды
+  const [moveInDate, setMoveInDate] = useState('');
+  const [months, setMonths] = useState(3);
+  const [longComment, setLongComment] = useState('');
+  const [moveInError, setMoveInError] = useState('');
+
   const basePrice = apartment.price_base || 8000;
+  const monthlyPrice = apartment.long_term_price || 0;
 
   const [guestInfo, setGuestInfo] = useState({
     firstName: '',
@@ -234,36 +249,9 @@ export default function BookingModal({
         return;
       }
 
-      try {
-        await fetch('/api/telegram/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message:
-              `🔔 <b>Новое бронирование!</b>\n\n` +
-              `🏠 <b>Апартамент:</b> ${apartment.title}\n` +
-              `📅 <b>Даты:</b> ${formatDate(dates.from)} - ${formatDate(dates.to)}\n` +
-              `🌙 <b>Ночей:</b> ${price.nights}\n` +
-              `👥 <b>Гостей:</b> ${guests}\n` +
-              `🍽 <b>Питание:</b> ${
-                meals === 'none'
-                  ? 'Без питания'
-                  : meals === 'breakfast'
-                  ? 'Завтрак'
-                  : 'Завтрак + ужин'
-              }\n` +
-              `💰 <b>Сумма:</b> ${price.total.toLocaleString('ru-RU')} ₽\n\n` +
-              `👤 <b>Гость:</b> ${guestInfo.firstName} ${guestInfo.lastName}\n` +
-              `📞 <b>Телефон:</b> ${guestInfo.phone}\n` +
-              (guestInfo.email ? `📧 <b>Email:</b> ${guestInfo.email}\n\n` : '\n') +
-              `🆔 <b>ID брони:</b> ${data.booking.id}`,
-            bookingId: data.booking.id,
-            type: 'new_booking',
-          }),
-        });
-      } catch (telegramError) {
-        console.error('Failed to send telegram notification:', telegramError);
-      }
+      // Уведомление в Telegram отправляет сервер в /api/bookings.
+      // Раньше оно уходило отсюда и упиралось в админ-авторизацию (401) —
+      // ошибка гасилась в catch, и заявки с сайта не доходили до менеджера.
 
       onConfirm({
         apartment,
@@ -295,11 +283,73 @@ export default function BookingModal({
     }
   };
 
+  const handleLongTermSubmit = async () => {
+    if (!guestInfo.firstName.trim()) {
+      alert('Введите имя');
+      return;
+    }
+    if (guestInfo.phone.replace(/\D/g, '').length < 10) {
+      setPhoneError('Укажите телефон для связи');
+      return;
+    }
+    if (!moveInDate) {
+      setMoveInError('Укажите желаемую дату заезда');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/bookings/long-term', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apartmentId: apartment.id,
+          guestName: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
+          guestPhone: guestInfo.phone,
+          guestEmail: guestInfo.email || null,
+          moveInDate,
+          months,
+          guestsCount: guests,
+          comment: longComment,
+          pdConsentAt: new Date().toISOString(),
+          pdConsentVersion: '2026-04-21',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Не удалось отправить заявку');
+        setIsSubmitting(false);
+        return;
+      }
+
+      onConfirm({
+        apartment,
+        range: dates ?? { from: new Date(moveInDate), to: new Date(moveInDate) },
+        guests,
+        meals: 'none',
+        totalPrice: data.request?.estimatedTotal ?? 0,
+        guest: guestInfo,
+      });
+
+      alert('✅ Заявка отправлена! Менеджер свяжется с вами в ближайшее время.');
+      onClose();
+      router.refresh();
+    } catch (error) {
+      console.error('Error sending long-term request:', error);
+      alert('❌ Ошибка при отправке заявки.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const modalContent = (
     <div className="booking-modal-overlay" onClick={onClose}>
       <div className="booking-modal" onClick={e => e.stopPropagation()}>
         <div className="booking-modal__header">
-          <h2>Бронирование</h2>
+          <h2>{isLong ? 'Заявка на длительную аренду' : 'Бронирование'}</h2>
           <button
             onClick={onClose}
             className="booking-modal__close"
@@ -314,19 +364,72 @@ export default function BookingModal({
             <section>
               <h3>Апартамент</h3>
               <p className="booking-apartment-title">{apartment.title}</p>
-              {apartment.price_base && (
-                <p className="booking-price-info">Базовая цена: {apartment.price_base.toLocaleString('ru-RU')} ₽/ночь</p>
+              {isLong ? (
+                monthlyPrice > 0 && (
+                  <p className="booking-price-info">
+                    {monthlyPrice.toLocaleString('ru-RU')} ₽/мес · от {longTermMinDays} суток
+                  </p>
+                )
+              ) : (
+                apartment.price_base && (
+                  <p className="booking-price-info">Базовая цена: {apartment.price_base.toLocaleString('ru-RU')} ₽/ночь</p>
+                )
               )}
             </section>
 
-            <section>
-              <h3>Даты проживания</h3>
-              {dates && (
-                <p className="booking-dates">
-                  {formatDate(dates.from)} — {formatDate(dates.to)}
-                </p>
-              )}
-            </section>
+            {isLong ? (
+              <section>
+                <h3>Когда и на сколько</h3>
+                <div className="long-fields">
+                  <div>
+                    <label className="long-label" htmlFor="lt-movein">Желаемая дата заезда *</label>
+                    <input
+                      id="lt-movein"
+                      type="date"
+                      value={moveInDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={e => {
+                        setMoveInDate(e.target.value);
+                        setMoveInError('');
+                      }}
+                      disabled={isSubmitting}
+                      style={moveInError ? { borderColor: '#c62828' } : undefined}
+                      aria-describedby={moveInError ? 'movein-error' : undefined}
+                    />
+                    {moveInError && (
+                      <p id="movein-error" className="field-error" aria-live="polite">
+                        {moveInError}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="long-label" htmlFor="lt-months">Срок аренды *</label>
+                    <select
+                      id="lt-months"
+                      className="meals-select"
+                      value={months}
+                      onChange={e => setMonths(Number(e.target.value))}
+                      disabled={isSubmitting}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 9, 12, 18, 24].map(m => (
+                        <option key={m} value={m}>
+                          {m} {m === 1 ? 'месяц' : m < 5 ? 'месяца' : 'месяцев'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <section>
+                <h3>Даты проживания</h3>
+                {dates && (
+                  <p className="booking-dates">
+                    {formatDate(dates.from)} — {formatDate(dates.to)}
+                  </p>
+                )}
+              </section>
+            )}
 
             <section>
               <h3>Гости</h3>
@@ -347,19 +450,21 @@ export default function BookingModal({
               </div>
             </section>
 
-            <section>
-              <h3>Питание</h3>
-              <select
-                className="meals-select"
-                value={meals}
-                onChange={e => setMeals(e.target.value as Meals)}
-                disabled={isSubmitting}
-              >
-                <option value="none">Без питания</option>
-                <option value="breakfast">Завтрак</option>
-                <option value="breakfast_dinner">Завтрак + ужин</option>
-              </select>
-            </section>
+            {!isLong && (
+              <section>
+                <h3>Питание</h3>
+                <select
+                  className="meals-select"
+                  value={meals}
+                  onChange={e => setMeals(e.target.value as Meals)}
+                  disabled={isSubmitting}
+                >
+                  <option value="none">Без питания</option>
+                  <option value="breakfast">Завтрак</option>
+                  <option value="breakfast_dinner">Завтрак + ужин</option>
+                </select>
+              </section>
+            )}
 
             <section>
               <h3>Данные гостя</h3>
@@ -411,11 +516,51 @@ export default function BookingModal({
                   disabled={isSubmitting}
                 />
               </div>
+
+              {isLong && (
+                <textarea
+                  className="long-comment"
+                  placeholder="Комментарий: кто будет жить, нужна ли парковка, животные, пожелания по срокам…"
+                  value={longComment}
+                  onChange={e => setLongComment(e.target.value)}
+                  disabled={isSubmitting}
+                  rows={3}
+                  maxLength={1000}
+                />
+              )}
             </section>
           </div>
 
           <div className="booking-modal__right">
-            {!price ? (
+            {isLong ? (
+              <>
+                {monthlyPrice > 0 ? (
+                  <>
+                    <div className="price-row">
+                      <span>
+                        {monthlyPrice.toLocaleString('ru-RU')} ₽ × {months}{' '}
+                        {months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'}
+                      </span>
+                      <span>{(monthlyPrice * months).toLocaleString('ru-RU')} ₽</span>
+                    </div>
+
+                    <div className="price-divider" />
+
+                    <div className="price-total">
+                      <span>Ориентировочно</span>
+                      <strong>{(monthlyPrice * months).toLocaleString('ru-RU')} ₽</strong>
+                    </div>
+                  </>
+                ) : (
+                  <div className="price-empty">Цену уточнит менеджер</div>
+                )}
+
+                <div className="price-notice">
+                  * Это не бронирование, а заявка. Депозит, коммунальные платежи и порядок
+                  оплаты менеджер согласует с вами лично. Минимальный срок — {longTermMinDays} суток.
+                </div>
+              </>
+            ) : !price ? (
               <div className="price-empty">Нет данных для расчёта</div>
             ) : (
               <>
@@ -489,11 +634,13 @@ export default function BookingModal({
 
             <button
               className="confirm-booking"
-              disabled={!price || isSubmitting || !pdConsent}
-              onClick={handleConfirm}
+              disabled={isSubmitting || !pdConsent || (!isLong && !price)}
+              onClick={isLong ? handleLongTermSubmit : handleConfirm}
             >
               {isSubmitting ? (
                 <span className="loading-spinner">⏳ Отправляем...</span>
+              ) : isLong ? (
+                'Отправить заявку'
               ) : (
                 'Подтвердить бронирование'
               )}

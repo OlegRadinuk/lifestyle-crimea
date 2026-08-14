@@ -50,6 +50,9 @@ export async function GET(request: Request) {
         is_active: Boolean(apt.is_active),
         hot_deal_enabled: Boolean(apt.hot_deal_enabled),
         hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
+        long_term_enabled: Boolean(apt.long_term_enabled) && Number(apt.long_term_price) > 0,
+        long_term_price: Number(apt.long_term_price || 0),
+        long_term_note: apt.long_term_note || null,
       };
     }));
 

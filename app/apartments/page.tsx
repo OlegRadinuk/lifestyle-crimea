@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { db } from '@/lib/db';
+import { db, settingsService } from '@/lib/db';
 import ApartmentsClient from './ApartmentsClient';
 import { ApartmentClient } from '@/lib/types';
 
@@ -150,6 +150,9 @@ async function getApartments(): Promise<ApartmentClient[]> {
         hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
         hot_deal_date_from: apt.hot_deal_date_from || null,
         hot_deal_date_to: apt.hot_deal_date_to || null,
+        long_term_enabled: Boolean(apt.long_term_enabled) && Number(apt.long_term_price) > 0,
+        long_term_price: Number(apt.long_term_price || 0),
+        long_term_note: apt.long_term_note || null,
         seasons,
       };
     }));
@@ -163,7 +166,12 @@ async function getApartments(): Promise<ApartmentClient[]> {
 
 export default async function ApartmentsPage() {
   const initialApartments = await getApartments();
-  
-  
-  return <ApartmentsClient initialApartments={initialApartments} />;
+  const longTermMinDays = settingsService.getLongTermMinDays();
+
+  return (
+    <ApartmentsClient
+      initialApartments={initialApartments}
+      longTermMinDays={longTermMinDays}
+    />
+  );
 }
