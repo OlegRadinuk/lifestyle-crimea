@@ -348,7 +348,10 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
         {/* Форма поиска */}
         <div className="ap-search-section">
           <div className="ap-search-container">
-            {/* Переключатель режима аренды */}
+            {/* Переключатель режима аренды.
+                Пока менеджер не включил долгосрок ни одному апартаменту, вкладка
+                вела бы гостя в пустой список — поэтому её просто нет. */}
+            {longTermCount > 0 && (
             <div className="ap-mode-switch" role="tablist" aria-label="Тип аренды">
               <span
                 className="ap-mode-switch__thumb"
@@ -372,9 +375,10 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
                 onClick={() => setRentalMode('long')}
               >
                 Долгосрочно
-                {longTermCount > 0 && <span className="ap-mode-switch__count">{longTermCount}</span>}
+                <span className="ap-mode-switch__count">{longTermCount}</span>
               </button>
             </div>
+            )}
 
             {isLongMode ? (
               <div className="ap-long-hint">
