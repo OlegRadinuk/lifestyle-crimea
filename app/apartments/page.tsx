@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { db, settingsService } from '@/lib/db';
+import { db, settingsService, longTermService } from '@/lib/db';
 import ApartmentsClient from './ApartmentsClient';
 import { ApartmentClient } from '@/lib/types';
 
@@ -106,6 +106,9 @@ async function getApartments(): Promise<ApartmentClient[]> {
       SELECT * FROM apartments WHERE is_active = 1 AND deleted_at IS NULL ORDER BY price_base ASC
     `).all();
 
+    // Цены долгосрочной аренды разом по всем апартаментам — один запрос вместо 47
+    const longTermPrices = longTermService.allPrices();
+
     // Для каждого апартамента получаем фото
     const formatted = await Promise.all(apartments.map(async (apt: any) => {
       // Получаем фото из отдельной таблицы
@@ -150,9 +153,10 @@ async function getApartments(): Promise<ApartmentClient[]> {
         hot_deal_discount: Number(apt.hot_deal_discount ?? 10),
         hot_deal_date_from: apt.hot_deal_date_from || null,
         hot_deal_date_to: apt.hot_deal_date_to || null,
-        long_term_enabled: Boolean(apt.long_term_enabled) && Number(apt.long_term_price) > 0,
+        long_term_enabled: Boolean(apt.long_term_enabled),
         long_term_price: Number(apt.long_term_price || 0),
         long_term_note: apt.long_term_note || null,
+        long_term_prices: longTermPrices[apt.id] ?? {},
         seasons,
       };
     }));
@@ -167,11 +171,17 @@ async function getApartments(): Promise<ApartmentClient[]> {
 export default async function ApartmentsPage() {
   const initialApartments = await getApartments();
   const longTermMinDays = settingsService.getLongTermMinDays();
+  const longTermTerms = longTermService.listActiveTerms().map(t => ({
+    id: t.id,
+    months: t.months,
+    label: t.label,
+  }));
 
   return (
     <ApartmentsClient
       initialApartments={initialApartments}
       longTermMinDays={longTermMinDays}
+      longTermTerms={longTermTerms}
     />
   );
 }

@@ -141,6 +141,13 @@ type Season = {
   template_id?: string | null;
 };
 
+type LongTermPriceRow = {
+  id: string;            // id срока
+  months: number;
+  label: string | null;
+  price_per_month: number | null;  // null = на этот срок не сдаём
+};
+
 type TemplatePrice = {
   id: string;           // template id
   name: string;
@@ -170,6 +177,11 @@ export default function EditApartmentPage({ params }: PageProps) {
   });
   const [savingSeason, setSavingSeason] = useState(false);
 
+  // Цены долгосрочной аренды по срокам
+  const [ltTerms, setLtTerms] = useState<LongTermPriceRow[]>([]);
+  const [ltInputs, setLtInputs] = useState<Record<string, string>>({});
+  const [savingLt, setSavingLt] = useState(false);
+
   // Template-based pricing
   const [templatePrices, setTemplatePrices] = useState<TemplatePrice[]>([]);
   const [tplPriceInputs, setTplPriceInputs] = useState<Record<string, string>>({});
@@ -180,7 +192,47 @@ export default function EditApartmentPage({ params }: PageProps) {
     fetchImagesCount();
     fetchSeasons();
     fetchTemplatePrices();
+    fetchLongTermPrices();
   }, [id]);
+
+  const fetchLongTermPrices = async () => {
+    try {
+      const res = await fetch(`/api/admin/apartments/${id}/long-term-prices`);
+      if (!res.ok) return;
+      const data: LongTermPriceRow[] = await res.json();
+      setLtTerms(data);
+      setLtInputs(
+        Object.fromEntries(data.map(t => [t.id, t.price_per_month ? String(t.price_per_month) : '']))
+      );
+    } catch (error) {
+      console.error('Error fetching long-term prices:', error);
+    }
+  };
+
+  // Пустое поле или 0 = «на этот срок не сдаём», строка просто исчезает с сайта
+  const handleSaveLongTermPrices = async () => {
+    setSavingLt(true);
+    try {
+      for (const term of ltTerms) {
+        const raw = ltInputs[term.id] ?? '';
+        const price = Math.max(0, Number(raw) || 0);
+        if ((term.price_per_month ?? 0) === price) continue; // не трогаем неизменившиеся
+        const res = await fetch(`/api/admin/apartments/${id}/long-term-prices`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ termId: term.id, price }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Ошибка: ${err.error ?? 'не удалось сохранить цену'}`);
+          return;
+        }
+      }
+      await fetchLongTermPrices();
+    } finally {
+      setSavingLt(false);
+    }
+  };
 
   const fetchApartment = async () => {
     try {
@@ -534,7 +586,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         {/* Блок Долгосрочная аренда */}
         <div className={`long-term-section${apartment.long_term_enabled ? ' long-term-section--active' : ''}`}>
           <div className="long-term-header">
-            <span className="long-term-title">📅 Длительная аренда</span>
+            <span className="long-term-title">Длительная аренда</span>
             <label className="toggle-switch" aria-label="Сдавать этот апартамент надолго">
               <input
                 type="checkbox"
@@ -547,39 +599,78 @@ export default function EditApartmentPage({ params }: PageProps) {
 
           {apartment.long_term_enabled && (
             <div className="long-term-body">
-              <div className="form-group">
-                <label>Цена за месяц, ₽</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={1000}
-                  value={apartment.long_term_price}
-                  onChange={(e) => setApartment({ ...apartment, long_term_price: Math.max(0, +e.target.value || 0) })}
-                  placeholder="Например, 90000"
-                />
-              </div>
+              <p className="long-term-lead">
+                Цена <strong>за месяц</strong> при каждом сроке. Чем длиннее срок — тем ниже
+                месячная плата. Пустое поле = на этот срок не сдаём, гость его не увидит.
+                Сами сроки задаются один раз в <Link href="/admin/settings">Настройках</Link>.
+              </p>
 
-              <div className="form-group">
+              {ltTerms.length === 0 ? (
+                <div className="long-term-warning">
+                  Сроки ещё не заданы — добавьте их в Настройках, потом вернитесь сюда за ценами
+                </div>
+              ) : (
+                <>
+                  <div className="lt-grid">
+                    {ltTerms.map(term => (
+                      <div key={term.id} className="lt-row">
+                        <label htmlFor={`lt-${term.id}`}>
+                          {term.label || `${term.months} мес`}
+                        </label>
+                        <div className="lt-input-wrap">
+                          <input
+                            id={`lt-${term.id}`}
+                            type="number"
+                            min={0}
+                            step={1000}
+                            value={ltInputs[term.id] ?? ''}
+                            onChange={(e) => setLtInputs({ ...ltInputs, [term.id]: e.target.value })}
+                            placeholder="не сдаём"
+                          />
+                          <span className="lt-unit">₽/мес</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-button primary lt-save"
+                    onClick={handleSaveLongTermPrices}
+                    disabled={savingLt}
+                  >
+                    {savingLt ? 'Сохранение...' : 'Сохранить цены по срокам'}
+                  </button>
+
+                  {ltTerms.some(t => (t.price_per_month ?? 0) > 0) ? (
+                    <div className="long-term-preview">
+                      На сайте:{' '}
+                      <strong>
+                        {ltTerms
+                          .filter(t => (t.price_per_month ?? 0) > 0)
+                          .map(t => `${t.label || t.months + ' мес'} — ${t.price_per_month!.toLocaleString('ru-RU')} ₽/мес`)
+                          .join(' · ')}
+                      </strong>
+                    </div>
+                  ) : (
+                    <div className="long-term-warning">
+                      Пока не заполнена ни одна цена, апартамент не появится во вкладке
+                      «Долгосрочно» на сайте
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="form-group lt-note">
                 <label>Подпись под ценой (необязательно)</label>
                 <input
                   type="text"
                   maxLength={200}
                   value={apartment.long_term_note}
                   onChange={(e) => setApartment({ ...apartment, long_term_note: e.target.value })}
-                  placeholder="Если пусто — покажем «от N суток» из настроек"
+                  placeholder="Если пусто — напишем «при аренде на 3 месяца»"
                 />
               </div>
-
-              {apartment.long_term_price > 0 ? (
-                <div className="long-term-preview">
-                  На сайте:{' '}
-                  <strong>{apartment.long_term_price.toLocaleString('ru-RU')} ₽ / мес</strong>
-                </div>
-              ) : (
-                <div className="long-term-warning">
-                  Пока цена не заполнена, апартамент не появится во вкладке «Долгосрочно» на сайте
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -1073,10 +1164,66 @@ export default function EditApartmentPage({ params }: PageProps) {
 
         .long-term-body {
           margin-top: 16px;
-          display: grid;
-          grid-template-columns: 200px 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 16px;
-          align-items: start;
+        }
+
+        .long-term-lead {
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.6;
+          color: #64748b;
+        }
+
+        .long-term-lead :global(a) {
+          color: #0e7490;
+          text-decoration: underline;
+        }
+
+        .lt-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+          gap: 12px;
+        }
+
+        .lt-row {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .lt-row label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a2634;
+        }
+
+        .lt-input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .lt-input-wrap input {
+          width: 100%;
+          padding-right: 56px;
+        }
+
+        .lt-unit {
+          position: absolute;
+          right: 12px;
+          font-size: 12px;
+          color: #94a3b8;
+          pointer-events: none;
+        }
+
+        .lt-save {
+          align-self: flex-start;
+        }
+
+        .lt-note {
+          margin: 0;
         }
 
         .long-term-preview,

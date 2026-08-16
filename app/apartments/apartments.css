@@ -801,6 +801,53 @@
   color: #ffffff;
 }
 
+/* Сосиска сроков: 1 мес / 3 мес / полгода / год */
+.ap-long-block {
+  animation: apLongHintIn 0.3s ease;
+}
+
+.ap-term-switch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 18px;
+  max-width: 720px;
+}
+
+.ap-term-switch__btn {
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid rgba(19, 154, 182, 0.3);
+  background: #ffffff;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #4a5a63;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.ap-term-switch__btn:hover:not(:disabled):not(.is-active) {
+  border-color: #139ab6;
+  color: #139ab6;
+}
+
+.ap-term-switch__btn.is-active {
+  background: linear-gradient(135deg, #139ab6, #1fb3cf);
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(19, 154, 182, 0.28);
+}
+
+.ap-term-switch__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Пояснение в режиме долгосрочной аренды */
 .ap-long-hint {
   max-width: 720px;
@@ -892,5 +939,16 @@
 
   .long-price-value {
     font-size: 20px;
+  }
+
+  .ap-term-switch {
+    gap: 6px;
+  }
+
+  .ap-term-switch__btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 14px;
+    font-size: 14px;
   }
 }

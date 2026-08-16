@@ -434,6 +434,43 @@ function ensureDatabaseStructure() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    /* Сроки долгосрочной аренды — общие на весь сайт (как season_templates).
+       Менеджер задаёт их в Настройках, а цену под каждый срок — в карточке
+       апартамента. Гость переключает срок одной «сосиской» над списком,
+       и цены во всех карточках пересчитываются. */
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS long_term_terms (
+        id TEXT PRIMARY KEY,
+        months INTEGER NOT NULL,
+        label TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS apartment_long_term_prices (
+        apartment_id TEXT NOT NULL,
+        term_id TEXT NOT NULL,
+        price_per_month INTEGER NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (apartment_id, term_id),
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id) ON DELETE CASCADE,
+        FOREIGN KEY (term_id) REFERENCES long_term_terms(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_altp_apartment ON apartment_long_term_prices(apartment_id);
+    `);
+
+    // Стартовый набор сроков — менеджер потом правит под себя
+    const termsCount = (db.prepare('SELECT COUNT(*) c FROM long_term_terms').get() as { c: number }).c;
+    if (termsCount === 0) {
+      const insTerm = db.prepare('INSERT INTO long_term_terms (id, months, label, sort_order) VALUES (?, ?, ?, ?)');
+      [[1, 'Месяц'], [3, '3 месяца'], [6, 'Полгода'], [12, 'Год']].forEach(([m, label], i) => {
+        insTerm.run(uuidv4(), m, label, i);
+      });
+      console.log('✅ Созданы сроки долгосрочной аренды по умолчанию: 1, 3, 6, 12 мес');
+    }
     db.prepare(`INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)`)
       .run('long_term_min_days', String(DEFAULT_LONG_TERM_MIN_DAYS));
 
@@ -499,6 +536,83 @@ export const settingsService = {
     const parsed = Number(raw);
     if (!Number.isFinite(parsed) || parsed < 1) return DEFAULT_LONG_TERM_MIN_DAYS;
     return Math.round(parsed);
+  },
+};
+
+export interface LongTermTerm {
+  id: string;
+  months: number;
+  label: string | null;
+  sort_order: number;
+  is_active: number;
+}
+
+// Сроки долгосрочной аренды и цены апартаментов под них
+export const longTermService = {
+  /** Активные сроки в порядке возрастания — то, что видит гость в «сосиске». */
+  listActiveTerms: (): LongTermTerm[] =>
+    db.prepare(`
+      SELECT id, months, label, sort_order, is_active
+      FROM long_term_terms
+      WHERE is_active = 1
+      ORDER BY sort_order, months
+    `).all() as LongTermTerm[],
+
+  /** Все сроки, включая выключенные — для админки. */
+  listAllTerms: (): LongTermTerm[] =>
+    db.prepare(`
+      SELECT id, months, label, sort_order, is_active
+      FROM long_term_terms
+      ORDER BY sort_order, months
+    `).all() as LongTermTerm[],
+
+  createTerm: (months: number, label: string | null): LongTermTerm => {
+    const id = uuidv4();
+    const next = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM long_term_terms').get() as { n: number }).n;
+    db.prepare('INSERT INTO long_term_terms (id, months, label, sort_order) VALUES (?, ?, ?, ?)')
+      .run(id, months, label, next);
+    return db.prepare('SELECT id, months, label, sort_order, is_active FROM long_term_terms WHERE id = ?').get(id) as LongTermTerm;
+  },
+
+  deleteTerm: (id: string): number => {
+    // цены под этот срок уходят вместе с ним — ON DELETE CASCADE
+    db.prepare('DELETE FROM apartment_long_term_prices WHERE term_id = ?').run(id);
+    return db.prepare('DELETE FROM long_term_terms WHERE id = ?').run(id).changes;
+  },
+
+  /** Цены апартамента по срокам: { term_id: price_per_month } */
+  pricesForApartment: (apartmentId: string): Record<string, number> => {
+    const rows = db.prepare(
+      'SELECT term_id, price_per_month FROM apartment_long_term_prices WHERE apartment_id = ?'
+    ).all(apartmentId) as { term_id: string; price_per_month: number }[];
+    return Object.fromEntries(rows.map(r => [r.term_id, Number(r.price_per_month)]));
+  },
+
+  /** Цены всех апартаментов разом — чтобы не дёргать БД в цикле по 47 карточкам. */
+  allPrices: (): Record<string, Record<string, number>> => {
+    const rows = db.prepare(
+      'SELECT apartment_id, term_id, price_per_month FROM apartment_long_term_prices'
+    ).all() as { apartment_id: string; term_id: string; price_per_month: number }[];
+    const out: Record<string, Record<string, number>> = {};
+    for (const r of rows) {
+      (out[r.apartment_id] ??= {})[r.term_id] = Number(r.price_per_month);
+    }
+    return out;
+  },
+
+  /** Цена 0 или пусто — значит «не сдаём на этот срок», строку убираем. */
+  setPrice: (apartmentId: string, termId: string, pricePerMonth: number): void => {
+    if (!pricePerMonth || pricePerMonth <= 0) {
+      db.prepare('DELETE FROM apartment_long_term_prices WHERE apartment_id = ? AND term_id = ?')
+        .run(apartmentId, termId);
+      return;
+    }
+    db.prepare(`
+      INSERT INTO apartment_long_term_prices (apartment_id, term_id, price_per_month, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(apartment_id, term_id)
+      DO UPDATE SET price_per_month = excluded.price_per_month, updated_at = CURRENT_TIMESTAMP
+    `).run(apartmentId, termId, Math.round(pricePerMonth));
   },
 };
 

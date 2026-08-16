@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, settingsService, logService } from '@/lib/db';
+import { db, settingsService, logService, longTermService } from '@/lib/db';
 import { notifyTelegram } from '@/lib/telegram-notify';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -60,15 +60,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Апартамент не найден' }, { status: 404 });
     }
 
-    if (!apartment.long_term_enabled || !apartment.long_term_price) {
+    /* Цену берём по выбранному сроку из apartment_long_term_prices — БД источник
+       истины, тело запроса на цену не влияет. Если гость прислал срок, которого
+       уже нет (менеджер удалил, пока была открыта вкладка), падаем на самую
+       дешёвую доступную цену, а не отбиваем заявку. */
+    const prices = longTermService.pricesForApartment(apartmentId);
+    const available = Object.values(prices).filter(p => p > 0);
+
+    if (!apartment.long_term_enabled || available.length === 0) {
       return NextResponse.json(
         { error: 'Этот апартамент сейчас не сдаётся на длительный срок' },
         { status: 409 }
       );
     }
 
+    const termId = typeof body.termId === 'string' ? body.termId : '';
+    const monthlyPrice = prices[termId] > 0 ? prices[termId] : Math.min(...available);
+
     const minDays = settingsService.getLongTermMinDays();
-    const monthlyPrice = Number(apartment.long_term_price);
     const estimatedTotal = monthlyPrice * months;
 
     // check_out — ориентировочный, только чтобы заявка легла в общую таблицу

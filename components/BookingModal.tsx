@@ -48,6 +48,8 @@ type Props = {
   priceOverride?: number; // предрассчитанная итоговая сумма (с сезоном/скидкой)
   mode?: BookingMode; // 'long' = заявка на длительную аренду, без расчёта по ночам
   longTermMinDays?: number;
+  longTermTermId?: string; // срок, выбранный «сосиской» в каталоге
+  longTermMonths?: number;
 };
 
 /* ===== helpers ===== */
@@ -123,6 +125,8 @@ export default function BookingModal({
   priceOverride,
   mode = 'daily',
   longTermMinDays = 30,
+  longTermTermId,
+  longTermMonths,
 }: Props) {
   const router = useRouter();
   const isLong = mode === 'long';
@@ -134,9 +138,10 @@ export default function BookingModal({
   const [mounted, setMounted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
-  // Поля режима долгосрочной аренды
+  // Поля режима долгосрочной аренды. Срок предзаполнен тем, что гость выбрал
+  // «сосиской» в каталоге, но в форме его ещё можно поправить.
   const [moveInDate, setMoveInDate] = useState('');
-  const [months, setMonths] = useState(3);
+  const [months, setMonths] = useState(longTermMonths ?? 3);
   const [longComment, setLongComment] = useState('');
   const [moveInError, setMoveInError] = useState('');
 
@@ -310,6 +315,7 @@ export default function BookingModal({
           guestEmail: guestInfo.email || null,
           moveInDate,
           months,
+          termId: longTermTermId,
           guestsCount: guests,
           comment: longComment,
           pdConsentAt: new Date().toISOString(),

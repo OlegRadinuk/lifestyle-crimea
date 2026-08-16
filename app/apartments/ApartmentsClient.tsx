@@ -8,7 +8,7 @@ import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import BookingModal from '@/components/BookingModal';
 import Footer from '@/components/Footer';
-import { ApartmentClient, ApartmentSeason } from '@/lib/types';
+import { ApartmentClient, ApartmentSeason, LongTermTermClient } from '@/lib/types';
 import './apartments.css';
 
 /**
@@ -65,12 +65,30 @@ function calcSeasonalTotal(
 
 type RentalMode = 'daily' | 'long';
 
+/** «3 месяца» / «Год» — берём подпись менеджера, иначе склоняем сами. */
+function termTitle(term: LongTermTermClient): string {
+  if (term.label) return term.label;
+  const m = term.months;
+  return `${m} ${getDeclension(m, 'месяц', 'месяца', 'месяцев')}`;
+}
+
+/** Для срока в один месяц «при аренде на месяц» звучит тавтологией — говорим «помесячно». */
+function termPhrase(term: LongTermTermClient): string {
+  if (term.months === 1) return 'помесячно';
+  return `при аренде на ${termTitle(term).toLowerCase()}`;
+}
+
 interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
   longTermMinDays: number;
+  longTermTerms: LongTermTermClient[];
 }
 
-export default function ApartmentsClient({ initialApartments, longTermMinDays }: ApartmentsClientProps) {
+export default function ApartmentsClient({
+  initialApartments,
+  longTermMinDays,
+  longTermTerms,
+}: ApartmentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSearch, search: contextSearch } = useSearch();
@@ -87,6 +105,14 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
   // Режим аренды: посуточно (по умолчанию) или долгосрочно
   const [rentalMode, setRentalMode] = useState<RentalMode>('daily');
   const isLongMode = rentalMode === 'long';
+
+  // Выбранный срок долгосрочной аренды — общий для всего списка
+  const [selectedTermId, setSelectedTermId] = useState<string>(longTermTerms[0]?.id ?? '');
+  const selectedTerm = longTermTerms.find(t => t.id === selectedTermId) ?? longTermTerms[0] ?? null;
+
+  // Цена апартамента за месяц при выбранном сроке. 0 = на этот срок не сдаётся.
+  const priceForTerm = (apt: ApartmentClient, termId: string | undefined): number =>
+    termId ? (apt.long_term_prices?.[termId] ?? 0) : 0;
 
   // Состояние апартаментов и доступности
   const [allApartments] = useState(initialApartments);
@@ -277,7 +303,7 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
       id: apartment.id,
       title: apartment.title,
       price_base: apartment.price_base,
-      long_term_price: apartment.long_term_price,
+      long_term_price: priceForTerm(apartment, selectedTerm?.id),
     });
     setBookingMode('long');
     setBookingPriceOverride(undefined);
@@ -305,12 +331,22 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
   const aptFitsChildren = (apt: ApartmentClient) =>
     children === 0 || apt.max_guests >= 3;
 
-  // Сколько апартаментов вообще сдаётся надолго — нужно для подписи у переключателя
-  const longTermCount = allApartments.filter(apt => apt.long_term_enabled).length;
+  // Сдаётся надолго = тумблер включён И есть цена хотя бы на один срок
+  const isLongTermApt = (apt: ApartmentClient) =>
+    Boolean(apt.long_term_enabled) &&
+    longTermTerms.some(t => priceForTerm(apt, t.id) > 0);
+
+  const longTermCount = allApartments.filter(isLongTermApt).length;
+
+  // Сколько апартаментов доступно на каждом сроке — цифра в кнопке срока
+  const countByTerm = (termId: string) =>
+    allApartments.filter(apt => apt.long_term_enabled && priceForTerm(apt, termId) > 0).length;
 
   // Фильтруем по количеству гостей и детей для отображения
   const displayedApartments = isLongMode
-    ? sortedApartments.filter(apt => apt.long_term_enabled)
+    ? sortedApartments
+        .filter(apt => apt.long_term_enabled && priceForTerm(apt, selectedTerm?.id) > 0)
+        .sort((a, b) => priceForTerm(a, selectedTerm?.id) - priceForTerm(b, selectedTerm?.id))
     : sortedApartments.filter(apt =>
         (!hasSearchParams || apt.max_guests >= guests) && aptFitsChildren(apt)
       );
@@ -381,14 +417,44 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
             )}
 
             {isLongMode ? (
-              <div className="ap-long-hint">
-                <p className="ap-long-hint__title">
-                  Аренда от {longTermMinDays} суток — цена указана за месяц
-                </p>
-                <p className="ap-long-hint__text">
-                  Мебель, техника и уборка уже включены. Точный срок, депозит и условия оплаты
-                  обсуждаем индивидуально — оставьте заявку, менеджер свяжется с вами.
-                </p>
+              <div className="ap-long-block">
+                {/* Сосиска сроков: цена в карточках пересчитывается под выбранный */}
+                {longTermTerms.length > 0 && (
+                  <div className="ap-term-switch" role="tablist" aria-label="Срок аренды">
+                    {longTermTerms.map(term => {
+                      const count = countByTerm(term.id);
+                      const isActive = term.id === selectedTerm?.id;
+                      return (
+                        <button
+                          key={term.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={isActive}
+                          disabled={count === 0}
+                          title={count === 0 ? 'На этот срок пока нет предложений' : undefined}
+                          className={`ap-term-switch__btn${isActive ? ' is-active' : ''}`}
+                          onClick={() => setSelectedTermId(term.id)}
+                        >
+                          {termTitle(term)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="ap-long-hint">
+                  <p className="ap-long-hint__title">
+                    {selectedTerm
+                      ? (selectedTerm.months === 1
+                          ? 'Цена за месяц проживания'
+                          : `Цена за месяц при аренде на ${termTitle(selectedTerm).toLowerCase()}`)
+                      : `Аренда от ${longTermMinDays} суток — цена указана за месяц`}
+                  </p>
+                  <p className="ap-long-hint__text">
+                    Чем дольше срок, тем ниже месячная плата. Мебель, техника и уборка включены;
+                    депозит и порядок оплаты менеджер согласует лично — оставьте заявку.
+                  </p>
+                </div>
               </div>
             ) : (
             <div className="ap-search-form">
@@ -493,7 +559,7 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
                         <div className="hot-deal-badge">🔥 Скидка {apartment.hot_deal_discount}%</div>
                       )}
                       {isLongMode && (
-                        <div className="long-term-badge">📅 Длительный срок</div>
+                        <div className="long-term-badge">Длительный срок</div>
                       )}
                       {!isAvailable && hasSearchParams && (
                         <div className="unavailable-badge">Нет мест</div>
@@ -529,14 +595,16 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
                       <div className="ap-list-footer">
                         {(() => {
                           if (isLongMode) {
+                            const monthly = priceForTerm(apartment, selectedTerm?.id);
                             return (
                               <div className="ap-list-price ap-list-price--long">
                                 <span className="long-price-value">
-                                  {(apartment.long_term_price ?? 0).toLocaleString('ru-RU')} ₽
+                                  {monthly.toLocaleString('ru-RU')} ₽
                                   <span className="long-price-unit"> / мес</span>
                                 </span>
                                 <span className="long-price-note">
-                                  {apartment.long_term_note || `от ${longTermMinDays} суток`}
+                                  {apartment.long_term_note
+                                    || (selectedTerm ? termPhrase(selectedTerm) : `от ${longTermMinDays} суток`)}
                                 </span>
                               </div>
                             );
@@ -626,6 +694,8 @@ export default function ApartmentsClient({ initialApartments, longTermMinDays }:
           apartment={bookingApartment}
           mode={bookingMode}
           longTermMinDays={longTermMinDays}
+          longTermTermId={selectedTerm?.id}
+          longTermMonths={selectedTerm?.months}
           priceOverride={bookingPriceOverride}
           initialRange={
             checkIn && checkOut

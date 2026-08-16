@@ -9,6 +9,12 @@ interface AdminUser {
   created_at: string;
 }
 
+interface LongTermTerm {
+  id: string;
+  months: number;
+  label: string | null;
+}
+
 export default function SettingsPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [newUsername, setNewUsername] = useState('');
@@ -23,10 +29,69 @@ export default function SettingsPage() {
   const [minDaysMessage, setMinDaysMessage] = useState('');
   const [minDaysError, setMinDaysError] = useState('');
 
+  // Сроки долгосрочной аренды
+  const [terms, setTerms] = useState<LongTermTerm[]>([]);
+  const [newTermMonths, setNewTermMonths] = useState('');
+  const [newTermLabel, setNewTermLabel] = useState('');
+  const [termError, setTermError] = useState('');
+  const [savingTerm, setSavingTerm] = useState(false);
+
   useEffect(() => {
     fetchUsers();
     fetchSettings();
+    fetchTerms();
   }, []);
+
+  const fetchTerms = async () => {
+    try {
+      const res = await fetch('/api/admin/long-term-terms');
+      if (res.ok) setTerms(await res.json());
+    } catch {}
+  };
+
+  const handleAddTerm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTermError('');
+    setSavingTerm(true);
+
+    try {
+      const res = await fetch('/api/admin/long-term-terms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ months: Number(newTermMonths), label: newTermLabel }),
+      });
+      const data = await res.json() as { error?: string };
+
+      if (res.ok) {
+        setNewTermMonths('');
+        setNewTermLabel('');
+        fetchTerms();
+      } else {
+        setTermError(data.error ?? 'Ошибка');
+      }
+    } catch {
+      setTermError('Ошибка сервера');
+    } finally {
+      setSavingTerm(false);
+    }
+  };
+
+  const handleDeleteTerm = async (term: LongTermTerm) => {
+    const name = term.label || `${term.months} мес`;
+    if (!confirm(`Удалить срок «${name}»? Цены апартаментов под этот срок тоже удалятся.`)) return;
+
+    try {
+      const res = await fetch('/api/admin/long-term-terms', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: term.id }),
+      });
+      if (res.ok) fetchTerms();
+      else alert('Не удалось удалить срок');
+    } catch {
+      alert('Ошибка сервера');
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -214,8 +279,7 @@ export default function SettingsPage() {
               style={{ maxWidth: 200 }}
             />
             <p className="settings-hint">
-              Это число видит гость на сайте — «от {minDays || '…'} суток» под ценой за месяц
-              и в форме заявки. Саму цену задаёте в карточке каждого апартамента.
+              Это число видит гость в форме заявки как минимальный срок.
             </p>
           </div>
           <button
@@ -227,6 +291,62 @@ export default function SettingsPage() {
           </button>
           {minDaysError && <div className="error" style={{ marginTop: 8 }}>{minDaysError}</div>}
           {minDaysMessage && <div style={{ marginTop: 8, color: '#166534' }}>{minDaysMessage}</div>}
+
+          <hr className="settings-divider" />
+
+          <h3 className="settings-subtitle">Сроки аренды</h3>
+          <p className="settings-hint" style={{ marginBottom: 12 }}>
+            Из этих сроков собирается переключатель на сайте: гость жмёт «3 месяца» — и во всех
+            карточках подставляется цена под этот срок. Саму цену вписываете в карточке каждого
+            апартамента.
+          </p>
+
+          <div className="terms-list">
+            {terms.length === 0 && <div className="settings-hint">Сроков пока нет</div>}
+            {terms.map(term => (
+              <div key={term.id} className="term-chip">
+                <span className="term-chip__name">{term.label || `${term.months} мес`}</span>
+                <span className="term-chip__months">{term.months} мес</span>
+                <button
+                  type="button"
+                  className="term-chip__del"
+                  onClick={() => handleDeleteTerm(term)}
+                  aria-label={`Удалить срок ${term.label || term.months + ' мес'}`}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <form onSubmit={handleAddTerm} className="settings-add-form" style={{ marginTop: 12 }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <input
+                type="number"
+                min={1}
+                max={60}
+                placeholder="Месяцев"
+                value={newTermMonths}
+                onChange={e => setNewTermMonths(e.target.value)}
+                disabled={savingTerm}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ margin: 0 }}>
+              <input
+                type="text"
+                maxLength={40}
+                placeholder="Подпись (необязательно): «Полгода»"
+                value={newTermLabel}
+                onChange={e => setNewTermLabel(e.target.value)}
+                disabled={savingTerm}
+              />
+            </div>
+            <button type="submit" className="admin-button primary" disabled={savingTerm}>
+              {savingTerm ? 'Добавление...' : 'Добавить срок'}
+            </button>
+          </form>
+          {termError && <div className="error" style={{ marginTop: 8 }}>{termError}</div>}
         </div>
       </div>
 
@@ -267,6 +387,62 @@ export default function SettingsPage() {
           font-size: 13px;
           line-height: 1.5;
           color: #64748b;
+        }
+
+        .settings-divider {
+          border: none;
+          border-top: 1px solid #e2e8f0;
+          margin: 24px 0 16px;
+        }
+
+        .settings-subtitle {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a2634;
+          margin: 0 0 4px;
+        }
+
+        .terms-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .term-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px 8px 14px;
+          background: #ecfeff;
+          border: 1px solid #a5f3fc;
+          border-radius: 999px;
+        }
+
+        .term-chip__name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0e7490;
+        }
+
+        .term-chip__months {
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .term-chip__del {
+          border: none;
+          background: transparent;
+          color: #94a3b8;
+          cursor: pointer;
+          font-size: 14px;
+          line-height: 1;
+          padding: 4px;
+          border-radius: 50%;
+        }
+
+        .term-chip__del:hover {
+          color: #dc2626;
+          background: #fee2e2;
         }
 
         .settings-add-form {

@@ -15,6 +15,13 @@ export interface Apartment {
   updated_at: string;
 }
 
+/** Срок долгосрочной аренды — общий на весь сайт, задаётся в Настройках. */
+export interface LongTermTermClient {
+  id: string;
+  months: number;
+  label: string | null;
+}
+
 export interface ApartmentSeason {
   id: string;
   name: string;
@@ -46,8 +53,10 @@ export interface ApartmentClient {
   dinner_price?: number;
   custom_meal_description?: string | null;
   long_term_enabled?: boolean;
-  long_term_price?: number; // ₽ в месяц
+  long_term_price?: number; // ₽ в месяц (legacy, до появления сроков)
   long_term_note?: string | null;
+  /** Цена за месяц по каждому сроку: { term_id: ₽/мес }. Нет ключа — на этот срок не сдаём. */
+  long_term_prices?: Record<string, number>;
   created_at?: string;
   updated_at?: string;
 }
