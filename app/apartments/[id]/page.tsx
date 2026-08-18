@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import path from 'path';
 import { db } from '@/lib/db';
 import ClientApartmentWrapper from './ClientApartmentWrapper';
 
@@ -56,6 +57,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Человекочитаемое название (убираем LS- префикс для title)
   const displayName = apartment.title.replace(/^LS-(?:LUX-|ART-)?/i, '').trim();
 
+  /* Отпечаток первого снимка — попадает в адрес og-картинки, чтобы соцсети
+     перезабрали превью после замены фото, а не отдавали своё старое. */
+  const firstImage = db.prepare(`
+    SELECT url FROM apartment_images WHERE apartment_id = ? ORDER BY sort_order LIMIT 1
+  `).get(id) as { url: string } | undefined;
+  const ogVersion = firstImage?.url
+    ? path.basename(firstImage.url, path.extname(firstImage.url)).slice(0, 8)
+    : '';
+
   /* Title ведёт ЗАПРОСОМ, а не внутренним именем.
      Было: «Апартаменты «SPACE» с видом на море | 36 м² | Алушта» — первые
      слова тайтла весят больше всего, а «SPACE»/«COFFEE ICE CREAM» никто не
@@ -107,18 +117,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       locale: 'ru_RU',
       siteName: 'Стиль Жизни, Алушта',
       url: `https://lovelifestyle.ru/apartments/${id}`,
-      /* Фото самого апартамента тут не поставить: все они в webp, а Telegram,
-         WhatsApp и VK не показывают webp в превью ссылки — карточка приходит
-         пустой. Отдаём брендовый JPEG: превью работает всегда. Появятся
-         jpg-версии кадров — можно вернуть фото конкретного апартамента. */
+      /* Фото самого апартамента лежит в webp, а webp в превью ссылки не
+         показывают ни Telegram, ни WhatsApp, ни VK. Поэтому ведём не на файл,
+         а на /api/og/<id> — он режет первый кадр в JPEG 1200×630.
+         Апартамент без фото получит брендовую картинку, роут это сам решает.
+         `?v=` — отпечаток текущего снимка: сменили фото в админке, сменился
+         адрес, и соцсети перезабирают превью вместо того, чтобы годами
+         отдавать старое из своего кеша. */
       images: [
         {
-          url: 'https://lovelifestyle.ru/og-image.jpg',
+          url: `https://lovelifestyle.ru/api/og/${id}${ogVersion ? `?v=${ogVersion}` : ''}`,
           width: 1200,
           height: 630,
           alt: `Апартаменты ${displayName} ${viewText} — Алушта, апарт-отель «Стиль Жизни»`,
         },
       ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: title.absolute,
+      description,
+      images: [`https://lovelifestyle.ru/api/og/${id}${ogVersion ? `?v=${ogVersion}` : ''}`],
     },
     alternates: {
       canonical: `https://lovelifestyle.ru/apartments/${id}`,

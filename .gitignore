@@ -107,3 +107,4 @@ tests/
 # responsive-audit output
 .audit*/
 public/images/menu/_bak-20260708/
+.og-cache/
