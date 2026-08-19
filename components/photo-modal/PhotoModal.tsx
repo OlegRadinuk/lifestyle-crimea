@@ -12,24 +12,46 @@ type Props = {
 }
 
 export function PhotoModal({ images, startIndex, onClose }: Props) {
+  /* Блокировка фона держится ровно на время жизни модалки — зависимостей нет
+     намеренно. Раньше эффект был склеен с обработчиком Escape и висел на
+     [onClose]: родитель отдаёт новую функцию на каждый рендер, эффект
+     переигрывался, и блокировка снималась-ставилась по кругу. */
+  useEffect(() => {
+    const scrollY = window.scrollY
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
+    const body = document.body
+
+    /* Одного overflow:hidden мало: на iOS он фон не держит, а при снятии
+       браузер терял позицию — гость закрывал галерею и улетал в начало
+       списка (проверено, 1500px → 0 и в WebKit, и в Chromium).
+       Поэтому фиксируем body со сдвигом на текущую прокрутку, а при закрытии
+       возвращаем страницу ровно туда, где человек её оставил. */
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.width = '100%'
+    body.style.overflow = 'hidden'
+    body.style.paddingRight = `${scrollBarWidth}px`
+
+    return () => {
+      body.style.position = ''
+      body.style.top = ''
+      body.style.left = ''
+      body.style.right = ''
+      body.style.width = ''
+      body.style.overflow = ''
+      body.style.paddingRight = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-
-    const scrollBarWidth =
-      window.innerWidth - document.documentElement.clientWidth
-
-    document.body.style.overflow = 'hidden'
-    document.body.style.paddingRight = `${scrollBarWidth}px`
-
     window.addEventListener('keydown', onKey)
-
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.paddingRight = ''
-      window.removeEventListener('keydown', onKey)
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
   return createPortal(
@@ -87,23 +109,25 @@ export function PhotoModal({ images, startIndex, onClose }: Props) {
             <button
               onClick={onClose}
               className="
-                absolute top-5 right-5
+                absolute top-3 right-3 md:top-5 md:right-5
                 z-40
-                h-14 w-14 rounded-full
+                h-11 w-11 md:h-12 md:w-12 rounded-full
                 flex items-center justify-center
                 group
-                bg-[rgba(19,154,182,0.20)]
-                backdrop-blur-2xl
-                border border-white/40
+                bg-black/30
+                backdrop-blur-md
+                border border-white/25
+                shadow-[0_2px_12px_rgba(0,0,0,0.35)]
                 transition duration-300
-                hover:bg-[rgba(19,154,182,0.35)]
+                hover:bg-black/45 hover:border-white/40
+                active:scale-95
               "
             >
               <svg
-                className="w-6 h-6 text-white transition group-hover:text-[#139AB6]"
+                className="w-5 h-5 md:w-[22px] md:h-[22px] text-white"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.5"
+                strokeWidth="2"
                 viewBox="0 0 24 24"
               >
                 <path

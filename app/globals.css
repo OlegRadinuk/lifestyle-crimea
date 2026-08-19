@@ -8953,6 +8953,62 @@ select:focus-visible,
   outline: 2px solid #139ab6;
   outline-offset: 3px;
 }
+/* ===== Календарь в поповере на мобиле =====
+
+   На странице апартамента поповер рисует ApartmentHeaderButton, и класса
+   `mobile-position` у него нет — поэтому мобильные правила, написанные под
+   `.header__calendar-popover.mobile-position`, его не ловили, и побеждало
+   `.availability-calendar.mobile { inset: auto 177px -489px; width: 66% }`.
+   177px и 66% подогнаны под какой-то один экран: на 390px календарь занимал
+   189..431 при вьюпорте 390 — правый край с «×» и колонками сб/вс уезжал
+   за границу, и гость не видел, куда жмёт.
+
+   Здесь то же самое поведение, но привязанное к самому поповеру, без
+   зависимости от модификатора: поповер уже стоит правильно (left/right 16px),
+   а календарь внутри просто занимает его ширину. */
+@media (max-width: 768px) {
+  /* У .header стоит transform, а он делает хедер containing block для
+     position: fixed внутри — поэтому «прижать поповер к низу экрана» уводило
+     его вверх за границу (top вычислялся в -500px). Отсчёт всё равно идёт от
+     хедера, поэтому и вешаем поповер под ним, а не от вьюпорта.
+     Календарь внутри раньше вытаскивал себя обратно костылём
+     `inset: auto 177px -489px` — он снят правилом ниже. */
+  .header__calendar-popover {
+    /* fixed, а не absolute: ближайший позиционированный предок — сама кнопка
+       (215px шириной), внутри неё у календаря обрезались колонки пт/сб/вс.
+       У .header стоит transform, поэтому fixed отсчитывается от хедера —
+       а он во всю ширину экрана, чего календарю и надо. */
+    position: fixed !important;
+    top: calc(100% + 10px) !important;
+    bottom: auto !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 78vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: 20000 !important;
+  }
+
+  .header__calendar-popover .availability-calendar,
+  .header__calendar-popover .availability-calendar.mobile {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 24px !important;
+    padding: 20px 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* «хвостик» поповера при полноширинном календаре только мешает */
+  .header__calendar-popover .availability-calendar::before {
+    display: none !important;
+  }
+}
+
 /* ===== Модалка: режим длительной аренды ===== */
 
 /* «Ориентировочно» длиннее «Итого» — не даём сумме переноситься */

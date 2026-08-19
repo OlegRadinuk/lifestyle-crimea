@@ -48,24 +48,26 @@ export function Gallery({ images, startIndex }: Props) {
 <button
   onClick={prev}
   className="
-    absolute left-5 top-1/2 -translate-y-1/2
+    absolute left-3 md:left-5 top-1/2 -translate-y-1/2
     z-30
-    h-14 w-14 rounded-full
+    h-11 w-11 md:h-12 md:w-12 rounded-full
     flex items-center justify-center
 
-    bg-[rgba(19,154,182,0.20)]
-    backdrop-blur-2xl
-    border border-white/40
+    bg-black/30
+    backdrop-blur-md
+    border border-white/25
+    shadow-[0_2px_12px_rgba(0,0,0,0.35)]
 
     transition duration-300
-    hover:bg-[rgba(19,154,182,0.35)]
+    hover:bg-black/45 hover:border-white/40
+    active:scale-95
   "
 >
   <svg
-    className="w-7 h-7 text-white transition group-hover:text-[#139AB6]"
+    className="w-5 h-5 md:w-[22px] md:h-[22px] text-white"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth="2"
     viewBox="0 0 24 24"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -76,24 +78,26 @@ export function Gallery({ images, startIndex }: Props) {
 <button
   onClick={next}
   className="
-    absolute right-5 top-1/2 -translate-y-1/2
+    absolute right-3 md:right-5 top-1/2 -translate-y-1/2
     z-30
-    h-14 w-14 rounded-full
+    h-11 w-11 md:h-12 md:w-12 rounded-full
     flex items-center justify-center
 
-    bg-[rgba(19,154,182,0.20)]
-    backdrop-blur-2xl
-    border border-white/40
+    bg-black/30
+    backdrop-blur-md
+    border border-white/25
+    shadow-[0_2px_12px_rgba(0,0,0,0.35)]
 
     transition duration-300
-    hover:bg-[rgba(19,154,182,0.35)]
+    hover:bg-black/45 hover:border-white/40
+    active:scale-95
   "
 >
   <svg
-    className="w-7 h-7 text-white"
+    className="w-5 h-5 md:w-[22px] md:h-[22px] text-white"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth="2"
     viewBox="0 0 24 24"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -109,6 +113,7 @@ export function Gallery({ images, startIndex }: Props) {
               className={`
                 relative
                 w-[30px] h-[3px]
+                before:absolute before:content-[''] before:-inset-y-[18px] before:-inset-x-[5px]
                 transition-all duration-300
                 ${i === index
                   ? 'bg-[#139AB6] -translate-y-[2px] shadow-[0_0_6px_rgba(255,255,255,0.35)]'

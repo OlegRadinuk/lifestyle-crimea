@@ -713,6 +713,48 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   }
 
+  /* Раскрытое описание: снимаем обрезку и даём прокрутку внутри карточки.
+     overscroll-behavior не даёт «протянуть» скролл на страницу под ней. */
+  .apartment-hero .apartment-info-description.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    max-height: 38vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+  }
+
+  .apartment-hero .apartment-info-description.is-expanded::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .apartment-hero .apartment-info-description.is-expanded::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+  }
+
+  .apartment-hero .apartment-info-more {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 6px 0;
+    min-height: 32px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.9;
+    cursor: pointer;
+  }
+
+  .apartment-hero .apartment-info-more:active {
+    opacity: 0.6;
+  }
+
   .apartment-hero .apartment-features-mobile {
     display: flex;
     flex-wrap: wrap;

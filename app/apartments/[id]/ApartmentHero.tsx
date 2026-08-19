@@ -141,6 +141,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -473,7 +474,24 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           <h2 className="apartment-info-title">{apartment.title}</h2>
         </div>
 
-        <p className="apartment-info-description">{apartment.description}</p>
+        {/* Описание было зажато в три строки (-webkit-line-clamp) поверх фото:
+            из 312px текста гость видел 59px и остальное прочитать не мог.
+            Теперь карточка раскрывается по тапу и внутри себя прокручивается,
+            а высота hero остаётся прежней — раскладку это не двигает. */}
+        <p className={`apartment-info-description${descExpanded ? ' is-expanded' : ''}`}>
+          {apartment.description}
+        </p>
+
+        {(apartment.description?.length ?? 0) > 140 && (
+          <button
+            type="button"
+            className="apartment-info-more"
+            aria-expanded={descExpanded}
+            onClick={() => setDescExpanded(v => !v)}
+          >
+            {descExpanded ? 'Свернуть' : 'Читать полностью'}
+          </button>
+        )}
 
         <div className="apartment-features-mobile">
           <div className="feature-chip">До {apartment.maxGuests} гостей</div>
