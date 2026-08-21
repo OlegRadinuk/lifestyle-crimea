@@ -123,6 +123,7 @@ type Apartment = {
   long_term_enabled: boolean;
   long_term_price: number;
   long_term_note: string;
+  category: string;
   view: string;
   has_terrace: boolean;
   features: string[];
@@ -252,6 +253,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         long_term_enabled: Boolean(data.long_term_enabled),
         long_term_price: Number(data.long_term_price ?? 0),
         long_term_note: data.long_term_note ?? '',
+        category: data.category ?? '',
       });
     } catch (error) {
       console.error('Error fetching apartment:', error);
@@ -673,6 +675,20 @@ export default function EditApartmentPage({ params }: PageProps) {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="form-group">
+          <label>Тип жилья (фильтр в каталоге)</label>
+          <select
+            value={apartment.category ?? ''}
+            onChange={(e) => setApartment({ ...apartment, category: e.target.value })}
+          >
+            <option value="">Не указан — попадёт только во «Все»</option>
+            <option value="studio">Студия</option>
+            <option value="bedroom">С отдельной спальней</option>
+            <option value="kitchen">С отдельной кухней</option>
+            <option value="duplex">Двухуровневые</option>
+          </select>
         </div>
 
         <div className="form-group">

@@ -157,6 +157,7 @@ async function getApartments(): Promise<ApartmentClient[]> {
         long_term_price: Number(apt.long_term_price || 0),
         long_term_note: apt.long_term_note || null,
         long_term_prices: longTermPrices[apt.id] ?? {},
+        category: apt.category ?? null,
         seasons,
       };
     }));

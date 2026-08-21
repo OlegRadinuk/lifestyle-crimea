@@ -15,6 +15,16 @@ export interface Apartment {
   updated_at: string;
 }
 
+/** Тип жилья для фильтра в каталоге. null — менеджер ещё не разметил. */
+export type ApartmentCategory = 'studio' | 'bedroom' | 'kitchen' | 'duplex';
+
+export const APARTMENT_CATEGORIES: { code: ApartmentCategory; label: string }[] = [
+  { code: 'studio', label: 'Студии' },
+  { code: 'bedroom', label: 'С отдельной спальней' },
+  { code: 'kitchen', label: 'С отдельной кухней' },
+  { code: 'duplex', label: 'Двухуровневые' },
+];
+
 /** Срок долгосрочной аренды — общий на весь сайт, задаётся в Настройках. */
 export interface LongTermTermClient {
   id: string;
@@ -57,6 +67,7 @@ export interface ApartmentClient {
   long_term_note?: string | null;
   /** Цена за месяц по каждому сроку: { term_id: ₽/мес }. Нет ключа — на этот срок не сдаём. */
   long_term_prices?: Record<string, number>;
+  category?: ApartmentCategory | null;
   created_at?: string;
   updated_at?: string;
 }

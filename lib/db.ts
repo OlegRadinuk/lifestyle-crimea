@@ -412,6 +412,9 @@ function ensureDatabaseStructure() {
     safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_enabled INTEGER DEFAULT 0", 'long_term_enabled');
     safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_price INTEGER DEFAULT 0", 'long_term_price');
     safeAddColumn("ALTER TABLE apartments ADD COLUMN long_term_note TEXT DEFAULT NULL", 'long_term_note');
+    /* Тип жилья для фильтра в каталоге: studio | bedroom | kitchen | duplex.
+       NULL = не размечен, такой апартамент попадает только во «Все». */
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN category TEXT DEFAULT NULL", 'category');
 
     // Заявки на долгосрочную аренду отличаются от посуточных броней
     const bookingColumns = (db.prepare("PRAGMA table_info(bookings)").all() as { name: string }[]).map(c => c.name);

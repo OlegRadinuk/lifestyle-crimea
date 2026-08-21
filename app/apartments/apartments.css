@@ -801,6 +801,171 @@
   color: #ffffff;
 }
 
+/* ===== ФИЛЬТР ПО ТИПУ ЖИЛЬЯ ===== */
+
+.ap-cat-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 18px;
+  max-width: 860px;
+}
+
+.ap-cat-filter__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 9px 18px;
+  border: 1px solid rgba(19, 154, 182, 0.28);
+  background: #ffffff;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5a63;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.ap-cat-filter__btn:hover:not(:disabled):not(.is-active) {
+  border-color: #139ab6;
+  color: #139ab6;
+}
+
+.ap-cat-filter__btn.is-active {
+  background: #139ab6;
+  border-color: #139ab6;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ap-cat-filter__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ap-cat-filter__count {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+@media (max-width: 768px) {
+  .ap-cat-filter {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .ap-cat-filter__btn {
+    padding: 8px 13px;
+    font-size: 13px;
+    min-height: 38px;
+  }
+}
+
+/* ===== БЛОК СРАВНЕНИЯ ЦЕН В КАРТОЧКЕ =====
+   Суточная и месячная цена стоят рядом, срок переключается тут же. */
+
+.ap-long-offer {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(19, 154, 182, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(19, 154, 182, 0.05), rgba(31, 179, 207, 0.09));
+}
+
+.ap-long-offer__terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ap-long-offer__term {
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid rgba(19, 154, 182, 0.3);
+  background: #fff;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5a63;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.ap-long-offer__term:hover:not(.is-active) {
+  border-color: #139ab6;
+  color: #139ab6;
+}
+
+.ap-long-offer__term.is-active {
+  background: #139ab6;
+  border-color: #139ab6;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ap-long-offer__prices {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.ap-long-offer__col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.ap-long-offer__divider {
+  width: 1px;
+  background: rgba(19, 154, 182, 0.22);
+  flex: 0 0 1px;
+}
+
+.ap-long-offer__value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4a5a63;
+  white-space: nowrap;
+}
+
+.ap-long-offer__col--accent .ap-long-offer__value {
+  color: #139ab6;
+  font-size: 20px;
+}
+
+.ap-long-offer__label {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #94a3b8;
+}
+
+.ap-list-price-spacer {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 480px) {
+  .ap-long-offer__value {
+    font-size: 16px;
+  }
+
+  .ap-long-offer__col--accent .ap-long-offer__value {
+    font-size: 18px;
+  }
+
+  .ap-long-offer__prices {
+    gap: 10px;
+  }
+}
+
 /* Сосиска сроков: 1 мес / 3 мес / полгода / год */
 .ap-long-block {
   animation: apLongHintIn 0.3s ease;

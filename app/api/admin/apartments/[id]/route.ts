@@ -76,6 +76,7 @@ export async function GET(
       long_term_enabled: Boolean(apartment.long_term_enabled),
       long_term_price: Number(apartment.long_term_price || 0),
       long_term_note: apartment.long_term_note || '',
+      category: apartment.category || '',
       created_at: apartment.created_at,
       updated_at: apartment.updated_at,
     };
@@ -230,6 +231,12 @@ export async function PATCH(
     if (data.long_term_price !== undefined) {
       updates.push('long_term_price = ?');
       values.push(Math.max(0, Number(data.long_term_price) || 0));
+    }
+
+    if (data.category !== undefined) {
+      const allowed = ['studio', 'bedroom', 'kitchen', 'duplex'];
+      updates.push('category = ?');
+      values.push(allowed.includes(data.category) ? data.category : null);
     }
 
     if (data.long_term_note !== undefined) {
