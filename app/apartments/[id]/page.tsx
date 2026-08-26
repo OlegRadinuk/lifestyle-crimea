@@ -8,17 +8,15 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-// ISR: пере-генерируем страницу раз в сутки (данные апартамента меняются редко)
-// Для реального времени (наличие, цены) используется клиентский API
-export const revalidate = 86400;
-
-// Пре-генерируем все активные страницы апартаментов при сборке
-export async function generateStaticParams() {
-  const apartments = db.prepare(
-    "SELECT id FROM apartments WHERE is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')"
-  ).all() as { id: string }[];
-  return apartments.map((a) => ({ id: a.id }));
-}
+/* Было ISR на сутки — «данные апартамента меняются редко». На практике
+   менеджер правит описание в админке, идёт смотреть на сайт, а там ещё сутки
+   висит старый текст: правки будто исчезают. ISR с коротким интервалом эту
+   жалобу не снимает — stale-while-revalidate отдаёт старое ещё раз, и правка
+   появляется только со второго обновления страницы.
+   Рендерим страницу на каждый запрос: 47 карточек из локальной SQLite стоят
+   дёшево, каталог /apartments так работает с самого начала. */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Функция для генерации мета-тегов
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

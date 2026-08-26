@@ -640,22 +640,40 @@ export default function ApartmentsClient({
                         const nightly = currentNightlyPrice(apartment.seasons, apartment.price_base);
                         const paidTerms = longTermTerms.filter(t => priceForTerm(apartment, t.id) > 0);
 
+                        /* Ярлык на самом дешёвом за месяц сроке: гость не обязан
+                           сам сравнивать столбики цифр, чтобы понять, что длинный
+                           срок выгоднее. Процент считаем от самого дорогого
+                           тарифа — это и есть та самая экономия. */
+                        const prices = paidTerms.map(t => priceForTerm(apartment, t.id));
+                        const cheapest = Math.min(...prices);
+                        const dearest = Math.max(...prices);
+                        const bestTermId = paidTerms.find(t => priceForTerm(apartment, t.id) === cheapest)?.id;
+                        const bestSaving = dearest > cheapest
+                          ? Math.round((1 - cheapest / dearest) * 100)
+                          : 0;
+
                         return (
                           <div className="ap-long-offer">
                             {paidTerms.length > 1 && (
                               <div className="ap-long-offer__terms" role="tablist" aria-label="Срок аренды">
-                                {paidTerms.map(t => (
-                                  <button
-                                    key={t.id}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={t.id === term?.id}
-                                    className={`ap-long-offer__term${t.id === term?.id ? ' is-active' : ''}`}
-                                    onClick={() => setTermByApartment(prev => ({ ...prev, [apartment.id]: t.id }))}
-                                  >
-                                    {termTitle(t)}
-                                  </button>
-                                ))}
+                                {paidTerms.map(t => {
+                                  const isBest = t.id === bestTermId && bestSaving >= 5;
+                                  return (
+                                    <button
+                                      key={t.id}
+                                      type="button"
+                                      role="tab"
+                                      aria-selected={t.id === term?.id}
+                                      className={`ap-long-offer__term${t.id === term?.id ? ' is-active' : ''}${isBest ? ' is-best' : ''}`}
+                                      onClick={() => setTermByApartment(prev => ({ ...prev, [apartment.id]: t.id }))}
+                                    >
+                                      {termTitle(t)}
+                                      {isBest && (
+                                        <span className="ap-long-offer__best">−{bestSaving}%</span>
+                                      )}
+                                    </button>
+                                  );
+                                })}
                               </div>
                             )}
 
@@ -677,6 +695,11 @@ export default function ApartmentsClient({
                                           ? `за месяц при аренде на ${termTitle(term).toLowerCase()}`
                                           : 'за месяц')}
                                 </span>
+                                {term?.id === bestTermId && bestSaving >= 5 && (
+                                  <span className="ap-long-offer__best-note">
+                                    Лучшая цена — дешевле на {(dearest - cheapest).toLocaleString('ru-RU')} ₽ в месяц
+                                  </span>
+                                )}
                               </div>
                             </div>
 

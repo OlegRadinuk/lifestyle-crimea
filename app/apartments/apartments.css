@@ -910,6 +910,37 @@
   font-weight: 600;
 }
 
+/* Самый выгодный срок помечаем, чтобы выгода читалась без арифметики */
+.ap-long-offer__term.is-best {
+  border-color: #16a34a;
+}
+
+.ap-long-offer__term.is-best.is-active {
+  background: #139ab6;
+  border-color: #139ab6;
+}
+
+.ap-long-offer__best {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  vertical-align: 1px;
+}
+
+.ap-long-offer__best-note {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+  line-height: 1.35;
+}
+
 .ap-long-offer__prices {
   display: flex;
   align-items: stretch;

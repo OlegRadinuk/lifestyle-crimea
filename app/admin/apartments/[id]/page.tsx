@@ -182,6 +182,9 @@ export default function EditApartmentPage({ params }: PageProps) {
   const [ltTerms, setLtTerms] = useState<LongTermPriceRow[]>([]);
   const [ltInputs, setLtInputs] = useState<Record<string, string>>({});
   const [savingLt, setSavingLt] = useState(false);
+  /* Слепок последнего сохранённого состояния. Нужен, чтобы поймать уход со
+     страницы с несохранёнными правками — менеджер уже терял так работу. */
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
 
   // Template-based pricing
   const [templatePrices, setTemplatePrices] = useState<TemplatePrice[]>([]);
@@ -195,6 +198,26 @@ export default function EditApartmentPage({ params }: PageProps) {
     fetchTemplatePrices();
     fetchLongTermPrices();
   }, [id]);
+
+  // первый слепок — сразу после загрузки, дальше обновляется при сохранении
+  useEffect(() => {
+    if (apartment && savedSnapshot === null) {
+      setSavedSnapshot(JSON.stringify(apartment));
+    }
+  }, [apartment, savedSnapshot]);
+
+  /* Предупреждаем перед уходом, если есть несохранённое. Менеджер уже теряла
+     заполненное описание, когда вкладка устарела после выкатки. */
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!apartment || savedSnapshot === null) return;
+      if (JSON.stringify(apartment) === savedSnapshot) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [apartment, savedSnapshot]);
 
   const fetchLongTermPrices = async () => {
     try {
@@ -255,6 +278,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         long_term_note: data.long_term_note ?? '',
         category: data.category ?? '',
       });
+      setSavedSnapshot(null); // слепок поставится после первого сохранения
     } catch (error) {
       console.error('Error fetching apartment:', error);
     } finally {
@@ -387,8 +411,10 @@ export default function EditApartmentPage({ params }: PageProps) {
         if (ltTerms.length > 0) {
           await handleSaveLongTermPrices({ silent: true });
         }
+        // снимок сохранённого состояния — по нему видно, есть ли несохранённые правки
+        setSavedSnapshot(JSON.stringify(apartment));
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
+        setTimeout(() => setSaveSuccess(false), 8000);
       } else {
         const error = await res.json();
         alert(`Ошибка: ${error.error}`);
