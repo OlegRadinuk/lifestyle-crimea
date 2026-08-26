@@ -12,7 +12,9 @@ export async function GET(request: Request) {
       confirmed: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('confirmed') as any)?.count || 0,
       pending: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('pending') as any)?.count || 0,
       cancelled: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('cancelled') as any)?.count || 0,
-      revenue: (db.prepare('SELECT SUM(total_price) as sum FROM bookings WHERE status = "confirmed"').get() as any)?.sum || 0,
+      // двойные кавычки SQLite читает как ИМЯ КОЛОНКИ — запрос падал целиком,
+      // и дашборд оставался без статистики
+      revenue: (db.prepare('SELECT SUM(total_price) as sum FROM bookings WHERE status = ?').get('confirmed') as any)?.sum || 0,
     };
 
     // Блокированные даты из Travelline
