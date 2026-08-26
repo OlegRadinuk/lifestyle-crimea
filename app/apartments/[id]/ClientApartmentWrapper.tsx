@@ -5,6 +5,7 @@ import { useSearchParamsFromUrl } from '@/hooks/useSearchParamsFromUrl';
 import { useHeader } from '@/components/HeaderContext';
 import { useApartment, Season, HotDeal } from '@/components/ApartmentContext';
 import ApartmentHero from './ApartmentHero';
+import ApartmentSections from './ApartmentSections';
 
 type Props = {
   apartment: {
@@ -131,5 +132,16 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
     isActive: isActive
   };
 
-  return <ApartmentHero apartment={apartmentForHero} loading={loading} />;
+  return (
+    <>
+      <ApartmentHero apartment={apartmentForHero} loading={loading} />
+      <ApartmentSections
+        title={apartment.title}
+        description={apartment.description || ''}
+        features={apartment.features || []}
+        maxGuests={apartment.max_guests}
+        area={apartment.area}
+      />
+    </>
+  );
 }

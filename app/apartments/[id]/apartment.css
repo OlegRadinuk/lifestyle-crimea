@@ -2,7 +2,7 @@
    ломаются главная (hero-timeline, panorama-info) и панорама — те же классы в globals.css */
 
 .apartment-hero {
-  height: 100dvh;
+  height: 100svh;
   overflow: hidden;
   position: relative;
   color: #fff;
@@ -601,7 +601,7 @@
 @media (max-width: 768px) {
   .apartment-hero.mobile {
     position: relative;
-    height: 100vh;
+    height: 100svh;
     overflow: hidden;
     color: #fff;
   }

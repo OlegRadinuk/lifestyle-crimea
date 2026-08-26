@@ -101,7 +101,7 @@ const FEATURE_ICON_MAP: Array<{ match: RegExp; key: keyof typeof icons }> = [
   { match: /парковк/i,                                  key: 'car' },
 ];
 
-function FeatureIcon({ name }: { name: string }) {
+export function FeatureIcon({ name }: { name: string }) {
   const entry = FEATURE_ICON_MAP.find(({ match }) => match.test(name));
   return icons[entry?.key ?? 'home'] ?? icons.home;
 }
@@ -141,7 +141,7 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [featuresExpanded, setFeaturesExpanded] = useState(false);
-  const [descExpanded, setDescExpanded] = useState(false);
+  
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -392,30 +392,9 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             </div>
           </div>
 
-          {/* Панель особенностей — на всю ширину (grid-column: 1/-1) */}
-          {apartment.features?.length > 0 && (
-            <div className="apt-features-panel">
-              <div className="apt-features-panel__header">
-                <span className="apt-features-eyebrow">Особенности</span>
-                {apartment.features.length > 12 && (
-                  <button
-                    className="apt-features-toggle"
-                    onClick={() => setFeaturesExpanded(e => !e)}
-                  >
-                    {featuresExpanded ? 'Свернуть' : `Все (${apartment.features.length}) →`}
-                  </button>
-                )}
-              </div>
-              <div className={`apt-features-grid${featuresExpanded ? ' expanded' : ''}`}>
-                {apartment.features.map((feature, i) => (
-                  <div key={i} className="apt-feature-card">
-                    <span className="apt-feature-card__icon"><FeatureIcon name={feature} /></span>
-                    <span className="apt-feature-card__label">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Панель особенностей переехала в секцию «Что внутри» под первым
+              экраном: здесь она занимала grid-column 1/-1 и выдавливала
+              описание в узкую полоску с многоточиями. */}
         </div>
 
         {!loading && !isActive && (
@@ -478,18 +457,25 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
             из 312px текста гость видел 59px и остальное прочитать не мог.
             Теперь карточка раскрывается по тапу и внутри себя прокручивается,
             а высота hero остаётся прежней — раскладку это не двигает. */}
-        <p className={`apartment-info-description${descExpanded ? ' is-expanded' : ''}`}>
-          {apartment.description}
-        </p>
+        {/* renderDescription, а не голый текст: иначе абзацы и переносы,
+            которые менеджер расставила в админке, схлопывались в одну простыню.
+            На десктопе описание так рендерится с самого начала. */}
+        <div className="apartment-info-description">
+          {renderDescription(apartment.description || '')}
+        </div>
 
+        {/* Полный текст теперь живёт в секции под первым экраном —
+            кнопка не разворачивает карточку, а уводит к нему. */}
         {(apartment.description?.length ?? 0) > 140 && (
           <button
             type="button"
             className="apartment-info-more"
-            aria-expanded={descExpanded}
-            onClick={() => setDescExpanded(v => !v)}
+            onClick={() => {
+              document.getElementById('apartment-description')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
           >
-            {descExpanded ? 'Свернуть' : 'Читать полностью'}
+            Читать полностью ↓
           </button>
         )}
 

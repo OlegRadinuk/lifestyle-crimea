@@ -1,0 +1,186 @@
+/* =====================================================================
+   Секции контента под Hero-экраном апартамента.
+   Скоп — собственные классы .apt-section* и .apt-cta*.
+   Не добавлять сюда правила для .apartment-hero — только в apartment.css.
+   ===================================================================== */
+
+/* Пока страница апартамента была равна одному экрану, прокрутки не существовало
+   и полупрозрачная шапка ни на что не наезжала. Теперь под ней проходит контент,
+   и кнопки просвечивали сквозь плитки — даём мягкую подложку при прокрутке.
+   Класс `scrolled` Header навешивает сам с 20px, стилей для него не было. */
+.header--apartment.scrolled::before {
+  content: '';
+  position: absolute;
+  inset: -24px -40px -18px;
+  background: linear-gradient(to bottom, rgba(8, 16, 24, 0.72), rgba(8, 16, 24, 0));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.apt-section {
+  background: #f7fbfc;
+}
+
+.apt-section-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 80px 40px 60px;
+}
+
+.apt-section-meta {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: #8aa5b0;
+  margin: 0 0 10px;
+}
+
+.apt-section-heading {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 600;
+  color: #139AB6;
+  margin: 0 0 28px;
+  line-height: 1.2;
+}
+
+/* Описание */
+.apt-section-description {
+  background: #f7fbfc;
+}
+
+.apt-section-text p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: #2c3a42;
+  margin: 0 0 0.9em;
+}
+
+.apt-section-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Особенности */
+.apt-section-features {
+  background: #fff;
+}
+
+.apt-features-grid-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.apt-feature-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  background: #f3f8fb;
+  border: 1px solid #daedf4;
+  border-radius: 12px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.apt-feature-card-content:hover {
+  background: #e8f5fa;
+  border-color: rgba(19, 154, 182, 0.4);
+}
+
+.apt-feature-card-content__icon {
+  color: #139AB6;
+  display: flex;
+  align-items: center;
+}
+
+.apt-feature-card-content__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.apt-feature-card-content__label {
+  font-size: 12px;
+  color: #2c3a42;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* CTA-блок */
+.apt-section-cta {
+  background: linear-gradient(135deg, #0a121a 0%, #0e1f2e 60%, #0a2233 100%);
+}
+
+.apt-cta-inner {
+  text-align: center;
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+.apt-cta-heading {
+  font-size: clamp(26px, 4vw, 42px);
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.15;
+}
+
+.apt-cta-sub {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0 0 36px;
+  letter-spacing: 0.03em;
+}
+
+.apt-cta-btn {
+  display: inline-block;
+  background: #139AB6;
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  padding: 16px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  font-family: inherit;
+}
+
+.apt-cta-btn:hover {
+  background: #0f86a0;
+  transform: translateY(-2px);
+}
+
+.apt-cta-btn:active {
+  transform: translateY(0);
+}
+
+/* ===== Адаптив ===== */
+@media (max-width: 1024px) {
+  .apt-section-container {
+    padding: 60px 32px 48px;
+  }
+}
+
+@media (max-width: 768px) {
+  .apt-section-container {
+    padding: 48px 20px 40px;
+  }
+
+  .apt-features-grid-content {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .apt-cta-inner {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  .apt-cta-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 18px 24px;
+  }
+}
