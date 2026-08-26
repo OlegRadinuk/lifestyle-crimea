@@ -38,6 +38,11 @@ type Props = {
   seasons?: Season[];
   hotDeal?: HotDeal;
   customClass?: string;
+  /* Тарифы длительной аренды. Если гость выбрал срок от longTermMinDays,
+     считать по ночам бессмысленно — показываем месячную ставку. */
+  longTermTerms?: { id: string; months: number; label: string | null }[];
+  longTermPrices?: Record<string, number>;
+  longTermMinDays?: number;
 };
 
 export default function ApartmentAvailabilityCalendar({
@@ -50,6 +55,9 @@ export default function ApartmentAvailabilityCalendar({
   seasons,
   hotDeal,
   customClass = '',
+  longTermTerms,
+  longTermPrices,
+  longTermMinDays = 30,
 }: Props) {
   const [range, setRange] = useState<DateRange>();
   const [isMobile, setIsMobile] = useState(false);
@@ -161,9 +169,38 @@ export default function ApartmentAvailabilityCalendar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range, nights, apartmentPrice, seasons, hotDeal]);
 
+  /* Выбрали месяц и больше — цена по ночам гостя только пугает: 30 × 6 500
+     это 195 000 против 45 000 по месячному тарифу. Берём самый выгодный из
+     подходящих сроков и считаем от него, пропорционально числу суток. */
+  const longTermInfo = useMemo(() => {
+    if (!range?.from || !range?.to || nights < longTermMinDays) return null;
+    if (!longTermTerms?.length || !longTermPrices) return null;
+
+    const paid = longTermTerms
+      .filter(t => (longTermPrices[t.id] ?? 0) > 0)
+      .sort((a, b) => a.months - b.months);
+    if (!paid.length) return null;
+
+    const months = nights / 30;
+    // самый длинный тариф, до которого гость дотянул; если нет — самый короткий
+    const term = [...paid].reverse().find(t => months >= t.months) ?? paid[0];
+    const perMonth = longTermPrices[term.id];
+
+    return {
+      term,
+      perMonth,
+      months,
+      total: Math.round(perMonth * months),
+    };
+  }, [range, nights, longTermTerms, longTermPrices, longTermMinDays]);
+
   const handleConfirm = () => {
     if (range?.from && range?.to && isValidRange) {
-      onConfirm({ from: range.from, to: range.to, calculatedTotal: priceInfo?.total });
+      onConfirm({
+        from: range.from,
+        to: range.to,
+        calculatedTotal: longTermInfo ? longTermInfo.total : priceInfo?.total,
+      });
       if (onClose) onClose();
     }
   };
@@ -186,6 +223,19 @@ export default function ApartmentAvailabilityCalendar({
 
   // Блок с ценой — переиспользуем в обеих версиях
   const priceBlock = showPrice && apartmentPrice > 0 && range?.from && range?.to ? (
+    longTermInfo ? (
+      <div className="calendar-info calendar-info--long">
+        <span>
+          {nights} суток · длительная аренда
+        </span>
+        <span className="calendar-total-price">
+          • {longTermInfo.perMonth.toLocaleString('ru-RU')} ₽/мес
+          <span className="calendar-price-note">
+            {' '}≈ {longTermInfo.total.toLocaleString('ru-RU')} ₽ за весь срок
+          </span>
+        </span>
+      </div>
+    ) : (
     <div className="calendar-info">
       <span>
         {nights} {nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей'}
@@ -199,6 +249,7 @@ export default function ApartmentAvailabilityCalendar({
         </span>
       )}
     </div>
+    )
   ) : range?.from && range?.to ? (
     <div className="calendar-info">
       <span>

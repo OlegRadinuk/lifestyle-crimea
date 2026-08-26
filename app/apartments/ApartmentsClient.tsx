@@ -679,18 +679,22 @@ export default function ApartmentsClient({
                                 </span>
                               </div>
                             </div>
+
+                            {/* Своя кнопка: долгосрок не бронируется календарём,
+                                это заявка на выбранный срок. Кнопка внизу карточки
+                                ведёт в обычный посуточный сценарий. */}
+                            <button
+                              className="ap-long-offer__cta"
+                              onClick={() => handleLongTermClick(apartment)}
+                            >
+                              Забронировать на {term ? termTitle(term).toLowerCase() : 'длительный срок'}
+                            </button>
                           </div>
                         );
                       })()}
 
                       <div className="ap-list-footer">
                         {(() => {
-                          /* Блок сравнения выше уже показал суточную цену — не
-                             повторяем её в подвале. Исключение: гость выбрал
-                             даты, тогда в подвале стоит сумма за эти ночи. */
-                          if (isLongMode || (isLongTermApt(apartment) && !hasSearchParams)) {
-                            return <div className="ap-list-price-spacer" />;
-                          }
                           if (hasSearchParams && checkIn && checkOut) {
                             const total = calcSeasonalTotal(
                               apartment.seasons,
@@ -734,14 +738,7 @@ export default function ApartmentsClient({
                             Подробнее
                           </Link>
 
-                          {isLongMode ? (
-                            <button
-                              className="btn-primary"
-                              onClick={() => handleLongTermClick(apartment)}
-                            >
-                              Оставить заявку
-                            </button>
-                          ) : !hasSearchParams ? (
+                          {!hasSearchParams ? (
                             <Link href={`/apartments/${apartment.id}`} className="btn-primary">
                               Выбрать даты
                             </Link>

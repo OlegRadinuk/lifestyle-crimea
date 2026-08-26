@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, settingsService, longTermService } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -65,6 +65,16 @@ export async function GET(
       hot_deal_date_from: apartment.hot_deal_date_from || null,
       hot_deal_date_to: apartment.hot_deal_date_to || null,
       seasons: seasons,
+      /* Тарифы длительной аренды — календарю, чтобы при выборе длинного срока
+         он показывал месячную цену вместо суммы за ночи. */
+      long_term_enabled: Boolean(apartment.long_term_enabled),
+      long_term_min_days: settingsService.getLongTermMinDays(),
+      long_term_terms: longTermService.listActiveTerms().map(t => ({
+        id: t.id,
+        months: t.months,
+        label: t.label,
+      })),
+      long_term_prices: longTermService.pricesForApartment(id),
     };
 
     return NextResponse.json(formatted);

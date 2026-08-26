@@ -34,6 +34,11 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
   const [images, setImages] = useState(apartment.images);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [hotDeal, setHotDeal] = useState<HotDeal | undefined>(undefined);
+  const [longTerm, setLongTerm] = useState<{
+    terms: { id: string; months: number; label: string | null }[];
+    prices: Record<string, number>;
+    minDays: number;
+  }>({ terms: [], prices: {}, minDays: 30 });
 
   // Передаем параметры поиска в контекст хедера
   useEffect(() => {
@@ -72,6 +77,11 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
           } else {
             setHotDeal(undefined);
           }
+          setLongTerm({
+            terms: data.long_term_terms || [],
+            prices: data.long_term_prices || {},
+            minDays: data.long_term_min_days || 30,
+          });
         }
       } catch (error) {
         console.error('Error fetching apartment data:', error);
@@ -95,12 +105,15 @@ export default function ClientApartmentWrapper({ apartment }: Props) {
       price_base: price,
       seasons,
       hotDeal,
+      longTermTerms: longTerm.terms,
+      longTermPrices: longTerm.prices,
+      longTermMinDays: longTerm.minDays,
     });
 
     return () => {
       setCurrentDBApartment(null);
     };
-  }, [apartment.id, apartment.title, price, seasons, hotDeal, setCurrentDBApartment]);
+  }, [apartment.id, apartment.title, price, seasons, hotDeal, longTerm, setCurrentDBApartment]);
 
   // Преобразуем в формат, который ожидает ApartmentHero
   const apartmentForHero = {

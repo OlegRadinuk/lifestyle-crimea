@@ -211,7 +211,7 @@ export default function EditApartmentPage({ params }: PageProps) {
   };
 
   // Пустое поле или 0 = «на этот срок не сдаём», строка просто исчезает с сайта
-  const handleSaveLongTermPrices = async () => {
+  const handleSaveLongTermPrices = async ({ silent = false }: { silent?: boolean } = {}) => {
     setSavingLt(true);
     try {
       for (const term of ltTerms) {
@@ -225,7 +225,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         });
         if (!res.ok) {
           const err = await res.json();
-          alert(`Ошибка: ${err.error ?? 'не удалось сохранить цену'}`);
+          if (!silent) alert(`Ошибка: ${err.error ?? 'не удалось сохранить цену'}`);
           return;
         }
       }
@@ -381,6 +381,12 @@ export default function EditApartmentPage({ params }: PageProps) {
       });
 
       if (res.ok) {
+        /* Цены долгосрока лежат в отдельной таблице и раньше сохранялись только
+           своей кнопкой. Менеджер вписывала цены, жала общую «Сохранить» — и
+           они молча пропадали. Теперь общая кнопка сохраняет и их тоже. */
+        if (ltTerms.length > 0) {
+          await handleSaveLongTermPrices({ silent: true });
+        }
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
@@ -635,14 +641,9 @@ export default function EditApartmentPage({ params }: PageProps) {
                     ))}
                   </div>
 
-                  <button
-                    type="button"
-                    className="admin-button primary lt-save"
-                    onClick={handleSaveLongTermPrices}
-                    disabled={savingLt}
-                  >
-                    {savingLt ? 'Сохранение...' : 'Сохранить цены по срокам'}
-                  </button>
+                  <p className="lt-hint">
+                    Цены запишутся кнопкой «Сохранить всё» — она внизу экрана и всегда на виду.
+                  </p>
 
                   {ltTerms.some(t => (t.price_per_month ?? 0) > 0) ? (
                     <div className="long-term-preview">
@@ -938,15 +939,17 @@ export default function EditApartmentPage({ params }: PageProps) {
         </div>
       </form>
 
-      {/* Sticky save на мобиле */}
+      {/* Одна кнопка на всю страницу: пишет и поля апартамента, и цены
+          долгосрока. Висит поверх экрана на всех размерах — форма длинная,
+          и раньше на десктопе приходилось скроллить до самого низа. */}
       <div className="sticky-save">
         <button
           type="button"
           className="admin-button primary"
-          disabled={saving}
+          disabled={saving || savingLt}
           onClick={handleSubmit as unknown as React.MouseEventHandler}
         >
-          {saving ? 'Сохранение...' : saveSuccess ? '✓ Сохранено' : 'Сохранить'}
+          {saving || savingLt ? 'Сохранение...' : saveSuccess ? '✓ Сохранено' : 'Сохранить всё'}
         </button>
       </div>
 
@@ -969,19 +972,35 @@ export default function EditApartmentPage({ params }: PageProps) {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Sticky save button (mobile only) */
+        /* Кнопка сохранения видна всегда: на десктопе прижата к правому нижнему
+           углу, на мобиле — во всю ширину. */
         .sticky-save {
-          display: none;
+          position: fixed;
+          right: 24px;
+          bottom: 24px;
+          z-index: 100;
+        }
+
+        .sticky-save .admin-button.primary {
+          padding: 14px 28px;
+          font-size: 15px;
+          font-weight: 600;
+          border-radius: 999px;
+          box-shadow: 0 6px 24px rgba(19, 154, 182, 0.45);
+          text-align: center;
+          justify-content: center;
+        }
+
+        /* Отступ снизу, чтобы кнопка не перекрывала конец формы */
+        .admin-form {
+          padding-bottom: 96px;
         }
 
         @media (max-width: 640px) {
           .sticky-save {
-            display: block;
-            position: fixed;
-            bottom: 16px;
             left: 16px;
             right: 16px;
-            z-index: 100;
+            bottom: 16px;
           }
 
           .sticky-save .admin-button.primary {
@@ -989,14 +1008,6 @@ export default function EditApartmentPage({ params }: PageProps) {
             padding: 14px;
             font-size: 16px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(19, 154, 182, 0.5);
-            text-align: center;
-            justify-content: center;
-          }
-
-          /* Отступ снизу чтобы форма не перекрывалась */
-          .admin-form {
-            padding-bottom: 80px;
           }
         }
 

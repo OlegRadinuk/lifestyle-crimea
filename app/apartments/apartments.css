@@ -948,8 +948,30 @@
   color: #94a3b8;
 }
 
-.ap-list-price-spacer {
-  flex: 1 1 auto;
+.ap-long-offer__cta {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #139ab6, #1fb3cf);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(19, 154, 182, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.ap-long-offer__cta:hover {
+  box-shadow: 0 6px 20px rgba(19, 154, 182, 0.4);
+}
+
+.ap-long-offer__cta:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 480px) {

@@ -32,6 +32,10 @@ type ApartmentFromDB = {
   price_base?: number;
   seasons?: Season[];
   hotDeal?: HotDeal;
+  // тарифы длительной аренды — нужны календарю для месячного расчёта
+  longTermTerms?: { id: string; months: number; label: string | null }[];
+  longTermPrices?: Record<string, number>;
+  longTermMinDays?: number;
 };
 
 type ApartmentContextType = {

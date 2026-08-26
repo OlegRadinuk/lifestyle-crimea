@@ -146,6 +146,9 @@ export default function ApartmentHeaderButton({
                   apartmentPrice={apartmentPrice}
                   seasons={currentDBApartment?.seasons}
                   hotDeal={currentDBApartment?.hotDeal}
+                  longTermTerms={currentDBApartment?.longTermTerms}
+                  longTermPrices={currentDBApartment?.longTermPrices}
+                  longTermMinDays={currentDBApartment?.longTermMinDays}
                   customClass="calendar--apartment"
                 />
               </div>
