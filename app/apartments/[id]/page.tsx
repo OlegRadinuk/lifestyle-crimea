@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import path from 'path';
-import { db } from '@/lib/db';
+import { db, findApartmentByIdOrSlug } from '@/lib/db';
+import { permanentRedirect } from 'next/navigation';
 import ClientApartmentWrapper from './ClientApartmentWrapper';
 
 type PageProps = {
@@ -20,7 +21,11 @@ export const revalidate = 0;
 
 // Функция для генерации мета-тегов
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id: param } = await params;
+  // в адресе может стоять и slug, и старый id — приводим к внутреннему id
+  const found = findApartmentByIdOrSlug(param);
+  const id = found?.id ?? param;
+  const canonicalPath = found?.slug ?? id;
 
   const apartment = db.prepare(`
     SELECT title, short_description, description, max_guests, area, view, features, price_base
@@ -114,7 +119,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       locale: 'ru_RU',
       siteName: 'Стиль Жизни, Алушта',
-      url: `https://lovelifestyle.ru/apartments/${id}`,
+      url: `https://lovelifestyle.ru/apartments/${canonicalPath}`,
       /* Фото самого апартамента лежит в webp, а webp в превью ссылки не
          показывают ни Telegram, ни WhatsApp, ни VK. Поэтому ведём не на файл,
          а на /api/og/<id> — он режет первый кадр в JPEG 1200×630.
@@ -138,7 +143,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [`https://lovelifestyle.ru/api/og/${id}${ogVersion ? `?v=${ogVersion}` : ''}`],
     },
     alternates: {
-      canonical: `https://lovelifestyle.ru/apartments/${id}`,
+      canonical: `https://lovelifestyle.ru/apartments/${canonicalPath}`,
     },
     robots: {
       index: true,
@@ -150,7 +155,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ApartmentPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id: param } = await params;
+
+  /* Адрес может быть человеческим (`/apartments/deep-forest`) или старым
+     внутренним (`/apartments/8b577381-…`). Старые ссылки уже разосланы гостям
+     в мессенджерах и сидят в индексе Google, поэтому не ломаем их, а уводим
+     постоянным редиректом на нормальный адрес — вес страницы переезжает. */
+  const found = findApartmentByIdOrSlug(param);
+  if (found?.slug && found.slug !== param) {
+    permanentRedirect(`/apartments/${found.slug}`);
+  }
+
+  const id = found?.id ?? param;
 
   const apartment = db.prepare(`
     SELECT * FROM apartments WHERE id = ? AND is_active = 1 AND (deleted_at IS NULL OR deleted_at = '')

@@ -68,6 +68,7 @@ export interface ApartmentClient {
   /** Цена за месяц по каждому сроку: { term_id: ₽/мес }. Нет ключа — на этот срок не сдаём. */
   long_term_prices?: Record<string, number>;
   category?: ApartmentCategory | null;
+  slug?: string | null;
   created_at?: string;
   updated_at?: string;
 }

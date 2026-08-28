@@ -575,7 +575,15 @@ export default function ApartmentsClient({
             ) : (
               displayedApartments.map((apartment, index) => {
                 const isAvailable = !hasSearchParams || availableIds.has(apartment.id);
-                const apartmentUrl = `/apartments/${apartment.id}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+                /* Ведём на человеческий адрес и не тащим пустые параметры:
+                   раньше ссылка всегда была вида `?checkIn=&checkOut=&guests=2`,
+                   и такие хвосты попали в индекс Google как отдельные дубли
+                   страницы. Даты добавляем, только если гость их выбрал. */
+                const apartmentPath = apartment.slug || apartment.id;
+                const dateQuery = checkIn && checkOut
+                  ? `?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`
+                  : '';
+                const apartmentUrl = `/apartments/${apartmentPath}${dateQuery}`;
                 
                 return (
                   <article
@@ -762,7 +770,7 @@ export default function ApartmentsClient({
                           </Link>
 
                           {!hasSearchParams ? (
-                            <Link href={`/apartments/${apartment.id}`} className="btn-primary">
+                            <Link href={`/apartments/${apartment.slug || apartment.id}`} className="btn-primary">
                               Выбрать даты
                             </Link>
                           ) : isAvailable ? (

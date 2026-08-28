@@ -416,6 +416,13 @@ function ensureDatabaseStructure() {
        NULL = не размечен, такой апартамент попадает только во «Все». */
     safeAddColumn("ALTER TABLE apartments ADD COLUMN category TEXT DEFAULT NULL", 'category');
 
+    /* Человекочитаемый адрес: /apartments/deep-forest вместо
+       /apartments/8b577381-4cf1-450b-ac43-54b8a0edcc59. Сам id НЕ трогаем —
+       на нём висят брони, фото и цены; slug живёт отдельным полем, а старые
+       адреса продолжают работать через постоянный редирект. */
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN slug TEXT DEFAULT NULL", 'slug');
+    try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_apartments_slug ON apartments(slug) WHERE slug IS NOT NULL'); } catch { /* уже есть */ }
+
     // Заявки на долгосрочную аренду отличаются от посуточных броней
     const bookingColumns = (db.prepare("PRAGMA table_info(bookings)").all() as { name: string }[]).map(c => c.name);
     if (!bookingColumns.includes('rental_type')) {
@@ -541,6 +548,22 @@ export const settingsService = {
     return Math.round(parsed);
   },
 };
+
+/**
+ * Апартамент по адресу из URL: сначала пробуем slug, потом id.
+ * Старые ссылки с id разосланы гостям в мессенджерах и живут в индексе
+ * Google — они обязаны продолжать работать.
+ */
+export function findApartmentByIdOrSlug(param: string): { id: string; slug: string | null } | undefined {
+  const bySlug = db.prepare('SELECT id, slug FROM apartments WHERE slug = ? AND deleted_at IS NULL').get(param) as
+    | { id: string; slug: string | null }
+    | undefined;
+  if (bySlug) return bySlug;
+
+  return db.prepare('SELECT id, slug FROM apartments WHERE id = ? AND deleted_at IS NULL').get(param) as
+    | { id: string; slug: string | null }
+    | undefined;
+}
 
 export interface LongTermTerm {
   id: string;

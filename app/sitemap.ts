@@ -49,11 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Используем created_at — у каждого апартамента уникальная дата создания
   // Это даёт Яндексу честный сигнал о том, что страницы разные (не batch-спам)
   const apartments = db.prepare(`
-    SELECT id, created_at FROM apartments WHERE is_active = 1
-  `).all() as { id: string; created_at: string }[];
+    SELECT id, slug, created_at FROM apartments WHERE is_active = 1
+  `).all() as { id: string; slug: string | null; created_at: string }[];
 
   const apartmentPages: MetadataRoute.Sitemap = apartments.map((apt) => ({
-    url: `${baseUrl}/apartments/${apt.id}`,
+    url: `${baseUrl}/apartments/${apt.slug || apt.id}`,
     lastModified: new Date(apt.created_at),
     changeFrequency: 'weekly',
     priority: 0.8,
