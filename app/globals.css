@@ -9095,3 +9095,33 @@ select:focus-visible,
   white-space: nowrap;
   border: 0;
 }
+
+/* Навигация в футере. Появилась вместе с гео-посадочной: футер стоит на
+   каждой странице, и до этого он не вёл никуда, кроме политики — с главной
+   уходило две внутренние ссылки, с карточки апартамента одна.
+   44px по высоте — минимум для тач-цели, шрифт крупнее правовой строки,
+   потому что это рабочая навигация, а не сноска. */
+.ff-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-bottom: 4px;
+}
+
+.ff-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+  color: #5d7278;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ff-nav-link:hover {
+  color: #139ab6;
+}
+
+.ff-footer-mobile .ff-nav {
+  gap: 0 16px;
+}

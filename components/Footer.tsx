@@ -29,6 +29,18 @@ export default function Footer({ isMobile = false }: FooterProps) {
               <span className="ff-address">Алушта, Западная ул., 4, корп. 3</span>
             </div>
 
+            {/* Навигация в футере. Раньше её тут не было вовсе — футер стоит на
+                каждой странице и не вёл никуда, кроме политики. Из-за этого с
+                главной уходило всего две внутренние ссылки, а с карточки одна:
+                вес не растекался, и новые страницы висели в пустоте. */}
+            <nav className="ff-nav" aria-label="Разделы сайта">
+              <Link href="/apartments" className="ff-nav-link">Апартаменты</Link>
+              <Link href="/professorskiy-ugolok" className="ff-nav-link">Профессорский уголок</Link>
+              <Link href="/services" className="ff-nav-link">Аквазона и услуги</Link>
+              <Link href="/concept" className="ff-nav-link">Концепция</Link>
+              <Link href="/news" className="ff-nav-link">Новости</Link>
+            </nav>
+
             <div className="ff-copyright">
               © {new Date().getFullYear()} Стиль Жизни
             </div>

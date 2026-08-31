@@ -19,6 +19,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      /* Гео-посадочная. «профессорский уголок алушта» — 1 792 показа в месяц
+         по Вордстату, больше всего кластера «снять жильё в алуште». Приоритет
+         как у каталога: это вторая точка входа по коммерческим запросам. */
+      url: `${baseUrl}/professorskiy-ugolok`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       // Аквазона (бассейны, детские, джакузи) живёт здесь — коммерческий запрос
       url: `${baseUrl}/services`,
       lastModified: new Date(),
