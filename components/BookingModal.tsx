@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
+import { reachGoal } from '@/lib/analytics';
 
 /* ===== exports ===== */
 
@@ -190,6 +191,13 @@ export default function BookingModal({
     };
   }, []);
 
+  /* Модалку монтируют три разных места (каталог, карточка, кнопка в шапке) —
+     цель шлём отсюда, чтобы не забыть её ни в одном из них. Микроконверсия:
+     успешных броней на бюджет 20к будет мало, Директу нужно на чём учиться. */
+  useEffect(() => {
+    reachGoal('booking_form_open', { mode, apartment_id: apartment.id });
+  }, [mode, apartment.id]);
+
   const validateForm = () => {
     if (!guestInfo.firstName.trim()) {
       alert('Введите имя');
@@ -269,7 +277,14 @@ export default function BookingModal({
 
       alert('✅ Бронирование подтверждено!');
 
-      window.dispatchEvent(new CustomEvent('booking-completed', { 
+      reachGoal('booking_daily', {
+        order_price: price.total,
+        currency: 'RUB',
+        apartment_id: apartment.id,
+        nights: price.nights,
+      });
+
+      window.dispatchEvent(new CustomEvent('booking-completed', {
         detail: { 
           apartmentId: apartment.id,
           checkIn: checkInStr,
@@ -341,6 +356,14 @@ export default function BookingModal({
       });
 
       alert('✅ Заявка отправлена! Менеджер свяжется с вами в ближайшее время.');
+
+      reachGoal('booking_longterm', {
+        order_price: data.request?.estimatedTotal ?? 0,
+        currency: 'RUB',
+        apartment_id: apartment.id,
+        months,
+      });
+
       onClose();
       router.refresh();
     } catch (error) {

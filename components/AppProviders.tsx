@@ -7,6 +7,7 @@ import { PhotoModalProvider } from '@/components/photo-modal/PhotoModalContext';
 import HeaderConditional from '@/components/HeaderConditional';
 import { ModalProvider } from '@/components/ModalProvider';
 import CookieBanner from '@/components/CookieBanner';
+import YandexMetrika from '@/components/YandexMetrika';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             <HeaderConditional />
             <ModalProvider />
             <CookieBanner />
+            <YandexMetrika />
           </PhotoModalProvider>
         </HeaderProvider>
       </SearchProvider>

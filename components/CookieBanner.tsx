@@ -2,18 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
-type ConsentValue = 'all' | 'essential';
+import { CONSENT_EVENT, CONSENT_KEY, type ConsentValue } from '@/lib/analytics';
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem('cookie_consent')) setVisible(true);
+    if (!localStorage.getItem(CONSENT_KEY)) setVisible(true);
   }, []);
 
   function accept(value: ConsentValue) {
-    localStorage.setItem('cookie_consent', value);
+    localStorage.setItem(CONSENT_KEY, value);
+    /* Без события Метрика поднялась бы только со следующей загрузки страницы,
+       и первый — самый интересный — визит уходил бы мимо статистики. */
+    window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: value }));
     setVisible(false);
   }
 

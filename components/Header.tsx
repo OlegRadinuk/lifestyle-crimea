@@ -11,6 +11,7 @@ import { useAvailability } from '@/hooks/useAvailability';
 import ApartmentAvailabilityCalendar from '@/components/ApartmentAvailabilityCalendar';
 import BookingModal from '@/components/BookingModal';
 import ApartmentHeaderButton from './ApartmentHeaderButton';
+import { reachGoal } from '@/lib/analytics';
 // import MobileBookingSheet from '@/components/MobileBookingSheet'; // Закомментируем, пока не нужен
 
 type Props = {
@@ -196,6 +197,12 @@ export default function Header({ onBurgerClick }: Props) {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [calendarOpen]);
+
+  /* Открытие календаря — первый осмысленный шаг к брони. Нужен как отдельная
+     цель: по нему видно, доходят ли люди с рекламы до выбора дат вообще. */
+  useEffect(() => {
+    if (calendarOpen) reachGoal('calendar_open', { place: 'header' });
   }, [calendarOpen]);
 
   const handleHeroSearch = () => {

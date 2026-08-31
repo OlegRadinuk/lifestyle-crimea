@@ -7,6 +7,7 @@ import { useApartment } from '@/components/ApartmentContext';
 import ApartmentAvailabilityCalendar from './ApartmentAvailabilityCalendar';
 import BookingModal from './BookingModal';
 import { useAvailability } from '@/hooks/useAvailability';
+import { reachGoal } from '@/lib/analytics';
 
 type Props = {
   apartmentId: string;
@@ -94,6 +95,10 @@ export default function ApartmentHeaderButton({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [calendarOpen]);
+
+  useEffect(() => {
+    if (calendarOpen) reachGoal('calendar_open', { place: 'apartment' });
   }, [calendarOpen]);
 
   if (!isActive) return null;
