@@ -35,7 +35,11 @@ const URL = 'https://lovelifestyle.ru/chastnyy-sektor';
 export const revalidate = 86400;
 
 export function generateMetadata(): Metadata {
-  const title = 'Частный сектор в Алуште или апартаменты напрямую — что выбрать';
+  /* Бренд дописывает шаблон корневого layout — «| Стиль Жизни, Алушта».
+     Тайтл держим коротким, чтобы вместе с ним уложиться в видимую часть
+     сниппета. og:title отдельно: к нему шаблон не применяется. */
+  const title = 'Частный сектор в Алуште или апартаменты напрямую';
+  const ogTitle = 'Частный сектор в Алуште или апартаменты напрямую — что выбрать';
   const description =
     'Честное сравнение: чем частный сектор в Алуште отличается от апарт-отеля. Своя кухня и ванная, фиксированная цена, договор и уборка — бронирование напрямую, без комиссии посредников. Профессорский уголок, до пляжа 650 м.';
 
@@ -46,7 +50,7 @@ export function generateMetadata(): Metadata {
       'частный сектор алушта, жильё алушта частный сектор, снять частный сектор в алуште, алушта частный сектор недорого, алушта частный сектор без посредников, снять жильё в алуште без посредников',
     alternates: { canonical: URL },
     openGraph: {
-      title,
+      title: ogTitle,
       description,
       type: 'website',
       locale: 'ru_RU',
@@ -65,7 +69,7 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: ogTitle,
       description,
       images: ['https://lovelifestyle.ru/og-image.jpg'],
     },

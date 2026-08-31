@@ -32,7 +32,12 @@ const URL = 'https://lovelifestyle.ru/professorskiy-ugolok';
 export const revalidate = 86400;
 
 export function generateMetadata(): Metadata {
-  const title = 'Снять жильё в Профессорском уголке Алушты — апарт-отель «Стиль Жизни»';
+  /* Бренд сюда НЕ дописываем: шаблон в корневом layout сам добавляет
+     «| Стиль Жизни, Алушта». Иначе он задваивается, а строка вылезает за
+     90 символов и выдача её обрезает. Для соцсетей бренд нужен — там шаблон
+     не применяется, поэтому og:title отдельной строкой ниже. */
+  const title = 'Снять жильё в Профессорском уголке Алушты';
+  const ogTitle = 'Снять жильё в Профессорском уголке Алушты — апарт-отель «Стиль Жизни»';
   const description =
     'Жильё в Профессорском уголке Алушты посуточно: 47 апартаментов на Западной улице, до пляжа 650 м пешком. Бассейны круглый год, аквазона, вид на море. Бронирование напрямую, без комиссии посредников.';
 
@@ -43,7 +48,7 @@ export function generateMetadata(): Metadata {
       'профессорский уголок алушта, снять жильё профессорский уголок, жильё в профессорском уголке, профессорский уголок алушта отели, апартаменты профессорский уголок, отдых профессорский уголок алушта',
     alternates: { canonical: URL },
     openGraph: {
-      title,
+      title: ogTitle,
       description,
       type: 'website',
       locale: 'ru_RU',
@@ -62,7 +67,7 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: ogTitle,
       description,
       images: ['https://lovelifestyle.ru/og-image.jpg'],
     },

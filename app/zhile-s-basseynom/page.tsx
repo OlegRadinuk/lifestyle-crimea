@@ -37,7 +37,12 @@ const URL = 'https://lovelifestyle.ru/zhile-s-basseynom';
 export const revalidate = 86400;
 
 export function generateMetadata(): Metadata {
-  const title = 'Снять жильё в Алуште с бассейном — апарт-отель «Стиль Жизни»';
+  /* Бренд сюда НЕ дописываем: шаблон в корневом layout сам добавляет
+     «| Стиль Жизни, Алушта». Иначе он задваивается, а строка вылезает за
+     90 символов и выдача её обрезает. Для соцсетей бренд нужен — там шаблон
+     не применяется, поэтому og:title отдельной строкой. */
+  const title = 'Снять жильё в Алуште с бассейном';
+  const ogTitle = 'Снять жильё в Алуште с бассейном — апарт-отель «Стиль Жизни»';
   const description =
     'Жильё в Алуште с бассейном посуточно: два больших бассейна работают круглый год, два детских, джакузи и бар у воды. Профессорский уголок, до пляжа 650 м. Бронирование напрямую, без комиссии посредников.';
 
@@ -48,7 +53,7 @@ export function generateMetadata(): Metadata {
       'жильё в алуште с бассейном, отель алушта с бассейном, апартаменты с бассейном алушта, алушта отели с бассейном у моря, бассейн круглый год алушта, отдых с детьми алушта бассейн',
     alternates: { canonical: URL },
     openGraph: {
-      title,
+      title: ogTitle,
       description,
       type: 'website',
       locale: 'ru_RU',
@@ -67,7 +72,7 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: ogTitle,
       description,
       images: ['https://lovelifestyle.ru/og-services.jpg'],
     },
