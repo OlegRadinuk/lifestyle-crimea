@@ -36,6 +36,8 @@ export default function Footer({ isMobile = false }: FooterProps) {
             <nav className="ff-nav" aria-label="Разделы сайта">
               <Link href="/apartments" className="ff-nav-link">Апартаменты</Link>
               <Link href="/professorskiy-ugolok" className="ff-nav-link">Профессорский уголок</Link>
+              <Link href="/zhile-s-basseynom" className="ff-nav-link">Жильё с бассейном</Link>
+              <Link href="/chastnyy-sektor" className="ff-nav-link">Частный сектор</Link>
               <Link href="/services" className="ff-nav-link">Аквазона и услуги</Link>
               <Link href="/concept" className="ff-nav-link">Концепция</Link>
               <Link href="/news" className="ff-nav-link">Новости</Link>

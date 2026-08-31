@@ -28,6 +28,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      /* «отель алушта с бассейном» — 511 показов и самый дешёвый заметный
+         клик в Директе (51 ₽). Коммерческая посадка; /services остаётся
+         информационной страницей про сервис, чтобы они не бодались. */
+      url: `${baseUrl}/zhile-s-basseynom`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      /* «частный сектор алушта» — 379 показов, клик 24 ₽, самый дешёвый в
+         ядре. Страница честно сравнивает, а не притворяется частным сектором. */
+      url: `${baseUrl}/chastnyy-sektor`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       // Аквазона (бассейны, детские, джакузи) живёт здесь — коммерческий запрос
       url: `${baseUrl}/services`,
       lastModified: new Date(),

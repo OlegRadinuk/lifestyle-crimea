@@ -3,9 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import JsonLd from '@/components/JsonLd';
 import Footer from '@/components/Footer';
-import PuHeaderMode from './PuHeaderMode';
-import PuReveal from './PuReveal';
-import './pu.css';
+import LandingHeaderMode from '../_landing/LandingHeaderMode';
+import LandingReveal from '../_landing/LandingReveal';
+import '../_landing/landing.css';
 
 /* Посадочная под гео-кластер «Профессорский уголок».
  *
@@ -119,14 +119,14 @@ export default function ProfessorskiyUgolokPage() {
   };
 
   return (
-    <main className="pu-page">
-      <PuHeaderMode />
-      <PuReveal />
+    <main className="lp-page">
+      <LandingHeaderMode id="professorskiy-ugolok-page" />
+      <LandingReveal />
       <JsonLd data={jsonLd} />
 
       {/* ===== HERO ===== */}
-      <header className="pu-hero">
-        <div className="pu-hero-media">
+      <header className="lp-hero">
+        <div className="lp-hero-media">
           <Image
             src="/images/menu/home.webp"
             alt="Апартаменты с панорамным видом на море в Профессорском уголке Алушты"
@@ -135,21 +135,21 @@ export default function ProfessorskiyUgolokPage() {
             sizes="100vw"
           />
         </div>
-        <div className="pu-hero-inner">
-          <p className="pu-hero-eyebrow">Профессорский уголок · Алушта</p>
-          <h1 className="pu-hero-title">
+        <div className="lp-hero-inner">
+          <p className="lp-hero-eyebrow">Профессорский уголок · Алушта</p>
+          <h1 className="lp-hero-title">
             Снять жильё в <strong>Профессорском уголке</strong> Алушты
           </h1>
-          <p className="pu-hero-subtitle">
+          <p className="lp-hero-subtitle">
             Апарт-отель «Стиль Жизни» на Западной улице — 47 апартаментов в тихой части города
             у моря. До пляжа 650 метров пешком, бассейны работают круглый год. Бронирование
             напрямую, без комиссии агрегаторов.
           </p>
-          <div className="pu-hero-actions">
-            <Link href="/apartments" className="pu-btn pu-btn-primary">
+          <div className="lp-hero-actions">
+            <Link href="/apartments" className="lp-btn lp-btn-primary">
               Смотреть апартаменты и цены
             </Link>
-            <a href={PHONE_FREE_TEL} className="pu-btn pu-btn-ghost">
+            <a href={PHONE_FREE_TEL} className="lp-btn lp-btn-ghost">
               {PHONE_FREE}
             </a>
           </div>
@@ -157,25 +157,25 @@ export default function ProfessorskiyUgolokPage() {
       </header>
 
       {/* ===== ЦИФРЫ ===== */}
-      <section className="pu-facts">
-        <ul className="pu-facts-list">
+      <section className="lp-facts">
+        <ul className="lp-facts-list">
           {FACTS.map((fact) => (
-            <li className="pu-fact pu-reveal" key={fact.label}>
-              <span className="pu-fact-value">{fact.value}</span>
-              <span className="pu-fact-label">{fact.label}</span>
+            <li className="lp-fact lp-reveal" key={fact.label}>
+              <span className="lp-fact-value">{fact.value}</span>
+              <span className="lp-fact-label">{fact.label}</span>
             </li>
           ))}
         </ul>
       </section>
 
       {/* ===== ЧТО ЗА РАЙОН ===== */}
-      <section className="pu-section">
-        <div className="pu-inner">
-          <p className="pu-eyebrow pu-reveal">Район</p>
-          <h2 className="pu-title pu-reveal">
+      <section className="lp-section">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Район</p>
+          <h2 className="lp-title lp-reveal">
             Почему гости выбирают Профессорский уголок, а не центр
           </h2>
-          <div className="pu-prose pu-reveal">
+          <div className="lp-prose lp-reveal">
             <p>
               Профессорский уголок — западная часть Алушты, вытянутая вдоль берега у подножия
               горы Кастель. Название историческое: в конце XIX века землю здесь начали покупать
@@ -198,11 +198,11 @@ export default function ProfessorskiyUgolokPage() {
       </section>
 
       {/* ===== ЖИЛЬЁ ===== */}
-      <section className="pu-section pu-section-alt">
-        <div className="pu-inner">
-          <p className="pu-eyebrow pu-reveal">Жильё</p>
-          <h2 className="pu-title pu-reveal">47 апартаментов в 650 метрах от моря</h2>
-          <div className="pu-prose pu-reveal">
+      <section className="lp-section lp-section-alt">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Жильё</p>
+          <h2 className="lp-title lp-reveal">47 апартаментов в 650 метрах от моря</h2>
+          <div className="lp-prose lp-reveal">
             <p>
               Комплекс «Стиль Жизни» стоит на Западной улице, 4, корпус 3. Апартаменты — от студий
               до вариантов с отдельной спальней, площадью от 24 до 60 м², рассчитаны на компанию
@@ -215,38 +215,38 @@ export default function ProfessorskiyUgolokPage() {
               смена белья — по графику, завтраки и питание можно заказать отдельно.
             </p>
           </div>
-          <div className="pu-links pu-reveal">
-            <Link href="/apartments" className="pu-btn pu-btn-primary">
+          <div className="lp-links lp-reveal">
+            <Link href="/apartments" className="lp-btn lp-btn-primary">
               Все апартаменты и свободные даты
             </Link>
           </div>
-          <ul className="pu-cards pu-reveal">
+          <ul className="lp-cards lp-reveal">
             <li>
-              <Link href="/apartments/deep-music" className="pu-card">
-                <span className="pu-card-kicker">С видом на море</span>
-                <span className="pu-card-title">Deep Music, 28 м²</span>
-                <span className="pu-card-note">13-й этаж, море во весь горизонт</span>
+              <Link href="/apartments/deep-music" className="lp-card">
+                <span className="lp-card-kicker">С видом на море</span>
+                <span className="lp-card-title">Deep Music, 28 м²</span>
+                <span className="lp-card-note">13-й этаж, море во весь горизонт</span>
               </Link>
             </li>
             <li>
-              <Link href="/apartments/crystal-blue" className="pu-card">
-                <span className="pu-card-kicker">С видом на море</span>
-                <span className="pu-card-title">Crystal Blue, 32 м²</span>
-                <span className="pu-card-note">Терраса с видом на залив</span>
+              <Link href="/apartments/crystal-blue" className="lp-card">
+                <span className="lp-card-kicker">С видом на море</span>
+                <span className="lp-card-title">Crystal Blue, 32 м²</span>
+                <span className="lp-card-note">Терраса с видом на залив</span>
               </Link>
             </li>
             <li>
-              <Link href="/apartments/family-comfort" className="pu-card">
-                <span className="pu-card-kicker">Для семьи</span>
-                <span className="pu-card-title">Family Comfort, 32 м²</span>
-                <span className="pu-card-note">Место для четверых</span>
+              <Link href="/apartments/family-comfort" className="lp-card">
+                <span className="lp-card-kicker">Для семьи</span>
+                <span className="lp-card-title">Family Comfort, 32 м²</span>
+                <span className="lp-card-note">Место для четверых</span>
               </Link>
             </li>
             <li>
-              <Link href="/apartments/econom-studio" className="pu-card">
-                <span className="pu-card-kicker">Экономно</span>
-                <span className="pu-card-title">Econom Studio, 28 м²</span>
-                <span className="pu-card-note">Самый доступный вариант</span>
+              <Link href="/apartments/econom-studio" className="lp-card">
+                <span className="lp-card-kicker">Экономно</span>
+                <span className="lp-card-title">Econom Studio, 28 м²</span>
+                <span className="lp-card-note">Самый доступный вариант</span>
               </Link>
             </li>
           </ul>
@@ -254,11 +254,11 @@ export default function ProfessorskiyUgolokPage() {
       </section>
 
       {/* ===== БАССЕЙНЫ ===== */}
-      <section className="pu-section">
-        <div className="pu-inner">
-          <p className="pu-eyebrow pu-reveal">Аквазона</p>
-          <h2 className="pu-title pu-reveal">Бассейны работают круглый год</h2>
-          <div className="pu-prose pu-reveal">
+      <section className="lp-section">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Аквазона</p>
+          <h2 className="lp-title lp-reveal">Бассейны работают круглый год</h2>
+          <div className="lp-prose lp-reveal">
             <p>
               На территории два больших бассейна, и они открыты не только летом, а круглый год.
               Рядом два детских — с мелкой водой и на расстоянии взгляда от шезлонгов, так что
@@ -270,8 +270,8 @@ export default function ProfessorskiyUgolokPage() {
               именно вам, подскажет администратор.
             </p>
           </div>
-          <div className="pu-links pu-reveal">
-            <Link href="/services" className="pu-btn pu-btn-ghost">
+          <div className="lp-links lp-reveal">
+            <Link href="/services" className="lp-btn lp-btn-ghost">
               Подробнее об аквазоне и услугах
             </Link>
           </div>
@@ -279,15 +279,15 @@ export default function ProfessorskiyUgolokPage() {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section className="pu-section pu-section-alt">
-        <div className="pu-inner">
-          <p className="pu-eyebrow pu-reveal">Частые вопросы</p>
-          <h2 className="pu-title pu-reveal">О районе и бронировании</h2>
-          <div className="pu-faq">
+      <section className="lp-section lp-section-alt">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Частые вопросы</p>
+          <h2 className="lp-title lp-reveal">О районе и бронировании</h2>
+          <div className="lp-faq">
             {FAQ.map((item) => (
-              <details className="pu-faq-item pu-reveal" key={item.q}>
-                <summary className="pu-faq-q">{item.q}</summary>
-                <p className="pu-faq-a">{item.a}</p>
+              <details className="lp-faq-item lp-reveal" key={item.q}>
+                <summary className="lp-faq-q">{item.q}</summary>
+                <p className="lp-faq-a">{item.a}</p>
               </details>
             ))}
           </div>
@@ -295,25 +295,25 @@ export default function ProfessorskiyUgolokPage() {
       </section>
 
       {/* ===== CTA ===== */}
-      <section className="pu-cta">
-        <div className="pu-inner pu-cta-inner">
-          <h2 className="pu-cta-title">Забронировать напрямую</h2>
-          <p className="pu-cta-text">
+      <section className="lp-cta">
+        <div className="lp-inner lp-cta-inner">
+          <h2 className="lp-cta-title">Забронировать напрямую</h2>
+          <p className="lp-cta-text">
             Без комиссии агрегаторов и наценки посредников. Свободные даты и цены — в каталоге,
             остальное подскажет администратор.
           </p>
-          <div className="pu-hero-actions">
-            <Link href="/apartments" className="pu-btn pu-btn-primary">
+          <div className="lp-hero-actions">
+            <Link href="/apartments" className="lp-btn lp-btn-primary">
               Выбрать апартаменты
             </Link>
-            <a href={PHONE_FREE_TEL} className="pu-btn pu-btn-ghost">
+            <a href={PHONE_FREE_TEL} className="lp-btn lp-btn-ghost">
               {PHONE_FREE}
             </a>
-            <a href={PHONE_MAIN_TEL} className="pu-btn pu-btn-ghost">
+            <a href={PHONE_MAIN_TEL} className="lp-btn lp-btn-ghost">
               {PHONE_MAIN}
             </a>
           </div>
-          <p className="pu-cta-address">Алушта, Западная ул., 4, корп. 3 — Профессорский уголок</p>
+          <p className="lp-cta-address">Алушта, Западная ул., 4, корп. 3 — Профессорский уголок</p>
         </div>
       </section>
 

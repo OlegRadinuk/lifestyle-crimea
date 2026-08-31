@@ -3,23 +3,23 @@
 import { useEffect } from 'react';
 
 /**
- * Появление блоков по скроллу для .pu-reveal.
+ * Появление блоков по скроллу для .lp-reveal — общий для всех посадочных.
  *
- * Прятать содержимое умеет только сам скрипт: класс .pu-anim вешается здесь,
+ * Прятать содержимое умеет только сам скрипт: класс .lp-anim вешается здесь,
  * и лишь под ним CSS обнуляет прозрачность. Без JS страница отдаётся видимой
- * целиком — это гео-посадочная, она существует ради текста, и текст не должен
- * зависеть от того, исполнил ли робот скрипты. Яндекс делает это не всегда.
+ * целиком — посадочная существует ради текста, и текст не должен зависеть от
+ * того, исполнил ли робот скрипты. Яндекс делает это не всегда.
  *
  * Всё, что уже в зоне видимости на монтировании, показываем в том же тике —
  * иначе первый экран мигнёт пустотой.
  */
-export default function PuReveal() {
+export default function LandingReveal() {
   useEffect(() => {
-    const root = document.querySelector<HTMLElement>('.pu-page');
-    const elements = document.querySelectorAll<HTMLElement>('.pu-reveal');
+    const root = document.querySelector<HTMLElement>('.lp-page');
+    const elements = document.querySelectorAll<HTMLElement>('.lp-reveal');
     if (!root || !elements.length) return;
 
-    root.classList.add('pu-anim');
+    root.classList.add('lp-anim');
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -43,7 +43,7 @@ export default function PuReveal() {
 
     return () => {
       observer.disconnect();
-      root.classList.remove('pu-anim');
+      root.classList.remove('lp-anim');
     };
   }, []);
 

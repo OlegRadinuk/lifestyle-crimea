@@ -1,13 +1,13 @@
 /* =========================
-   ПРОФЕССОРСКИЙ УГОЛОК — гео-посадочная
+   ОБЩИЕ СТИЛИ ПОСАДОЧНЫХ СТРАНИЦ
    Тот же визуальный язык, что у /services и /news: морской тил #139ab6,
    Montserrat, full-bleed кинофото с градиентом, eyebrow, pill-кнопки.
 ========================= */
 
-.pu-page {
-  --pu-teal: #139ab6;
-  --pu-teal-dark: #0d7e96;
-  --pu-ink: #0d1b22;
+.lp-page {
+  --lp-teal: #139ab6;
+  --lp-teal-dark: #0d7e96;
+  --lp-ink: #0d1b22;
   font-family: var(--font-montserrat), system-ui, sans-serif;
   background: #ffffff;
   color: #1a2e35;
@@ -16,27 +16,27 @@
 }
 
 /* ── HERO ───────────────────────────────────────────────── */
-.pu-hero {
+.lp-hero {
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  background: var(--pu-ink);
+  background: var(--lp-ink);
 }
 
-.pu-hero-media {
+.lp-hero-media {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
-.pu-hero-media img {
+.lp-hero-media img {
   object-fit: cover;
 }
 
 /* Сверху затемняем слабо — под хедер, снизу сильно — под текст. */
-.pu-hero-media::after {
+.lp-hero-media::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -50,7 +50,7 @@
   );
 }
 
-.pu-hero-inner {
+.lp-hero-inner {
   position: relative;
   z-index: 2;
   max-width: 1280px;
@@ -59,7 +59,7 @@
   padding: 120px 32px 80px;
 }
 
-.pu-hero-eyebrow {
+.lp-hero-eyebrow {
   margin: 0 0 20px;
   font-size: 12px;
   font-weight: 500;
@@ -68,7 +68,7 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-.pu-hero-title {
+.lp-hero-title {
   margin: 0 0 22px;
   max-width: 900px;
   font-size: clamp(32px, 5.2vw, 68px);
@@ -78,12 +78,12 @@
   color: #fff;
 }
 
-.pu-hero-title strong {
+.lp-hero-title strong {
   color: #4fd0e8;
   font-weight: 600;
 }
 
-.pu-hero-subtitle {
+.lp-hero-subtitle {
   margin: 0 0 32px;
   max-width: 640px;
   font-size: clamp(15px, 1.5vw, 18px);
@@ -91,14 +91,14 @@
   color: rgba(255, 255, 255, 0.82);
 }
 
-.pu-hero-actions {
+.lp-hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 /* ── КНОПКИ ─────────────────────────────────────────────── */
-.pu-btn {
+.lp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -113,48 +113,48 @@
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.pu-btn-primary {
-  background: var(--pu-teal);
+.lp-btn-primary {
+  background: var(--lp-teal);
   color: #fff;
-  border: 1px solid var(--pu-teal);
+  border: 1px solid var(--lp-teal);
 }
 
-.pu-btn-primary:hover {
-  background: var(--pu-teal-dark);
-  border-color: var(--pu-teal-dark);
+.lp-btn-primary:hover {
+  background: var(--lp-teal-dark);
+  border-color: var(--lp-teal-dark);
 }
 
-.pu-btn-ghost {
+.lp-btn-ghost {
   background: transparent;
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.pu-btn-ghost:hover {
+.lp-btn-ghost:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.8);
 }
 
 /* На светлых секциях призрачная кнопка должна читаться тёмным */
-.pu-section .pu-btn-ghost,
-.pu-section-alt .pu-btn-ghost {
-  color: var(--pu-teal-dark);
+.lp-section .lp-btn-ghost,
+.lp-section-alt .lp-btn-ghost {
+  color: var(--lp-teal-dark);
   border-color: rgba(19, 154, 182, 0.5);
 }
 
-.pu-section .pu-btn-ghost:hover,
-.pu-section-alt .pu-btn-ghost:hover {
+.lp-section .lp-btn-ghost:hover,
+.lp-section-alt .lp-btn-ghost:hover {
   background: rgba(19, 154, 182, 0.08);
-  border-color: var(--pu-teal);
+  border-color: var(--lp-teal);
 }
 
 /* ── ЦИФРЫ ──────────────────────────────────────────────── */
-.pu-facts {
-  background: var(--pu-ink);
+.lp-facts {
+  background: var(--lp-ink);
   padding: 0 32px;
 }
 
-.pu-facts-list {
+.lp-facts-list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
@@ -164,21 +164,21 @@
   list-style: none;
 }
 
-.pu-fact {
+.lp-fact {
   display: flex;
   flex-direction: column;
   gap: 6px;
   text-align: center;
 }
 
-.pu-fact-value {
+.lp-fact-value {
   font-size: clamp(24px, 3vw, 38px);
   font-weight: 600;
   color: #4fd0e8;
   line-height: 1.1;
 }
 
-.pu-fact-label {
+.lp-fact-label {
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -186,54 +186,54 @@
 }
 
 /* ── СЕКЦИИ ─────────────────────────────────────────────── */
-.pu-section {
+.lp-section {
   padding: clamp(64px, 9vw, 120px) 32px;
 }
 
-.pu-section-alt {
+.lp-section-alt {
   background: #f4fbfd;
 }
 
-.pu-inner {
+.lp-inner {
   max-width: 1080px;
   margin: 0 auto;
 }
 
-.pu-eyebrow {
+.lp-eyebrow {
   margin: 0 0 14px;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--pu-teal);
+  color: var(--lp-teal);
 }
 
-.pu-title {
+.lp-title {
   margin: 0 0 28px;
   max-width: 760px;
   font-size: clamp(26px, 3.6vw, 44px);
   line-height: 1.15;
   font-weight: 600;
   letter-spacing: -0.015em;
-  color: var(--pu-ink);
+  color: var(--lp-ink);
 }
 
-.pu-prose {
+.lp-prose {
   max-width: 760px;
 }
 
-.pu-prose p {
+.lp-prose p {
   margin: 0 0 18px;
   font-size: clamp(15px, 1.4vw, 17px);
   line-height: 1.7;
   color: #33474f;
 }
 
-.pu-prose p:last-child {
+.lp-prose p:last-child {
   margin-bottom: 0;
 }
 
-.pu-links {
+.lp-links {
   margin-top: 30px;
   display: flex;
   flex-wrap: wrap;
@@ -241,7 +241,7 @@
 }
 
 /* ── КАРТОЧКИ АПАРТАМЕНТОВ ──────────────────────────────── */
-.pu-cards {
+.lp-cards {
   margin: 36px 0 0;
   padding: 0;
   list-style: none;
@@ -250,7 +250,7 @@
   gap: 16px;
 }
 
-.pu-card {
+.lp-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -263,41 +263,41 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.pu-card:hover {
-  border-color: var(--pu-teal);
+.lp-card:hover {
+  border-color: var(--lp-teal);
   box-shadow: 0 10px 28px rgba(13, 27, 34, 0.09);
   transform: translateY(-2px);
 }
 
-.pu-card-kicker {
+.lp-card-kicker {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--pu-teal);
+  color: var(--lp-teal);
 }
 
-.pu-card-title {
+.lp-card-title {
   font-size: 17px;
   font-weight: 600;
-  color: var(--pu-ink);
+  color: var(--lp-ink);
 }
 
-.pu-card-note {
+.lp-card-note {
   font-size: 13px;
   line-height: 1.5;
   color: #5d7278;
 }
 
 /* ── FAQ ────────────────────────────────────────────────── */
-.pu-faq {
+.lp-faq {
   max-width: 820px;
 }
 
-.pu-faq-item {
+.lp-faq-item {
   border-bottom: 1px solid rgba(13, 27, 34, 0.12);
 }
 
-.pu-faq-q {
+.lp-faq-q {
   /* убираем дефолтный треугольник, рисуем свой плюс справа */
   list-style: none;
   cursor: pointer;
@@ -305,14 +305,14 @@
   position: relative;
   font-size: clamp(15px, 1.5vw, 18px);
   font-weight: 600;
-  color: var(--pu-ink);
+  color: var(--lp-ink);
 }
 
-.pu-faq-q::-webkit-details-marker {
+.lp-faq-q::-webkit-details-marker {
   display: none;
 }
 
-.pu-faq-q::after {
+.lp-faq-q::after {
   content: '+';
   position: absolute;
   right: 6px;
@@ -320,15 +320,15 @@
   transform: translateY(-50%);
   font-size: 22px;
   font-weight: 400;
-  color: var(--pu-teal);
+  color: var(--lp-teal);
   transition: transform 0.2s ease;
 }
 
-.pu-faq-item[open] .pu-faq-q::after {
+.lp-faq-item[open] .lp-faq-q::after {
   content: '−';
 }
 
-.pu-faq-a {
+.lp-faq-a {
   margin: 0;
   padding: 0 0 22px;
   max-width: 720px;
@@ -338,24 +338,24 @@
 }
 
 /* ── CTA ────────────────────────────────────────────────── */
-.pu-cta {
+.lp-cta {
   padding: clamp(64px, 9vw, 110px) 32px;
-  background: var(--pu-ink);
+  background: var(--lp-ink);
   color: #fff;
 }
 
-.pu-cta-inner {
+.lp-cta-inner {
   text-align: center;
 }
 
-.pu-cta-title {
+.lp-cta-title {
   margin: 0 0 16px;
   font-size: clamp(26px, 3.4vw, 42px);
   font-weight: 600;
   letter-spacing: -0.015em;
 }
 
-.pu-cta-text {
+.lp-cta-text {
   margin: 0 auto 30px;
   max-width: 560px;
   font-size: clamp(15px, 1.4vw, 17px);
@@ -363,11 +363,11 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
-.pu-cta .pu-hero-actions {
+.lp-cta .lp-hero-actions {
   justify-content: center;
 }
 
-.pu-cta-address {
+.lp-cta-address {
   margin: 26px 0 0;
   font-size: 13px;
   letter-spacing: 0.06em;
@@ -375,22 +375,22 @@
 }
 
 /* ── ПОЯВЛЕНИЕ ПО СКРОЛЛУ ───────────────────────────────── */
-/* Скрываем только под .pu-anim — класс вешает PuReveal уже в браузере.
+/* Скрываем только под .lp-anim — класс вешает PuReveal уже в браузере.
    Без JS страница видима целиком: посадочная живёт ради текста, и он не
    должен зависеть от того, исполнил ли робот скрипты. */
-.pu-anim .pu-reveal {
+.lp-anim .lp-reveal {
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.pu-anim .pu-reveal.visible {
+.lp-anim .lp-reveal.visible {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pu-anim .pu-reveal {
+  .lp-anim .lp-reveal {
     opacity: 1;
     transform: none;
     transition: none;
@@ -399,31 +399,179 @@
 
 /* ── МОБИЛКА ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .pu-hero {
+  .lp-hero {
     min-height: 88vh;
   }
 
-  .pu-hero-inner {
+  .lp-hero-inner {
     padding: 100px 20px 56px;
   }
 
-  .pu-facts,
-  .pu-section,
-  .pu-cta {
+  .lp-facts,
+  .lp-section,
+  .lp-cta {
     padding-left: 20px;
     padding-right: 20px;
   }
 
-  .pu-facts-list {
+  .lp-facts-list {
     grid-template-columns: repeat(2, 1fr);
     padding: 32px 0;
   }
 
-  .pu-btn {
+  .lp-btn {
     width: 100%;
   }
 
-  .pu-hero-actions {
+  .lp-hero-actions {
     flex-direction: column;
+  }
+}
+
+/* ── СПИСОК-ГАЛОЧКИ ─────────────────────────────────────── */
+.lp-checks {
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px 28px;
+}
+
+.lp-check {
+  position: relative;
+  padding-left: 26px;
+  font-size: clamp(14px, 1.35vw, 16px);
+  line-height: 1.55;
+  color: #33474f;
+}
+
+.lp-check::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lp-teal);
+}
+
+/* ── ФОТО ───────────────────────────────────────────────── */
+.lp-photos {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.lp-photo {
+  margin: 0;
+}
+
+.lp-photo img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.lp-photo figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #5d7278;
+}
+
+/* ── ВРЕЗКА-ПРЕДУПРЕЖДЕНИЕ ──────────────────────────────── */
+.lp-note {
+  max-width: 820px;
+  padding: 24px 26px;
+  border-left: 3px solid var(--lp-teal);
+  border-radius: 0 14px 14px 0;
+  background: #f4fbfd;
+}
+
+.lp-note-title {
+  margin: 0 0 10px;
+  font-size: clamp(16px, 1.6vw, 19px);
+  font-weight: 600;
+  color: var(--lp-ink);
+}
+
+.lp-note-text {
+  margin: 0;
+  font-size: clamp(14px, 1.35vw, 16px);
+  line-height: 1.65;
+  color: #33474f;
+}
+
+.lp-note-text a {
+  color: var(--lp-teal-dark);
+  font-weight: 600;
+}
+
+/* ── ТАБЛИЦА СРАВНЕНИЯ ──────────────────────────────────── */
+/* Обёртка со своей прокруткой: на узком экране едет таблица, а не страница. */
+.lp-table-wrap {
+  margin-top: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lp-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: clamp(13px, 1.3vw, 15px);
+  line-height: 1.55;
+  text-align: left;
+}
+
+.lp-table thead th {
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5d7278;
+  border-bottom: 2px solid rgba(19, 154, 182, 0.3);
+}
+
+.lp-table thead th:last-child {
+  color: var(--lp-teal-dark);
+}
+
+.lp-table tbody th {
+  width: 128px;
+  padding: 15px 16px;
+  font-weight: 600;
+  color: var(--lp-ink);
+  vertical-align: top;
+}
+
+.lp-table tbody td {
+  padding: 15px 16px;
+  color: #33474f;
+  vertical-align: top;
+}
+
+.lp-table tbody td:last-child {
+  color: var(--lp-ink);
+  background: rgba(19, 154, 182, 0.05);
+}
+
+.lp-table tbody tr + tr th,
+.lp-table tbody tr + tr td {
+  border-top: 1px solid rgba(13, 27, 34, 0.1);
+}
+
+@media (max-width: 768px) {
+  .lp-checks {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-note {
+    padding: 20px;
   }
 }
