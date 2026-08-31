@@ -134,6 +134,17 @@ type Props = {
   loading?: boolean;
 };
 
+/* Те же формулировки, что в generateMetadata карточки (page.tsx) — заголовок
+   на странице и заголовок в выдаче должны совпадать дословно. Меняешь здесь —
+   поменяй и там. */
+const VIEW_TEXT: Record<string, string> = {
+  sea: 'с видом на море',
+  mountain: 'с видом на горы',
+  city: 'с видом на город',
+  garden: 'с видом во двор',
+  mixed: 'с видом на море и горы',
+};
+
 export default function ApartmentHero({ apartment, loading = false }: Props) {
   const { register, unregister } = useHeader();
   const { open: openPhotoModal } = usePhotoModal();
@@ -345,8 +356,18 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           {/* Левая колонка */}
           <div className="apt-col-left">
             <div className="apt-panel apt-panel-title">
-              <span className="apt-eyebrow">Lifestyle · Luxury</span>
-              <h1 className="apt-title">{apartment.title}</h1>
+              {/* Заголовок карточки был «LS-DEEP MUSIC» — внутренний код объекта.
+                  Ни один гость такого не ищет, а это шаблон на 47 страниц, и
+                  весь длинный хвост («апартаменты с видом на море в Алуште»)
+                  проходил мимо. Формулировка та же, что в <title>, чтобы
+                  заголовок и сниппет говорили одно и то же.
+                  Строка сверху раньше была «Lifestyle · Luxury» — украшение,
+                  не сообщавшее гостю ничего. Теперь на её месте описание, а
+                  имя апартамента осталось крупным, как было. */}
+              <h1 className="apt-title">
+                <span className="apt-eyebrow">Апартаменты {VIEW_TEXT[apartment.view] ?? 'у моря'} в Алуште</span>
+                {apartment.title}
+              </h1>
               <div className="apt-meta">
                 <span>До {apartment.maxGuests} гостей</span>
                 <span>{apartment.area} м²</span>

@@ -118,8 +118,16 @@
   gap: 10px;
 }
 
+/* Раньше это был отдельный span — прямой ребёнок flex-колонки, и блочность
+   ему давал сам флекс. Теперь строка живёт внутри h1, в обычном инлайновом
+   потоке, поэтому display и отступ задаём явно: иначе она встанет в строку
+   с названием апартамента и наберётся его 36-м кеглем. */
 .apartment-hero .apt-eyebrow {
+  display: block;
+  margin-bottom: 10px;
   font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
