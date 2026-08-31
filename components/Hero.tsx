@@ -195,8 +195,10 @@ export default function Hero() {
   if (activeSlides.length === 0) {
     return (
       <section className="hero-empty">
+        {/* Не h1: настоящий заголовок страницы отдаётся из page.tsx и попадает
+            в серверный HTML, а эта ветка — заглушка на случай пустых слайдов. */}
         <div className="hero-empty-content">
-          <h1>Стиль Жизни</h1>
+          <div className="hero-empty-title">Стиль Жизни</div>
           <p>Премиальные апартаменты в Алуште</p>
         </div>
       </section>
@@ -314,7 +316,10 @@ export default function Hero() {
       {/* CONTENT */}
       <div className="hero-content">
         <div className={`hero-text ${isVisible ? 'animate-in' : ''}`} key={active}>
-          <h1 className="hero-title">
+          {/* Подпись слайда, а не заголовок страницы: текст приходит из админки
+              и меняется от слайда к слайду. Класс тот же — вёрстка не меняется,
+              стили заданы по классу, не по тегу. H1 живёт в page.tsx. */}
+          <div className="hero-title">
             {currentSlide.title || 'Стиль Жизни'}{' '}
             <span className="hero-love">
               {'с любовью...'.split('').map((char, i) => (
@@ -327,7 +332,7 @@ export default function Hero() {
                 </span>
               ))}
             </span>
-          </h1>
+          </div>
 
           <p className="hero-description">
             {currentSlide.subtitle}

@@ -9074,3 +9074,24 @@ select:focus-visible,
     grid-template-columns: 1fr;
   }
 }
+
+/* Заголовок для робота и скринридера, но не для глаза.
+   Нужен на главной: первый экран отдан сцене, видимому H1 там негде встать,
+   а страница без H1 в серверном HTML не имеет темы вовсе.
+
+   Именно clip-путь, а не display:none и не visibility:hidden — те скрывают
+   элемент и от скринридеров тоже, то есть решают ровно наоборот.
+   white-space: nowrap — иначе текст переносится внутри рамки 1×1 и часть
+   скринридеров читает его по одному слову в строке. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
