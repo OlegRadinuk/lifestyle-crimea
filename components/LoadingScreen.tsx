@@ -20,7 +20,13 @@ export function LoadingScreen() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          /* ls-loading-screen нужен не для стилей, а чтобы за оверлей было чем
+             зацепиться из <noscript>. Снимает лоадер только JS, а isLoading
+             заведён как useState(true) — значит на сервере он рендерится
+             всегда, и без скриптов убрать его некому: висит поверх страницы
+             навсегда. Робот, не исполняющий JS, видит вместо главной
+             полноэкранную заставку. */
+          className="ls-loading-screen fixed inset-0 z-[9999] flex items-center justify-center"
           style={{
             background: 'radial-gradient(circle at 30% 30%, #0B2A35, #051015)'
           }}

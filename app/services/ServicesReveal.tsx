@@ -11,6 +11,12 @@ export default function ServicesReveal() {
     const elements = document.querySelectorAll<HTMLElement>('.sv-reveal');
     if (!elements.length) return;
 
+    /* Прячет блоки только этот класс, и вешает его сам скрипт. Без JS
+       страница отдаётся видимой целиком: раньше .sv-reveal стоял с
+       opacity:0 в самой вёрстке, и робот, не исполняющий скрипты, видел
+       пустую страницу. Яндекс делает это не всегда. */
+    document.documentElement.classList.add('sv-anim');
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {

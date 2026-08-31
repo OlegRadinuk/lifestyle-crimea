@@ -3665,9 +3665,17 @@ html, body {
   height: 100vh;
   background: linear-gradient(180deg, #ffffff 0%, #f4fbfd 100%);
   font-family: var(--font-montserrat), sans-serif;
+  overflow: hidden;
+}
+
+/* Гасим секцию отзывов только под .rf-anim — класс вешает сам скрипт
+   (reviews.tsx). Раньше opacity:0 стоял прямо здесь и снимался классом
+   rf-visible из React-состояния, то есть без JS отзывы не показывались
+   вовсе: единственный содержательный текст главной был невидим для робота,
+   не исполняющего скрипты. */
+.rf-anim .rf-section {
   opacity: 0;
   transition: opacity 0.8s ease;
-  overflow: hidden;
 }
 
 /* Мобилка: rf-section заполняет сцену (flex-column, 100% высоты) */

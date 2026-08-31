@@ -493,20 +493,20 @@
 /* ── REVEAL-АНИМАЦИЯ ────────────────────────────────────── */
 /* JS-driven: NewsReveal.tsx добавляет .visible через IntersectionObserver.
    Без JS — элементы видны (noscript-fallback ниже). */
-.np-reveal {
+.np-anim .np-reveal {
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.np-reveal.visible {
+.np-anim .np-reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* Fallback: если JS не загрузился — показать контент */
 @media (prefers-reduced-motion: reduce) {
-  .np-reveal {
+  .np-anim .np-reveal {
     opacity: 1;
     transform: none;
     transition: none;

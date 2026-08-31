@@ -597,19 +597,19 @@
 }
 
 /* ── REVEAL-АНИМАЦИИ ────────────────────────────────────── */
-.cp-reveal {
+.cp-anim .cp-reveal {
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.cp-reveal.visible {
+.cp-anim .cp-reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cp-reveal {
+  .cp-anim .cp-reveal {
     opacity: 1;
     transform: none;
     transition: none;

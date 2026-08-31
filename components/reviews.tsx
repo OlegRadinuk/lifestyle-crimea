@@ -62,6 +62,15 @@ export default function ReviewsFinal() {
   const [paused, setPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  /* Гасить секцию до появления имеет право только скрипт: без JS класса нет,
+     и отзывы видны сразу. Раньше opacity:0 стоял в самой вёрстке и снимался
+     из React-состояния — робот, не исполняющий скрипты, не видел на главной
+     ни одного отзыва, а это её единственный содержательный текст. */
+  useEffect(() => {
+    document.documentElement.classList.add('rf-anim');
+    return () => document.documentElement.classList.remove('rf-anim');
+  }, []);
+
   // Определяем мобилку
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
