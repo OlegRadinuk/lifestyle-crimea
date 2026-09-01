@@ -184,3 +184,114 @@
     padding: 18px 24px;
   }
 }
+
+/* ── ПОХОЖИЕ АПАРТАМЕНТЫ ────────────────────────────────────
+   Блок перелинковки: до него карточка была тупиком с одной внутренней
+   ссылкой, и так на всех 47 страницах. Стоит после CTA, в обычном потоке. */
+.apt-section-related {
+  background: #ffffff;
+  border-top: 1px solid rgba(19, 154, 182, 0.14);
+}
+
+.apt-related-grid {
+  display: grid;
+  /* 170px, чтобы все четыре встали в одну строку: контейнер 900px минус
+     отступы даёт 820px, а 4×170 + три зазора по 18 — 758px. При 210px
+     влезало только три, и четвёртая карточка одиноко падала на вторую
+     строку. На узких экранах auto-fit сам свернёт в две колонки. */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px;
+  margin: 0 0 36px;
+  padding: 0;
+  list-style: none;
+}
+
+.apt-related-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f7fbfc;
+  border: 1px solid rgba(19, 154, 182, 0.16);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.apt-related-card:hover {
+  border-color: #139ab6;
+  box-shadow: 0 10px 26px rgba(13, 27, 34, 0.1);
+  transform: translateY(-2px);
+}
+
+.apt-related-media {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: #e5eff2;
+}
+
+.apt-related-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.apt-related-media--empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.apt-related-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 18px;
+}
+
+.apt-related-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0d1b22;
+  line-height: 1.25;
+}
+
+.apt-related-meta {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #5d7278;
+}
+
+/* Ссылки на каталог и посадочные — 44px по высоте, чтобы попадать пальцем */
+.apt-related-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.apt-related-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  color: #0d7e96;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(19, 154, 182, 0.35);
+}
+
+.apt-related-links a:hover {
+  color: #139ab6;
+  border-bottom-color: #139ab6;
+}
+
+@media (max-width: 768px) {
+  .apt-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .apt-related-links {
+    flex-direction: column;
+    gap: 0;
+  }
+}

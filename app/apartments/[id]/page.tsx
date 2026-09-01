@@ -4,6 +4,7 @@ import path from 'path';
 import { db, findApartmentByIdOrSlug } from '@/lib/db';
 import { permanentRedirect } from 'next/navigation';
 import ClientApartmentWrapper from './ClientApartmentWrapper';
+import RelatedApartments, { type RelatedItem } from './RelatedApartments';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -204,6 +205,22 @@ export default async function ApartmentPage({ params }: PageProps) {
     is_active: Boolean(apartment.is_active),
   };
 
+  /* Похожие апартаменты для перелинковки. Сначала те же виды из окна —
+     это ближайшая замена, если конкретный занят, — потом остальные по
+     порядку из админки. Четыре штуки: больше превращает блок в второй
+     каталог, меньше не даёт роботу выбора куда идти. */
+  const related = db.prepare(`
+    SELECT a.id, a.slug, a.title, a.area, a.max_guests, a.view,
+           (SELECT url FROM apartment_images
+             WHERE apartment_id = a.id ORDER BY sort_order LIMIT 1) AS image
+    FROM apartments a
+    WHERE a.is_active = 1
+      AND (a.deleted_at IS NULL OR a.deleted_at = '')
+      AND a.id != ?
+    ORDER BY (a.view = ?) DESC, a.sort_order
+    LIMIT 4
+  `).all(id, apartment.view) as RelatedItem[];
+
   const viewLabels: Record<string, string> = {
     sea: 'вид на море',
     mountain: 'вид на горы',
@@ -288,6 +305,7 @@ export default async function ApartmentPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([roomSchema, breadcrumbSchema]) }}
       />
       <ClientApartmentWrapper key={id} apartment={formattedApartment} />
+      <RelatedApartments items={related} />
     </>
   );
 }

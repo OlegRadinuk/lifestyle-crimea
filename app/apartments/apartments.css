@@ -1170,3 +1170,32 @@
     font-size: 14px;
   }
 }
+/* Ссылки на тематические посадочные в шапке каталога.
+   44px по высоте — минимум для тач-цели. */
+.ap-hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  margin-top: 10px;
+}
+
+.ap-hero-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  color: #0d7e96;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(19, 154, 182, 0.35);
+}
+
+.ap-hero-links a:hover {
+  color: #139ab6;
+  border-bottom-color: #139ab6;
+}
+
+@media (max-width: 768px) {
+  .ap-hero-links {
+    gap: 0 18px;
+  }
+}
