@@ -30,24 +30,51 @@ export async function POST(request: Request) {
       );
     }
 
-    // Сохраняем настройки
-    const settings = notificationService.saveTelegramSettings(botToken, chatId);
-
-    // Отправляем тестовое сообщение
+    /* Сначала проверяем доставку, только потом сохраняем.
+       Раньше результат тестовой отправки не читался вовсе: администратор
+       видел «успешно подключен», а сообщение никуда не уходило. Для группы
+       это особенно больно — самые частые причины именно там: бота забыли
+       добавить в группу или у него нет права писать. */
     const testMessageUrl = `${telegramBase}/bot${botToken}/sendMessage`;
-    await fetch(testMessageUrl, {
+    const sendResponse = await fetch(testMessageUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text: '✅ Telegram бот успешно подключен к Lifestyle Crimea! Теперь вы будете получать уведомления о новых бронированиях.',
+        text: '✅ Бот подключён. Сюда будут приходить заявки с сайта «Стиль Жизни».',
         parse_mode: 'HTML',
       }),
     });
+    const sendResult = await sendResponse.json();
 
-    return NextResponse.json({ 
-      success: true, 
+    if (!sendResult.ok) {
+      const d: string = sendResult.description || '';
+      let hint = 'Проверьте Chat ID.';
+      if (/chat not found/i.test(d)) {
+        hint = 'Чат не найден. Если это группа — добавьте бота в неё, напишите там любое сообщение и нажмите «Найти чаты».';
+      } else if (/bot was kicked|not a member/i.test(d)) {
+        hint = 'Бота удалили из этой группы — добавьте его обратно.';
+      } else if (/not enough rights|have no rights/i.test(d)) {
+        hint = 'У бота нет права писать в этой группе. Разрешите ему отправку сообщений.';
+      } else if (/blocked/i.test(d)) {
+        hint = 'Пользователь заблокировал бота. Откройте чат с ботом и нажмите «Запустить».';
+      }
+      return NextResponse.json(
+        { error: 'Сообщение не доставлено', details: d, hint },
+        { status: 400 }
+      );
+    }
+
+    // Сохраняем только после подтверждённой доставки
+    const settings = notificationService.saveTelegramSettings(botToken, chatId);
+    const chat = sendResult.result?.chat;
+
+    return NextResponse.json({
+      success: true,
       message: 'Telegram configured successfully',
+      chat: chat
+        ? { id: String(chat.id), type: chat.type, title: chat.title || chat.first_name }
+        : undefined,
       settings: {
         botToken: settings.botToken,
         chatId: settings.chatId,

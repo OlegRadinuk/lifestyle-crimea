@@ -9133,3 +9133,75 @@ select:focus-visible,
 .ff-footer-mobile .ff-nav {
   gap: 0 16px;
 }
+
+/* ── ВЫБОР ЧАТА ДЛЯ TELEGRAM-БОТА ───────────────────────────
+   У групп chat_id отрицательный и нигде в интерфейсе Telegram не показан.
+   Раньше его искали через сторонних ботов; теперь список приходит из
+   getUpdates, и нужный чат выбирается кликом. */
+.tg-find-btn {
+  margin-top: 10px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(19, 154, 182, 0.45);
+  border-radius: 10px;
+  background: #fff;
+  color: #0d7e96;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tg-find-btn:hover:not(:disabled) {
+  background: rgba(19, 154, 182, 0.08);
+  border-color: #139ab6;
+}
+
+.tg-find-btn:disabled { opacity: 0.6; cursor: default; }
+
+.tg-chats {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tg-chats button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(13, 27, 34, 0.14);
+  border-radius: 10px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tg-chats button:hover {
+  border-color: #139ab6;
+  background: rgba(19, 154, 182, 0.06);
+}
+
+.tg-chats__title { color: #0d1b22; font-weight: 500; }
+
+.tg-chats__id {
+  color: #7f8b93;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tg-help { margin-top: 12px; font-size: 13.5px; color: #5d7278; }
+.tg-help summary { cursor: pointer; color: #0d7e96; min-height: 32px; }
+.tg-help ol { margin: 10px 0 0; padding-left: 20px; line-height: 1.7; }
+.tg-help p { margin: 10px 0 0; }
