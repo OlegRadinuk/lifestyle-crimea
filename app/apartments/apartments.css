@@ -1239,6 +1239,50 @@
 
 .ap-long-teaser__arrow { flex: none; font-size: 15px; }
 
+/* Заметка менеджера (long_term_note) — отдельная строка под подписью
+   «за 1 месяц», а не замена ей. Раньше эта заметка сама вставала на место
+   подписи о цене, и гость терял единственное указание, что 45 000 ₽ — это
+   цена за месяц, а не за весь выбранный срок. */
+.ap-long-offer__note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #7f8b93;
+}
+
+/* ── ЗЕРКАЛЬНАЯ СНОСКА: «СДАЁМ И ПОСУТОЧНО» ─────────────────
+   В долгосрочном режиме посуточная цена и кнопка не рендерятся вовсе —
+   без этой строки гость, которому нужно на пару ночей, не узнал бы, что
+   короткая аренда вообще есть. Фон блока .ap-long-offer светлый (тонкий
+   бирюзовый градиент), поэтому текст тёмный, а не белый. */
+.ap-short-teaser {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(19, 154, 182, 0.25);
+  font-size: 13px;
+  line-height: 1.5;
+  color: #5d7278;
+}
+
+.ap-short-teaser b { font-weight: 600; color: #0d1b22; }
+
+.ap-short-teaser__link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #0d7e96;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.ap-short-teaser__link:hover { color: #139ab6; }
+
 /* ── ДОЛГОСРОК: РАЗВЁРНУТЫЙ БЛОК ────────────────────────────── */
 .ap-long-offer { position: relative; }
 

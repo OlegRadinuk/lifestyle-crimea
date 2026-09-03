@@ -209,6 +209,15 @@ export default function ApartmentsClient({
     }
   }, [searchParams, contextSearch]);
 
+  /* /apartments?mode=long открывает каталог сразу в долгосрочном режиме.
+     Нужно для рекламы: объявление про аренду на месяц обязано приводить на
+     месячные цены, иначе гость видит цену за ночь и уходит. Читаем один раз
+     на монтировании — дальше режимом управляет переключатель. */
+  useEffect(() => {
+    if (searchParams?.get('mode') === 'long') setRentalMode('long');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -671,127 +680,15 @@ export default function ApartmentsClient({
                         </ul>
                       )}
 
-                      {/* Долгосрочная цена стоит рядом с посуточной, а срок
-                          переключается прямо здесь: так гость сразу видит,
-                          во что обходится месяц против ночи. */}
-                      {isLongTermApt(apartment) && (() => {
-                        const term = termForApartment(apartment);
-                        const monthly = priceForTerm(apartment, term?.id);
-                        const nightly = currentNightlyPrice(apartment.seasons, apartment.price_base);
-                        const paidTerms = longTermTerms.filter(t => priceForTerm(apartment, t.id) > 0);
-
-                        /* Ярлык на самом дешёвом за месяц сроке: гость не обязан
-                           сам сравнивать столбики цифр, чтобы понять, что длинный
-                           срок выгоднее. Процент считаем от самого дорогого
-                           тарифа — это и есть та самая экономия. */
-                        const prices = paidTerms.map(t => priceForTerm(apartment, t.id));
-                        const cheapest = Math.min(...prices);
-                        const dearest = Math.max(...prices);
-                        const bestTermId = paidTerms.find(t => priceForTerm(apartment, t.id) === cheapest)?.id;
-                        const bestSaving = dearest > cheapest
-                          ? Math.round((1 - cheapest / dearest) * 100)
-                          : 0;
-
-                        /* В посуточном режиме блок свёрнут до одной строки,
-                           пока гость сам его не раскроет: предложение видно,
-                           но не спорит с посуточной ценой за него же. В
-                           долгосрочном режиме он всегда развёрнут — гость уже
-                           сказал, что ему нужен длительный срок. */
-                        const longOpen = isLongMode || openLongOffers.has(apartment.id);
-
-                        if (!longOpen) {
-                          return (
-                            <button
-                              type="button"
-                              className="ap-long-teaser"
-                              onClick={() => toggleLongOffer(apartment.id)}
-                            >
-                              <span>
-                                Сдаём и на срок от {longTermMinDays} суток — от{' '}
-                                <b>{monthly.toLocaleString('ru-RU')} ₽</b> в месяц
-                              </span>
-                              <span className="ap-long-teaser__arrow" aria-hidden="true">→</span>
-                            </button>
-                          );
-                        }
-
-                        return (
-                          <div className="ap-long-offer">
-                            {!isLongMode && (
-                              <button
-                                type="button"
-                                className="ap-long-offer__close"
-                                onClick={() => toggleLongOffer(apartment.id)}
-                                aria-label="Свернуть предложение о длительной аренде"
-                              >
-                                ✕
-                              </button>
-                            )}
-                            <p className="ap-long-offer__kicker">Длительная аренда</p>
-                            {paidTerms.length > 1 && (
-                              <div className="ap-long-offer__terms" role="tablist" aria-label="Срок аренды">
-                                {paidTerms.map(t => {
-                                  const isBest = t.id === bestTermId && bestSaving >= 5;
-                                  return (
-                                    <button
-                                      key={t.id}
-                                      type="button"
-                                      role="tab"
-                                      aria-selected={t.id === term?.id}
-                                      className={`ap-long-offer__term${t.id === term?.id ? ' is-active' : ''}${isBest ? ' is-best' : ''}`}
-                                      onClick={() => setTermByApartment(prev => ({ ...prev, [apartment.id]: t.id }))}
-                                    >
-                                      {termTitle(t)}
-                                      {isBest && (
-                                        <span className="ap-long-offer__best">−{bestSaving}%</span>
-                                      )}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {/* Только месячная цена. Раньше рядом стояла ещё и
-                                суточная, и в одном голубом блоке оказывались две
-                                разные сделки — гость не понимал, какая кнопка
-                                что бронирует. Посуточная цена живёт ниже, в
-                                своей строке, вместе со своей кнопкой. */}
-                            <div className="ap-long-offer__prices">
-                              <div className="ap-long-offer__col ap-long-offer__col--accent">
-                                <span className="ap-long-offer__value">
-                                  {monthly.toLocaleString('ru-RU')} ₽
-                                </span>
-                                <span className="ap-long-offer__label">
-                                  {apartment.long_term_note
-                                    || (term && term.months > 1
-                                          ? `за месяц при аренде на ${termTitle(term).toLowerCase()}`
-                                          : 'за месяц')}
-                                </span>
-                                {term?.id === bestTermId && bestSaving >= 5 && (
-                                  <span className="ap-long-offer__best-note">
-                                    Лучшая цена — дешевле на {(dearest - cheapest).toLocaleString('ru-RU')} ₽ в месяц
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Своя кнопка: долгосрок не бронируется календарём,
-                                это заявка на выбранный срок. Кнопка внизу карточки
-                                ведёт в обычный посуточный сценарий. */}
-                            <button
-                              className="ap-long-offer__cta"
-                              onClick={() => handleLongTermClick(apartment)}
-                            >
-                              Забронировать на {term ? termTitle(term).toLowerCase() : 'длительный срок'}
-                            </button>
-                          </div>
-                        );
-                      })()}
-
-                      {/* В долгосрочном режиме посуточной строки нет вовсе:
-                          гость уже выбрал длительную аренду, показывать ему
-                          цену за ночь и кнопку суточной брони — значит снова
-                          смешивать две разные сделки в одной карточке. */}
+                      {/* Порядок блоков зависит от режима. В посуточном —
+                          сначала посуточная цена и кнопка (это тот сценарий,
+                          ради которого человек открыл каталог), а предложение
+                          о длительной аренде идёт ниже отдельной строкой,
+                          чтобы не отбирать внимание у главного действия. В
+                          долгосрочном режиме порядок обратный: сначала
+                          долгосрочный блок, посуточной строки нет вовсе —
+                          вместо неё внизу долгосрочного блока короткая
+                          сноска с переключением обратно. */}
                       {!isLongMode && (
                       <div className="ap-list-footer">
                         {(() => {
@@ -863,6 +760,146 @@ export default function ApartmentsClient({
                         </div>
                       </div>
                       )}
+
+                      {isLongTermApt(apartment) && (() => {
+                        const term = termForApartment(apartment);
+                        const monthly = priceForTerm(apartment, term?.id);
+                        const nightly = currentNightlyPrice(apartment.seasons, apartment.price_base);
+                        const paidTerms = longTermTerms.filter(t => priceForTerm(apartment, t.id) > 0);
+
+                        /* Ярлык на самом дешёвом за месяц сроке: гость не обязан
+                           сам сравнивать столбики цифр, чтобы понять, что длинный
+                           срок выгоднее. Процент считаем от самого дорогого
+                           тарифа — это и есть та самая экономия. */
+                        const prices = paidTerms.map(t => priceForTerm(apartment, t.id));
+                        const cheapest = Math.min(...prices);
+                        const dearest = Math.max(...prices);
+                        const bestTermId = paidTerms.find(t => priceForTerm(apartment, t.id) === cheapest)?.id;
+                        const bestSaving = dearest > cheapest
+                          ? Math.round((1 - cheapest / dearest) * 100)
+                          : 0;
+
+                        /* В посуточном режиме блок свёрнут до одной строки,
+                           пока гость сам его не раскроет: предложение видно,
+                           но не спорит с посуточной ценой за него же. В
+                           долгосрочном режиме он всегда развёрнут — гость уже
+                           сказал, что ему нужен длительный срок. */
+                        const longOpen = isLongMode || openLongOffers.has(apartment.id);
+
+                        if (!longOpen) {
+                          return (
+                            <button
+                              type="button"
+                              className="ap-long-teaser"
+                              onClick={() => toggleLongOffer(apartment.id)}
+                            >
+                              <span>
+                                А также сдаём на срок от {longTermMinDays} суток — от{' '}
+                                <b>{monthly.toLocaleString('ru-RU')} ₽</b> в месяц
+                              </span>
+                              <span className="ap-long-teaser__arrow" aria-hidden="true">→</span>
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <div className="ap-long-offer">
+                            {!isLongMode && (
+                              <button
+                                type="button"
+                                className="ap-long-offer__close"
+                                onClick={() => toggleLongOffer(apartment.id)}
+                                aria-label="Свернуть предложение о длительной аренде"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <p className="ap-long-offer__kicker">Длительная аренда</p>
+                            {paidTerms.length > 1 && (
+                              <div className="ap-long-offer__terms" role="tablist" aria-label="Срок аренды">
+                                {paidTerms.map(t => {
+                                  const isBest = t.id === bestTermId && bestSaving >= 5;
+                                  return (
+                                    <button
+                                      key={t.id}
+                                      type="button"
+                                      role="tab"
+                                      aria-selected={t.id === term?.id}
+                                      className={`ap-long-offer__term${t.id === term?.id ? ' is-active' : ''}${isBest ? ' is-best' : ''}`}
+                                      onClick={() => setTermByApartment(prev => ({ ...prev, [apartment.id]: t.id }))}
+                                    >
+                                      {termTitle(t)}
+                                      {isBest && (
+                                        <span className="ap-long-offer__best">−{bestSaving}%</span>
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Только месячная цена. Раньше рядом стояла ещё и
+                                суточная, и в одном голубом блоке оказывались две
+                                разные сделки — гость не понимал, какая кнопка
+                                что бронирует. Посуточная цена живёт в своей
+                                строке — выше карточки в посуточном режиме, или
+                                сноской ниже в долгосрочном. */}
+                            <div className="ap-long-offer__prices">
+                              <div className="ap-long-offer__col ap-long-offer__col--accent">
+                                <span className="ap-long-offer__value">
+                                  {monthly.toLocaleString('ru-RU')} ₽
+                                </span>
+                                <span className="ap-long-offer__label">
+                                  {/* Цена ВСЕГДА за один месяц — даже когда выбран срок
+                                      «3 месяца» или «Полгода». Раньше на этом месте при
+                                      заполненной заметке менеджера подпись «за месяц»
+                                      пропадала целиком, и рядом с активной вкладкой
+                                      «3 месяца» цифра читалась как «цена за весь срок».
+                                      Заметка (long_term_note) теперь отдельной строкой
+                                      ниже, а не вместо этой подписи. */}
+                                  за 1 месяц
+                                  {term && term.months > 1 ? ` при аренде на ${termTitle(term).toLowerCase()}` : ''}
+                                </span>
+                                {apartment.long_term_note && (
+                                  <span className="ap-long-offer__note">{apartment.long_term_note}</span>
+                                )}
+                                {term?.id === bestTermId && bestSaving >= 5 && (
+                                  <span className="ap-long-offer__best-note">
+                                    Лучшая цена — дешевле на {(dearest - cheapest).toLocaleString('ru-RU')} ₽ в месяц
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Своя кнопка: долгосрок не бронируется календарём,
+                                это заявка на выбранный срок. Кнопка внизу карточки
+                                ведёт в обычный посуточный сценарий. */}
+                            <button
+                              className="ap-long-offer__cta"
+                              onClick={() => handleLongTermClick(apartment)}
+                            >
+                              Забронировать на {term ? termTitle(term).toLowerCase() : 'длительный срок'}
+                            </button>
+
+                            {/* Зеркало посуточной строки. В долгосрочном режиме
+                                ap-list-footer выше не рендерится вовсе — тут её
+                                единственный след, короткая сноска с кнопкой
+                                переключения обратно в посуточный режим. */}
+                            {isLongMode && (
+                              <p className="ap-short-teaser">
+                                Сдаём и посуточно — от <b>{nightly.toLocaleString('ru-RU')} ₽</b> за ночь.{' '}
+                                <button
+                                  type="button"
+                                  className="ap-short-teaser__link"
+                                  onClick={() => setRentalMode('daily')}
+                                >
+                                  Смотреть посуточно
+                                </button>
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </article>
                 );
