@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, settingsService, longTermService } from '@/lib/db';
+import { db, settingsService, longTermService, findApartmentByIdOrSlug } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -8,7 +8,14 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id: param } = await params;
+
+  /* Принимаем и слаг («deep-music»), и внутренний id («ls-deep-music»).
+     После перевода адресов на человеческие слаги хедер продолжал дёргать
+     этот эндпоинт куском пути из URL, получал 404 и не рисовал кнопку
+     бронирования вовсе: на карточке апартамента не было ни «Проверить
+     доступность», ни модалки — только «Вернуться к списку». */
+  const id = findApartmentByIdOrSlug(param)?.id ?? param;
 
   try {
     // Получаем апартамент из БД (без проверки is_active, чтобы видеть даже неактивные)
