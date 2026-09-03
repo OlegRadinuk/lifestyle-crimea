@@ -45,6 +45,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      /* Прямая ссылка на чат с Софией — расшаривается в Instagram, WhatsApp,
+         на визитке. Раньше стояла noindex как «страница только для прямых
+         переходов», потом решили индексировать и её тоже — вреда нет, а по
+         брендовому запросу лишний URL в выдаче не помешает. */
+      url: `${baseUrl}/sofia`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
       // Аквазона (бассейны, детские, джакузи) живёт здесь — коммерческий запрос
       url: `${baseUrl}/services`,
       lastModified: new Date(),

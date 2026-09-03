@@ -19,9 +19,6 @@ import './sofia.css';
  * Текст сцены нарочно слева: на десктопе виджет открывается панелью в
  * правом нижнем углу (см. app/layout.tsx), и левая колонка — единственное
  * место, где заголовок не окажется под ним же секунду спустя.
- *
- * noindex: страница существует ради прямых переходов по ссылке, не ради
- * органического трафика — в поиске ей соревноваться не с кем и не за что.
  */
 
 const URL = 'https://lovelifestyle.ru/sofia';
@@ -67,7 +64,7 @@ export const metadata: Metadata = {
     description,
     images: ['https://lovelifestyle.ru/og-image.jpg'],
   },
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true, 'max-snippet': 150, 'max-image-preview': 'large' },
 };
 
 const SKILLS = [
