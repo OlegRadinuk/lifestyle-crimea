@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bookingService, logService } from '@/lib/db';
+import { db, bookingService, logService } from '@/lib/db';
 import { notifyTelegram } from '@/lib/telegram-notify';
-import { APARTMENTS } from '@/data/apartments';
 import { v4 as uuidv4 } from 'uuid';
 
 function formatRuDate(value: string) {
@@ -23,7 +22,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const apartment = APARTMENTS.find(a => a.id === apartmentId);
+    /* Было: поиск по статичному data/apartments.ts — файлу из 40 записей,
+       заведённому до перехода на БД и с тех пор не обновлявшемуся. В БД
+       сейчас 47 апартаментов; каждый новый или переименованный после
+       заведения файла ловил здесь мгновенный отказ «Apartment not found»,
+       и заявка не уходила вообще — при том что гость видел рабочую форму
+       и жал «Отправить». БД теперь источник истины, как и в заявке на
+       долгосрок (app/api/bookings/long-term/route.ts). */
+    const apartment = db.prepare(`
+      SELECT id, title, max_guests, price_base
+      FROM apartments
+      WHERE id = ? AND is_active = 1 AND deleted_at IS NULL
+    `).get(apartmentId) as { id: string; title: string; max_guests: number; price_base: number } | undefined;
+
     if (!apartment) {
       return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
     }
