@@ -1205,20 +1205,10 @@
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.ap-hero-links a::after {
-  content: '→';
-  font-size: 12px;
-  transition: transform 0.2s ease;
-}
-
 .ap-hero-links a:hover {
   background: rgba(19, 154, 182, 0.14);
   border-color: rgba(19, 154, 182, 0.5);
   color: #139ab6;
-}
-
-.ap-hero-links a:hover::after {
-  transform: translateX(2px);
 }
 
 @media (max-width: 768px) {
