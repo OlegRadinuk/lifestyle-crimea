@@ -29,6 +29,40 @@
   box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.25);
 }
 
+/* Состояние «открываю чат…» — до 8с, пока идёт опрос DOM на кнопку
+   виджета. Логотип дышит тем же ритмом, что и на LoadingScreen главной
+   (2с, scale+opacity) — так у сайта один узнаваемый язык ожидания. */
+.sofia-badge--opening {
+  border-color: rgba(19, 154, 182, 0.4);
+  background: rgba(19, 154, 182, 0.14);
+}
+
+.sofia-badge-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  animation: sofia-badge-pulse 2s ease-in-out infinite;
+}
+
+.sofia-badge-logo img {
+  width: 10px;
+  height: 10px;
+  object-fit: contain;
+}
+
+@keyframes sofia-badge-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofia-badge-logo { animation: none; }
+}
+
 /* ── ПОДСКАЗКА ПОД ЗАГОЛОВКОМ ────────────────────────────── */
 .sofia-hint {
   margin: 0;

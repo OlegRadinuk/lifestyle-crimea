@@ -5,6 +5,8 @@ import Footer from '@/components/Footer';
 import LandingHeaderMode from '../_landing/LandingHeaderMode';
 import LandingReveal from '../_landing/LandingReveal';
 import SofiaOpenChat from './SofiaOpenChat';
+import SofiaBadge from './SofiaBadge';
+import { SofiaChatProvider } from './SofiaChatContext';
 import '../_landing/landing.css';
 import './sofia.css';
 
@@ -88,6 +90,7 @@ const SKILLS = [
 
 export default function SofiaPage() {
   return (
+    <SofiaChatProvider>
     <main className="lp-page sofia-page">
       <LandingHeaderMode id="sofia-page" />
       <LandingReveal />
@@ -104,10 +107,9 @@ export default function SofiaPage() {
           />
         </div>
         <div className="lp-hero-inner sofia-hero-inner">
-          <span className="sofia-badge">
-            <span className="sofia-badge-dot" aria-hidden="true" />
-            София · онлайн
-          </span>
+          {/* Статус общий на бейдж и подсказку ниже — оба читают его из
+              SofiaChatContext, опрос DOM идёт там ровно один раз. */}
+          <SofiaBadge />
 
           <p className="lp-hero-eyebrow">Стиль Жизни · Алушта</p>
           <h1 className="lp-hero-title">Спросите у Софии</h1>
@@ -174,5 +176,6 @@ export default function SofiaPage() {
 
       <Footer />
     </main>
+    </SofiaChatProvider>
   );
 }
