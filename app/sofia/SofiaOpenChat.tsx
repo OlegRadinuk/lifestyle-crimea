@@ -15,6 +15,9 @@ import { useEffect, useState } from 'react';
  *
  * Если кнопка не появилась за 8 секунд — скрипт заблокирован адблокером
  * или не догрузился. Показываем обычные контакты вместо вечного ожидания.
+ *
+ * Живёт внутри тёмной героя-сцены (фото + затемнение), поэтому и подсказка,
+ * и запасной блок стилизованы под светлый текст на тёмном фоне.
  */
 export default function SofiaOpenChat() {
   const [failed, setFailed] = useState(false);
@@ -44,7 +47,11 @@ export default function SofiaOpenChat() {
     return () => window.clearInterval(timer);
   }, []);
 
-  if (!failed) return null;
+  if (!failed) {
+    return (
+      <p className="sofia-hint">Чат откроется сам — обычно за несколько секунд.</p>
+    );
+  }
 
   return (
     <div className="sofia-fallback" role="alert">
@@ -54,8 +61,8 @@ export default function SofiaOpenChat() {
         ответим так же быстро.
       </p>
       <div className="sofia-fallback-actions">
-        <a href="tel:88007776308" className="sofia-btn sofia-btn-primary">8 800 777 63 08</a>
-        <a href="https://wa.me/79785036363" className="sofia-btn sofia-btn-ghost" target="_blank" rel="noopener noreferrer">
+        <a href="tel:88007776308" className="lp-btn lp-btn-primary">8 800 777 63 08</a>
+        <a href="https://wa.me/79785036363" className="lp-btn lp-btn-ghost" target="_blank" rel="noopener noreferrer">
           WhatsApp
         </a>
       </div>

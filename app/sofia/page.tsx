@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import Footer from '@/components/Footer';
 import LandingHeaderMode from '../_landing/LandingHeaderMode';
+import LandingReveal from '../_landing/LandingReveal';
 import SofiaOpenChat from './SofiaOpenChat';
+import '../_landing/landing.css';
 import './sofia.css';
 
 /* Страница-ссылка на чат с Софией.
@@ -13,9 +16,12 @@ import './sofia.css';
  * открывает диалог, а не просто «зайдите на сайт и найдите кнопку внизу
  * справа». lovelifestyle.ru/sofia — эта ссылка.
  *
- * noindex: страница существует ради прямых переходов по конкретной ссылке,
- * не ради органического трафика — в поиске ей соревноваться не с кем и не
- * за что, а дублировать смысл каталога в выдаче незачем.
+ * Текст сцены нарочно слева: на десктопе виджет открывается панелью в
+ * правом нижнем углу (см. app/layout.tsx), и левая колонка — единственное
+ * место, где заголовок не окажется под ним же секунду спустя.
+ *
+ * noindex: страница существует ради прямых переходов по ссылке, не ради
+ * органического трафика — в поиске ей соревноваться не с кем и не за что.
  */
 
 export const metadata: Metadata = {
@@ -25,34 +31,130 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+const SKILLS = [
+  {
+    title: 'Подберёт апартамент',
+    text: 'Под ваши даты, число гостей и бюджет — с конкретным этажом, видом и ценой, а не общим списком.',
+  },
+  {
+    title: 'Проверит свободные даты',
+    text: 'Прямо в переписке, без ожидания на линии — данные о занятости обновляются в реальном времени.',
+  },
+  {
+    title: 'Расскажет про виды и планировки',
+    text: 'Море, горы или город; студия или отдельная спальня — сравнит варианты под то, что важно именно вам.',
+  },
+  {
+    title: 'Работает круглосуточно',
+    text: 'Отвечает за секунды в любое время — не нужно подгадывать рабочие часы менеджера.',
+  },
+];
+
 export default function SofiaPage() {
   return (
-    <main className="sofia-page">
+    <main className="lp-page sofia-page">
       <LandingHeaderMode id="sofia-page" />
-      <SofiaOpenChat />
+      <LandingReveal />
 
-      <div className="sofia-inner">
-        <div className="sofia-avatar">
+      {/* ===== HERO ===== */}
+      <header className="lp-hero sofia-hero">
+        <div className="lp-hero-media">
           <Image
-            src="/images/logo/logo-white.webp"
-            alt=""
-            width={96}
-            height={96}
-            aria-hidden="true"
+            src="/images/menu/apartments.webp"
+            alt="Апартамент апарт-отеля «Стиль Жизни» в Алуште"
+            fill
+            priority
+            sizes="100vw"
           />
         </div>
+        <div className="lp-hero-inner sofia-hero-inner">
+          <span className="sofia-badge">
+            <span className="sofia-badge-dot" aria-hidden="true" />
+            София · онлайн
+          </span>
 
-        <p className="sofia-eyebrow">Стиль Жизни · Алушта</p>
-        <h1 className="sofia-title">София уже открывает чат</h1>
-        <p className="sofia-subtitle">
-          Персональный помощник апарт-отеля. Расскажите, на какие даты и сколько
-          гостей — София подберёт апартамент и вид, который подойдёт именно вам.
-        </p>
+          <p className="lp-hero-eyebrow">Стиль Жизни · Алушта</p>
+          <h1 className="lp-hero-title">Спросите у Софии</h1>
+          <p className="lp-hero-subtitle">
+            Персональный помощник апарт-отеля. Напишите, на какие даты и сколько
+            гостей — подберёт апартамент и вид, который подойдёт именно вам.
+          </p>
 
-        <p className="sofia-hint">
-          Если окно чата не появилось само — оно откроется кнопкой в правом нижнем углу.
-        </p>
-      </div>
+          <SofiaOpenChat />
+        </div>
+      </header>
+
+      {/* ===== ЧЕМ ПОМОЖЕТ ===== */}
+      <section className="lp-section">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Чем поможет</p>
+          <h2 className="lp-title lp-reveal">Не бот с меню, а живой подбор варианта</h2>
+
+          <ul className="sofia-skills lp-reveal">
+            {SKILLS.map((s) => (
+              <li key={s.title} className="sofia-skill">
+                <span className="sofia-skill-title">{s.title}</span>
+                <span className="sofia-skill-text">{s.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ===== ЕСЛИ УДОБНЕЕ ПОЗВОНИТЬ ===== */}
+      <section className="lp-section lp-section-alt">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">Если удобнее позвонить</p>
+          <h2 className="lp-title lp-reveal">Те же люди, только голосом</h2>
+          <div className="lp-prose lp-reveal">
+            <p>
+              Чат Софии не единственный способ связаться — заявки от неё попадают тем же
+              менеджерам, что отвечают по телефону и в мессенджерах.
+            </p>
+          </div>
+
+          <div className="sofia-contacts lp-reveal">
+            <a href="tel:88007776308" className="sofia-contact">
+              <span className="sofia-contact-label">Бесплатно по России</span>
+              <span className="sofia-contact-value">8 800 777 63 08</span>
+            </a>
+            <a href="https://wa.me/79785036363" target="_blank" rel="noopener noreferrer" className="sofia-contact">
+              <span className="sofia-contact-label">WhatsApp</span>
+              <span className="sofia-contact-value">+7 978 503 63 63</span>
+            </a>
+            <a href="https://t.me/lifestylecrimea" target="_blank" rel="noopener noreferrer" className="sofia-contact">
+              <span className="sofia-contact-label">Telegram</span>
+              <span className="sofia-contact-value">@lifestylecrimea</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== О КОМПЛЕКСЕ + ССЫЛКИ ===== */}
+      <section className="lp-section">
+        <div className="lp-inner">
+          <p className="lp-eyebrow lp-reveal">О комплексе</p>
+          <h2 className="lp-title lp-reveal">47 апартаментов в Профессорском уголке</h2>
+          <div className="lp-prose lp-reveal">
+            <p>
+              Апарт-отель «Стиль Жизни» стоит на Западной улице в тихой части Алушты, до
+              пляжа 650 метров пешком. Своя кухня и терраса в каждом апартаменте, бассейны
+              работают круглый год. Бронирование напрямую, без комиссии посредников.
+            </p>
+          </div>
+          <div className="lp-links lp-reveal">
+            <Link href="/apartments" className="lp-btn lp-btn-primary">
+              Смотреть апартаменты и цены
+            </Link>
+            <Link href="/professorskiy-ugolok" className="lp-btn lp-btn-ghost">
+              О районе
+            </Link>
+            <Link href="/zhile-s-basseynom" className="lp-btn lp-btn-ghost">
+              Про бассейны
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </main>
