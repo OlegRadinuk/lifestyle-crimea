@@ -145,3 +145,21 @@
     padding: 18px;
   }
 }
+
+/* Телефон — приглушённая строка под карточками мессенджеров, а не
+   равноправная карточка. Звонки сейчас принимает по сути один человек. */
+.sofia-phone-note {
+  margin: 18px 0 0;
+  font-size: 13.5px;
+  color: #8aa5b0;
+}
+
+.sofia-phone-note a {
+  color: #0d7e96;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sofia-phone-note a:hover {
+  text-decoration: underline;
+}

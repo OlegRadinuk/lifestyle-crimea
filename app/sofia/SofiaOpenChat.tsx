@@ -57,13 +57,15 @@ export default function SofiaOpenChat() {
     <div className="sofia-fallback" role="alert">
       <p className="sofia-fallback-title">Чат сейчас не открылся</p>
       <p className="sofia-fallback-text">
-        Возможно, его блокирует расширение в браузере. Позвоните или напишите напрямую —
-        ответим так же быстро.
+        Возможно, его блокирует расширение в браузере. Напишите напрямую — ответим так же
+        быстро.
       </p>
       <div className="sofia-fallback-actions">
-        <a href="tel:88007776308" className="lp-btn lp-btn-primary">8 800 777 63 08</a>
-        <a href="https://wa.me/79785036363" className="lp-btn lp-btn-ghost" target="_blank" rel="noopener noreferrer">
+        <a href="https://wa.me/79785036363" className="lp-btn lp-btn-primary" target="_blank" rel="noopener noreferrer">
           WhatsApp
+        </a>
+        <a href="https://t.me/lifestylecrimea" className="lp-btn lp-btn-ghost" target="_blank" rel="noopener noreferrer">
+          Telegram
         </a>
       </div>
     </div>

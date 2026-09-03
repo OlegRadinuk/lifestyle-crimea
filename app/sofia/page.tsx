@@ -101,23 +101,19 @@ export default function SofiaPage() {
         </div>
       </section>
 
-      {/* ===== ЕСЛИ УДОБНЕЕ ПОЗВОНИТЬ ===== */}
+      {/* ===== ЕСЛИ УДОБНЕЕ В МЕССЕНДЖЕРЕ ===== */}
       <section className="lp-section lp-section-alt">
         <div className="lp-inner">
-          <p className="lp-eyebrow lp-reveal">Если удобнее позвонить</p>
-          <h2 className="lp-title lp-reveal">Те же люди, только голосом</h2>
+          <p className="lp-eyebrow lp-reveal">Если чат не подходит</p>
+          <h2 className="lp-title lp-reveal">WhatsApp и Telegram — те же люди</h2>
           <div className="lp-prose lp-reveal">
             <p>
-              Чат Софии не единственный способ связаться — заявки от неё попадают тем же
-              менеджерам, что отвечают по телефону и в мессенджерах.
+              Заявки из чата и из мессенджеров попадают одним и тем же людям — обычно
+              отвечают там даже быстрее, чем по телефону.
             </p>
           </div>
 
           <div className="sofia-contacts lp-reveal">
-            <a href="tel:88007776308" className="sofia-contact">
-              <span className="sofia-contact-label">Бесплатно по России</span>
-              <span className="sofia-contact-value">8 800 777 63 08</span>
-            </a>
             <a href="https://wa.me/79785036363" target="_blank" rel="noopener noreferrer" className="sofia-contact">
               <span className="sofia-contact-label">WhatsApp</span>
               <span className="sofia-contact-value">+7 978 503 63 63</span>
@@ -127,6 +123,14 @@ export default function SofiaPage() {
               <span className="sofia-contact-value">@lifestylecrimea</span>
             </a>
           </div>
+
+          {/* Телефон — не карточкой наравне с мессенджерами: звонки сейчас
+              принимает по сути один человек, и класть их визуально в один
+              ряд с WhatsApp/Telegram значит звать звонить так же часто. */}
+          <p className="sofia-phone-note lp-reveal">
+            Для срочных вопросов — бесплатный номер{' '}
+            <a href="tel:88007776308">8 800 777 63 08</a>.
+          </p>
         </div>
       </section>
 
