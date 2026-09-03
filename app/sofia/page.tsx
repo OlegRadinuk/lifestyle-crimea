@@ -24,10 +24,49 @@ import './sofia.css';
  * органического трафика — в поиске ей соревноваться не с кем и не за что.
  */
 
+const URL = 'https://lovelifestyle.ru/sofia';
+
+/* Бренд сюда НЕ дописываем в title: корневой layout сам добавляет
+   «| Стиль Жизни, Алушта» через шаблон — без этой оговорки он задваивался
+   («Написать Софии — Стиль Жизни, Алушта | Стиль Жизни, Алушта»), это уже
+   ловили на посадочных страницах. og:title и twitter:title — отдельные
+   поля, шаблон их не трогает, туда бренд идёт полностью.
+   openGraph здесь обязателен: без него og:url наследуется от корневого
+   layout и указывает на главную, а не на /sofia — этим и объяснялось
+   зависшее превью в Telegram, оно тянуло чужой адрес. */
+const title = 'Написать Софии';
+const ogTitle = 'Написать Софии — Стиль Жизни, Алушта';
+const description =
+  'Прямой чат с Софией, персональным помощником апарт-отеля «Стиль Жизни» в Алуште. Подберёт апартамент под даты и число гостей, ответит на вопросы о заезде и ценах.';
+
 export const metadata: Metadata = {
-  title: 'Написать Софии — Стиль Жизни, Алушта',
-  description:
-    'Прямой чат с Софией, персональным помощником апарт-отеля «Стиль Жизни» в Алуште. Подберёт апартамент под даты и число гостей, ответит на вопросы о заезде и ценах.',
+  title,
+  description,
+  alternates: { canonical: URL },
+  openGraph: {
+    title: ogTitle,
+    description,
+    type: 'website',
+    locale: 'ru_RU',
+    url: URL,
+    siteName: 'Стиль Жизни',
+    /* JPEG 1200×630: WebP в превью ссылок не показывают ни Telegram,
+       ни WhatsApp, ни VK — карточка приходит пустой. */
+    images: [
+      {
+        url: 'https://lovelifestyle.ru/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Апарт-отель «Стиль Жизни» в Алуште',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: ogTitle,
+    description,
+    images: ['https://lovelifestyle.ru/og-image.jpg'],
+  },
   robots: { index: false, follow: true },
 };
 
