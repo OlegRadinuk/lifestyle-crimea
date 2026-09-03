@@ -147,7 +147,9 @@
 
 .ap-search-section {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 0 24px 24px;
+  /* Верхний паддинг обязателен: без него margin-top переключателя
+     схлопывался наружу и над ним шла белая полоса чужого фона. */
+  padding: 20px 24px 24px;
   border-bottom: 1px solid rgba(19, 154, 182, 0.15);
   margin-top: 1px;
 }
@@ -728,7 +730,7 @@
   position: relative;
   display: flex;
   width: fit-content;
-  margin: 20px auto;
+  margin: 0 auto 20px;
   padding: 4px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(19, 154, 182, 0.2);
@@ -756,7 +758,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  flex: 1 0 auto;
+  /* Равные половины: у «Долгосрочно» есть счётчик, и при flex:1 0 auto
+     кнопка становилась шире второй, а бегунок под ней ровно 50% —
+     из-за этого текст выглядел смещённым. */
+  flex: 1 1 0;
   min-width: 150px;
   min-height: 44px;
   padding: 10px 24px;
@@ -1198,4 +1203,87 @@
   .ap-hero-links {
     gap: 0 18px;
   }
+}
+
+/* ── ДОЛГОСРОК: СВЁРНУТЫЙ ТИЗЕР ─────────────────────────────
+   В посуточном режиме предложение о длительной аренде живёт одной строкой.
+   Раньше развёрнутый голубой блок стоял рядом с посуточной ценой, и в одной
+   карточке оказывались две разные сделки с двумя кнопками. */
+.ap-long-teaser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border: 1px dashed rgba(19, 154, 182, 0.45);
+  border-radius: 12px;
+  background: rgba(19, 154, 182, 0.05);
+  color: #0d7e96;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ap-long-teaser:hover {
+  background: rgba(19, 154, 182, 0.1);
+  border-color: #139ab6;
+}
+
+.ap-long-teaser b { font-weight: 600; color: #0b6b80; }
+
+.ap-long-teaser__arrow { flex: none; font-size: 15px; }
+
+/* ── ДОЛГОСРОК: РАЗВЁРНУТЫЙ БЛОК ────────────────────────────── */
+.ap-long-offer { position: relative; }
+
+.ap-long-offer__kicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0d7e96;
+}
+
+/* Крестик: тем, кто приехал на несколько ночей, блок больше не маячит */
+.ap-long-offer__close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5d7278;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.ap-long-offer__close:hover {
+  background: rgba(13, 27, 34, 0.08);
+  color: #0d1b22;
+}
+
+/* ── ПОДПИСЬ У ПОСУТОЧНОЙ ЦЕНЫ ──────────────────────────────
+   Чтобы рядом с голубым блоком было видно, что эта цена и кнопка под ней —
+   про сутки, а не про месяц. */
+.ap-list-price__mode {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8b93;
+  white-space: nowrap;
 }

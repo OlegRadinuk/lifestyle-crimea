@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSearch } from '@/components/SearchContext';
@@ -111,6 +111,29 @@ export default function ApartmentsClient({
   // Режим аренды: посуточно (по умолчанию) или долгосрочно
   const [rentalMode, setRentalMode] = useState<RentalMode>('daily');
   const isLongMode = rentalMode === 'long';
+
+  /* Какие долгосрочные блоки гость раскрыл вручную в посуточном режиме.
+     По умолчанию в посуточном режиме блок свёрнут до одной строки-тизера:
+     он предлагает длительную аренду, но не мешает тем, кто приехал на
+     несколько ночей. В долгосрочном режиме блок всегда раскрыт. */
+  const [openLongOffers, setOpenLongOffers] = useState<Set<string>>(new Set());
+  const toggleLongOffer = (id: string) =>
+    setOpenLongOffers(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  /* Форма поиска наверху каталога: «Выбрать даты» на карточке поднимает
+     сюда и ставит фокус в поле заезда. Раньше эта кнопка была ссылкой на
+     ту же страницу, что и «Подробнее», то есть просто дублировала её. */
+  const searchRef = useRef<HTMLDivElement | null>(null);
+  const focusSearch = () => {
+    searchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => {
+      searchRef.current?.querySelector<HTMLInputElement>('input[type="date"]')?.focus();
+    }, 450);
+  };
 
   // Фильтр по типу жилья; null — «Все»
   const [category, setCategory] = useState<ApartmentCategory | null>(null);
@@ -426,7 +449,7 @@ export default function ApartmentsClient({
         </div>
 
         {/* Форма поиска */}
-        <div className="ap-search-section">
+        <div className="ap-search-section" ref={searchRef}>
           <div className="ap-search-container">
             {/* Переключатель режима аренды.
                 Пока менеджер не включил долгосрок ни одному апартаменту, вкладка
@@ -669,8 +692,42 @@ export default function ApartmentsClient({
                           ? Math.round((1 - cheapest / dearest) * 100)
                           : 0;
 
+                        /* В посуточном режиме блок свёрнут до одной строки,
+                           пока гость сам его не раскроет: предложение видно,
+                           но не спорит с посуточной ценой за него же. В
+                           долгосрочном режиме он всегда развёрнут — гость уже
+                           сказал, что ему нужен длительный срок. */
+                        const longOpen = isLongMode || openLongOffers.has(apartment.id);
+
+                        if (!longOpen) {
+                          return (
+                            <button
+                              type="button"
+                              className="ap-long-teaser"
+                              onClick={() => toggleLongOffer(apartment.id)}
+                            >
+                              <span>
+                                Сдаём и на срок от {longTermMinDays} суток — от{' '}
+                                <b>{monthly.toLocaleString('ru-RU')} ₽</b> в месяц
+                              </span>
+                              <span className="ap-long-teaser__arrow" aria-hidden="true">→</span>
+                            </button>
+                          );
+                        }
+
                         return (
                           <div className="ap-long-offer">
+                            {!isLongMode && (
+                              <button
+                                type="button"
+                                className="ap-long-offer__close"
+                                onClick={() => toggleLongOffer(apartment.id)}
+                                aria-label="Свернуть предложение о длительной аренде"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <p className="ap-long-offer__kicker">Длительная аренда</p>
                             {paidTerms.length > 1 && (
                               <div className="ap-long-offer__terms" role="tablist" aria-label="Срок аренды">
                                 {paidTerms.map(t => {
@@ -694,14 +751,12 @@ export default function ApartmentsClient({
                               </div>
                             )}
 
+                            {/* Только месячная цена. Раньше рядом стояла ещё и
+                                суточная, и в одном голубом блоке оказывались две
+                                разные сделки — гость не понимал, какая кнопка
+                                что бронирует. Посуточная цена живёт ниже, в
+                                своей строке, вместе со своей кнопкой. */}
                             <div className="ap-long-offer__prices">
-                              <div className="ap-long-offer__col">
-                                <span className="ap-long-offer__value">
-                                  {nightly.toLocaleString('ru-RU')} ₽
-                                </span>
-                                <span className="ap-long-offer__label">за ночь</span>
-                              </div>
-                              <div className="ap-long-offer__divider" aria-hidden="true" />
                               <div className="ap-long-offer__col ap-long-offer__col--accent">
                                 <span className="ap-long-offer__value">
                                   {monthly.toLocaleString('ru-RU')} ₽
@@ -733,6 +788,11 @@ export default function ApartmentsClient({
                         );
                       })()}
 
+                      {/* В долгосрочном режиме посуточной строки нет вовсе:
+                          гость уже выбрал длительную аренду, показывать ему
+                          цену за ночь и кнопку суточной брони — значит снова
+                          смешивать две разные сделки в одной карточке. */}
+                      {!isLongMode && (
                       <div className="ap-list-footer">
                         {(() => {
                           if (hasSearchParams && checkIn && checkOut) {
@@ -769,6 +829,7 @@ export default function ApartmentsClient({
                           return (
                             <div className="ap-list-price">
                               от {nightly.toLocaleString('ru-RU')} ₽ / ночь
+                              <span className="ap-list-price__mode">посуточно</span>
                             </div>
                           );
                         })()}
@@ -778,17 +839,21 @@ export default function ApartmentsClient({
                             Подробнее
                           </Link>
 
+                          {/* Кнопка всегда говорит, ЧТО именно бронируешь.
+                              Без дат вести на карточку бессмысленно — это то же
+                              самое, что «Подробнее»; поднимаем к форме поиска и
+                              ставим курсор в поле заезда. */}
                           {!hasSearchParams ? (
-                            <Link href={`/apartments/${apartment.slug || apartment.id}`} className="btn-primary">
+                            <button type="button" className="btn-primary" onClick={focusSearch}>
                               Выбрать даты
-                            </Link>
+                            </button>
                           ) : isAvailable ? (
                             <button
                               className="btn-primary"
                               onClick={() => handleBookingClick(apartment)}
                               disabled={checkingId === apartment.id}
                             >
-                              {checkingId === apartment.id ? 'Проверка...' : 'Забронировать'}
+                              {checkingId === apartment.id ? 'Проверка...' : 'Забронировать посуточно'}
                             </button>
                           ) : (
                             <button className="btn-unavailable" disabled>
@@ -797,6 +862,7 @@ export default function ApartmentsClient({
                           )}
                         </div>
                       </div>
+                      )}
                     </div>
                   </article>
                 );
