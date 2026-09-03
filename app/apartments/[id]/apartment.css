@@ -968,3 +968,90 @@
     }
   }
 }
+
+/* ===== ПОДСКАЗКА «НАЖМИ НА ФОТО» (только мобилка) =====
+   Круги, расходящиеся от точки — как от камня, брошенного в воду. Стоит в
+   спокойной зоне кадра: выше информационной панели снизу (z-index 20,
+   bottom 24px+) и ниже кнопок хедера сверху. Декоративная, pointer-events
+   отключены — клик по фото ловит кнопка-перехватчик под ней. */
+.apartment-hero.mobile .apt-photo-hint {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.apartment-hero.mobile .apt-photo-hint__ripple {
+  position: relative;
+  width: 46px;
+  height: 46px;
+}
+
+.apartment-hero.mobile .apt-photo-hint__ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  opacity: 0;
+  animation: apt-photo-ripple 3.2s ease-out infinite;
+}
+
+.apartment-hero.mobile .apt-photo-hint__ring--2 { animation-delay: 0.7s; }
+.apartment-hero.mobile .apt-photo-hint__ring--3 { animation-delay: 1.4s; }
+
+.apartment-hero.mobile .apt-photo-hint__dot {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+@keyframes apt-photo-ripple {
+  0% {
+    width: 10px;
+    height: 10px;
+    opacity: 0.75;
+  }
+  55% {
+    opacity: 0;
+  }
+  56%, 100% {
+    width: 46px;
+    height: 46px;
+    opacity: 0;
+  }
+}
+
+.apartment-hero.mobile .apt-photo-hint__text {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Кольца дают ложное ощущение движения тем, кто просил его отключить —
+   останавливаем анимацию, оставляем статичный кадр из трёх колец. */
+@media (prefers-reduced-motion: reduce) {
+  .apartment-hero.mobile .apt-photo-hint__ring {
+    animation: none;
+    opacity: 0.35;
+  }
+  .apartment-hero.mobile .apt-photo-hint__ring--1 { width: 18px; height: 18px; }
+  .apartment-hero.mobile .apt-photo-hint__ring--2 { width: 30px; height: 30px; }
+  .apartment-hero.mobile .apt-photo-hint__ring--3 { width: 42px; height: 42px; }
+}

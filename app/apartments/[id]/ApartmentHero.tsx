@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
+import PhotoHint from './PhotoHint';
 import './apartment.css';
 
 // ===== FEATURE ICONS (inline SVG, no external deps) =====
@@ -465,6 +466,8 @@ export default function ApartmentHero({ apartment, loading = false }: Props) {
           onClick={openLightbox}
         />
       )}
+
+      {hasImages && <PhotoHint />}
 
       <div className="panorama-overlay mobile" />
 

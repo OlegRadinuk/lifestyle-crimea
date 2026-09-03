@@ -1177,31 +1177,58 @@
 }
 /* Ссылки на тематические посадочные в шапке каталога.
    44px по высоте — минимум для тач-цели. */
+/* Чипы-подборки вместо подчёркнутых ссылок. Постоянная линия под текстом
+   читалась как случайный артефакт вёрстки — форма ссылки, которая ничем
+   не отличалась от обычного текста рядом, пока в неё не ткнёшь. Пилюля
+   со стрелкой опознаётся как кликабельный элемент сама по себе, без
+   подчёркивания. */
 .ap-hero-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 22px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .ap-hero-links a {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  font-size: 14px;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(19, 154, 182, 0.28);
+  background: rgba(19, 154, 182, 0.06);
+  font-size: 13.5px;
+  font-weight: 500;
   color: #0d7e96;
   text-decoration: none;
-  border-bottom: 1px solid rgba(19, 154, 182, 0.35);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.ap-hero-links a::after {
+  content: '→';
+  font-size: 12px;
+  transition: transform 0.2s ease;
 }
 
 .ap-hero-links a:hover {
+  background: rgba(19, 154, 182, 0.14);
+  border-color: rgba(19, 154, 182, 0.5);
   color: #139ab6;
-  border-bottom-color: #139ab6;
+}
+
+.ap-hero-links a:hover::after {
+  transform: translateX(2px);
 }
 
 @media (max-width: 768px) {
   .ap-hero-links {
-    gap: 0 18px;
+    gap: 6px;
+  }
+
+  .ap-hero-links a {
+    min-height: 40px;
+    padding: 0 13px;
   }
 }
 
