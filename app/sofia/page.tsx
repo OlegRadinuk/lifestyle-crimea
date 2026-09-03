@@ -101,41 +101,8 @@ export default function SofiaPage() {
         </div>
       </section>
 
-      {/* ===== ЕСЛИ УДОБНЕЕ В МЕССЕНДЖЕРЕ ===== */}
-      <section className="lp-section lp-section-alt">
-        <div className="lp-inner">
-          <p className="lp-eyebrow lp-reveal">Если чат не подходит</p>
-          <h2 className="lp-title lp-reveal">WhatsApp и Telegram — те же люди</h2>
-          <div className="lp-prose lp-reveal">
-            <p>
-              Заявки из чата и из мессенджеров попадают одним и тем же людям — обычно
-              отвечают там даже быстрее, чем по телефону.
-            </p>
-          </div>
-
-          <div className="sofia-contacts lp-reveal">
-            <a href="https://wa.me/79785036363" target="_blank" rel="noopener noreferrer" className="sofia-contact">
-              <span className="sofia-contact-label">WhatsApp</span>
-              <span className="sofia-contact-value">+7 978 503 63 63</span>
-            </a>
-            <a href="https://t.me/lifestylecrimea" target="_blank" rel="noopener noreferrer" className="sofia-contact">
-              <span className="sofia-contact-label">Telegram</span>
-              <span className="sofia-contact-value">@lifestylecrimea</span>
-            </a>
-          </div>
-
-          {/* Телефон — не карточкой наравне с мессенджерами: звонки сейчас
-              принимает по сути один человек, и класть их визуально в один
-              ряд с WhatsApp/Telegram значит звать звонить так же часто. */}
-          <p className="sofia-phone-note lp-reveal">
-            Для срочных вопросов — бесплатный номер{' '}
-            <a href="tel:88007776308">8 800 777 63 08</a>.
-          </p>
-        </div>
-      </section>
-
       {/* ===== О КОМПЛЕКСЕ + ССЫЛКИ ===== */}
-      <section className="lp-section">
+      <section className="lp-section lp-section-alt">
         <div className="lp-inner">
           <p className="lp-eyebrow lp-reveal">О комплексе</p>
           <h2 className="lp-title lp-reveal">47 апартаментов в Профессорском уголке</h2>
@@ -157,6 +124,15 @@ export default function SofiaPage() {
               Про бассейны
             </Link>
           </div>
+
+          {/* Не карточка и не секция — специально одной строкой и без
+              заголовка. Заявки нужны через Софию, там сразу видно даты и
+              число гостей; звонок никто не собирает и не структурирует.
+              Строка не пропадает — кому действительно нужно, найдёт её и
+              так, просто не завлекаем ей никого специально. */}
+          <p className="sofia-phone-note lp-reveal">
+            Если удобнее позвонить — <a href="tel:88007776308">8 800 777 63 08</a>.
+          </p>
         </div>
       </section>
 
