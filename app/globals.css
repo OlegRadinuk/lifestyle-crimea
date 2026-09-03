@@ -143,6 +143,22 @@ html, body {
   animation: headerReveal 0.8s ease-out forwards;
   animation-delay: 0.2s;
   transition: background 0.35s ease, backdrop-filter 0.35s ease, box-shadow 0.35s ease;
+  /* Фон всегда прозрачный (см. выше) — полоса реально пуста везде, кроме
+     бургера и (в hero) полей формы. Но вся её ширина, ~100vw × 80px,
+     перехватывала клики: ссылки и чипы на странице под ней (например,
+     «Профессорский уголок» в шапке каталога) не нажимались, хотя визуально
+     header там ничего не рисует. pointer-events выключен на самом баре и
+     возвращён точечно на каждый интерактивный блок внутри — расположение и
+     размеры не меняются, трогаем только кликабельность. */
+  pointer-events: none;
+}
+
+.header__burger,
+.header__mobile-book-btn,
+.header__apt-actions,
+.header__booking-wrapper,
+.header__mobile-fields,
+.header__calendar-popover {
   pointer-events: auto;
 }
 

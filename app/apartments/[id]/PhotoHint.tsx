@@ -23,7 +23,7 @@ export default function PhotoHint() {
         <span className="apt-photo-hint__ring apt-photo-hint__ring--3" />
         <span className="apt-photo-hint__dot" />
       </span>
-      <span className="apt-photo-hint__text">Смотреть фото</span>
+      <span className="apt-photo-hint__text">Смотреть</span>
     </div>
   );
 }
