@@ -174,28 +174,30 @@ export default function SofiaPanorama() {
             стоять на балконе самого апартамента.
           </p>
         </div>
-      </div>
 
-      <div className="sofia-panorama-stage lp-reveal">
-        {/* Постер-фон под canvas: то же фото плоско, видно только пока WebGL
-            не отрисовался или не сработал — вместо чёрного прямоугольника. */}
-        <div
-          className="sofia-panorama-poster"
-          style={{ backgroundImage: `url(${PANORAMA_IMAGE})` }}
-        />
-        <div ref={containerRef} className="sofia-panorama-canvas" />
+        {/* Сцена внутри .lp-inner, а не на всю ширину секции: на десктопе
+            колонка сдвинута влево, под открытую панель Софии справа. */}
+        <div className="sofia-panorama-stage lp-reveal">
+          {/* Постер-фон под canvas: то же фото плоско, видно только пока WebGL
+              не отрисовался или не сработал — вместо чёрного прямоугольника. */}
+          <div
+            className="sofia-panorama-poster"
+            style={{ backgroundImage: `url(${PANORAMA_IMAGE})` }}
+          />
+          <div ref={containerRef} className="sofia-panorama-canvas" />
 
-        {loading && (
-          <div className="sofia-panorama-loader" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-        )}
+          {loading && (
+            <div className="sofia-panorama-loader" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
 
-        {!loading && hintVisible && (
-          <div className="sofia-panorama-hint">Потяните, чтобы осмотреться</div>
-        )}
+          {!loading && hintVisible && (
+            <div className="sofia-panorama-hint">Потяните, чтобы осмотреться</div>
+          )}
+        </div>
       </div>
     </section>
   );

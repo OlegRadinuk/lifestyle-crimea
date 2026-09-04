@@ -114,18 +114,65 @@
   .sofia-hero-scroll-icon { animation: none; }
 }
 
+/* ── ДЕСКТОП: ЛЕВАЯ КОЛОНКА ПОД ОТКРЫТУЮ ПАНЕЛЬ СОФИИ ────────
+   Панель чата — 368px шириной с отступом 126px от правого края
+   (переопределено в app/layout.tsx), то есть она забирает ~494px справа.
+   Весь контент страницы держим левее этой полосы: смысл /sofia в том,
+   чтобы человек читал страницу и писал Софии одновременно, а не закрывал
+   одно ради другого.
+
+   Хиро и секции считаем от одних и тех же переменных, чтобы левый край
+   текста совпадал по всей странице: у .lp-hero-inner боковые padding 32px
+   лежат внутри его width, а .lp-inner сидит внутри .lp-section с такими же
+   32px — отсюда одинаковая поправка -32px в margin-left у обоих. */
+@media (min-width: 1200px) {
+  .sofia-page {
+    --sofia-col: min(760px, calc(100vw - 620px));
+    --sofia-gutter: max(32px, calc((100vw - 1280px) / 2));
+  }
+
+  .sofia-page .lp-hero-inner {
+    width: calc(var(--sofia-col) + 64px);
+    max-width: none;
+    margin-left: calc(var(--sofia-gutter) - 32px);
+    margin-right: 0;
+  }
+
+  .sofia-page .lp-inner {
+    width: var(--sofia-col);
+    max-width: none;
+    margin-left: calc(var(--sofia-gutter) - 32px);
+    margin-right: 0;
+  }
+
+  /* Стрелка под текстом, а не по центру колонки — вся страница левая. */
+  .sofia-hero-scroll {
+    margin-left: 0;
+    margin-right: auto;
+  }
+}
+
 /* ── ПАНОРАМА 360° ПОСЛЕ ХЕРО ───────────────────────────────
-   Секция как обычный lp-section (белый фон, тот же ритм), внутри —
-   full-bleed сцена высотой в экран за вычетом хедера. */
+   Живёт внутри .lp-inner, поэтому на десктопе автоматически остаётся в
+   левой колонке и не лезет под панель чата. Высота — по пропорции, иначе
+   в узкой колонке получалась бы вертикальная бойница. */
 .sofia-panorama-stage {
   position: relative;
   margin-top: 36px;
   width: 100%;
-  height: min(78vh, 720px);
+  height: min(70vh, 620px);
   min-height: 380px;
   border-radius: 20px;
   overflow: hidden;
   background: #0d1b22;
+}
+
+@media (min-width: 1200px) {
+  .sofia-panorama-stage {
+    height: auto;
+    aspect-ratio: 16 / 10;
+    max-height: 560px;
+  }
 }
 
 .sofia-panorama-poster {
