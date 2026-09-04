@@ -6,6 +6,7 @@ import LandingHeaderMode from '../_landing/LandingHeaderMode';
 import LandingReveal from '../_landing/LandingReveal';
 import SofiaOpenChat from './SofiaOpenChat';
 import SofiaBadge from './SofiaBadge';
+import SofiaPanorama from './SofiaPanorama';
 import { SofiaChatProvider } from './SofiaChatContext';
 import '../_landing/landing.css';
 import './sofia.css';
@@ -119,8 +120,20 @@ export default function SofiaPage() {
           </p>
 
           <SofiaOpenChat />
+
+          {/* Приманка листать вниз — там панорама, живой повод остаться
+              на странице подольше, а не просто дождаться чата. */}
+          <a href="#panorama" className="sofia-hero-scroll">
+            <span className="sofia-hero-scroll-label">Посмотреть онлайн</span>
+            <svg className="sofia-hero-scroll-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M16 5v22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M7 18l9 9 9-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
         </div>
       </header>
+
+      <SofiaPanorama />
 
       {/* ===== ЧЕМ ПОМОЖЕТ ===== */}
       <section className="lp-section">

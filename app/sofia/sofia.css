@@ -70,6 +70,138 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* ── СКРОЛЛ-ПОДСКАЗКА В ХЕРО: ВЕДЁТ К ПАНОРАМЕ ──────────────
+   Приманка листать дальше — под текстом хиро, по центру. Тот же паттерн,
+   что sv-hero-scroll на /services (см. app/services/services.css). */
+.sofia-hero-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: fit-content;
+  margin: 36px auto 0;
+  padding: 10px 18px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.sofia-hero-scroll-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sofia-hero-scroll-icon {
+  width: 22px;
+  height: 22px;
+  color: #4fd0e8;
+  animation: sofia-scroll-hint 1.9s ease-in-out infinite;
+}
+
+.sofia-hero-scroll:hover .sofia-hero-scroll-icon {
+  color: #fff;
+}
+
+@keyframes sofia-scroll-hint {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50%      { transform: translateY(5px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofia-hero-scroll-icon { animation: none; }
+}
+
+/* ── ПАНОРАМА 360° ПОСЛЕ ХЕРО ───────────────────────────────
+   Секция как обычный lp-section (белый фон, тот же ритм), внутри —
+   full-bleed сцена высотой в экран за вычетом хедера. */
+.sofia-panorama-stage {
+  position: relative;
+  margin-top: 36px;
+  width: 100%;
+  height: min(78vh, 720px);
+  min-height: 380px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0d1b22;
+}
+
+.sofia-panorama-poster {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.sofia-panorama-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.sofia-panorama-canvas:active {
+  cursor: grabbing;
+}
+
+.sofia-panorama-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(13, 27, 34, 0.55);
+}
+
+.sofia-panorama-loader span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.35;
+  animation: sofia-panorama-loader-pulse 1.4s infinite ease-in-out;
+}
+
+.sofia-panorama-loader span:nth-child(1) { animation-delay: 0s; }
+.sofia-panorama-loader span:nth-child(2) { animation-delay: 0.15s; }
+.sofia-panorama-loader span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes sofia-panorama-loader-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+
+.sofia-panorama-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(13, 27, 34, 0.6);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .sofia-panorama-stage {
+    height: min(60vh, 520px);
+    border-radius: 14px;
+    margin-top: 28px;
+  }
+}
+
 /* ── ЗАПАСНОЙ ВАРИАНТ, ЕСЛИ ВИДЖЕТ НЕ ЗАГРУЗИЛСЯ ────────────── */
 .sofia-fallback {
   max-width: 420px;
