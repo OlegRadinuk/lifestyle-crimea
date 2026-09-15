@@ -3,7 +3,11 @@
 // scripts/sync-travelline.js
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs   = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env.local'), override: false });
+
+const { ROOM_TYPE_MAPPING, isParking, maskSecrets } = require('./travelline-room-mapping');
 
 // ============================================
 // КОНФИГУРАЦИЯ
@@ -79,7 +83,7 @@ async function getToken(force = false) {
   if (!response.ok) {
     console.error(`❌ Auth failed with status ${response.status}`);
     const text = await response.text();
-    console.error('Response:', text);
+    console.error('Response:', maskSecrets(text));
     throw new Error(`Auth failed: ${response.status}`);
   }
 
@@ -208,56 +212,136 @@ async function getBookingDetails(bookingNumber) {
 }
 
 // ============================================
-// МАППИНГ КОМНАТ
+// ДЕДУПЛИКАЦИЯ АЛЕРТОВ (не чаще 1 раза в 24 ч на roomTypeId)
 // ============================================
-const ROOM_TYPE_MAPPING = {
-  '278023': 'ls-space',
-  '243734': 'ls-coffee-ice-cream',
-  '263391': 'ls-summer-emotions',
-  '330325': 'ls-black-strong',
-  '274922': 'ls-deep-music',
-  '348222': 'ls-dream-vacation',
-  '279273': 'ls-econom-studio',
-  '277347': 'ls-family-comfort',
-  '272228': 'ls-in-the-moment',
-  '345796': 'ls-lux-flower-kiss',
-  '289889': 'ls-relax-time',
-  '269778': 'ls-sweet-summer',
-  '243739': 'ls-lux-sweet-caramel',
-  '274610': 'ls-steel-love',
-  '244430': 'ls-art-crystal-blue',
-  '243321': 'ls-art-olive',
-  '265649': 'ls-blue-curacao',
-  '244425': 'ls-blueberry',
-  '269609': 'ls-cool-lemonade',
-  '243319': 'ls-green',
-  '291460': 'ls-hi-tech-emotion',
-  '291417': 'ls-hi-tech-relax',
-  '272288': 'ls-lux-only-you',
-  '373007': 'ls-lux-fly-sky',
-  '348227': 'ls-lux-beautiful-days',
-  '361602': 'ls-lux-fly-mood',
-  '337183': 'ls-lux-sun-rays',
-  '348223': 'ls-lux-sunny-mood',
-  '373006': 'ls-lux-fly-blue-light',
-  '337185': 'ls-lux-sunshine',
-  '278010': 'ls-diamond-green',
-  '348218': 'ls-mountain-retreat',
-  '264854': 'ls-wine-and-sunset',
-  '264995': 'ls-lux-white-sands',
-  '244426': 'ls-lux-orange',
-  '243517': 'ls-lux-soft-blue',
-  '363094': 'ls-lux-fly-birds',
-  '280610': 'ls-deep-forest',
-  '281311': 'ls-flowers-tea',
-  '368602': 'ls-summer-emotions',  // Добавил маппинг для отсутствующих
-  '269607': 'ls-parking-26',
-  '269605': 'ls-parking-24',
-  '269604': 'ls-parking-22',
-  '352594': 'ls-parking-22',
-  '352588': 'ls-parking-12',
-  '386685': 'ls-golden-sand',
-};
+// Файл состояния лежит в logs/ — он в .gitignore, пишется на сервере юзером deploy.
+const ALERTED_STATE_PATH = path.join(__dirname, '..', 'logs', 'travelline-unmapped-alerted.json');
+const DEDUP_TTL_MS = 24 * 60 * 60 * 1000;
+
+function loadAlertedState() {
+  try {
+    return JSON.parse(fs.readFileSync(ALERTED_STATE_PATH, 'utf8'));
+  } catch (_) {
+    return {}; // файл отсутствует или повреждён — не критично, синк продолжается
+  }
+}
+
+function saveAlertedState(state) {
+  try {
+    fs.mkdirSync(path.join(__dirname, '..', 'logs'), { recursive: true });
+    fs.writeFileSync(ALERTED_STATE_PATH, JSON.stringify(state, null, 2), 'utf8');
+  } catch (err) {
+    console.error(`Дедуп: не удалось сохранить ${ALERTED_STATE_PATH}: ${err.message}`);
+  }
+}
+
+/**
+ * Из массива id-строк оставляет только те, по которым алерт
+ * ещё не отправлялся в последние 24 часа. Обновляет копию state.
+ */
+function filterNewForAlert(ids, state) {
+  const now = Date.now();
+  const toAlert = [];
+  const updatedState = Object.assign({}, state);
+  for (const id of ids) {
+    const last = updatedState[id];
+    if (!last || now - new Date(last).getTime() > DEDUP_TTL_MS) {
+      toAlert.push(id);
+      updatedState[id] = new Date(now).toISOString();
+    }
+  }
+  return { toAlert, updatedState };
+}
+
+// ============================================
+// ТЕЛЕГРАМ-АЛЕРТЫ (вспомогательные функции)
+// ============================================
+
+/** Загружает токен и chat_id: сначала из таблицы telegram_settings, потом из env. */
+function getTelegramCredentials() {
+  let botToken = null;
+  let chatId   = null;
+  try {
+    const tgRow = db.prepare(`
+      SELECT bot_token, chat_id FROM telegram_settings
+      WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1
+    `).get();
+    if (tgRow) { botToken = tgRow.bot_token; chatId = tgRow.chat_id; }
+  } catch (_) { /* таблица может отсутствовать */ }
+  if (!botToken || !chatId) {
+    botToken = process.env.TELEGRAM_BOT_TOKEN;
+    chatId   = process.env.TELEGRAM_CHAT_ID;
+  }
+  return { botToken, chatId };
+}
+
+/** Отправляет одно HTML-сообщение в Telegram через прокси (TELEGRAM_API_URL). */
+async function sendTelegramAlert(text) {
+  const base = (process.env.TELEGRAM_API_URL || 'https://api.telegram.org').replace(/\/$/, '');
+  const { botToken, chatId } = getTelegramCredentials();
+  if (!botToken || !chatId) {
+    console.error('TG алерт не отправлен: нет учётных данных (telegram_settings пуст и TELEGRAM_BOT_TOKEN не задан)');
+    return;
+  }
+  try {
+    const res  = await fetch(`${base}/bot${botToken}/sendMessage`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
+    });
+    const data = await res.json();
+    if (!data.ok) console.error(`TG алерт: ошибка API — ${data.description}`);
+    else          console.log('TG алерт отправлен.');
+  } catch (err) {
+    console.error(`TG алерт: ошибка отправки — ${err.message}`);
+  }
+}
+
+// ============================================
+// ВАЛИДАЦИЯ МАППИНГА
+// ============================================
+
+/**
+ * Проверяет, что каждый apartment_id из ROOM_TYPE_MAPPING существует в таблице apartments.
+ * Если нет — console.error + деduped алерт в Telegram.
+ * Синк НЕ останавливается: возвращает Set невалидных roomTypeId,
+ * которые нужно пропускать в основном цикле.
+ */
+async function validateMapping() {
+  const invalidRoomTypeIds = new Set();
+  const missingLines = [];
+  for (const [roomTypeId, apartmentId] of Object.entries(ROOM_TYPE_MAPPING)) {
+    const row = db.prepare('SELECT id FROM apartments WHERE id = ?').get(apartmentId);
+    if (!row) {
+      invalidRoomTypeIds.add(roomTypeId);
+      missingLines.push({ roomTypeId, line: `roomType ${roomTypeId} → "${apartmentId}"` });
+    }
+  }
+  if (invalidRoomTypeIds.size === 0) return invalidRoomTypeIds;
+
+  console.error(`\n❌ Маппинг: ${invalidRoomTypeIds.size} apartment_id не найдены в таблице apartments:`);
+  missingLines.forEach(({ line }) => console.error('   ' + line));
+  console.error('Эти типы номеров будут пропущены. Обнови маппинг или проверь БД.\n');
+
+  // Алерт с дедупом — не спамим чаще раза в 24 ч на ID
+  const state = loadAlertedState();
+  const { toAlert, updatedState } = filterNewForAlert(Array.from(invalidRoomTypeIds), state);
+  if (toAlert.length > 0) {
+    const lines = missingLines.filter(({ roomTypeId }) => toAlert.includes(roomTypeId));
+    const msg = [
+      '❌ <b>Travelline-синк: маппинг сломан!</b>',
+      '',
+      `Следующие apartment_id из <code>travelline-room-mapping.js</code> не найдены в таблице apartments (${lines.length} шт.):`,
+      ...lines.map(({ line }) => `  • ${line}`),
+      '',
+      'Брони по этим номерам <b>не синкаются</b>. Обнови маппинг или проверь БД.',
+    ].join('\n');
+    await sendTelegramAlert(msg);
+    saveAlertedState(updatedState);
+  }
+
+  return invalidRoomTypeIds;
+}
 
 // ============================================
 // ОСНОВНАЯ ФУНКЦИЯ
@@ -280,7 +364,19 @@ async function syncBookings() {
     errors: 0
   };
 
+  // Незамапленные типы номеров за прогон (не парковки) — в конце один алерт
+  const unmappedRoomTypeIds = new Set();
+
   try {
+    // Проверяем маппинг — все apartment_id должны существовать в БД
+    console.log('\n🗺️  Проверка маппинга...');
+    const invalidRoomTypeIds = await validateMapping();
+    if (invalidRoomTypeIds.size === 0) {
+      console.log(`✅ Маппинг OK (${Object.keys(ROOM_TYPE_MAPPING).length} типов)`);
+    } else {
+      console.log(`⚠️  Маппинг: ${invalidRoomTypeIds.size} невалидных записей, синк продолжается без них`);
+    }
+
     // Проверяем соединение с Travelline
     console.log('\n🔍 Testing Travelline connection...');
     await getToken();
@@ -336,8 +432,10 @@ async function syncBookings() {
             continue;
           }
 
-          // Проверяем будущие даты
+          // Собираем будущие стои, затем применяем пакетом
           let hasFuture = false;
+          let hadSkipped = false;   // есть незамапленные непарковочные будущие стои
+          const staysToInsert = []; // { apartmentId, checkIn, checkOut }
 
           for (const roomStay of booking.roomStays || []) {
             const checkIn = roomStay.stayDates?.arrivalDateTime?.split('T')[0];
@@ -345,31 +443,69 @@ async function syncBookings() {
 
             const checkInDate = new Date(checkIn);
             checkInDate.setHours(0, 0, 0, 0);
-            
             if (checkInDate < today) continue;
 
             hasFuture = true;
 
+            const checkOut = roomStay.stayDates?.departureDateTime?.split('T')[0];
+            if (!checkOut) continue;
+
             const roomTypeId = roomStay.roomType?.id;
+
+            // Парковки — молча пропускаем, не skipped
+            if (isParking(roomTypeId, roomStay.roomType)) continue;
+
             const apartmentId = ROOM_TYPE_MAPPING[roomTypeId];
 
-            if (!apartmentId) {
+            if (!apartmentId || invalidRoomTypeIds.has(String(roomTypeId))) {
+              // Незамапленный / невалидный непарковочный стой → skipped
+              if (!invalidRoomTypeIds.has(String(roomTypeId))) {
+                unmappedRoomTypeIds.add(String(roomTypeId));
+              }
+              hadSkipped = true;
               console.log(`\n      ⚠️ No mapping for roomType ${roomTypeId}`);
               continue;
             }
 
-            const checkOut = roomStay.stayDates?.departureDateTime?.split('T')[0];
-            if (!checkOut) continue;
+            staysToInsert.push({ apartmentId, checkIn, checkOut });
+          }
 
-            // Удаляем старую запись и вставляем новую
-            db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
-            db.prepare(`
-              INSERT INTO blocked_dates (apartment_id, start_date, end_date, source, booking_number)
-              VALUES (?, ?, ?, ?, ?)
-            `).run(apartmentId, checkIn, checkOut, 'travelline', summary.number);
-
-            console.log(`✅ ${apartmentId} (${checkIn} - ${checkOut})`);
-            stats.saved++;
+          // Применяем все вставки одной транзакцией
+          if (staysToInsert.length > 0) {
+            if (!hadSkipped) {
+              // Все стои известны → DELETE старых + INSERT всех (атомарно)
+              db.transaction(() => {
+                db.prepare('DELETE FROM blocked_dates WHERE booking_number = ?').run(summary.number);
+                const ins = db.prepare(
+                  'INSERT INTO blocked_dates (apartment_id, start_date, end_date, source, booking_number) VALUES (?, ?, ?, ?, ?)'
+                );
+                for (const s of staysToInsert) {
+                  ins.run(s.apartmentId, s.checkIn, s.checkOut, 'travelline', summary.number);
+                }
+              })();
+              const labels = staysToInsert.map(s => `${s.apartmentId} (${s.checkIn} - ${s.checkOut})`).join(', ');
+              console.log(`✅ ${labels}`);
+            } else {
+              // Есть незамапленные стои → не удаляем существующие блоки,
+              // только дописываем замапленные (без дублей, нет уникального индекса)
+              const existsSt = db.prepare(
+                'SELECT 1 FROM blocked_dates WHERE booking_number = ? AND apartment_id = ? AND start_date = ? AND end_date = ?'
+              );
+              const insSt = db.prepare(
+                'INSERT INTO blocked_dates (apartment_id, start_date, end_date, source, booking_number) VALUES (?, ?, ?, ?, ?)'
+              );
+              let inserted = 0;
+              for (const s of staysToInsert) {
+                if (!existsSt.get(summary.number, s.apartmentId, s.checkIn, s.checkOut)) {
+                  insSt.run(s.apartmentId, s.checkIn, s.checkOut, 'travelline', summary.number);
+                  inserted++;
+                }
+              }
+              console.log(`⚠️ partial: ${inserted} блоков сохранено, существующие блоки незамапленных preserved`);
+            }
+            stats.saved += staysToInsert.length;
+          } else if (hasFuture && hadSkipped) {
+            console.log('⚠️ все будущие стои незамаплены — существующие блоки preserved');
           }
 
           if (!hasFuture) {
@@ -404,6 +540,29 @@ async function syncBookings() {
     // Force WAL checkpoint to prevent DB corruption from large WAL files
     db.pragma('wal_checkpoint(TRUNCATE)');
     console.log('✅ WAL checkpoint done');
+
+    // Алерт о незамапленных типах номеров — дедуп: не чаще раза в 24 ч на ID
+    if (unmappedRoomTypeIds.size > 0) {
+      const allIds = Array.from(unmappedRoomTypeIds).sort();
+      console.error(`\n⚠️  Незамапленные roomTypeId за прогон: ${allIds.join(', ')}`);
+      const state = loadAlertedState();
+      const { toAlert, updatedState } = filterNewForAlert(allIds, state);
+      if (toAlert.length > 0) {
+        const text = [
+          '⚠️ <b>Travelline-синк: незамапленные типы номеров</b>',
+          '',
+          `За прогон встретились roomTypeId без маппинга (${toAlert.length} шт.):`,
+          `<code>${toAlert.join(', ')}</code>`,
+          '',
+          'Брони по этим номерам <b>не сохранены</b> — они могут показываться свободными на сайте.',
+          'Добавь их в <code>scripts/travelline-room-mapping.js</code>.',
+        ].join('\n');
+        await sendTelegramAlert(text);
+        saveAlertedState(updatedState);
+      } else {
+        console.log('Дедуп: все незамапленные roomTypeId уже были в алерте за последние 24ч.');
+      }
+    }
 
   } catch (error) {
     console.error('\n❌ SYNC FAILED:', error);
