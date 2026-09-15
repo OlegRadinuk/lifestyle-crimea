@@ -282,11 +282,11 @@ export default function PoolPage() {
       <section className="lp-section lp-section-alt">
         <div className="lp-inner">
           <p className="lp-eyebrow lp-reveal">Жильё</p>
-          <h2 className="lp-title lp-reveal">47 апартаментов рядом с водой</h2>
+          <h2 className="lp-title lp-reveal">Более 55 апартаментов рядом с водой</h2>
           <div className="lp-prose lp-reveal">
             <p>
               От студий до вариантов с отдельной спальней, площадью от 24 до 60 м², на компанию
-              до пяти человек. В тридцати из сорока семи окна выходят на море, почти у каждого
+              до пяти человек. Больше половины апартаментов — с окнами на море, почти у каждого
               своя терраса. Внутри — кухонная зона, холодильник, стиральная машина, кондиционер,
               Wi-Fi и SMART TV.
             </p>

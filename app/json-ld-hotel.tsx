@@ -55,7 +55,7 @@ export default function JsonLdHotel() {
     priceRange: 'от 5 000 ₽',
     checkinTime: '14:00',
     checkoutTime: '12:00',
-    numberOfRooms: 40,
+    numberOfRooms: 55,
     starRating: {
       '@type': 'Rating',
       ratingValue: '4.9',

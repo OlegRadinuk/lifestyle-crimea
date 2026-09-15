@@ -156,7 +156,7 @@ export default function SofiaPage() {
       <section className="lp-section lp-section-alt">
         <div className="lp-inner">
           <p className="lp-eyebrow lp-reveal">О комплексе</p>
-          <h2 className="lp-title lp-reveal">47 апартаментов в Профессорском уголке</h2>
+          <h2 className="lp-title lp-reveal">Более 55 апартаментов в Профессорском уголке</h2>
           <div className="lp-prose lp-reveal">
             <p>
               Апарт-отель «Стиль Жизни» стоит на Западной улице в тихой части Алушты, до
