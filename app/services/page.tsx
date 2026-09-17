@@ -200,6 +200,14 @@ export default function ServicesPage() {
               text: 'Посещение аквазоны доступно в некоторых категориях апартаментов. Уточните у администратора при бронировании по телефону 8 800 777 63 08 — подскажем, какие апартаменты подойдут.',
             },
           },
+          {
+            '@type': 'Question',
+            name: 'Нужна ли предоплата при бронировании?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Да, при бронировании вносится предоплата 1 000 ₽, остальная сумма оплачивается при заезде.',
+            },
+          },
         ],
       },
     ],
@@ -323,6 +331,26 @@ export default function ServicesPage() {
           </div>
         </section>
       )}
+
+      {/* ===== FAQ ===== */}
+      <section className="sv-section sv-faq">
+        <p className="sv-eyebrow sv-reveal">Частые вопросы</p>
+        <h2 className="sv-section-title sv-reveal sv-reveal-delay-1">Ответы на популярные вопросы</h2>
+        <dl className="sv-faq-list sv-reveal sv-reveal-delay-1">
+          <div className="sv-faq-item">
+            <dt className="sv-faq-question">Нужна ли предоплата при бронировании?</dt>
+            <dd className="sv-faq-answer">Да, при бронировании вносится предоплата 1&nbsp;000&nbsp;₽, остальная сумма оплачивается при заезде.</dd>
+          </div>
+          <div className="sv-faq-item">
+            <dt className="sv-faq-question">Есть ли бассейн в апартаментах в Алуште?</dt>
+            <dd className="sv-faq-answer">Да. В аквазоне комплекса два больших бассейна, которые работают круглый год, и два детских. Рядом джакузи, шезлонги вдоль воды и бар.</dd>
+          </div>
+          <div className="sv-faq-item">
+            <dt className="sv-faq-question">Подходит ли комплекс для отдыха с детьми?</dt>
+            <dd className="sv-faq-answer">Да. В аквазоне два отдельных детских бассейна с мелкой водой — дети плещутся у себя, взрослые отдыхают рядом и всё время их видят.</dd>
+          </div>
+        </dl>
+      </section>
 
       {/* ===== ФИНАЛЬНЫЙ CTA ===== */}
       <section className="sv-final-cta">

@@ -275,7 +275,7 @@ export default function BookingModal({
         guest: guestInfo,
       });
 
-      alert('✅ Бронирование подтверждено!');
+      alert('Бронирование подтверждено. Менеджер свяжется с вами, чтобы подтвердить бронь и принять предоплату 1 000 ₽.');
 
       reachGoal('booking_daily', {
         order_price: price.total,
@@ -623,7 +623,7 @@ export default function BookingModal({
                 </div>
 
                 <div className="price-notice">
-                  * Оплата при заезде наличными или картой
+                  Предоплата 1 000 ₽ при бронировании, остальное — при заезде наличными или картой.
                 </div>
               </>
             )}
