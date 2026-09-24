@@ -1318,6 +1318,10 @@
 }
 
 @media (max-width: 480px) {
+  .ap-hero-long-offer {
+    gap: 8px;
+  }
+
   .ap-hero-long-price {
     font-size: 28px;
   }

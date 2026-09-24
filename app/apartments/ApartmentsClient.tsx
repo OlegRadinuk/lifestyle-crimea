@@ -396,15 +396,25 @@ export default function ApartmentsClient({
   const longTermCount = allApartments.filter(isLongTermApt).length;
 
   // ── Вычисления для оффера в hero при isLongMode ────────────────────────────
-  // Минимальная месячная цена среди всех долгосрочных апартаментов (любой срок)
+  // Опорные сроки: самый короткий (месяц) и самый длинный (полгода/год)
+  const heroShortestTerm: LongTermTermClient | null =
+    longTermTerms.length > 0
+      ? longTermTerms.reduce((best, t) => t.months < best.months ? t : best)
+      : null;
+  const heroLongestTerm: LongTermTermClient | null =
+    longTermTerms.length > 0
+      ? longTermTerms.reduce((best, t) => t.months > best.months ? t : best)
+      : null;
+
+  // Минимальная цена ТОЛЬКО по самому короткому сроку — то, что гость увидит
+  // в карточке при аренде на месяц. Показываем именно её крупно, без обмана.
   const heroMinMonthlyPrice: number = (() => {
+    if (!heroShortestTerm) return 0;
     let min = Infinity;
     for (const apt of allApartments) {
       if (!isLongTermApt(apt)) continue;
-      for (const t of longTermTerms) {
-        const p = priceForTerm(apt, t.id);
-        if (p > 0 && p < min) min = p;
-      }
+      const p = priceForTerm(apt, heroShortestTerm.id);
+      if (p > 0 && p < min) min = p;
     }
     return min === Infinity ? 0 : min;
   })();
@@ -427,22 +437,27 @@ export default function ApartmentsClient({
       ? heroMinDailyPrice / (heroMinMonthlyPrice / 30)
       : 0;
 
-  // Скидка самого длинного срока относительно самого короткого (месячного)
-  const heroLongestDiscount: number = (() => {
-    if (longTermTerms.length < 2) return 0;
-    const longestTerm = longTermTerms.reduce((best, t) => t.months > best.months ? t : best);
-    const monthlyTerm = longTermTerms.reduce((best, t) => t.months < best.months ? t : best);
-    if (longestTerm.id === monthlyTerm.id) return 0;
-    let maxPct = 0;
+  // Предложение длинного срока: минимальная цена для самого длинного срока
+  // и скидка относительно самого короткого.
+  // Баг предыдущей версии: сравнивалось pMonth (1-мес) с pLong, но у части
+  // апартаментов 1-месячной цены нет вовсе → pMonth = 0 → условие не проходило
+  // → heroLongestDiscount всегда 0 → строка не рендерилась.
+  // Теперь: ищем минимальную цену длинного срока по всем долгосрочным апартаментам
+  // и считаем скидку относительно heroMinMonthlyPrice (уже найденного выше).
+  const heroLongestOffer: { label: string; price: number; discountPct: number } | null = (() => {
+    if (!heroLongestTerm || !heroShortestTerm || heroLongestTerm.id === heroShortestTerm.id) return null;
+    if (heroMinMonthlyPrice <= 0) return null;
+    let minLongPrice = Infinity;
     for (const apt of allApartments) {
-      const pMonth = priceForTerm(apt, monthlyTerm.id);
-      const pLong = priceForTerm(apt, longestTerm.id);
-      if (pMonth > 0 && pLong > 0 && pLong < pMonth) {
-        const pct = Math.round((1 - pLong / pMonth) * 100);
-        if (pct > maxPct) maxPct = pct;
-      }
+      if (!isLongTermApt(apt)) continue;
+      const p = priceForTerm(apt, heroLongestTerm.id);
+      if (p > 0 && p < minLongPrice) minLongPrice = p;
     }
-    return maxPct;
+    if (minLongPrice === Infinity || minLongPrice >= heroMinMonthlyPrice) return null;
+    const discountPct = Math.round((1 - minLongPrice / heroMinMonthlyPrice) * 100);
+    if (discountPct <= 0) return null;
+    const label = heroLongestTerm.label ?? termTitle(heroLongestTerm);
+    return { label, price: minLongPrice, discountPct };
   })();
 
   const matchesCategory = (apt: ApartmentClient) => !category || apt.category === category;
@@ -502,9 +517,11 @@ export default function ApartmentsClient({
                     от {longTermMinDays} суток · мебель, техника и уборка включены ·{' '}
                     {longTermCount} {getDeclension(longTermCount, 'апартамент', 'апартамента', 'апартаментов')}
                   </p>
-                  {heroLongestDiscount > 0 && (
+                  {heroLongestOffer && (
                     <p className="ap-hero-long-extra">
-                      на длительный срок дешевле до {heroLongestDiscount}%
+                      на {heroLongestOffer.label.toLowerCase()} — от{' '}
+                      {heroLongestOffer.price.toLocaleString('ru-RU')} ₽ в месяц,
+                      это на {heroLongestOffer.discountPct}% дешевле
                     </p>
                   )}
                   <div className="ap-hero-long-actions">
