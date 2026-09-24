@@ -397,13 +397,19 @@ export default function ApartmentsClient({
 
   // ── Вычисления для оффера в hero при isLongMode ────────────────────────────
   // Опорные сроки: самый короткий (месяц) и самый длинный (полгода/год)
+  /* Сроки берём только те, по которым менеджер реально выставил цены:
+     в справочнике есть «Год», но цен по нему нет — из-за него самым длинным
+     сроком оказывался пустой, и блок с выгодой не выводился вовсе. */
+  const heroPricedTerms: LongTermTermClient[] = longTermTerms.filter(t =>
+    allApartments.some(apt => isLongTermApt(apt) && priceForTerm(apt, t.id) > 0),
+  );
   const heroShortestTerm: LongTermTermClient | null =
-    longTermTerms.length > 0
-      ? longTermTerms.reduce((best, t) => t.months < best.months ? t : best)
+    heroPricedTerms.length > 0
+      ? heroPricedTerms.reduce((best, t) => t.months < best.months ? t : best)
       : null;
   const heroLongestTerm: LongTermTermClient | null =
-    longTermTerms.length > 0
-      ? longTermTerms.reduce((best, t) => t.months > best.months ? t : best)
+    heroPricedTerms.length > 0
+      ? heroPricedTerms.reduce((best, t) => t.months > best.months ? t : best)
       : null;
 
   // Минимальная цена ТОЛЬКО по самому короткому сроку — то, что гость увидит
