@@ -88,12 +88,14 @@ interface ApartmentsClientProps {
   initialApartments: ApartmentClient[];
   longTermMinDays: number;
   longTermTerms: LongTermTermClient[];
+  initialMode?: RentalMode;
 }
 
 export default function ApartmentsClient({
   initialApartments,
   longTermMinDays,
   longTermTerms,
+  initialMode = 'daily',
 }: ApartmentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -108,8 +110,9 @@ export default function ApartmentsClient({
   const [children, setChildren] = useState(0);
   const [formError, setFormError] = useState('');
 
-  // Режим аренды: посуточно (по умолчанию) или долгосрочно
-  const [rentalMode, setRentalMode] = useState<RentalMode>('daily');
+  // Режим аренды: посуточно (по умолчанию) или долгосрочно.
+  // initialMode приходит с сервера синхронно — ?mode=long не вызывает мигания.
+  const [rentalMode, setRentalMode] = useState<RentalMode>(initialMode);
   const isLongMode = rentalMode === 'long';
 
   /* Какие долгосрочные блоки гость раскрыл вручную в посуточном режиме.
@@ -209,14 +212,8 @@ export default function ApartmentsClient({
     }
   }, [searchParams, contextSearch]);
 
-  /* /apartments?mode=long открывает каталог сразу в долгосрочном режиме.
-     Нужно для рекламы: объявление про аренду на месяц обязано приводить на
-     месячные цены, иначе гость видит цену за ночь и уходит. Читаем один раз
-     на монтировании — дальше режимом управляет переключатель. */
-  useEffect(() => {
-    if (searchParams?.get('mode') === 'long') setRentalMode('long');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  /* ?mode=long теперь читается в page.tsx (серверный компонент) и приходит
+     через проп initialMode — переключатель без мигания. */
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -398,6 +395,56 @@ export default function ApartmentsClient({
 
   const longTermCount = allApartments.filter(isLongTermApt).length;
 
+  // ── Вычисления для оффера в hero при isLongMode ────────────────────────────
+  // Минимальная месячная цена среди всех долгосрочных апартаментов (любой срок)
+  const heroMinMonthlyPrice: number = (() => {
+    let min = Infinity;
+    for (const apt of allApartments) {
+      if (!isLongTermApt(apt)) continue;
+      for (const t of longTermTerms) {
+        const p = priceForTerm(apt, t.id);
+        if (p > 0 && p < min) min = p;
+      }
+    }
+    return min === Infinity ? 0 : min;
+  })();
+
+  // Минимальная посуточная цена только среди долгосрочных апартаментов —
+  // чтобы сравнение было честным (те же объекты, другой тип оплаты)
+  const heroMinDailyPrice: number = (() => {
+    let min = Infinity;
+    for (const apt of allApartments) {
+      if (!isLongTermApt(apt)) continue;
+      const p = currentNightlyPrice(apt.seasons, apt.price_base);
+      if (p > 0 && p < min) min = p;
+    }
+    return min === Infinity ? 0 : min;
+  })();
+
+  // Отношение посуточной цены к дневной стоимости при месячной аренде
+  const heroSavingsRatio: number =
+    heroMinMonthlyPrice > 0 && heroMinDailyPrice > 0
+      ? heroMinDailyPrice / (heroMinMonthlyPrice / 30)
+      : 0;
+
+  // Скидка самого длинного срока относительно самого короткого (месячного)
+  const heroLongestDiscount: number = (() => {
+    if (longTermTerms.length < 2) return 0;
+    const longestTerm = longTermTerms.reduce((best, t) => t.months > best.months ? t : best);
+    const monthlyTerm = longTermTerms.reduce((best, t) => t.months < best.months ? t : best);
+    if (longestTerm.id === monthlyTerm.id) return 0;
+    let maxPct = 0;
+    for (const apt of allApartments) {
+      const pMonth = priceForTerm(apt, monthlyTerm.id);
+      const pLong = priceForTerm(apt, longestTerm.id);
+      if (pMonth > 0 && pLong > 0 && pLong < pMonth) {
+        const pct = Math.round((1 - pLong / pMonth) * 100);
+        if (pct > maxPct) maxPct = pct;
+      }
+    }
+    return maxPct;
+  })();
+
   const matchesCategory = (apt: ApartmentClient) => !category || apt.category === category;
 
   // Сколько апартаментов в каждом типе — цифра рядом с названием фильтра
@@ -433,27 +480,74 @@ export default function ApartmentsClient({
           <div className="ap-hero-container">
             <div className="ap-hero-left">
               <div className="ap-hero-brand">Стиль жизни · Алушта</div>
-              <h1 className="ap-hero-title">Апартаменты</h1>
+              <h1 className="ap-hero-title">
+                {isLongMode ? 'Апартаменты в Алуште надолго' : 'Апартаменты'}
+              </h1>
             </div>
             <div className="ap-hero-right">
-  <p className="ap-hero-description">
-    Создано для жизни, наполнено стилем. Наши номера — это автономные апартаменты с уютной кухней, 
-    где удобно и готовить, и отдыхать.
-  </p>
-  <p className="ap-hero-description">
-    Мы подготовили сюрприз для эстетов: коллекцию номеров в разных стилях,
-    чтобы вы могли выбрать интерьер, который понравится именно вам.
-  </p>
-  {/* Каталог — вторая по весу страница после главной, и вёл он только
-      внутрь себя, на карточки. Отсюда посадочные получают вес, а гость —
-      ответы на то, что каталогом не закрывается: что за район, есть ли
-      бассейн, чем это отличается от частного сектора. */}
-  <nav className="ap-hero-links" aria-label="Подборки">
-    <Link href="/professorskiy-ugolok">Профессорский уголок</Link>
-    <Link href="/zhile-s-basseynom">Жильё с бассейном</Link>
-    <Link href="/chastnyy-sektor">Без посредников</Link>
-  </nav>
-</div>
+              {isLongMode ? (
+                <div className="ap-hero-long-offer">
+                  {heroMinMonthlyPrice > 0 && (
+                    <div className="ap-hero-long-price">
+                      от {heroMinMonthlyPrice.toLocaleString('ru-RU')} ₽ в месяц
+                    </div>
+                  )}
+                  {heroMinMonthlyPrice > 0 && heroMinDailyPrice > 0 && (
+                    <p className="ap-hero-description">
+                      около {Math.round(heroMinMonthlyPrice / 30).toLocaleString('ru-RU')} ₽ в сутки —{' '}
+                      {heroSavingsPhrase(heroSavingsRatio)}
+                    </p>
+                  )}
+                  <p className="ap-hero-long-terms">
+                    от {longTermMinDays} суток · мебель, техника и уборка включены ·{' '}
+                    {longTermCount} {getDeclension(longTermCount, 'апартамент', 'апартамента', 'апартаментов')}
+                  </p>
+                  {heroLongestDiscount > 0 && (
+                    <p className="ap-hero-long-extra">
+                      на длительный срок дешевле до {heroLongestDiscount}%
+                    </p>
+                  )}
+                  <div className="ap-hero-long-actions">
+                    <a
+                      href="#ap-results-anchor"
+                      className="ap-hero-long-btn ap-hero-long-btn--primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById('ap-results-anchor')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Смотреть апартаменты
+                    </a>
+                    <a
+                      href="tel:+79785036363"
+                      className="ap-hero-long-btn ap-hero-long-btn--secondary"
+                    >
+                      Позвонить
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="ap-hero-description">
+                    Создано для жизни, наполнено стилем. Наши номера — это автономные апартаменты с уютной кухней,
+                    где удобно и готовить, и отдыхать.
+                  </p>
+                  <p className="ap-hero-description">
+                    Мы подготовили сюрприз для эстетов: коллекцию номеров в разных стилях,
+                    чтобы вы могли выбрать интерьер, который понравится именно вам.
+                  </p>
+                  {/* Каталог — вторая по весу страница после главной, и вёл он только
+                      внутрь себя, на карточки. Отсюда посадочные получают вес, а гость —
+                      ответы на то, что каталогом не закрывается: что за район, есть ли
+                      бассейн, чем это отличается от частного сектора. */}
+                  <nav className="ap-hero-links" aria-label="Подборки">
+                    <Link href="/professorskiy-ugolok">Профессорский уголок</Link>
+                    <Link href="/zhile-s-basseynom">Жильё с бассейном</Link>
+                    <Link href="/chastnyy-sektor">Без посредников</Link>
+                  </nav>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -941,6 +1035,16 @@ export default function ApartmentsClient({
 }
 
 // Вспомогательная функция для склонения
+function heroSavingsPhrase(ratio: number): string {
+  if (ratio >= 2.5) {
+    const r = Math.round(ratio);
+    const words: Record<number, string> = { 2: 'вдвое', 3: 'втрое', 4: 'вчетверо', 5: 'впятеро' };
+    const word = words[r] ?? `в ${r} ${getDeclension(r, 'раз', 'раза', 'раз')}`;
+    return `почти ${word} дешевле, чем посуточно`;
+  }
+  return 'дешевле посуточной аренды';
+}
+
 function getDeclension(number: number, one: string, two: string, five: string): string {
   const n = Math.abs(number);
   const n10 = n % 10;

@@ -170,7 +170,14 @@ async function getApartments(): Promise<ApartmentClient[]> {
   }
 }
 
-export default async function ApartmentsPage() {
+export default async function ApartmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const initialMode = params['mode'] === 'long' ? 'long' : 'daily';
+
   const initialApartments = await getApartments();
   const longTermMinDays = settingsService.getLongTermMinDays();
   const longTermTerms = longTermService.listActiveTerms().map(t => ({
@@ -184,6 +191,7 @@ export default async function ApartmentsPage() {
       initialApartments={initialApartments}
       longTermMinDays={longTermMinDays}
       longTermTerms={longTermTerms}
+      initialMode={initialMode}
     />
   );
 }
