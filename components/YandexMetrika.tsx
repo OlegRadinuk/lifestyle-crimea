@@ -6,6 +6,7 @@ import {
   YM_ID,
   CONSENT_EVENT,
   analyticsAllowed,
+  analyticsRefused,
   hit,
   reachGoal,
   type YmFn,
@@ -15,9 +16,13 @@ const TAG_SRC = 'https://mc.yandex.ru/metrika/tag.js';
 
 /* Счётчик Метрики.
  *
- * Грузится только после согласия — своего или пришедшего событием от баннера,
- * поэтому обычный <Script> здесь не подходит: момент загрузки неизвестен на
- * рендере. Инжектим скрипт руками.
+ * Поднимается сразу на первой отрисовке — кроме случая, когда человек уже
+ * нажал «Только нужные». Решение зависит от localStorage, то есть известно
+ * только на клиенте, поэтому обычный <Script> не подходит: инжектим руками.
+ *
+ * Глубина сбора зависит от согласия: Вебвизор и карта кликов — только по
+ * явному «Принять». Без выбора идут голые хиты и цели; этого хватает на
+ * источники, гео и конверсии Директа, ради которых всё и затевалось.
  *
  * init идёт с defer:true — иначе Метрика сама шлёт первый хит, и на смене
  * маршрута мы получаем его второй раз. Все хиты шлём отсюда. */
@@ -56,9 +61,14 @@ export default function YandexMetrika() {
        сайту не записывался вообще.
        Дубля первого хита при этом не будет: тот же ранний return его и
        съедает, для того lastUrl и выставляется. */
+    /* Вебвизор пишет содержимое страниц и движения мыши — это уже не счёт
+       визитов, а запись поведения, и включать её без явного согласия нельзя.
+       Карта кликов туда же. Всё остальное — обезличенная статистика. */
+    const full = analyticsAllowed();
+
     window.ym(YM_ID, 'init', {
-      webvisor: true,
-      clickmap: true,
+      webvisor: full,
+      clickmap: full,
       ecommerce: 'dataLayer',
       accurateTrackBounce: true,
       trackLinks: true,
@@ -70,10 +80,16 @@ export default function YandexMetrika() {
   useEffect(() => {
     if (!YM_ID) return;
 
-    if (analyticsAllowed()) load();
+    /* Грузим всем, кроме явно отказавшихся. */
+    if (!analyticsRefused()) load();
 
+    /* Согласие пришло уже после старта. Если счётчик ещё не поднят (человек
+       открыл сайт с прошлым отказом и передумал) — поднимаем. Если поднят
+       в базовом режиме, Вебвизор задним числом не включить: Метрика читает
+       параметры только на init. Заработает со следующей страницы — там
+       analyticsAllowed() уже вернёт true. */
     const onConsent = () => {
-      if (analyticsAllowed()) load();
+      if (!analyticsRefused()) load();
     };
     window.addEventListener(CONSENT_EVENT, onConsent);
     return () => window.removeEventListener(CONSENT_EVENT, onConsent);
