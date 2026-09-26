@@ -7,6 +7,7 @@ import { useSearch } from '@/components/SearchContext';
 import { useHeader } from '@/components/HeaderContext';
 import { usePhotoModal } from '@/components/photo-modal/PhotoModalContext';
 import BookingModal from '@/components/BookingModal';
+import LongTermLeadForm from '@/components/LongTermLeadForm';
 import Footer from '@/components/Footer';
 import {
   ApartmentClient,
@@ -548,6 +549,9 @@ export default function ApartmentsClient({
                       Позвонить
                     </a>
                   </div>
+                  {/* Третий путь рядом с «Смотреть» и «Позвонить»: звонок подходит
+                      не всем и не в любое время, а каталог — это ещё не контакт. */}
+                  <LongTermLeadForm />
                 </div>
               ) : (
                 <>

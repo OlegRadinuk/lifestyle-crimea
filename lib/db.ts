@@ -470,6 +470,31 @@ function ensureDatabaseStructure() {
       );
 
       CREATE INDEX IF NOT EXISTS idx_altp_apartment ON apartment_long_term_prices(apartment_id);
+
+      /* Короткая заявка на долгосрок: телефон, срок, когда заезжать — и всё.
+         Отдельная таблица, а не bookings, потому что у заявки нет апартамента:
+         человек с рекламы выбирает условия, а не квартиру №14, и заставлять его
+         сначала выбрать из 32 карточек — это и есть причина, по которой за месяц
+         не пришло ни одной долгосрочной заявки при 88 кликах.
+         В bookings такую строку не положить: apartment_id там NOT NULL с внешним
+         ключом. */
+      CREATE TABLE IF NOT EXISTS long_term_leads (
+        id TEXT PRIMARY KEY,
+        guest_name TEXT,
+        guest_phone TEXT NOT NULL,
+        term_hint TEXT,
+        when_hint TEXT,
+        comment TEXT,
+        source TEXT DEFAULT 'website_long_lead',
+        status TEXT DEFAULT 'new',
+        manager_notes TEXT,
+        pd_consent_at DATETIME,
+        pd_consent_ip TEXT,
+        pd_consent_version TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ltl_created ON long_term_leads(created_at);
     `);
 
     // Стартовый набор сроков — менеджер потом правит под себя
@@ -918,7 +943,7 @@ export const notificationService = {
 
   logNotification: (data: {
     bookingId?: string;
-    type: 'new_booking' | 'cancellation' | 'reminder' | 'long_term_request';
+    type: 'new_booking' | 'cancellation' | 'reminder' | 'long_term_request' | 'long_term_lead';
     status: 'sent' | 'failed';
     errorMessage?: string;
   }) => {

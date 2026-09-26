@@ -1458,3 +1458,110 @@
   color: #7f8b93;
   white-space: nowrap;
 }
+
+/* Короткая заявка на долгосрок (LongTermLeadForm).
+   Живёт на первом экране под кнопками — значит должна читаться на 390px
+   без горизонтального скролла, поэтому ряды схлопываются в колонку. */
+/* Первый экран каталога светлый, поэтому карточка белая с мягкой тенью:
+   полупрозрачный белый на белом не читается как отдельный блок. */
+.ltl {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 35, 45, 0.1);
+  box-shadow: 0 2px 12px rgba(15, 35, 45, 0.06);
+  max-width: 460px;
+  color: #1a2a32;
+}
+
+.ltl__title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ltl__lead {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.ltl__row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ltl__input,
+.ltl__select {
+  flex: 1 1 0;
+  min-width: 0; /* без этого flex-элемент не даёт себя сжать и строка едет вбок */
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 35, 45, 0.18);
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 15px; /* меньше 16px — iOS Safari зумит страницу на фокусе */
+  font-family: inherit;
+}
+
+.ltl__input::placeholder { color: #8a8a8a; }
+
+.ltl__select { appearance: none; cursor: pointer; }
+
+.ltl__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.ltl__consent input { margin-top: 2px; flex-shrink: 0; accent-color: #139ab6; }
+.ltl__consent a { color: #139ab6; text-decoration: underline; }
+
+.ltl__btn {
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #139ab6;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px; /* тач-таргет */
+}
+
+.ltl__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ltl__error {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #c0392b;
+}
+
+.ltl__done-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ltl__done-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.ltl__done-text a { color: #139ab6; text-decoration: underline; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .ltl__row { flex-direction: column; gap: 8px; }
+}

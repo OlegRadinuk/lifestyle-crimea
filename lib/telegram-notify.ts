@@ -1,6 +1,15 @@
 import { notificationService } from '@/lib/db';
 
-type NotifyType = 'new_booking' | 'cancellation' | 'reminder' | 'long_term_request';
+/* long_term_request — полная заявка: апартамент выбран, срок и дата заезда есть.
+   long_term_lead — короткая, только телефон: апартамент не выбран, менеджеру надо
+   перезвонить и подобрать. Различаем, чтобы в логе уведомлений было видно, чего
+   от заявки ждать. */
+type NotifyType =
+  | 'new_booking'
+  | 'cancellation'
+  | 'reminder'
+  | 'long_term_request'
+  | 'long_term_lead';
 
 /**
  * Отправка уведомления менеджеру в Telegram — ТОЛЬКО с сервера.
