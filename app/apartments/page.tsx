@@ -20,7 +20,18 @@ export const revalidate = 0;
  */
 const APARTMENTS_LABEL = 'Более 55';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  /* /apartments?mode=long — посадочная рекламы «аренда на месяц». Раньше она
+     наследовала общий title со словом «посуточно»: человек приходил по объявлению
+     «от 45 000 ₽ в месяц» и видел во вкладке «посуточно». Заголовок обязан
+     совпадать с обещанием объявления, иначе первое, что делает страница, —
+     противоречит рекламе. */
+  const sp = await searchParams;
+  const isLong = sp['mode'] === 'long';
   /* Цена в сниппете должна совпадать с тем, что гость увидит на сайте СЕГОДНЯ.
      `price_base` для этого не годится: это базовая цена карточки, а поверх неё
      лежат сезоны (`apartment_pricing_seasons`). В июле 2026 база давала «от
@@ -53,6 +64,25 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const priceText = minPrice > 0 ? ` от ${minPrice.toLocaleString('ru-RU')} ₽/сутки` : '';
 
+  /* Для долгосрока цена своя — минимальная месячная, а не посуточная.
+     Считаем отдельным запросом, а не через longTermService: в метаданных нужен
+     один скаляр, а не цены по всем апартаментам. */
+  let minMonthly = 0;
+  if (isLong) {
+    try {
+      const row = db.prepare(`
+        SELECT MIN(p.price_per_month) AS p
+        FROM apartment_long_term_prices p
+        JOIN apartments a ON a.id = p.apartment_id
+        WHERE a.is_active = 1 AND (a.deleted_at IS NULL OR a.deleted_at = '')
+          AND a.long_term_enabled = 1 AND p.price_per_month > 0
+      `).get() as { p: number | null };
+      minMonthly = row?.p ?? 0;
+    } catch {
+      // БД недоступна — отдаём заголовок без цены, страница важнее
+    }
+  }
+
   /* Каталог говорит языком гостя, а не отеля. По Вордстату (регион Россия,
      июль 2026): «снять жильё в Алуште» — 3 389/мес, «квартира посуточно
      Алушта» — 1 725, а «снять апартаменты в Алуште» — всего 212. Слово
@@ -60,11 +90,19 @@ export async function generateMetadata(): Promise<Metadata> {
      а бренд и «апартаменты» оставляем в хвосте — премиальность сохраняется.
      Сильные хвосты, которые нам есть чем закрыть: «недорого» (~1 600/мес)
      и «без посредников» (~470/мес, бронь напрямую). */
-  const title = 'Снять жильё в Алуште посуточно у моря — апартаменты «Стиль Жизни»';
-  const description =
-    `${APARTMENTS_LABEL} апартаментов у моря в Алуште${priceText} — Профессорский уголок, до пляжа 650 м. ` +
-    'Снять жильё или квартиру посуточно напрямую, без посредников и комиссии. ' +
-    'Вид на море, балкон, кухня, бассейны круглый год. Свободные даты онлайн.';
+  const monthlyText = minMonthly > 0 ? ` от ${minMonthly.toLocaleString('ru-RU')} ₽/мес` : '';
+
+  const title = isLong
+    ? `Снять жильё в Алуште надолго${monthlyText} — апарт-отель «Стиль Жизни»`
+    : 'Снять жильё в Алуште посуточно у моря — апартаменты «Стиль Жизни»';
+
+  const description = isLong
+    ? `Длительная аренда апартаментов в Алуште${monthlyText} — от 30 суток. ` +
+      'Мебель, техника и уборка включены, бассейны круглый год, до пляжа 650 м. ' +
+      'Оставьте телефон — перезвоним и подберём под ваш срок.'
+    : `${APARTMENTS_LABEL} апартаментов у моря в Алуште${priceText} — Профессорский уголок, до пляжа 650 м. ` +
+      'Снять жильё или квартиру посуточно напрямую, без посредников и комиссии. ' +
+      'Вид на море, балкон, кухня, бассейны круглый год. Свободные даты онлайн.';
 
   return {
     title: { absolute: title },
@@ -75,7 +113,9 @@ export async function generateMetadata(): Promise<Metadata> {
       'жильё в алуште без посредников, апартаменты алушта посуточно, профессорский уголок алушта снять',
     alternates: { canonical: 'https://lovelifestyle.ru/apartments' },
     openGraph: {
-      title: 'Снять жильё в Алуште посуточно у моря — «Стиль Жизни»',
+      title: isLong
+        ? `Снять жильё в Алуште надолго${monthlyText} — «Стиль Жизни»`
+        : 'Снять жильё в Алуште посуточно у моря — «Стиль Жизни»',
       description,
       type: 'website',
       locale: 'ru_RU',
