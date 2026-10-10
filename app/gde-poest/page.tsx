@@ -95,7 +95,7 @@ const jsonLd = {
             '@type': 'CafeOrCoffeeShop',
             name: 'Эндорфин (ENDORPHINSENSE COFFEE)',
             description:
-              'Кофейня прямо на территории апарт-комплекса «Стиль Жизни». Скидка 5% по промокоду для гостей.',
+              'Кофейня прямо на территории апарт-комплекса «Стиль Жизни». Скидка 5% для гостей отеля.',
             address: {
               '@type': 'PostalAddress',
               streetAddress: 'ул. Западная, 4, корп. 1 «Грибоедов»',
@@ -278,15 +278,15 @@ export default function GdePoestPage() {
             </p>
 
             {/* КУПОН */}
-            <div className="gp-coupon" aria-label="Купон на скидку 5% по промокоду Стиль Жизни">
+            <div className="gp-coupon" aria-label="Купон на скидку 5% для гостей «Стиля Жизни»">
               <div className="gp-coupon-left">
                 <span className="gp-coupon-pct">5%</span>
                 <span className="gp-coupon-label">Скидка</span>
               </div>
               <div className="gp-coupon-divider" aria-hidden="true" />
               <div className="gp-coupon-right">
-                <span className="gp-coupon-sublabel">Промокод на кассе</span>
-                <span className="gp-coupon-code">Стиль Жизни</span>
+                <span className="gp-coupon-sublabel">Гостям «Стиля Жизни»</span>
+                <span className="gp-coupon-body">Промокод даёт менеджер при бронировании</span>
               </div>
             </div>
 
@@ -484,7 +484,7 @@ export default function GdePoestPage() {
             </div>
           </div>
 
-          {/* ПРОДУКТЫ — тёмная полоса */}
+          {/* ПРОДУКТЫ — белая карточка с зелёным акцентом */}
           <div className="gp-products gp-reveal gp-reveal-delay-2">
             <div className="gp-products-inner">
               <div>
@@ -494,16 +494,27 @@ export default function GdePoestPage() {
                   ул. Симферопольская, 20 · 8:00–23:00
                 </p>
               </div>
-              <a
-                href="https://yandex.ru/maps/?text=%D0%90%D0%BB%D1%83%D1%88%D1%82%D0%B0%2C+%D1%83%D0%BB.+%D0%A1%D0%B8%D0%BC%D1%84%D0%B5%D1%80%D0%BE%D0%BF%D0%BE%D0%BB%D1%8C%D1%81%D0%BA%D0%B0%D1%8F%2C+20+%D0%AF%D0%B1%D0%BB%D0%BE%D0%BA%D0%BE"
-                className="gp-products-btn"
-                target="_blank"
-                rel="nofollow noopener"
-                aria-label="Маршрут до супермаркета «Яблоко»"
-              >
-                <IconMapPin />
-                Маршрут
-              </a>
+              <div className="gp-products-actions">
+                <a
+                  href="https://yandex.ru/maps/?text=%D0%90%D0%BB%D1%83%D1%88%D1%82%D0%B0%2C+%D1%83%D0%BB.+%D0%A1%D0%B8%D0%BC%D1%84%D0%B5%D1%80%D0%BE%D0%BF%D0%BE%D0%BB%D1%8C%D1%81%D0%BA%D0%B0%D1%8F%2C+20+%D0%AF%D0%B1%D0%BB%D0%BE%D0%BA%D0%BE"
+                  className="gp-products-btn"
+                  target="_blank"
+                  rel="nofollow noopener"
+                  aria-label="Маршрут до супермаркета «Яблоко»"
+                >
+                  <IconMapPin />
+                  Маршрут
+                </a>
+                <a
+                  href="https://yabloko-supermarket.ru/"
+                  className="gp-products-site"
+                  target="_blank"
+                  rel="nofollow noopener"
+                  aria-label="Сайт супермаркета «Яблоко»"
+                >
+                  Сайт
+                </a>
+              </div>
             </div>
           </div>
         </section>

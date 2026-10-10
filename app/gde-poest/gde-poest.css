@@ -59,7 +59,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center bottom;
 }
 
 .gp-hero-overlay {
@@ -119,7 +119,7 @@
 
 /* H1 */
 .gp-hero-h1 {
-  font-size: clamp(38px, 11vw, 48px);
+  font-size: clamp(44px, 5.5vw, 96px);
   font-weight: 800;
   line-height: 0.98;
   letter-spacing: -0.02em;
@@ -244,7 +244,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 55%;
   display: block;
 }
 
@@ -394,6 +394,13 @@
   font-weight: 800;
   color: var(--gp-navy);
   line-height: 1.1;
+}
+
+.gp-coupon-body {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gp-navy);
+  line-height: 1.35;
 }
 
 /* Строка про завтрак */
@@ -691,21 +698,21 @@
   outline-offset: 2px;
 }
 
-/* Цвета плиток + текст кнопки маршрута */
-/* Плитки 1 и 4 изменены с #139ab6 на #0d7e96:
-   белый текст на #139ab6 = 3.32:1 (провал AA для 12px текста),
-   белый текст на #0d7e96 = 4.73:1 (проходит AA для всего текста) */
+/* Цвета плиток + текст кнопки маршрута.
+   Чередование: #0d7e96 → #1a2740 → #0d7e96 → #1a2740 → #0d7e96.
+   Соседние плитки разные, ни одна пара не совпадает.
+   Контраст белого текста: #0d7e96 = 4.73:1 (AA), #1a2740 = 14.9:1 (AAA). */
 .gp-tile--1 { background: #0d7e96; }
 .gp-tile--2 { background: #1a2740; }
 .gp-tile--3 { background: #0d7e96; }
-.gp-tile--4 { background: #0d7e96; }
-.gp-tile--5 { background: #1a2740; }
+.gp-tile--4 { background: #1a2740; }
+.gp-tile--5 { background: #0d7e96; }
 
-.gp-tile--1 .gp-tile-route { color: #0d7e96; } /* было #139ab6, 3.32:1 на белом */
+.gp-tile--1 .gp-tile-route { color: #0d7e96; }
 .gp-tile--2 .gp-tile-route { color: #1a2740; }
 .gp-tile--3 .gp-tile-route { color: #0d7e96; }
-.gp-tile--4 .gp-tile-route { color: #0d7e96; } /* было #139ab6 */
-.gp-tile--5 .gp-tile-route { color: #1a2740; }
+.gp-tile--4 .gp-tile-route { color: #1a2740; }
+.gp-tile--5 .gp-tile-route { color: #0d7e96; }
 
 /* Точки-индикаторы */
 .gp-carousel-nav {
@@ -885,17 +892,17 @@
   height: 52px;
   border-radius: 999px;
   /*
-   * Белая заливка + тёмно-бирюзовый текст (#0b6d82 = --gp-teal-dark, контраст 6.05:1 на белом).
-   * Нейтральный цвет читается на любом фоне страницы: фото, тил-плитки, светлые секции, футер.
-   * Граница 1px — защита на очень светлых (#fafaf9) фонах: белое на белом не растворяется.
+   * Бирюзовая заливка #0d7e96, белый текст (контраст 4.73:1 AA).
+   * Белая обводка 2px отделяет кнопку от бирюзовых плиток карусели под ней.
+   * Тень делает кнопку «поднятой» над любым фоном страницы.
    */
-  background: #fff;
-  color: #0b6d82; /* --gp-teal-dark; ContactSheet рендерится вне .gp-page, переменная не наследуется */
+  background: #0d7e96;
+  color: #fff;
   font-size: 15px;
   font-weight: 700;
   font-family: var(--font-montserrat), system-ui, sans-serif;
   letter-spacing: 0.02em;
-  border: 1px solid rgba(13, 27, 34, 0.08);
+  border: 2px solid #fff;
   cursor: pointer;
   box-shadow: 0 6px 20px -4px rgba(13, 27, 34, 0.45);
   transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.28s ease;
@@ -1191,5 +1198,207 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   ЯКОРНАЯ НАВИГАЦИЯ — scroll-margin для шапки
+   ══════════════════════════════════════════════════════ */
+
+#endorphin,
+#restaurants {
+  scroll-margin-top: 96px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.gp-page) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   БЛОК «ПРОДУКТЫ» — белая карточка с зелёным акцентом
+   ══════════════════════════════════════════════════════ */
+
+.gp-products {
+  background: transparent;
+  padding: 0 20px 24px;
+}
+
+@media (min-width: 600px) {
+  .gp-products { padding: 0 24px 28px; }
+}
+
+@media (min-width: 1025px) {
+  .gp-products { padding: 0 32px 40px; }
+}
+
+.gp-products-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #41ba1b;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1025px) {
+  .gp-products-inner {
+    padding: 22px 28px;
+    flex-wrap: nowrap;
+  }
+}
+
+.gp-products-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* #277a0f на белом = 5.43:1 (AA) */
+  color: #277a0f;
+  margin: 0 0 4px;
+}
+
+.gp-products-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gp-ink);
+  margin: 0 0 2px;
+}
+
+.gp-products-addr {
+  font-size: 13px;
+  color: var(--gp-muted);
+  margin: 0;
+}
+
+/* Кнопки группа */
+.gp-products-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Основная кнопка «Маршрут» — зелёная заливка, тёмный текст */
+/* #41ba1b фон + #0d1b22 текст = 6.82:1 (AA) */
+.gp-products-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: 999px;
+  background: #41ba1b;
+  color: #0d1b22;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.gp-products-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.gp-products-btn:hover { background: #379915; }
+
+.gp-products-btn:focus-visible {
+  outline: 3px solid #41ba1b;
+  outline-offset: 3px;
+}
+
+/* Ссылка на сайт — вторичная, без заливки */
+.gp-products-site {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  color: var(--gp-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0 18px;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.gp-products-site:hover {
+  border-color: #41ba1b;
+  color: #277a0f;
+}
+
+.gp-products-site:focus-visible {
+  outline: 3px solid #41ba1b;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-products-btn,
+  .gp-products-site { transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ДЕСКТОП 1025px+ — расширенная композиция hero
+   ══════════════════════════════════════════════════════ */
+
+@media (min-width: 1025px) {
+  /* Hero контент: расширяем в 1280px-контейнер вместо 640px */
+  .gp-hero-content {
+    max-width: 1280px;
+    width: 100%;
+  }
+
+  /* Чип — немного крупнее */
+  .gp-hero-chip {
+    font-size: 12px;
+    padding: 7px 16px;
+    margin-bottom: 22px;
+  }
+
+  /* H1: максимальная ширина для читаемости */
+  .gp-hero-h1 {
+    max-width: 800px;
+    margin-bottom: 22px;
+  }
+
+  /* Лид: шире и крупнее */
+  .gp-hero-lead {
+    font-size: 17px;
+    max-width: 560px;
+    margin-bottom: 32px;
+  }
+
+  /* Кнопки: автоширина по содержимому, не растянутые */
+  .gp-hero-btns {
+    width: fit-content;
+    gap: 12px;
+  }
+
+  .gp-hero-btn-primary {
+    flex: none;
+    height: 60px;
+    font-size: 15px;
+    padding: 0 44px;
+  }
+
+  .gp-hero-btn-secondary {
+    height: 60px;
+    font-size: 15px;
+    padding: 0 40px;
   }
 }

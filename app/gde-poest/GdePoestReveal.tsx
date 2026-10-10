@@ -14,6 +14,30 @@ import { useEffect } from 'react';
  */
 export default function GdePoestReveal() {
   useEffect(() => {
+    // Плавная прокрутка по якорям — только если анимации разрешены
+    const mql = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    if (mql.matches) {
+      const links = document.querySelectorAll<HTMLAnchorElement>('.gp-page a[href^="#"]');
+      const handleClick = (e: Event) => {
+        const link = e.currentTarget as HTMLAnchorElement;
+        const targetId = link.getAttribute('href')?.slice(1);
+        if (!targetId) return;
+        const target = document.getElementById(targetId);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+      links.forEach((link) => link.addEventListener('click', handleClick));
+      // Очистка при размонтировании
+      const cleanup = () =>
+        links.forEach((link) => link.removeEventListener('click', handleClick));
+      // Возвращаем через переменную, т.к. useEffect объединяет cleanup-ы ниже
+      return cleanup;
+    }
+  }, []);
+
+  useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>('.gp-reveal');
     if (!elements.length) return;
 
