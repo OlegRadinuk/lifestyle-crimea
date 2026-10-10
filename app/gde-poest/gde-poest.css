@@ -1,0 +1,1195 @@
+/* =====================================================
+   GDE-POEST PAGE — «Где поесть» — вариант Б
+   Апарт-отель «Стиль Жизни», lovelifestyle.ru
+   Акцент: #139ab6 (тил), navy: #1a2740, бронза: #c9a058
+   Стек: Montserrat 400/600/700/800, мобайл-фёрст.
+   ===================================================== */
+
+/* ── ПЕРЕМЕННЫЕ ──────────────────────────────────────── */
+.gp-page {
+  --gp-teal:         #0d7e96; /* было #139ab6 — 3.32:1 с белым, теперь 4.73:1 */
+  --gp-teal-dark:    #0b6d82; /* было #0d7e96 — сохранён как hover/active */
+  --gp-teal-light:   #7fd3e6;
+  --gp-ink:          #0d1b22;
+  --gp-navy:         #1a2740;
+  --gp-bronze:       #c9a058;
+  --gp-bronze-light: #e0bd7d;
+  --gp-muted:        #4a5568;
+  --gp-bg-page:      #fafaf9;
+
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  background: var(--gp-bg-page);
+  color: var(--gp-ink);
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+/* ── КОНТЕЙНЕР ───────────────────────────────────────── */
+.gp-section-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (min-width: 600px) {
+  .gp-section-inner { padding: 0 24px; }
+}
+
+@media (min-width: 1025px) {
+  .gp-section-inner { padding: 0 32px; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ЭКРАН 1 — HERO
+   ══════════════════════════════════════════════════════ */
+
+.gp-hero {
+  position: relative;
+  height: 100svh;
+  min-height: 550px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.gp-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.gp-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 18, 24, 0.62) 0%,
+    rgba(8, 18, 24, 0.12) 32%,
+    rgba(8, 18, 24, 0.72) 68%,
+    rgba(8, 18, 24, 0.96) 100%
+  );
+}
+
+.gp-hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px 20px 104px;
+}
+
+/* Отступ под иконку + кнопки (104px = 52px кнопка + 32px отступ + safe area) */
+@media (min-width: 600px) {
+  .gp-hero-content {
+    padding: 24px 32px 80px;
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .gp-hero-content {
+    max-width: 640px;
+    padding: 32px 48px 80px;
+  }
+}
+
+/* Чип «КОФЕЙНЯ В КОМПЛЕКСЕ» */
+.gp-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gp-teal);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin-bottom: 14px;
+}
+
+.gp-hero-chip svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* H1 */
+.gp-hero-h1 {
+  font-size: clamp(38px, 11vw, 48px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.gp-hero-h1 span {
+  color: var(--gp-teal-light);
+  display: block;
+}
+
+@media (max-width: 360px) {
+  .gp-hero-h1 { font-size: 40px; }
+}
+
+/* Лид */
+.gp-hero-lead {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 300px;
+  margin: 0 0 22px;
+}
+
+/* Кнопки hero */
+.gp-hero-btns {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gp-hero-btn-primary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--gp-teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background 0.2s ease, transform 0.2s ease;
+  min-width: 0;
+}
+
+.gp-hero-btn-primary:hover {
+  background: var(--gp-teal-dark);
+  transform: translateY(-1px);
+}
+
+.gp-hero-btn-primary:focus-visible {
+  outline: 3px solid #4fd0e8;
+  outline-offset: 3px;
+}
+
+.gp-hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0 22px;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.gp-hero-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.gp-hero-btn-secondary:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-hero-btn-primary,
+  .gp-hero-btn-secondary {
+    transition: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   ЭКРАН 2 — ЭНДОРФИН
+   ══════════════════════════════════════════════════════ */
+
+.gp-endorphin {
+  background: var(--gp-navy);
+  color: #fff;
+}
+
+/* Фото в край */
+.gp-endorphin-photo-wrap {
+  position: relative;
+  overflow: hidden;
+  height: 420px;
+}
+
+@media (min-width: 600px) {
+  .gp-endorphin-photo-wrap { height: 480px; }
+}
+
+@media (min-width: 1025px) {
+  .gp-endorphin-photo-wrap { height: 560px; }
+}
+
+.gp-endorphin-photo-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.gp-endorphin-photo-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 39, 64, 0.15) 0%,
+    var(--gp-navy) 100%
+  );
+}
+
+/* Текст поверх фото (низ) */
+.gp-endorphin-photo-text {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  right: 20px;
+}
+
+@media (min-width: 600px) {
+  .gp-endorphin-photo-text {
+    left: 32px;
+    right: 32px;
+  }
+}
+
+.gp-end-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--gp-bronze);
+  color: var(--gp-navy);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.gp-end-name {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.gp-end-wordmark {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gp-bronze);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Тело секции */
+.gp-endorphin-body {
+  padding: 24px 20px 40px;
+}
+
+@media (min-width: 600px) {
+  .gp-endorphin-body {
+    padding: 32px 32px 48px;
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .gp-endorphin-body {
+    max-width: 720px;
+    padding: 40px 48px 56px;
+  }
+}
+
+.gp-end-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 24px;
+  font-weight: 400;
+}
+
+/* КУПОН */
+.gp-coupon {
+  background: linear-gradient(135deg, var(--gp-bronze), var(--gp-bronze-light));
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.gp-coupon-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.gp-coupon-pct {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gp-navy);
+  letter-spacing: -0.02em;
+}
+
+.gp-coupon-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gp-navy);
+  margin-top: 2px;
+}
+
+.gp-coupon-divider {
+  width: 1px;
+  height: 44px;
+  background: rgba(26, 39, 64, 0.25);
+  flex-shrink: 0;
+}
+
+.gp-coupon-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gp-coupon-sublabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gp-navy);
+}
+
+.gp-coupon-code {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--gp-navy);
+  line-height: 1.1;
+}
+
+/* Строка про завтрак */
+.gp-end-breakfast-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 28px;
+}
+
+.gp-end-breakfast-note svg {
+  color: var(--gp-bronze);
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+/* Кнопки эндорфина */
+.gp-end-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gp-end-btn-primary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--gp-teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background 0.2s ease, transform 0.2s ease;
+  min-width: 0;
+}
+
+.gp-end-btn-primary svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.gp-end-btn-primary:hover {
+  background: var(--gp-teal-dark);
+  transform: translateY(-1px);
+}
+
+.gp-end-btn-primary:focus-visible {
+  outline: 3px solid #4fd0e8;
+  outline-offset: 3px;
+}
+
+.gp-end-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0 22px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.gp-end-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gp-end-btn-secondary:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-end-btn-primary,
+  .gp-end-btn-secondary {
+    transition: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   ЭКРАН 3 — ЗАВЕДЕНИЯ (карусель)
+   ══════════════════════════════════════════════════════ */
+
+.gp-restaurants {
+  background: var(--gp-bg-page);
+  padding: 40px 0 0;
+}
+
+@media (min-width: 1025px) {
+  .gp-restaurants { padding-top: 64px; }
+}
+
+/* Заголовок */
+.gp-rest-header {
+  padding: 0 20px;
+  margin-bottom: 22px;
+}
+
+@media (min-width: 600px) {
+  .gp-rest-header { padding: 0 24px; }
+}
+
+@media (min-width: 1025px) {
+  .gp-rest-header { padding: 0 32px; }
+}
+
+.gp-rest-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gp-teal-dark);
+  margin: 0 0 6px;
+}
+
+.gp-rest-heading {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--gp-ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ── КАРУСЕЛЬ ───────────────────────────────────────── */
+.gp-carousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 20px 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gp-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Последний элемент — с правым padding через псевдоэлемент */
+.gp-carousel::after {
+  content: '';
+  flex: 0 0 6px;
+  display: block;
+}
+
+/* ПЛИТКА */
+.gp-tile {
+  flex: 0 0 248px;
+  width: 248px;
+  height: 330px;
+  border-radius: 20px;
+  padding: 20px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Номер-фон */
+.gp-tile-num {
+  position: absolute;
+  right: -10px;
+  top: -26px;
+  font-size: 128px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.11);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Чип-метка (сверху) */
+.gp-tile-chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  background: rgba(0, 0, 0, 0.28); /* было rgba(255,255,255,.18) — контраст 3.47:1, теперь ~7.6:1 */
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: auto;
+}
+
+/* Нижний блок */
+.gp-tile-body {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.gp-tile-name {
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.08;
+  color: #fff;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.gp-tile-addr {
+  font-size: 12px;
+  color: #fff; /* было rgba(255,255,255,.74) — на тёмно-бирюзовом 2.48:1, теперь 4.73:1 */
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+
+.gp-tile-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Кнопка «Маршрут» — белая, текст цветом плитки */
+.gp-tile-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px; /* было 40px — поднято до мин. тач-таргета 44px */
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0 14px;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.gp-tile-route svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.gp-tile-route:hover { opacity: 0.88; }
+
+.gp-tile-route:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Кнопка-телефон (круглая, только у тех, у кого есть доставка) */
+.gp-tile-phone {
+  width: 44px;  /* было 40px — поднято до мин. тач-таргета 44px */
+  height: 44px; /* было 40px */
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.gp-tile-phone svg {
+  width: 16px;
+  height: 16px;
+}
+
+.gp-tile-phone:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.gp-tile-phone:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Цвета плиток + текст кнопки маршрута */
+/* Плитки 1 и 4 изменены с #139ab6 на #0d7e96:
+   белый текст на #139ab6 = 3.32:1 (провал AA для 12px текста),
+   белый текст на #0d7e96 = 4.73:1 (проходит AA для всего текста) */
+.gp-tile--1 { background: #0d7e96; }
+.gp-tile--2 { background: #1a2740; }
+.gp-tile--3 { background: #0d7e96; }
+.gp-tile--4 { background: #0d7e96; }
+.gp-tile--5 { background: #1a2740; }
+
+.gp-tile--1 .gp-tile-route { color: #0d7e96; } /* было #139ab6, 3.32:1 на белом */
+.gp-tile--2 .gp-tile-route { color: #1a2740; }
+.gp-tile--3 .gp-tile-route { color: #0d7e96; }
+.gp-tile--4 .gp-tile-route { color: #0d7e96; } /* было #139ab6 */
+.gp-tile--5 .gp-tile-route { color: #1a2740; }
+
+/* Точки-индикаторы */
+.gp-carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 20px;
+}
+
+@media (min-width: 600px) {
+  .gp-carousel-nav { padding-left: 24px; padding-right: 24px; }
+}
+
+.gp-carousel-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.gp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(13, 27, 34, 0.2);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.gp-dot--active {
+  width: 16px;
+  background: var(--gp-teal);
+}
+
+.gp-swipe-hint {
+  font-size: 11px;
+  color: rgba(13, 27, 34, 0.4);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-dot { transition: none; }
+  .gp-tile-route,
+  .gp-tile-phone { transition: none; }
+}
+
+/* ── ПРОДУКТЫ — тёмная полоса под каруселью ─────────── */
+.gp-products {
+  background: var(--gp-ink);
+  padding: 22px 0;
+}
+
+.gp-products-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 600px) {
+  .gp-products-inner { padding: 0 24px; }
+}
+
+@media (min-width: 1025px) {
+  .gp-products-inner { padding: 0 32px; flex-wrap: nowrap; }
+}
+
+.gp-products-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gp-teal-light);
+  margin: 0 0 4px;
+}
+
+.gp-products-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 2px;
+}
+
+.gp-products-addr {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+.gp-products-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--gp-teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.gp-products-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.gp-products-btn:hover { background: var(--gp-teal-dark); }
+
+.gp-products-btn:focus-visible {
+  outline: 3px solid #4fd0e8;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-products-btn { transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ПОДПИСЬ
+   ══════════════════════════════════════════════════════ */
+
+.gp-signature {
+  padding: 40px 0 100px;
+  text-align: center;
+}
+
+@media (min-width: 1025px) {
+  .gp-signature { padding-bottom: 64px; }
+}
+
+.gp-signature-text {
+  font-size: 15px;
+  color: var(--gp-muted);
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0 0 6px;
+}
+
+.gp-signature-brand {
+  font-size: 13px;
+  color: #475569; /* было #94a3b8 — 2.47:1 провал, теперь ~7.3:1 */
+  font-weight: 400;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   ЭКРАН 4 — ШТОРКА «СВЯЗАТЬСЯ»
+   ══════════════════════════════════════════════════════ */
+
+/* Липкая кнопка */
+.gp-sheet-trigger {
+  position: fixed;
+  /*
+   * bottom: CSS-переменная --gp-trigger-offset выставляется из ContactSheet.tsx
+   * через ResizeObserver на куки-баннере. Когда баннер не виден — 0px (дефолт),
+   * кнопка стоит в 16px + safe-area от нижнего края.
+   * Когда баннер виден — значение растёт так, чтобы кнопка была выше баннера.
+   */
+  bottom: calc(var(--gp-trigger-offset, 0px) + 16px + env(safe-area-inset-bottom));
+  left: 20px; /* слева, подальше от виджета «София» (справа) */
+  transform: none;
+  z-index: 10060; /* выше виджета «София» (10055) и куки-баннера (9999) */
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 52px;
+  border-radius: 999px;
+  /*
+   * Белая заливка + тёмно-бирюзовый текст (#0b6d82 = --gp-teal-dark, контраст 6.05:1 на белом).
+   * Нейтральный цвет читается на любом фоне страницы: фото, тил-плитки, светлые секции, футер.
+   * Граница 1px — защита на очень светлых (#fafaf9) фонах: белое на белом не растворяется.
+   */
+  background: #fff;
+  color: #0b6d82; /* --gp-teal-dark; ContactSheet рендерится вне .gp-page, переменная не наследуется */
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(13, 27, 34, 0.08);
+  cursor: pointer;
+  box-shadow: 0 6px 20px -4px rgba(13, 27, 34, 0.45);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.28s ease;
+  white-space: nowrap;
+}
+
+/* Скрыта пока герой виден — IntersectionObserver в ContactSheet.tsx управляет этим классом */
+.gp-sheet-trigger--hero {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gp-sheet-trigger-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.gp-sheet-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -4px rgba(13, 27, 34, 0.55);
+}
+
+.gp-sheet-trigger:focus-visible {
+  outline: 3px solid #4fd0e8;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-sheet-trigger { transition: none; }
+}
+
+/* Затемнение */
+.gp-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10070; /* было 200 — должен быть выше триггера (10060) и виджета «София» (10055) */
+  background: rgba(13, 27, 34, 0.55);
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Шторка */
+.gp-sheet {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -16px 44px -12px rgba(13, 27, 34, 0.35);
+  padding: 12px 20px calc(32px + env(safe-area-inset-bottom));
+  animation: gp-sheet-rise 0.32s ease;
+}
+
+@keyframes gp-sheet-rise {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-sheet { animation: none; }
+}
+
+/* Ручка + кнопка-закрывашка */
+.gp-sheet-handle-btn {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 0 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.gp-sheet-handle {
+  display: block;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d6dfe2;
+}
+
+.gp-sheet-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--gp-ink);
+  margin: 0 0 18px;
+  letter-spacing: -0.01em;
+}
+
+/* Строки шторки */
+.gp-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 16px;
+  padding: 14px 16px;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: opacity 0.18s ease;
+}
+
+.gp-sheet-row:hover { opacity: 0.9; }
+
+.gp-sheet-row:focus-visible {
+  outline: 3px solid var(--gp-teal);
+  outline-offset: 2px;
+}
+
+.gp-sheet-row--teal {
+  background: var(--gp-teal);
+  color: #fff;
+}
+
+/* Тёмно-бирюзовый фон: обводка фокуса должна быть белой, иначе не видно */
+.gp-sheet-row--teal:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.gp-sheet-row--light {
+  background: #f2f6f7;
+  color: var(--gp-ink);
+}
+
+.gp-sheet-row-ico {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gp-sheet-row-ico svg {
+  width: 20px;
+  height: 20px;
+}
+
+.gp-sheet-row-ico--white {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.gp-sheet-row-ico--teal {
+  background: rgba(19, 154, 182, 0.12);
+  color: var(--gp-teal);
+}
+
+.gp-sheet-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gp-sheet-row-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.gp-sheet-row-name--dark {
+  color: var(--gp-ink);
+}
+
+.gp-sheet-row-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #fff; /* было rgba(255,255,255,.8) — на #0d7e96 = 3.06:1, теперь 4.73:1 */
+  line-height: 1.4;
+}
+
+.gp-sheet-row-sub--dark {
+  color: var(--gp-muted);
+}
+
+/* Блок доставки */
+.gp-sheet-delivery {
+  margin-top: 6px;
+}
+
+.gp-sheet-delivery-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gp-muted);
+  margin: 0 0 10px;
+}
+
+.gp-sheet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gp-sheet-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--gp-bg-page);
+  border: 1.5px solid rgba(13, 27, 34, 0.12);
+  color: var(--gp-ink);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.gp-sheet-chip:hover {
+  background: rgba(19, 154, 182, 0.08);
+  border-color: var(--gp-teal);
+  color: var(--gp-teal-dark);
+}
+
+.gp-sheet-chip:focus-visible {
+  outline: 3px solid var(--gp-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-sheet-row,
+  .gp-sheet-chip { transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ОБЩИЕ КНОПКИ (для обратной совместимости)
+   ══════════════════════════════════════════════════════ */
+
+.gp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--gp-teal);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.gp-btn-primary svg { width: 16px; height: 16px; flex-shrink: 0; }
+.gp-btn-primary:hover { background: var(--gp-teal-dark); }
+.gp-btn-primary:focus-visible { outline: 3px solid #4fd0e8; outline-offset: 3px; }
+
+/* ══════════════════════════════════════════════════════
+   REVEAL-АНИМАЦИИ (без изменений)
+   ══════════════════════════════════════════════════════ */
+
+/*
+ * ВАЖНО: .gp-reveal в разметке НЕ скрыт.
+ * gp-anim добавляет скрипт (GdePoestReveal.tsx) на documentElement.
+ * Только при наличии .gp-anim + JS активируется скрытие через opacity:0.
+ * Без JS страница видна целиком.
+ */
+.gp-anim .gp-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.gp-anim .gp-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gp-reveal-delay-1 { transition-delay: 0.08s; }
+.gp-reveal-delay-2 { transition-delay: 0.16s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-anim .gp-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
