@@ -23,6 +23,9 @@ export default function ContactSheet() {
   // heroVisible=true пока герой занимает ≥50% экрана: кнопка скрыта
   const [heroVisible, setHeroVisible] = useState(true);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // Вклад каждого «соседа» в отступ кнопки — итог = Math.max(banner, sofia, 0)
+  const bannerOffsetRef = useRef(0);
+  const sofiaOffsetRef = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -124,8 +127,9 @@ export default function ContactSheet() {
     const updateOffset = () => {
       if (!triggerRef.current || !bannerEl) return;
       const rect = bannerEl.getBoundingClientRect();
-      const offset = Math.max(0, window.innerHeight - rect.top - 4);
-      setOffset(`${offset}px`);
+      bannerOffsetRef.current = Math.max(0, window.innerHeight - rect.top - 4);
+      // Итоговый отступ — максимум из вклада баннера и вклада Sofii
+      setOffset(`${Math.max(bannerOffsetRef.current, sofiaOffsetRef.current)}px`);
     };
 
     const stopSearching = () => {
@@ -179,7 +183,13 @@ export default function ContactSheet() {
       ro?.disconnect(); ro = null;
       window.removeEventListener('resize', updateOffset);
       bannerEl = null;
-      clearOffset();
+      bannerOffsetRef.current = 0;
+      // Если виджет «Sofia» ещё активен — оставляем его вклад
+      if (sofiaOffsetRef.current > 0) {
+        triggerRef.current?.style.setProperty('--gp-trigger-offset', `${sofiaOffsetRef.current}px`);
+      } else {
+        clearOffset();
+      }
     };
 
     window.addEventListener(CONSENT_EVENT, onConsent);
@@ -188,6 +198,89 @@ export default function ContactSheet() {
       ro?.disconnect();
       window.removeEventListener('resize', updateOffset);
       window.removeEventListener(CONSENT_EVENT, onConsent);
+    };
+  }, []);
+
+  // ── Синхронизируем нижний край кнопки с виджетом «Sofia» ─────────────
+  // Виджет «Sofia» — внешний чат-ассистент, подключается скриптом асинхронно.
+  // Ищем фиксированный элемент с inline z-index 10055.
+  // CSS: button.bottom = --gp-trigger-offset + 16px
+  // Хотим: button.bottom = sofiaEl.bottomFromViewport
+  // → --gp-trigger-offset = sofiaEl.bottomFromViewport - 16
+  // Итоговый отступ — Math.max с вкладом куки-баннера (bannerOffsetRef).
+  useEffect(() => {
+    let sofiaEl: HTMLElement | null = null;
+    let sofiaRo: ResizeObserver | null = null;
+    let sofiaRaf: number | null = null;
+    let sofiaMo: MutationObserver | null = null;
+
+    const findSofia = (): HTMLElement | null => {
+      // 1. По известному ID виджета (O(1), самый быстрый)
+      const byId = document.getElementById('opsph-btn');
+      if (byId) return byId as HTMLElement;
+      // 2. Фолбэк: кнопка с текстом «Sofia» (если вендор сменит ID)
+      const buttons = document.body.querySelectorAll<HTMLButtonElement>('button');
+      for (const btn of buttons) {
+        if (btn.textContent?.includes('София') || btn.textContent?.includes('Sofia')) {
+          return btn;
+        }
+      }
+      return null;
+    };
+
+    const applyWithSofia = () => {
+      if (!triggerRef.current) return;
+      const final = Math.max(sofiaOffsetRef.current, bannerOffsetRef.current);
+      if (final > 0) {
+        triggerRef.current.style.setProperty('--gp-trigger-offset', `${final}px`);
+      } else {
+        triggerRef.current.style.removeProperty('--gp-trigger-offset');
+      }
+    };
+
+    const updateSofia = () => {
+      if (!sofiaEl) return;
+      const r = sofiaEl.getBoundingClientRect();
+      const sofiaBottomFromViewportBottom = window.innerHeight - r.bottom;
+      // CSS bottom = --gp-trigger-offset + 16px → чтобы bottom = sofiaBottomFromViewportBottom,
+      // нужно: --gp-trigger-offset = sofiaBottomFromViewportBottom - 16
+      sofiaOffsetRef.current = Math.max(0, sofiaBottomFromViewportBottom - 16);
+      applyWithSofia();
+    };
+
+    const startObservingSofia = () => {
+      sofiaMo?.disconnect(); sofiaMo = null;
+      if (sofiaRaf !== null) { cancelAnimationFrame(sofiaRaf); sofiaRaf = null; }
+      sofiaRo = new ResizeObserver(updateSofia);
+      sofiaRo.observe(sofiaEl!);
+      window.addEventListener('resize', updateSofia);
+      updateSofia();
+    };
+
+    const tryFindSofia = (): boolean => {
+      sofiaEl = findSofia();
+      if (sofiaEl) { startObservingSofia(); return true; }
+      return false;
+    };
+
+    if (!tryFindSofia()) {
+      // Sofia ещё не загрузилась — ждём через MutationObserver
+      sofiaMo = new MutationObserver(() => {
+        if (sofiaEl || sofiaRaf !== null) return;
+        sofiaRaf = requestAnimationFrame(() => {
+          sofiaRaf = null;
+          if (!sofiaEl) tryFindSofia();
+        });
+      });
+      sofiaMo.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => {
+      sofiaMo?.disconnect();
+      if (sofiaRaf !== null) cancelAnimationFrame(sofiaRaf);
+      sofiaRo?.disconnect();
+      window.removeEventListener('resize', updateSofia);
+      sofiaOffsetRef.current = 0;
     };
   }, []);
 

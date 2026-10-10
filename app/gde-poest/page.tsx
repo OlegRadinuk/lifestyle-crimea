@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import JsonLd from '@/components/JsonLd';
 import Footer from '@/components/Footer';
 import GdePoestHeaderMode from './GdePoestHeaderMode';
@@ -204,15 +203,21 @@ export default function GdePoestPage() {
             ЭКРАН 1 — HERO: кадр во весь экран
             ═══════════════════════════════════════ */}
         <section className="gp-hero">
-          <Image
-            src="/images/gde-poest/endorphin-interior.webp"
-            alt="Интерьер кофейни «Эндорфин» — деревянные балки, бежевые диваны и мурал с танцующей парой"
-            width={960}
-            height={1280}
-            className="gp-hero-img"
-            priority
-            sizes="100vw"
-          />
+          {/* Арт-директ: вертикальный кадр на телефоне, горизонтальный на десктопе */}
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              srcSet="/images/gde-poest/endorphin-interior-h.webp"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/gde-poest/endorphin-interior-v.webp"
+              alt="Интерьер кофейни «Эндорфин» — деревянные балки, бежевые диваны и мурал с танцующей парой"
+              className="gp-hero-img"
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
           <div className="gp-hero-overlay" aria-hidden="true" />
 
           <div className="gp-hero-content">
@@ -250,13 +255,20 @@ export default function GdePoestPage() {
         <section className="gp-endorphin" id="endorphin">
           {/* Фото в край с градиентом */}
           <div className="gp-endorphin-photo-wrap">
-            <Image
-              src="/images/gde-poest/endorphin-coffee.webp"
-              alt="Авторский раф с дроблёной малиной и безе на золотой подложке в кофейне «Эндорфин»"
-              width={1014}
-              height={1280}
-              sizes="100vw"
-            />
+            {/* Арт-директ: вертикальный кадр на телефоне, горизонтальный на десктопе */}
+            <picture>
+              <source
+                media="(min-width: 768px)"
+                srcSet="/images/gde-poest/endorphin-coffee-h.webp"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/gde-poest/endorphin-coffee-v.webp"
+                alt="Авторский раф с дроблёной малиной и безе на золотой подложке в кофейне «Эндорфин»"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
             <div className="gp-endorphin-photo-gradient" aria-hidden="true" />
 
             {/* Текст поверх фото */}
