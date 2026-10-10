@@ -22,6 +22,8 @@ export default function ContactSheet() {
   const [open, setOpen] = useState(false);
   // heroVisible=true пока герой занимает ≥50% экрана: кнопка скрыта
   const [heroVisible, setHeroVisible] = useState(true);
+  // sofiaOpen=true пока раскрыта приветственная панель виджета «Sofia»: кнопка уступает ей место
+  const [sofiaOpen, setSofiaOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   // Вклад каждого «соседа» в отступ кнопки — итог = Math.max(banner, sofia, 0)
   const bannerOffsetRef = useRef(0);
@@ -205,14 +207,20 @@ export default function ContactSheet() {
   // Виджет «Sofia» — внешний чат-ассистент, подключается скриптом асинхронно.
   // Ищем фиксированный элемент с inline z-index 10055.
   // CSS: button.bottom = --gp-trigger-offset + 16px
-  // Хотим: button.bottom = sofiaEl.bottomFromViewport
-  // → --gp-trigger-offset = sofiaEl.bottomFromViewport - 16
+  // Хотим: button.bottom = sofiaEl.topFromViewport - 12
   // Итоговый отступ — Math.max с вкладом куки-баннера (bannerOffsetRef).
+  //
+  // Дополнительно: отслеживаем открытие приветственной панели «Sofia».
+  // Панель раскрывается ВВЕРХ от пилюли (~290×400px) — ровно там, где стоит наша кнопка.
+  // Пока панель раскрыта → кнопка скрывается (sofiaOpen=true).
   useEffect(() => {
     let sofiaEl: HTMLElement | null = null;
     let sofiaRo: ResizeObserver | null = null;
     let sofiaRaf: number | null = null;
     let sofiaMo: MutationObserver | null = null;
+    // Наблюдатель за открытием/закрытием панели
+    let panelMo: MutationObserver | null = null;
+    let panelRaf: number | null = null;
 
     const findSofia = (): HTMLElement | null => {
       // 1. По известному ID виджета (O(1), самый быстрый)
@@ -241,11 +249,66 @@ export default function ContactSheet() {
     const updateSofia = () => {
       if (!sofiaEl) return;
       const r = sofiaEl.getBoundingClientRect();
-      const sofiaBottomFromViewportBottom = window.innerHeight - r.bottom;
-      // CSS bottom = --gp-trigger-offset + 16px → чтобы bottom = sofiaBottomFromViewportBottom,
-      // нужно: --gp-trigger-offset = sofiaBottomFromViewportBottom - 16
-      sofiaOffsetRef.current = Math.max(0, sofiaBottomFromViewportBottom - 16);
+      // Хотим: нижний край кнопки = верхний край виджета «Sofia» - 12px.
+      // CSS: button.bottom = --gp-trigger-offset + 16px + safe-area
+      // button.bottom_from_viewport_bottom = window.innerHeight - (r.top - 12)
+      //   = window.innerHeight - r.top + 12
+      // → --gp-trigger-offset = (window.innerHeight - r.top + 12) - 16
+      //   = window.innerHeight - r.top - 4
+      sofiaOffsetRef.current = Math.max(0, window.innerHeight - r.top - 4);
       applyWithSofia();
+    };
+
+    // ── Обнаружение открытой панели «Sofia» ───────────────────────────
+    // Реальная структура: #opsph-btn — это САМА кнопка position:fixed прямо в <body>.
+    // Панель «Sofia» монтируется туда же — как СОСЕД кнопки, прямой дочерний элемент body.
+    // Поэтому ищем панель не в поддереве кнопки, а в document.body.children.
+    //
+    // Признаки панели (чтобы отличить от нашей кнопки, шторки и куки-баннера):
+    //   • position: fixed | absolute
+    //   • z-index ≥ 10000 (куки-баннер = 9999, не пройдёт)
+    //   • видима: display != none, visibility != hidden, opacity > 0.1
+    //   • размер > 200×150px
+    //   • прямоугольник в правой нижней четверти экрана
+    //
+    // Оптимизация: сначала проверяем el.style.zIndex (inline, без reflow),
+    // только кандидатам делаем getComputedStyle, и в последнюю очередь getBoundingClientRect.
+    // Один reflow на весь скан (document.body.children ≈ 10–20 элементов).
+    const checkPanel = () => {
+      const hw = window.innerWidth / 2;
+      const hh = window.innerHeight / 2;
+      let found = false;
+
+      for (const child of document.body.children) {
+        const el = child as HTMLElement;
+        // Исключаем наши собственные элементы и саму кнопку «Sofia»
+        if (el === triggerRef.current) continue;
+        if (el === sofiaEl) continue;
+        if (el.classList.contains('gp-sheet-backdrop')) continue;
+
+        // 1. Быстрый фильтр по inline z-index (O(1), нет reflow)
+        const inlineZ = parseInt(el.style.zIndex, 10);
+        if (!isNaN(inlineZ) && inlineZ < 10000) continue;
+
+        // 2. getComputedStyle — только для прошедших фильтр 1
+        const s = getComputedStyle(el);
+        const pos = s.position;
+        if (pos !== 'fixed' && pos !== 'absolute') continue;
+        const z = parseInt(s.zIndex, 10);
+        if (isNaN(z) || z < 10000) continue;
+
+        // 3. Видимость
+        if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.1) continue;
+
+        // 4. Размер и позиция (getBoundingClientRect — один reflow на весь цикл)
+        const r = el.getBoundingClientRect();
+        if (r.width > 200 && r.height > 150 && r.right > hw && r.bottom > hh) {
+          found = true;
+          break;
+        }
+      }
+
+      setSofiaOpen(found);
     };
 
     const startObservingSofia = () => {
@@ -255,6 +318,28 @@ export default function ContactSheet() {
       sofiaRo.observe(sofiaEl!);
       window.addEventListener('resize', updateSofia);
       updateSofia();
+
+      // Начальная проверка (панель может быть уже открыта)
+      checkPanel();
+
+      // Наблюдаем body: панель появляется/исчезает как прямой ребёнок body (childList),
+      // либо меняет видимость через inline style/class на уже вставленном элементе (subtree+attrs).
+      // attributeFilter сужает триггеры: не каждая мутация, а только style/class.
+      // rAF-коалесция: один скан за кадр, не чаще.
+      panelMo?.disconnect();
+      panelMo = new MutationObserver(() => {
+        if (panelRaf !== null) return;
+        panelRaf = requestAnimationFrame(() => {
+          panelRaf = null;
+          checkPanel();
+        });
+      });
+      panelMo.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class'],
+      });
     };
 
     const tryFindSofia = (): boolean => {
@@ -281,6 +366,9 @@ export default function ContactSheet() {
       sofiaRo?.disconnect();
       window.removeEventListener('resize', updateSofia);
       sofiaOffsetRef.current = 0;
+      panelMo?.disconnect();
+      if (panelRaf !== null) cancelAnimationFrame(panelRaf);
+      setSofiaOpen(false);
     };
   }, []);
 
@@ -355,20 +443,25 @@ export default function ContactSheet() {
     if (e.target === e.currentTarget) close();
   };
 
+  // Кнопка скрывается в двух случаях:
+  // (а) виден герой — пользователь ещё не начал скроллить
+  // (б) открыта панель «Sofia» — кнопка не должна перекрывать приветствие
+  const triggerHidden = heroVisible || sofiaOpen;
+
   return (
     <>
       {/* ── Липкая кнопка ───────────────────────────── */}
-      {/* heroVisible=true → класс --hero → opacity:0 + pointer-events:none
+      {/* triggerHidden → класс --hero → opacity:0 + pointer-events:none
           tabIndex={-1} убирает из Tab-порядка; aria-hidden скрывает от скринридеров */}
       <button
         ref={triggerRef}
-        className={`gp-sheet-trigger${heroVisible ? ' gp-sheet-trigger--hero' : ''}`}
+        className={`gp-sheet-trigger${triggerHidden ? ' gp-sheet-trigger--hero' : ''}`}
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label="Открыть меню связи"
-        tabIndex={heroVisible ? -1 : undefined}
-        aria-hidden={heroVisible ? true : undefined}
+        tabIndex={triggerHidden ? -1 : undefined}
+        aria-hidden={triggerHidden ? true : undefined}
       >
         <IconPhone className="gp-sheet-trigger-icon" />
         Связаться

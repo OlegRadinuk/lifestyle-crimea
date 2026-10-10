@@ -31,11 +31,7 @@
   padding: 0 20px;
 }
 
-@media (min-width: 600px) {
-  .gp-section-inner { padding: 0 24px; }
-}
-
-@media (min-width: 1025px) {
+@media (min-width: 768px) {
   .gp-section-inner { padding: 0 32px; }
 }
 
@@ -91,7 +87,7 @@
 @media (min-width: 1025px) {
   .gp-hero-content {
     max-width: 640px;
-    padding: 32px 48px 80px;
+    padding: 32px 32px 80px; /* горизонталь → 32px, единая сетка */
   }
 }
 
@@ -221,6 +217,7 @@
 .gp-endorphin {
   background: var(--gp-navy);
   color: #fff;
+  min-height: 100svh; /* полноэкранная секция — снап встаёт вплотную */
 }
 
 /* Фото в край */
@@ -320,7 +317,7 @@
 @media (min-width: 1025px) {
   .gp-endorphin-body {
     max-width: 720px;
-    padding: 40px 48px 56px;
+    padding: 40px 32px 56px; /* горизонталь → 32px, единая сетка */
   }
 }
 
@@ -508,20 +505,18 @@
 }
 
 @media (min-width: 1025px) {
-  .gp-restaurants { padding-top: 64px; }
+  .gp-restaurants { padding-top: 80px; } /* было 64px — +16px воздуха под шапкой */
 }
 
 /* Заголовок */
 .gp-rest-header {
+  max-width: 1280px;
+  margin: 0 auto;
   padding: 0 20px;
   margin-bottom: 22px;
 }
 
-@media (min-width: 600px) {
-  .gp-rest-header { padding: 0 24px; }
-}
-
-@media (min-width: 1025px) {
+@media (min-width: 768px) {
   .gp-rest-header { padding: 0 32px; }
 }
 
@@ -550,9 +545,18 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 20px 20px;
+  padding: 4px 20px 20px; /* мобайл: 20px */
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* Левый край первой плитки выравниваем по контейнеру страницы.
+   calc((100% - 1280px) / 2 + 32px): при ширине > 1280px даёт отступ как у max-width-центрованного контейнера;
+   max(32px, …): при ширине < 1280px фиксируем минимум 32px. */
+@media (min-width: 768px) {
+  .gp-carousel {
+    padding-left: max(32px, calc((100% - 1280px) / 2 + 32px));
+  }
 }
 
 .gp-carousel::-webkit-scrollbar {
@@ -722,8 +726,11 @@
   padding: 0 20px 20px;
 }
 
-@media (min-width: 600px) {
-  .gp-carousel-nav { padding-left: 24px; padding-right: 24px; }
+@media (min-width: 768px) {
+  .gp-carousel-nav {
+    padding-left: max(32px, calc((100% - 1280px) / 2 + 32px));
+    padding-right: max(32px, calc((100% - 1280px) / 2 + 32px));
+  }
 }
 
 .gp-carousel-dots {
@@ -881,7 +888,7 @@
    * Когда баннер виден — значение растёт так, чтобы кнопка была выше баннера.
    */
   bottom: calc(var(--gp-trigger-offset, 0px) + 16px + env(safe-area-inset-bottom));
-  left: 20px; /* слева, подальше от виджета «София» (справа) */
+  right: 16px; /* справа, выровнено по колонке виджета «София» */
   transform: none;
   z-index: 10060; /* выше виджета «София» (10055) и куки-баннера (9999) */
 
@@ -892,14 +899,10 @@
   height: 52px;
   border-radius: 999px;
   /*
-   * Матовое стекло: бирюза с лёгкой прозрачностью + backdrop-filter + тёмная «ликвидная» обводка.
-   * Внутренний блик (inset shadow) создаёт эффект стекла.
-   * Фолбэк (@supports not backdrop-filter) — полностью непрозрачный #0d7e96, контраст 4.73:1 AA.
-   * Тень + обводка отделяют кнопку от бирюзовых плиток карусели того же цвета.
+   * Сплошная заливка без стекла — в стиле виджета «София».
+   * Контраст белого на #0d7e96 = 4.73:1, проходит WCAG AA.
    */
-  background: rgba(13, 126, 150, 0.93);
-  backdrop-filter: blur(12px) saturate(1.15);
-  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  background: #0d7e96;
   color: #fff;
   font-size: 15px;
   font-weight: 700;
@@ -907,9 +910,7 @@
   letter-spacing: 0.02em;
   border: 1px solid rgba(13, 27, 34, 0.35);
   cursor: pointer;
-  box-shadow:
-    0 6px 20px -4px rgba(13, 27, 34, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 20px -4px rgba(13, 27, 34, 0.45);
   transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.28s ease;
   white-space: nowrap;
 }
@@ -928,9 +929,7 @@
 
 .gp-sheet-trigger:hover {
   transform: translateY(-2px);
-  box-shadow:
-    0 12px 28px -4px rgba(13, 27, 34, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 28px -4px rgba(13, 27, 34, 0.55);
 }
 
 .gp-sheet-trigger:focus-visible {
@@ -940,14 +939,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .gp-sheet-trigger { transition: none; }
-}
-
-/* Фолбэк для браузеров без backdrop-filter (Firefox до 103, старые Android WebView):
-   полностью непрозрачный фон гарантирует контраст 4.73:1 AA на любом фоне */
-@supports not (backdrop-filter: blur(1px)) {
-  .gp-sheet-trigger {
-    background: #0d7e96;
-  }
 }
 
 /* Затемнение */
@@ -1220,9 +1211,16 @@
    ЯКОРНАЯ НАВИГАЦИЯ — scroll-margin для шапки
    ══════════════════════════════════════════════════════ */
 
-#endorphin,
+/* Эндорфин начинается с фото — шапка наезжает на него так же, как на героя.
+   scroll-margin-top: 0 чтобы после клика «Начать с кофе» секция вставала
+   точно в верх вьюпорта без хвоста героя. */
+#endorphin {
+  scroll-margin-top: 0;
+}
+
+/* 120px = высота шапки на десктопе (104px) + 16px воздуха */
 #restaurants {
-  scroll-margin-top: 96px;
+  scroll-margin-top: 120px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1253,22 +1251,23 @@
    БЛОК «ПРОДУКТЫ» — белая карточка с зелёным акцентом
    ══════════════════════════════════════════════════════ */
 
+/* Выравниваем по той же сетке что заголовок и карусель.
+   .gp-products — центрированный контейнер 1280px, .gp-products-inner — карточка внутри. */
 .gp-products {
   background: transparent;
+  max-width: 1280px;
+  margin: 0 auto;
   padding: 0 20px 24px;
 }
 
-@media (min-width: 600px) {
-  .gp-products { padding: 0 24px 28px; }
-}
-
-@media (min-width: 1025px) {
+@media (min-width: 768px) {
   .gp-products { padding: 0 32px 40px; }
 }
 
 .gp-products-inner {
-  max-width: 1280px;
-  margin: 0 auto;
+  /* max-width: inherit от родителя .gp-products — убираем дублирующие правила из первого блока */
+  max-width: none;
+  margin: 0;
   padding: 18px 20px;
   background: #fff;
   border-radius: 20px;
@@ -1282,7 +1281,7 @@
   flex-wrap: wrap;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 768px) {
   .gp-products-inner {
     padding: 22px 28px;
     flex-wrap: nowrap;
