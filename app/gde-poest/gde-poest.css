@@ -878,25 +878,25 @@
    ЭКРАН 4 — ШТОРКА «СВЯЗАТЬСЯ»
    ══════════════════════════════════════════════════════ */
 
-/* Липкая кнопка */
+/* Кнопка в правом верхнем углу — зеркальная пара «МЕНЮ» */
 .gp-sheet-trigger {
   position: fixed;
   /*
-   * bottom: CSS-переменная --gp-trigger-offset выставляется из ContactSheet.tsx
-   * через ResizeObserver на куки-баннере. Когда баннер не виден — 0px (дефолт),
-   * кнопка стоит в 16px + safe-area от нижнего края.
-   * Когда баннер виден — значение растёт так, чтобы кнопка была выше баннера.
+   * Позиция выставляется динамически из ContactSheet.tsx через getBoundingClientRect
+   * кнопки .header__burger. JS синхронизирует top, height, right при mount и resize.
+   * Ниже — CSS-фолбэк на случай если JS не сработал или кнопка «МЕНЮ» не найдена.
+   * Фолбэк по замерам на проде: 390px → top:27/height:44/right:24,
+   *                              1025px+ → top:31/height:66/right:85.
    */
-  bottom: calc(var(--gp-trigger-offset, 0px) + 16px + env(safe-area-inset-bottom));
-  right: 16px; /* справа, выровнено по колонке виджета «София» */
-  transform: none;
-  z-index: 10060; /* выше виджета «София» (10055) и куки-баннера (9999) */
+  top: 27px;
+  right: 24px;
+  z-index: 5100; /* выше шапки (5000), ниже бургер-оверлея (9999) */
 
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 0 24px;
-  height: 52px;
+  height: 44px;
   border-radius: 999px;
   /*
    * Сплошная заливка без стекла — в стиле виджета «София».
@@ -915,8 +915,8 @@
   white-space: nowrap;
 }
 
-/* Скрыта пока герой виден — IntersectionObserver в ContactSheet.tsx управляет этим классом */
-.gp-sheet-trigger--hero {
+/* Скрыта при открытом бургер-меню — MutationObserver в ContactSheet.tsx управляет этим классом */
+.gp-sheet-trigger--hidden {
   opacity: 0;
   pointer-events: none;
 }
@@ -937,6 +937,15 @@
   outline-offset: 3px;
 }
 
+/* Фолбэк для десктопа (если JS не успел синхронизировать позицию) */
+@media (min-width: 1025px) {
+  .gp-sheet-trigger {
+    top: 31px;
+    height: 66px;
+    right: 85px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gp-sheet-trigger { transition: none; }
 }
@@ -945,7 +954,7 @@
 .gp-sheet-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10070; /* было 200 — должен быть выше триггера (10060) и виджета «София» (10055) */
+  z-index: 10070; /* выше триггера (5100) и бургер-оверлея (9999) */
   background: rgba(13, 27, 34, 0.55);
   display: flex;
   align-items: flex-end;
@@ -1241,7 +1250,8 @@
     scroll-snap-type: y proximity;
   }
   .gp-hero,
-  .gp-endorphin {
+  .gp-endorphin,
+  #restaurants {
     scroll-snap-align: start;
     scroll-snap-stop: normal;
   }

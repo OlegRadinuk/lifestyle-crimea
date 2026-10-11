@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef, useId, useCallback } from 'react';
 import { IconPhone, IconBreakfast } from './icons';
-import { CONSENT_KEY, CONSENT_EVENT } from '@/lib/analytics';
-
 /**
  * Нижняя шторка «Связаться» + липкая кнопка-триггер.
  *
@@ -20,35 +18,13 @@ import { CONSENT_KEY, CONSENT_EVENT } from '@/lib/analytics';
  */
 export default function ContactSheet() {
   const [open, setOpen] = useState(false);
-  // heroVisible=true пока герой занимает ≥50% экрана: кнопка скрыта
-  const [heroVisible, setHeroVisible] = useState(true);
-  // sofiaOpen=true пока раскрыта приветственная панель виджета «Sofia»: кнопка уступает ей место
-  const [sofiaOpen, setSofiaOpen] = useState(false);
+  // burgerOpen=true пока открыто бургер-меню: кнопка скрывается под оверлеем
+  const [burgerOpen, setBurgerOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  // Вклад каждого «соседа» в отступ кнопки — итог = Math.max(banner, sofia, 0)
-  const bannerOffsetRef = useRef(0);
-  const sofiaOffsetRef = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
-
-  // ── Скрываем кнопку пока виден герой ──────────────────────
-  useEffect(() => {
-    const heroEl = document.querySelector<HTMLElement>('.gp-hero');
-    if (!heroEl) {
-      // Если герой не найден — показываем кнопку сразу
-      setHeroVisible(false);
-      return;
-    }
-    // threshold 0.5: когда герой занимает ≥50% вьюпорта — isIntersecting=true → скрыть
-    const io = new IntersectionObserver(
-      ([entry]) => setHeroVisible(entry.isIntersecting),
-      { threshold: 0.5 }
-    );
-    io.observe(heroEl);
-    return () => io.disconnect();
-  }, []);
-
   const focusReturnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const close = useCallback(() => {
     setOpen(false);
     // Возврат фокуса на триггер (ждём, пока React размонтирует шторку)
@@ -66,310 +42,78 @@ export default function ContactSheet() {
     };
   }, []);
 
-  // ── Поднимаем кнопку над куки-баннером ──────────────────
-  // CookieBanner монтируется позже нашего компонента (в своём useEffect),
-  // поэтому разовой проверки при монтировании недостаточно.
+  // ── Зеркалим позицию кнопки «МЕНЮ» в шапке ──────────────────────────────
+  // Читаем getBoundingClientRect у .header__burger и выставляем нашей кнопке:
+  //   top    = r.top     (та же высота над экраном)
+  //   height = r.height  (тот же размер, учитывая transform:scale(1.5))
+  //   right  = r.left    (зеркально: наш правый отступ = левый отступ МЕНЮ)
   //
-  // Стратегия:
-  //   1. Ищем баннер по ИНЛАЙН-стилю (element.style.*), а не по getComputedStyle:
-  //      CookieBanner рендерится из React c style={{position:'fixed', zIndex:9999, …}}
-  //      — атрибут style на DOM-узле заполнен напрямую. Это даёт ту же точность
-  //      селектора, но без принудительного layout-reflow на каждый div страницы.
-  //      Проверка getComputedStyle по сотням div в subtree body на каждую мутацию
-  //      DOM (виджет «София» подгружается асинхронно и мутирует постоянно) была
-  //      ощутимо дорогой.
-  //   2. Если не нашли сразу — MutationObserver на body ловит появление, callback
-  //      дебаунсится через requestAnimationFrame и останавливается максимум через
-  //      3 секунды, чтобы не висеть на мутациях «Софии» бесконечно.
-  //   3. Запасная константа 96px → 112px bottom (CSS прибавляет 16px) через 800 мс,
-  //      если баннер так и не нашёлся.
-  //   4. Пересчёт при resize окна.
-  //   5. Сброс по CONSENT_EVENT.
+  // ПРОБЛЕМА МОМЕНТА ЗАМЕРА: шапка стартует с translateY(-24px) и анимируется
+  // в translateY(0) за 1с (delay 0.2s + duration 0.8s). Если читать rect
+  // сразу при монтировании — top занижен на ~24px.
+  // РЕШЕНИЕ:
+  //   1. animationend на .header — срабатывает точно в момент завершения анимации.
+  //   2. Несколько догоняющих замеров на 100/300/600/1100мс — ловят анимацию
+  //      в процессе и закрывают случай, если animationend уже проскочил.
+  //   3. ResizeObserver на .header__burger — ловит повторные изменения геометрии.
+  //   4. resize — уже был, оставляем.
+  //   Все таймеры и наблюдатели сняты в cleanup, утечек нет.
   useEffect(() => {
-    try {
-      if (localStorage.getItem(CONSENT_KEY)) return; // баннера нет — выходим
-    } catch {
-      // приватный режим / отключённые куки: читать нечего → баннер в DOM
-      // всё равно появится, идём дальше по общему пути.
-    }
+    const sync = () => {
+      const btn = triggerRef.current;
+      if (!btn) return;
+      const menuBtn = document.querySelector<HTMLElement>('.header__burger');
+      if (!menuBtn) return;
+      const r = menuBtn.getBoundingClientRect();
+      btn.style.top = `${r.top}px`;
+      btn.style.height = `${r.height}px`;
+      btn.style.right = `${r.left}px`;
+    };
 
+    // Первый замер (может быть неточным — шапка ещё едет)
+    sync();
+
+    // Догоняющие замеры: покрывают delay 200ms + duration 800ms = 1000ms
+    const delays = [100, 300, 600, 1100];
+    const timers = delays.map(ms => setTimeout(sync, ms));
+
+    // animationend на .header — самый точный момент: анимация завершилась
+    const headerEl = document.querySelector<HTMLElement>('.header');
+    headerEl?.addEventListener('animationend', sync, { once: true });
+
+    // ResizeObserver — ловит изменения геометрии кнопки после анимации
     let ro: ResizeObserver | null = null;
-    let mo: MutationObserver | null = null;
-    let rafId: number | null = null;
-    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
-    let giveUpTimer: ReturnType<typeof setTimeout> | null = null;
-    let bannerEl: HTMLElement | null = null;
-
-    // 96 + 16 (дефолт из CSS) = 112px от низа экрана — запасная константа
-    const FALLBACK_OFFSET = '96px';
-    const GIVE_UP_MS = 3000; // хватит ждать баннер — иначе fallback
-    const FALLBACK_MS = 800;
-
-    const setOffset = (px: string) =>
-      triggerRef.current?.style.setProperty('--gp-trigger-offset', px);
-    const clearOffset = () =>
-      triggerRef.current?.style.removeProperty('--gp-trigger-offset');
-
-    // Дешёвый поиск: баннер ставит инлайн-стили через React style-prop, значит
-    // position/zIndex лежат прямо в element.style — чтение не триггерит layout.
-    const findBanner = (): HTMLElement | null => {
-      const divs = document.body.querySelectorAll<HTMLDivElement>('div');
-      for (const div of divs) {
-        if (div.style.position === 'fixed' && div.style.zIndex === '9999') {
-          return div;
-        }
-      }
-      return null;
-    };
-
-    // Пересчёт: низ нашей кнопки — на 12px выше верха баннера.
-    // CSS: bottom = var(--gp-trigger-offset, 0px) + 16px
-    // Хотим: bottom_from_viewport = viewportH - bannerTop + 12
-    //   → var = viewportH - bannerTop + 12 - 16 = viewportH - bannerTop - 4
-    const updateOffset = () => {
-      if (!triggerRef.current || !bannerEl) return;
-      const rect = bannerEl.getBoundingClientRect();
-      bannerOffsetRef.current = Math.max(0, window.innerHeight - rect.top - 4);
-      // Итоговый отступ — максимум из вклада баннера и вклада Sofii
-      setOffset(`${Math.max(bannerOffsetRef.current, sofiaOffsetRef.current)}px`);
-    };
-
-    const stopSearching = () => {
-      mo?.disconnect(); mo = null;
-      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
-      if (giveUpTimer) { clearTimeout(giveUpTimer); giveUpTimer = null; }
-    };
-
-    const startObserving = () => {
-      if (!bannerEl) return;
-      stopSearching();
-      ro = new ResizeObserver(updateOffset);
-      ro.observe(bannerEl);
-      window.addEventListener('resize', updateOffset);
-      updateOffset();
-    };
-
-    const tryFind = (): boolean => {
-      bannerEl = findBanner();
-      if (bannerEl) { startObserving(); return true; }
-      return false;
-    };
-
-    if (!tryFind()) {
-      // Баннер ещё не в DOM — ждём появления через MutationObserver.
-      // Коалесцируем множественные мутации «Софии» в один скан через rAF.
-      mo = new MutationObserver(() => {
-        if (bannerEl || rafId !== null) return;
-        rafId = requestAnimationFrame(() => {
-          rafId = null;
-          if (!bannerEl) tryFind();
-        });
-      });
-      mo.observe(document.body, { childList: true, subtree: true });
-
-      // Страховка: если через 800 мс баннер не нашёлся — применяем константу
-      fallbackTimer = setTimeout(() => {
-        if (!bannerEl) setOffset(FALLBACK_OFFSET);
-      }, FALLBACK_MS);
-
-      // Через 3 сек точно хватит сканировать: если баннера нет — не придёт,
-      // мутации «Софии» дальше не наши проблемы.
-      giveUpTimer = setTimeout(() => {
-        if (!bannerEl) stopSearching();
-      }, GIVE_UP_MS);
+    const menuBtn = document.querySelector<HTMLElement>('.header__burger');
+    if (menuBtn) {
+      ro = new ResizeObserver(sync);
+      ro.observe(menuBtn);
     }
 
-    const onConsent = () => {
-      stopSearching();
-      ro?.disconnect(); ro = null;
-      window.removeEventListener('resize', updateOffset);
-      bannerEl = null;
-      bannerOffsetRef.current = 0;
-      // Если виджет «Sofia» ещё активен — оставляем его вклад
-      if (sofiaOffsetRef.current > 0) {
-        triggerRef.current?.style.setProperty('--gp-trigger-offset', `${sofiaOffsetRef.current}px`);
-      } else {
-        clearOffset();
-      }
-    };
+    window.addEventListener('resize', sync);
 
-    window.addEventListener(CONSENT_EVENT, onConsent);
     return () => {
-      stopSearching();
+      timers.forEach(clearTimeout);
+      headerEl?.removeEventListener('animationend', sync);
       ro?.disconnect();
-      window.removeEventListener('resize', updateOffset);
-      window.removeEventListener(CONSENT_EVENT, onConsent);
+      window.removeEventListener('resize', sync);
     };
   }, []);
 
-  // ── Синхронизируем нижний край кнопки с виджетом «Sofia» ─────────────
-  // Виджет «Sofia» — внешний чат-ассистент, подключается скриптом асинхронно.
-  // Ищем фиксированный элемент с inline z-index 10055.
-  // CSS: button.bottom = --gp-trigger-offset + 16px
-  // Хотим: button.bottom = sofiaEl.topFromViewport - 12
-  // Итоговый отступ — Math.max с вкладом куки-баннера (bannerOffsetRef).
-  //
-  // Дополнительно: отслеживаем открытие приветственной панели «Sofia».
-  // Панель раскрывается ВВЕРХ от пилюли (~290×400px) — ровно там, где стоит наша кнопка.
-  // Пока панель раскрыта → кнопка скрывается (sofiaOpen=true).
+  // ── Скрываем при открытом бургер-меню ────────────────────────────────────
+  // Бургер-оверлей (.burger-overlay, z-index:9999) монтируется прямым ребёнком body.
+  // Наш button имеет z-index:5100 — ниже оверлея, но MutationObserver позволяет
+  // скрыть кнопку явно (opacity:0 + pointer-events:none) вместо того чтобы она
+  // была видна через blur-backdrop бургера.
   useEffect(() => {
-    let sofiaEl: HTMLElement | null = null;
-    let sofiaRo: ResizeObserver | null = null;
-    let sofiaRaf: number | null = null;
-    let sofiaMo: MutationObserver | null = null;
-    // Наблюдатель за открытием/закрытием панели
-    let panelMo: MutationObserver | null = null;
-    let panelRaf: number | null = null;
-
-    const findSofia = (): HTMLElement | null => {
-      // 1. По известному ID виджета (O(1), самый быстрый)
-      const byId = document.getElementById('opsph-btn');
-      if (byId) return byId as HTMLElement;
-      // 2. Фолбэк: кнопка с текстом «Sofia» (если вендор сменит ID)
-      const buttons = document.body.querySelectorAll<HTMLButtonElement>('button');
-      for (const btn of buttons) {
-        if (btn.textContent?.includes('София') || btn.textContent?.includes('Sofia')) {
-          return btn;
-        }
-      }
-      return null;
+    const check = () => {
+      setBurgerOpen(!!document.querySelector('.burger-overlay'));
     };
 
-    const applyWithSofia = () => {
-      if (!triggerRef.current) return;
-      const final = Math.max(sofiaOffsetRef.current, bannerOffsetRef.current);
-      if (final > 0) {
-        triggerRef.current.style.setProperty('--gp-trigger-offset', `${final}px`);
-      } else {
-        triggerRef.current.style.removeProperty('--gp-trigger-offset');
-      }
-    };
+    const mo = new MutationObserver(check);
+    mo.observe(document.body, { childList: true });
+    check();
 
-    const updateSofia = () => {
-      if (!sofiaEl) return;
-      const r = sofiaEl.getBoundingClientRect();
-      // Хотим: нижний край кнопки = верхний край виджета «Sofia» - 12px.
-      // CSS: button.bottom = --gp-trigger-offset + 16px + safe-area
-      // button.bottom_from_viewport_bottom = window.innerHeight - (r.top - 12)
-      //   = window.innerHeight - r.top + 12
-      // → --gp-trigger-offset = (window.innerHeight - r.top + 12) - 16
-      //   = window.innerHeight - r.top - 4
-      sofiaOffsetRef.current = Math.max(0, window.innerHeight - r.top - 4);
-      applyWithSofia();
-    };
-
-    // ── Обнаружение открытой панели «Sofia» ───────────────────────────
-    // Реальная структура: #opsph-btn — это САМА кнопка position:fixed прямо в <body>.
-    // Панель «Sofia» монтируется туда же — как СОСЕД кнопки, прямой дочерний элемент body.
-    // Поэтому ищем панель не в поддереве кнопки, а в document.body.children.
-    //
-    // Признаки панели (чтобы отличить от нашей кнопки, шторки и куки-баннера):
-    //   • position: fixed | absolute
-    //   • z-index ≥ 10000 (куки-баннер = 9999, не пройдёт)
-    //   • видима: display != none, visibility != hidden, opacity > 0.1
-    //   • размер > 200×150px
-    //   • прямоугольник в правой нижней четверти экрана
-    //
-    // Оптимизация: сначала проверяем el.style.zIndex (inline, без reflow),
-    // только кандидатам делаем getComputedStyle, и в последнюю очередь getBoundingClientRect.
-    // Один reflow на весь скан (document.body.children ≈ 10–20 элементов).
-    const checkPanel = () => {
-      const hw = window.innerWidth / 2;
-      const hh = window.innerHeight / 2;
-      let found = false;
-
-      for (const child of document.body.children) {
-        const el = child as HTMLElement;
-        // Исключаем наши собственные элементы и саму кнопку «Sofia»
-        if (el === triggerRef.current) continue;
-        if (el === sofiaEl) continue;
-        if (el.classList.contains('gp-sheet-backdrop')) continue;
-
-        // 1. Быстрый фильтр по inline z-index (O(1), нет reflow)
-        const inlineZ = parseInt(el.style.zIndex, 10);
-        if (!isNaN(inlineZ) && inlineZ < 10000) continue;
-
-        // 2. getComputedStyle — только для прошедших фильтр 1
-        const s = getComputedStyle(el);
-        const pos = s.position;
-        if (pos !== 'fixed' && pos !== 'absolute') continue;
-        const z = parseInt(s.zIndex, 10);
-        if (isNaN(z) || z < 10000) continue;
-
-        // 3. Видимость
-        if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.1) continue;
-
-        // 4. Размер и позиция (getBoundingClientRect — один reflow на весь цикл)
-        const r = el.getBoundingClientRect();
-        if (r.width > 200 && r.height > 150 && r.right > hw && r.bottom > hh) {
-          found = true;
-          break;
-        }
-      }
-
-      setSofiaOpen(found);
-    };
-
-    const startObservingSofia = () => {
-      sofiaMo?.disconnect(); sofiaMo = null;
-      if (sofiaRaf !== null) { cancelAnimationFrame(sofiaRaf); sofiaRaf = null; }
-      sofiaRo = new ResizeObserver(updateSofia);
-      sofiaRo.observe(sofiaEl!);
-      window.addEventListener('resize', updateSofia);
-      updateSofia();
-
-      // Начальная проверка (панель может быть уже открыта)
-      checkPanel();
-
-      // Наблюдаем body: панель появляется/исчезает как прямой ребёнок body (childList),
-      // либо меняет видимость через inline style/class на уже вставленном элементе (subtree+attrs).
-      // attributeFilter сужает триггеры: не каждая мутация, а только style/class.
-      // rAF-коалесция: один скан за кадр, не чаще.
-      panelMo?.disconnect();
-      panelMo = new MutationObserver(() => {
-        if (panelRaf !== null) return;
-        panelRaf = requestAnimationFrame(() => {
-          panelRaf = null;
-          checkPanel();
-        });
-      });
-      panelMo.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class'],
-      });
-    };
-
-    const tryFindSofia = (): boolean => {
-      sofiaEl = findSofia();
-      if (sofiaEl) { startObservingSofia(); return true; }
-      return false;
-    };
-
-    if (!tryFindSofia()) {
-      // Sofia ещё не загрузилась — ждём через MutationObserver
-      sofiaMo = new MutationObserver(() => {
-        if (sofiaEl || sofiaRaf !== null) return;
-        sofiaRaf = requestAnimationFrame(() => {
-          sofiaRaf = null;
-          if (!sofiaEl) tryFindSofia();
-        });
-      });
-      sofiaMo.observe(document.body, { childList: true, subtree: true });
-    }
-
-    return () => {
-      sofiaMo?.disconnect();
-      if (sofiaRaf !== null) cancelAnimationFrame(sofiaRaf);
-      sofiaRo?.disconnect();
-      window.removeEventListener('resize', updateSofia);
-      sofiaOffsetRef.current = 0;
-      panelMo?.disconnect();
-      if (panelRaf !== null) cancelAnimationFrame(panelRaf);
-      setSofiaOpen(false);
-    };
+    return () => mo.disconnect();
   }, []);
 
   // Слушаем кастомное событие от BreakfastBtn и других компонентов
@@ -443,31 +187,26 @@ export default function ContactSheet() {
     if (e.target === e.currentTarget) close();
   };
 
-  // Кнопка скрывается в двух случаях:
-  // (а) виден герой — пользователь ещё не начал скроллить
-  // (б) открыта панель «Sofia» — кнопка не должна перекрывать приветствие
-  const triggerHidden = heroVisible || sofiaOpen;
-
   return (
     <>
-      {/* ── Липкая кнопка ───────────────────────────── */}
-      {/* triggerHidden → класс --hero → opacity:0 + pointer-events:none
+      {/* ── Кнопка в правом верхнем углу ───────────────────── */}
+      {/* burgerOpen → класс --hidden → opacity:0 + pointer-events:none
           tabIndex={-1} убирает из Tab-порядка; aria-hidden скрывает от скринридеров */}
       <button
         ref={triggerRef}
-        className={`gp-sheet-trigger${triggerHidden ? ' gp-sheet-trigger--hero' : ''}`}
+        className={`gp-sheet-trigger${burgerOpen ? ' gp-sheet-trigger--hidden' : ''}`}
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label="Открыть меню связи"
-        tabIndex={triggerHidden ? -1 : undefined}
-        aria-hidden={triggerHidden ? true : undefined}
+        tabIndex={burgerOpen ? -1 : undefined}
+        aria-hidden={burgerOpen ? true : undefined}
       >
         <IconPhone className="gp-sheet-trigger-icon" />
         Связаться
       </button>
 
-      {/* ── Шторка ──────────────────────────────────── */}
+      {/* ── Шторка ──────────────────────────────────────────── */}
       {open && (
         <div
           className="gp-sheet-backdrop"
