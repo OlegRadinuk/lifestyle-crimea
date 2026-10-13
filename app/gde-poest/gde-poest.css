@@ -950,6 +950,207 @@
   .gp-sheet-trigger { transition: none; }
 }
 
+/* ══════════════════════════════════════════════════════
+   ДЕСКТОП ≥1280px — карусель → сетка пяти колонок
+   На широком экране все пять плиток видны целиком;
+   свайп не нужен. Сетка выровнена по тем же краям,
+   что и карточка «Яблоко» (.gp-products).
+   ══════════════════════════════════════════════════════ */
+
+@media (min-width: 1280px) {
+  /* Превращаем flex-карусель в CSS-сетку.
+     max-width + margin + padding совпадают с .gp-products:
+     правый край плитки-5 == правый край «Яблоко». */
+  .gp-carousel {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    -webkit-overflow-scrolling: auto;
+    max-width: 1280px;
+    margin: 0 auto;
+    /* 4px сверху — чтобы reveal-тень не срезалась; 32px — единая сетка */
+    padding: 4px 32px 20px;
+  }
+
+  /* Спейсер-::after нужен только для горизонтального скролла —
+     на сетке он стал бы лишним шестым элементом. */
+  .gp-carousel::after {
+    display: none;
+  }
+
+  /* Плитки — fluid по ширине колонки, высота 330px сохраняется. */
+  .gp-tile {
+    flex: none;
+    width: auto;
+  }
+
+  /* «Старый город» (27px/800) в плитке ~232px потенциально тесен.
+     Уменьшаем шрифт названия на одну ступень — мобайл не затронут. */
+  .gp-tile-name {
+    font-size: 22px;
+  }
+
+  /* Точки-индикаторы и «свайп» бессмысленны без прокрутки — скрываем. */
+  .gp-carousel-nav {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   МЕНЮ «ЭНДОРФИН» — мобайл: аккордеон, десктоп: колонка
+   ══════════════════════════════════════════════════════ */
+
+/* На мобиле десктоп-панель скрыта */
+.gp-end-menu-panel {
+  display: none;
+}
+
+/* Аккордеон — обёртка <details> */
+.gp-menu-collapse {
+  margin-top: 16px;
+}
+
+/* <summary> стилизован как кнопка */
+.gp-menu-toggle {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gp-menu-toggle::-webkit-details-marker { display: none; }
+.gp-menu-toggle::marker               { content: none; }
+
+.gp-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.gp-menu-toggle:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+/* Шеврон — поворачивается при открытии */
+.gp-menu-toggle-ico {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.gp-menu-collapse[open] .gp-menu-toggle-ico {
+  transform: rotate(180deg);
+}
+
+/* Содержимое меню — общее для аккордеона и десктоп-панели */
+.gp-menu-inner {
+  padding-top: 14px;
+}
+
+.gp-menu-title {
+  font-size: 13px;
+  font-weight: 700;
+  /* #fff на #1a2740 (navy) = 14.9:1 (AAA) */
+  color: #fff;
+  letter-spacing: 0.02em;
+  margin: 0 0 4px;
+}
+
+.gp-menu-footnote {
+  font-size: 11px;
+  font-weight: 400;
+  /* rgba(255,255,255,.55) на #1a2740 = 7.3:1 (AA) */
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.gp-menu-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gp-menu-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gp-menu-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.gp-menu-num {
+  font-size: 11px;
+  font-weight: 700;
+  /* #c9a058 (бронза) на #1a2740 (navy) = 4.7:1 (AA) */
+  color: #c9a058;
+  flex-shrink: 0;
+  line-height: 1.7;
+  min-width: 22px;
+}
+
+.gp-menu-name {
+  font-size: 13px;
+  /* rgba(255,255,255,.88) на #1a2740 = 12.4:1 (AAA) */
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.55;
+}
+
+/* ── Десктоп: две колонки в секции «Эндорфин» ─────── */
+@media (min-width: 1025px) {
+  /* Тело секции: 2-колоночная сетка в 1280px-контейнере */
+  .gp-endorphin-body {
+    max-width: 1280px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+    padding: 40px 32px 56px;
+  }
+
+  /* Аккордеон не нужен на десктопе */
+  .gp-menu-collapse {
+    display: none;
+  }
+
+  /* Показываем правую колонку с меню */
+  .gp-end-menu-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gp-menu-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-menu-toggle,
+  .gp-menu-toggle-ico {
+    transition: none;
+  }
+}
+
 /* Затемнение */
 .gp-sheet-backdrop {
   position: fixed;

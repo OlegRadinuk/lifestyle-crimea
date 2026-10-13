@@ -10,6 +10,7 @@ import {
   IconStore,
   IconBreakfast,
   IconMapPin,
+  IconChevronDown,
 } from './icons';
 import './gde-poest.css';
 
@@ -279,50 +280,102 @@ export default function GdePoestPage() {
             </div>
           </div>
 
-          {/* Тело секции */}
+          {/* Тело секции — на десктопе 2 колонки: слева контент, справа меню */}
           <div className="gp-endorphin-body gp-reveal">
-            <p className="gp-end-desc">
-              Деревянные балки, бежевые диваны и панорамное окно в зелень —
-              место, где утром не хочется торопиться. На стене мурал с
-              танцующей парой в пыльно-розовых и серо-синих тонах. Авторский
-              раф с дроблёной малиной, безе и кофе без суеты — и всё это в
-              соседнем корпусе.
-            </p>
 
-            {/* КУПОН */}
-            <div className="gp-coupon" aria-label="Купон на скидку 5% для гостей «Стиля Жизни»">
-              <div className="gp-coupon-left">
-                <span className="gp-coupon-pct">5%</span>
-                <span className="gp-coupon-label">Скидка</span>
+            {/* ── Левая колонка: описание, купон, кнопки ── */}
+            <div className="gp-end-main">
+              <p className="gp-end-desc">
+                Деревянные балки, бежевые диваны и панорамное окно в зелень —
+                место, где утром не хочется торопиться. На стене мурал с
+                танцующей парой в пыльно-розовых и серо-синих тонах. Авторский
+                раф с дроблёной малиной, безе и кофе без суеты — и всё это в
+                соседнем корпусе.
+              </p>
+
+              {/* КУПОН */}
+              <div className="gp-coupon" aria-label="Купон на скидку 5% для гостей «Стиля Жизни»">
+                <div className="gp-coupon-left">
+                  <span className="gp-coupon-pct">5%</span>
+                  <span className="gp-coupon-label">Скидка</span>
+                </div>
+                <div className="gp-coupon-divider" aria-hidden="true" />
+                <div className="gp-coupon-right">
+                  <span className="gp-coupon-sublabel">Гостям «Стиля Жизни»</span>
+                  <span className="gp-coupon-body">Промокод даёт менеджер при бронировании</span>
+                </div>
               </div>
-              <div className="gp-coupon-divider" aria-hidden="true" />
-              <div className="gp-coupon-right">
-                <span className="gp-coupon-sublabel">Гостям «Стиля Жизни»</span>
-                <span className="gp-coupon-body">Промокод даёт менеджер при бронировании</span>
+
+              {/* Строка завтрак */}
+              <div className="gp-end-breakfast-note">
+                <IconBreakfast />
+                Завтрак по внутреннему тарифу отеля оформляется заранее через
+                менеджера.
               </div>
+
+              {/* Кнопки */}
+              <div className="gp-end-actions">
+                <a
+                  href="https://yandex.ru/maps/org/endorfin/89879110034?si=lifestyle-crimea"
+                  className="gp-end-btn-primary"
+                  target="_blank"
+                  rel="nofollow noopener"
+                  aria-label="Открыть кофейню «Эндорфин» на карте"
+                >
+                  <IconMapPin />
+                  На карте
+                </a>
+                <BreakfastBtn />
+              </div>
+
+              {/* Мобайл: аккордеон меню (скрыт на ≥1025px) */}
+              <details className="gp-menu-collapse">
+                <summary className="gp-menu-toggle">
+                  <IconChevronDown className="gp-menu-toggle-ico" />
+                  Меню кофейни
+                </summary>
+                <div className="gp-menu-inner">
+                  <p className="gp-menu-title">Что есть в меню</p>
+                  <p className="gp-menu-footnote">Меню меняется каждый день — актуальное на кассе</p>
+                  <ol className="gp-menu-items">
+                    <li className="gp-menu-item"><span className="gp-menu-num">01</span><span className="gp-menu-name">Блинчики с бананом, творогом и арахисовой пастой</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">02</span><span className="gp-menu-name">Вафли из брокколи и сыра со сметаной</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">03</span><span className="gp-menu-name">Салат с пекинской капустой, курицей, горошком и яичным блинчиком</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">04</span><span className="gp-menu-name">Итальянский овощной суп минестроне</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">05</span><span className="gp-menu-name">Творожная ватрушка с сыром</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">06</span><span className="gp-menu-name">Курочка по-французски с гречкой и тушёной капустой</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">07</span><span className="gp-menu-name">Куриный бульон с лапшой, курицей и яйцом</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">08</span><span className="gp-menu-name">Салат «Цезарь»</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">09</span><span className="gp-menu-name">Сэндвич с курочкой карри</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">10</span><span className="gp-menu-name">Овсяная каша с сухофруктами и орехами</span></li>
+                    <li className="gp-menu-item"><span className="gp-menu-num">11</span><span className="gp-menu-name">Куриная котлетка с картофельным пюре</span></li>
+                  </ol>
+                </div>
+              </details>
             </div>
 
-            {/* Строка завтрак */}
-            <div className="gp-end-breakfast-note">
-              <IconBreakfast />
-              Завтрак по внутреннему тарифу отеля оформляется заранее через
-              менеджера.
-            </div>
+            {/* ── Правая колонка: меню (только десктоп ≥1025px) ── */}
+            <aside
+              className="gp-end-menu-panel"
+              aria-label="Что есть в меню кофейни «Эндорфин»"
+            >
+              <p className="gp-menu-title">Что есть в меню</p>
+              <p className="gp-menu-footnote">Меню меняется каждый день — актуальное на кассе</p>
+              <ol className="gp-menu-items">
+                <li className="gp-menu-item"><span className="gp-menu-num">01</span><span className="gp-menu-name">Блинчики с бананом, творогом и арахисовой пастой</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">02</span><span className="gp-menu-name">Вафли из брокколи и сыра со сметаной</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">03</span><span className="gp-menu-name">Салат с пекинской капустой, курицей, горошком и яичным блинчиком</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">04</span><span className="gp-menu-name">Итальянский овощной суп минестроне</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">05</span><span className="gp-menu-name">Творожная ватрушка с сыром</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">06</span><span className="gp-menu-name">Курочка по-французски с гречкой и тушёной капустой</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">07</span><span className="gp-menu-name">Куриный бульон с лапшой, курицей и яйцом</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">08</span><span className="gp-menu-name">Салат «Цезарь»</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">09</span><span className="gp-menu-name">Сэндвич с курочкой карри</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">10</span><span className="gp-menu-name">Овсяная каша с сухофруктами и орехами</span></li>
+                <li className="gp-menu-item"><span className="gp-menu-num">11</span><span className="gp-menu-name">Куриная котлетка с картофельным пюре</span></li>
+              </ol>
+            </aside>
 
-            {/* Кнопки */}
-            <div className="gp-end-actions">
-              <a
-                href="https://yandex.ru/maps/org/endorfin/89879110034?si=lifestyle-crimea"
-                className="gp-end-btn-primary"
-                target="_blank"
-                rel="nofollow noopener"
-                aria-label="Открыть кофейню «Эндорфин» на карте"
-              >
-                <IconMapPin />
-                На карте
-              </a>
-              <BreakfastBtn />
-            </div>
           </div>
         </section>
 
