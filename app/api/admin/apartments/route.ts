@@ -46,6 +46,9 @@ export async function GET(request: Request) {
         is_active: Boolean(apt.is_active),
         sort_order: Number((apt as any).sort_order || 0),
         images_count: imagesCount,
+        building: (apt as any).building !== null && (apt as any).building !== undefined ? Number((apt as any).building) : null,
+        floor: (apt as any).floor !== null && (apt as any).floor !== undefined ? Number((apt as any).floor) : null,
+        unit_number: (apt as any).unit_number || null,
         created_at: apt.created_at,
         updated_at: apt.updated_at,
       };

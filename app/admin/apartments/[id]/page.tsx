@@ -130,6 +130,9 @@ type Apartment = {
   images: string[];
   is_active: boolean;
   images_count?: number;
+  building: number | null;
+  floor: number | null;
+  unit_number: string | null;
 };
 
 type Season = {
@@ -277,6 +280,9 @@ export default function EditApartmentPage({ params }: PageProps) {
         long_term_price: Number(data.long_term_price ?? 0),
         long_term_note: data.long_term_note ?? '',
         category: data.category ?? '',
+        building: data.building ?? null,
+        floor: data.floor ?? null,
+        unit_number: data.unit_number ?? null,
       });
       setSavedSnapshot(null); // слепок поставится после первого сохранения
     } catch (error) {
@@ -716,6 +722,45 @@ export default function EditApartmentPage({ params }: PageProps) {
             <option value="kitchen">С отдельной кухней</option>
             <option value="duplex">Двухуровневые</option>
           </select>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Корпус</label>
+            <select
+              value={apartment.building ?? ''}
+              onChange={(e) => setApartment({ ...apartment, building: e.target.value === '' ? null : Number(e.target.value) })}
+            >
+              <option value="">Не указан</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Этаж</label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={apartment.floor ?? ''}
+              onChange={(e) => setApartment({ ...apartment, floor: e.target.value === '' ? null : Number(e.target.value) })}
+              placeholder="Не указан"
+            />
+          </div>
+          <div className="form-group">
+            <label>Номер апартамента</label>
+            <input
+              type="text"
+              maxLength={20}
+              value={apartment.unit_number ?? ''}
+              onChange={(e) => setApartment({ ...apartment, unit_number: e.target.value || null })}
+              placeholder="Например: 14А"
+            />
+          </div>
         </div>
 
         <div className="form-group">
@@ -1429,7 +1474,7 @@ export default function EditApartmentPage({ params }: PageProps) {
         
         .form-row {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
           gap: 20px;
         }
         

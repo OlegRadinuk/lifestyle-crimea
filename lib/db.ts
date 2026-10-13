@@ -416,12 +416,43 @@ function ensureDatabaseStructure() {
        NULL = не размечен, такой апартамент попадает только во «Все». */
     safeAddColumn("ALTER TABLE apartments ADD COLUMN category TEXT DEFAULT NULL", 'category');
 
+    /* Корпус, этаж, номер — для связок апартаментов и удобства менеджера. */
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN building INTEGER DEFAULT NULL", 'building');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN floor INTEGER DEFAULT NULL", 'floor');
+    safeAddColumn("ALTER TABLE apartments ADD COLUMN unit_number TEXT DEFAULT NULL", 'unit_number');
+
     /* Человекочитаемый адрес: /apartments/deep-forest вместо
        /apartments/8b577381-4cf1-450b-ac43-54b8a0edcc59. Сам id НЕ трогаем —
        на нём висят брони, фото и цены; slug живёт отдельным полем, а старые
        адреса продолжают работать через постоянный редирект. */
     safeAddColumn("ALTER TABLE apartments ADD COLUMN slug TEXT DEFAULT NULL", 'slug');
     try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_apartments_slug ON apartments(slug) WHERE slug IS NOT NULL'); } catch { /* уже есть */ }
+
+    // Связки апартаментов: группы для больших компаний
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS apartment_groups (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        proximity TEXT NOT NULL CHECK(proximity IN ('adjacent','same_floor','stacked')),
+        building INTEGER NULL,
+        note TEXT NULL,
+        sort INTEGER NOT NULL DEFAULT 0,
+        is_active INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS apartment_group_items (
+        group_id TEXT NOT NULL,
+        apartment_id TEXT NOT NULL,
+        PRIMARY KEY (group_id, apartment_id),
+        FOREIGN KEY (group_id) REFERENCES apartment_groups(id) ON DELETE CASCADE,
+        FOREIGN KEY (apartment_id) REFERENCES apartments(id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_apt_groups_active ON apartment_groups(is_active, sort);
+      CREATE INDEX IF NOT EXISTS idx_apt_group_items_group ON apartment_group_items(group_id);
+    `);
 
     // Заявки на долгосрочную аренду отличаются от посуточных броней
     const bookingColumns = (db.prepare("PRAGMA table_info(bookings)").all() as { name: string }[]).map(c => c.name);
@@ -1434,6 +1465,163 @@ export const serviceItemsService = {
     if (!existing) return false;
     db.prepare('DELETE FROM service_items WHERE id = ?').run(id);
     return true;
+  },
+};
+
+// ── Связки апартаментов ───────────────────────────────────────────────────────
+
+export type ProximityType = 'adjacent' | 'same_floor' | 'stacked';
+
+export interface ApartmentGroup {
+  id: string;
+  title: string;
+  proximity: ProximityType;
+  building: number | null;
+  note: string | null;
+  sort: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApartmentGroupItem {
+  group_id: string;
+  apartment_id: string;
+}
+
+export interface ApartmentGroupWithItems extends ApartmentGroup {
+  items: ApartmentGroupItem[];
+}
+
+export const PROXIMITY_LABELS: Record<ProximityType, string> = {
+  adjacent: 'Смежные — соседние двери в коридоре (НЕ внутренняя дверь)',
+  same_floor: 'Рядом на одном этаже',
+  stacked: 'Этажом выше или ниже',
+};
+
+export const apartmentGroupService = {
+  getAll: (): ApartmentGroupWithItems[] => {
+    const groups = db.prepare(
+      'SELECT * FROM apartment_groups ORDER BY sort ASC, created_at ASC'
+    ).all() as ApartmentGroup[];
+    const items = db.prepare('SELECT * FROM apartment_group_items').all() as ApartmentGroupItem[];
+    return groups.map(g => ({
+      ...g,
+      items: items.filter(i => i.group_id === g.id),
+    }));
+  },
+
+  getActive: (): ApartmentGroupWithItems[] => {
+    const groups = db.prepare(
+      'SELECT * FROM apartment_groups WHERE is_active = 1 ORDER BY sort ASC'
+    ).all() as ApartmentGroup[];
+    if (groups.length === 0) return [];
+    const items = db.prepare('SELECT * FROM apartment_group_items').all() as ApartmentGroupItem[];
+    return groups.map(g => ({
+      ...g,
+      items: items.filter(i => i.group_id === g.id),
+    }));
+  },
+
+  getById: (id: string): ApartmentGroupWithItems | undefined => {
+    const group = db.prepare('SELECT * FROM apartment_groups WHERE id = ?').get(id) as ApartmentGroup | undefined;
+    if (!group) return undefined;
+    const items = db.prepare('SELECT * FROM apartment_group_items WHERE group_id = ?').all(id) as ApartmentGroupItem[];
+    return { ...group, items };
+  },
+
+  create: (data: {
+    title: string;
+    proximity: ProximityType;
+    building?: number | null;
+    note?: string | null;
+    sort?: number;
+    is_active?: boolean;
+    apartmentIds: string[];
+  }): ApartmentGroupWithItems => {
+    const id = uuidv4();
+    const maxSort = (db.prepare('SELECT COALESCE(MAX(sort), -1) + 1 AS n FROM apartment_groups').get() as { n: number }).n;
+    // Атомарность: вставка группы и её участников — одна транзакция, чтобы
+    // при FK-ошибке на apartment_id не оставалась «пустая» группа.
+    const insGroup = db.prepare(`
+      INSERT INTO apartment_groups (id, title, proximity, building, note, sort, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    const insItem = db.prepare(
+      'INSERT OR IGNORE INTO apartment_group_items (group_id, apartment_id) VALUES (?, ?)'
+    );
+    db.transaction(() => {
+      insGroup.run(
+        id,
+        data.title,
+        data.proximity,
+        data.building ?? null,
+        data.note ?? null,
+        data.sort ?? maxSort,
+        data.is_active ? 1 : 0
+      );
+      for (const aptId of data.apartmentIds) {
+        insItem.run(id, aptId);
+      }
+    })();
+    return apartmentGroupService.getById(id)!;
+  },
+
+  update: (id: string, data: Partial<{
+    title: string;
+    proximity: ProximityType;
+    building: number | null;
+    note: string | null;
+    sort: number;
+    is_active: boolean;
+    apartmentIds: string[];
+  }>): ApartmentGroupWithItems | undefined => {
+    const existing = apartmentGroupService.getById(id);
+    if (!existing) return undefined;
+
+    const updates: string[] = [];
+    const values: unknown[] = [];
+
+    if (data.title !== undefined) { updates.push('title = ?'); values.push(data.title); }
+    if (data.proximity !== undefined) { updates.push('proximity = ?'); values.push(data.proximity); }
+    if (data.building !== undefined) { updates.push('building = ?'); values.push(data.building); }
+    if (data.note !== undefined) { updates.push('note = ?'); values.push(data.note); }
+    if (data.sort !== undefined) { updates.push('sort = ?'); values.push(data.sort); }
+    if (data.is_active !== undefined) { updates.push('is_active = ?'); values.push(data.is_active ? 1 : 0); }
+
+    // Атомарность: UPDATE полей и переустановка items — в одной транзакции,
+    // чтобы FK-ошибка не оставила «частично применённое» изменение.
+    db.transaction(() => {
+      if (updates.length > 0) {
+        updates.push('updated_at = CURRENT_TIMESTAMP');
+        values.push(id);
+        db.prepare(`UPDATE apartment_groups SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+      }
+
+      if (data.apartmentIds !== undefined) {
+        apartmentGroupService.setItems(id, data.apartmentIds);
+      }
+    })();
+
+    return apartmentGroupService.getById(id);
+  },
+
+  delete: (id: string): boolean => {
+    const existing = db.prepare('SELECT id FROM apartment_groups WHERE id = ?').get(id);
+    if (!existing) return false;
+    db.prepare('DELETE FROM apartment_groups WHERE id = ?').run(id);
+    return true;
+  },
+
+  setItems: (groupId: string, apartmentIds: string[]): void => {
+    const del = db.prepare('DELETE FROM apartment_group_items WHERE group_id = ?');
+    const ins = db.prepare('INSERT OR IGNORE INTO apartment_group_items (group_id, apartment_id) VALUES (?, ?)');
+    db.transaction(() => {
+      del.run(groupId);
+      for (const aptId of apartmentIds) {
+        ins.run(groupId, aptId);
+      }
+    })();
   },
 };
 

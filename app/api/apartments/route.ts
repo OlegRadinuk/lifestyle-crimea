@@ -53,6 +53,9 @@ export async function GET(request: Request) {
         long_term_enabled: Boolean(apt.long_term_enabled) && Number(apt.long_term_price) > 0,
         long_term_price: Number(apt.long_term_price || 0),
         long_term_note: apt.long_term_note || null,
+        building: apt.building !== null && apt.building !== undefined ? Number(apt.building) : null,
+        floor: apt.floor !== null && apt.floor !== undefined ? Number(apt.floor) : null,
+        unit_number: apt.unit_number || null,
       };
     }));
 

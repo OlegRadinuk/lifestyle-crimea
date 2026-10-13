@@ -77,6 +77,9 @@ export async function GET(
       long_term_price: Number(apartment.long_term_price || 0),
       long_term_note: apartment.long_term_note || '',
       category: apartment.category || '',
+      building: apartment.building !== null && apartment.building !== undefined ? Number(apartment.building) : null,
+      floor: apartment.floor !== null && apartment.floor !== undefined ? Number(apartment.floor) : null,
+      unit_number: apartment.unit_number || null,
       created_at: apartment.created_at,
       updated_at: apartment.updated_at,
     };
@@ -243,6 +246,24 @@ export async function PATCH(
       updates.push('long_term_note = ?');
       const note = typeof data.long_term_note === 'string' ? data.long_term_note.trim().slice(0, 200) : '';
       values.push(note || null);
+    }
+
+    if (data.building !== undefined) {
+      updates.push('building = ?');
+      const b = data.building === null || data.building === '' ? null : Number(data.building);
+      values.push((b !== null && Number.isInteger(b) && b >= 1 && b <= 6) ? b : null);
+    }
+
+    if (data.floor !== undefined) {
+      updates.push('floor = ?');
+      const f = data.floor === null || data.floor === '' ? null : Number(data.floor);
+      values.push((f !== null && Number.isInteger(f) && f >= 1 && f <= 30) ? f : null);
+    }
+
+    if (data.unit_number !== undefined) {
+      updates.push('unit_number = ?');
+      const u = typeof data.unit_number === 'string' ? data.unit_number.trim().slice(0, 20) : null;
+      values.push(u || null);
     }
 
     if (updates.length === 0) {
