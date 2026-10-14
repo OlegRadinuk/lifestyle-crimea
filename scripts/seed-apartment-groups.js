@@ -90,7 +90,8 @@ function resolveApt(entry) {
 }
 
 // ─── 1. Заполнение building/floor для известных апартаментов ────────────────
-//       Только туда, где поле ещё NULL — не перезаписываем то, что менеджер ввёл.
+//       floor пишем, если NULL ИЛИ 1 (DEFAULT-значение от старой схемы).
+//       building пишем только если NULL.
 
 console.log('\n--- Шаг 1: building/floor для уверенно сопоставленных апартаментов ---');
 
@@ -102,8 +103,8 @@ const BUILDING_FLOOR_DATA = [
   { id: 'ls-steel-love',         lookupType: 'id',     building: 1, floor: 13, label: 'STEEL LOVE' },
   { id: 'ls-lux-orange',         lookupType: 'id',     building: 1, floor: 14, label: 'LUX-ORANGE' },
   // Корпус 2
-  { id: '857c8117',              lookupType: 'prefix', building: 2, floor: 2,  label: 'SEA AND SAND' },
-  { id: 'LS-DEEP FOREST',        lookupType: 'title',  building: 2, floor: 3,  label: 'DEEP FOREST (8b577381)' },
+  { id: '857c8117',                              lookupType: 'prefix', building: 2, floor: 2,  label: 'SEA AND SAND' },
+  { id: '8b577381-4cf1-450b-ac43-54b8a0edcc59', lookupType: 'id',     building: 2, floor: 3,  label: 'DEEP FOREST' },
   { id: 'ls-coffee-ice-cream',   lookupType: 'id',     building: 2, floor: 3,  label: 'COFFEE ICE CREAM' },
   { id: 'ls-lux-soft-blue',      lookupType: 'id',     building: 2, floor: 10, label: 'LUX-SOFT BLUE' },
   { id: 'ls-art-crystal-blue',   lookupType: 'id',     building: 2, floor: 13, label: 'ART-CRYSTAL BLUE' },
@@ -122,21 +123,21 @@ const BUILDING_FLOOR_DATA = [
   { id: 'ls-lux-only-you',       lookupType: 'id',     building: 3, floor: 4,  label: 'ART-ONLY YOU' },
   { id: 'ls-cool-lemonade',      lookupType: 'id',     building: 3, floor: 6,  label: 'COOL LEMONADE' },
   { id: 'ls-econom-studio',      lookupType: 'id',     building: 3, floor: 7,  label: 'ECONOM STUDIO' },
-  { id: 'LS-TROPICAL GARDEN',    lookupType: 'title',  building: 3, floor: 7,  label: 'TROPICAL GARDEN (c9d83795)' },
+  { id: 'c9d83795-45f1-467e-b240-a168a98c6200', lookupType: 'id',     building: 3, floor: 7,  label: 'TROPICAL GARDEN' },
   { id: 'ls-in-the-moment',      lookupType: 'id',     building: 3, floor: 11, label: 'IN THE MOMENT' },
   { id: 'ls-sweet-summer',       lookupType: 'id',     building: 3, floor: 12, label: 'SWEET SUMMER' },
   { id: 'ls-diamond-green',      lookupType: 'id',     building: 3, floor: 13, label: 'DIAMOND GREEN' },
   { id: 'ls-flowers-tea',        lookupType: 'id',     building: 3, floor: 15, label: 'FLOWERS TEA' },
   { id: 'ls-mountain-retreat',   lookupType: 'id',     building: 3, floor: 16, label: 'MOUNTAIN RETREAT' },
   // Корпус 4
-  { id: 'LS-ART-DELICATE ROSE',  lookupType: 'title',  building: 4, floor: 5,  label: 'ART-DELICATE ROSE (c4241402)' },
+  { id: 'c4241402-5fc0-491a-b0f9-4c9853016e75', lookupType: 'id',     building: 4, floor: 5,  label: 'ART-DELICATE ROSE' },
 ];
 
 const updateBF = db.prepare(`
   UPDATE apartments
-  SET building = CASE WHEN building IS NULL THEN ? ELSE building END,
-      floor    = CASE WHEN floor    IS NULL THEN ? ELSE floor    END,
-      updated_at = CASE WHEN building IS NULL OR floor IS NULL THEN CURRENT_TIMESTAMP ELSE updated_at END
+  SET building = CASE WHEN building IS NULL              THEN ? ELSE building END,
+      floor    = CASE WHEN floor IS NULL OR floor = 1    THEN ? ELSE floor    END,
+      updated_at = CASE WHEN building IS NULL OR floor IS NULL OR floor = 1 THEN CURRENT_TIMESTAMP ELSE updated_at END
   WHERE id = ?
 `);
 
@@ -161,7 +162,9 @@ for (const entry of BUILDING_FLOOR_DATA) {
     continue;
   }
 
-  if (current.building !== null && current.floor !== null) {
+  // Пропускаем только если building уже есть И floor не NULL и не 1
+  // (значит, менеджер уже выставил правильный этаж)
+  if (current.building !== null && current.floor !== null && current.floor !== 1) {
     console.log(`  [уже заполнен] ${entry.label}: корпус ${current.building}, этаж ${current.floor}`);
     bfSkipped++;
     continue;
@@ -247,7 +250,7 @@ const GROUPS = [
     building: 2,
     sort: 60,
     aptIds: [
-      { id: 'LS-DEEP FOREST',      lookupType: 'title', label: 'Deep Forest (8b577381-…)' },
+      { id: '8b577381-4cf1-450b-ac43-54b8a0edcc59', lookupType: 'id', label: 'Deep Forest' },
       { id: 'ls-coffee-ice-cream', lookupType: 'id',    label: 'ls-coffee-ice-cream' },
     ],
   },
