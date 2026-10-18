@@ -14,49 +14,162 @@ type Booking = {
   total_price: number;
   status: string;
   prepaid_status: string;
+  deleted_at?: string | null;
 };
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [trashCount, setTrashCount] = useState(0);
+  const [view, setView] = useState<'active' | 'trash'>('active');
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [filter]);
+  const isTrash = view === 'trash';
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Удалить бронь навсегда? Это действие нельзя отменить.')) return;
-    setDeletingId(id);
+  const readError = async (res: Response, fallback: string) => {
     try {
-      const res = await fetch(`/api/admin/bookings/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setBookings(prev => prev.filter(b => b.id !== id));
-      } else {
-        alert('Ошибка при удалении брони');
-      }
+      const data = await res.json();
+      return typeof data?.error === 'string' && data.error ? data.error : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const fetchTrashCount = async () => {
+    try {
+      const res = await fetch('/api/admin/bookings?trash=1');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data)) setTrashCount(data.length);
     } catch (error) {
-      console.error('Error deleting booking:', error);
-      alert('Ошибка при удалении брони');
-    } finally {
-      setDeletingId(null);
+      console.error('Error fetching trash count:', error);
     }
   };
 
   const fetchBookings = async () => {
     try {
-      const url = filter === 'all' 
-        ? '/api/admin/bookings' 
-        : `/api/admin/bookings?status=${filter}`;
-      const res = await fetch(url);
+      const params = new URLSearchParams();
+      if (isTrash) params.set('trash', '1');
+      if (filter !== 'all') params.set('status', filter);
+      const qs = params.toString();
+      const res = await fetch(`/api/admin/bookings${qs ? `?${qs}` : ''}`);
+      if (!res.ok) {
+        setNotice({ type: 'error', text: await readError(res, 'Не удалось загрузить заявки') });
+        return;
+      }
       const data = await res.json();
-      setBookings(data);
+      setBookings(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      setNotice({ type: 'error', text: 'Не удалось загрузить заявки' });
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, view]);
+
+  useEffect(() => {
+    fetchTrashCount();
+  }, []);
+
+  const refreshAll = async () => {
+    await Promise.all([fetchBookings(), fetchTrashCount()]);
+  };
+
+  const runAction = async (
+    id: string,
+    url: string,
+    init: RequestInit,
+    okText: string,
+    failText: string
+  ) => {
+    setBusyId(id);
+    setNotice(null);
+    try {
+      const res = await fetch(url, init);
+      if (!res.ok) {
+        setNotice({ type: 'error', text: await readError(res, failText) });
+        return;
+      }
+      setNotice({ type: 'ok', text: okText });
+      await refreshAll();
+    } catch (error) {
+      console.error(failText, error);
+      setNotice({ type: 'error', text: failText });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleTrash = async (id: string) => {
+    if (!confirm('Перенести заявку в корзину? Её можно будет восстановить.')) return;
+    await runAction(id, `/api/admin/bookings/${id}`, { method: 'DELETE' },
+      'Заявка перенесена в корзину', 'Не удалось перенести заявку в корзину');
+  };
+
+  const handleRestore = async (id: string) => {
+    await runAction(id, `/api/admin/bookings/${id}/restore`, { method: 'POST' },
+      'Заявка восстановлена', 'Не удалось восстановить заявку');
+  };
+
+  const handlePermanent = async (id: string) => {
+    if (!confirm('Удалить заявку навсегда? Заявку нельзя будет восстановить.')) return;
+    await runAction(id, `/api/admin/bookings/${id}?permanent=1`, { method: 'DELETE' },
+      'Заявка удалена навсегда', 'Не удалось удалить заявку навсегда');
+  };
+
+  const switchView = (next: 'active' | 'trash') => {
+    if (next === view) return;
+    setNotice(null);
+    setLoading(true);
+    setView(next);
+  };
+
+  // deleted_at — CURRENT_TIMESTAMP SQLite (UTC, 'YYYY-MM-DD HH:MM:SS'): без 'T…Z' браузер читает как локальное время
+  const formatDeleted = (d?: string | null) =>
+    d ? new Date(d.includes('T') ? d : `${d.replace(' ', 'T')}Z`).toLocaleDateString() : '';
+
+  const renderActions = (booking: Booking) => {
+    const busy = busyId === booking.id;
+    return (
+      <>
+        <Link href={`/admin/bookings/${booking.id}`} className="admin-button small">
+          Детали
+        </Link>
+        {isTrash ? (
+          <>
+            <button
+              className="admin-button small success"
+              disabled={busy}
+              onClick={() => handleRestore(booking.id)}
+            >
+              {busy ? '...' : 'Восстановить'}
+            </button>
+            <button
+              className="admin-button small danger"
+              disabled={busy}
+              onClick={() => handlePermanent(booking.id)}
+            >
+              Удалить навсегда
+            </button>
+          </>
+        ) : (
+          <button
+            className="admin-button small danger"
+            disabled={busy}
+            onClick={() => handleTrash(booking.id)}
+          >
+            {busy ? 'Перенос...' : 'Удалить'}
+          </button>
+        )}
+      </>
+    );
   };
 
   const getStatusBadge = (status: string, prepaid: string) => {
@@ -81,6 +194,24 @@ export default function BookingsPage() {
     <div className="admin-page">
       <div className="admin-header">
         <h1 className="admin-title">Бронирования</h1>
+        <div className="bookings-view-switch" role="tablist">
+          <button
+            role="tab"
+            aria-selected={!isTrash}
+            className={`admin-button small${!isTrash ? ' primary' : ''}`}
+            onClick={() => switchView('active')}
+          >
+            Заявки
+          </button>
+          <button
+            role="tab"
+            aria-selected={isTrash}
+            className={`admin-button small${isTrash ? ' primary' : ''}`}
+            onClick={() => switchView('trash')}
+          >
+            Корзина ({trashCount})
+          </button>
+        </div>
         <div className="admin-filters">
           <select
             value={filter}
@@ -94,6 +225,12 @@ export default function BookingsPage() {
           </select>
         </div>
       </div>
+
+      {notice && (
+        <div className={`bookings-notice ${notice.type}`} role="status" aria-live="polite">
+          {notice.text}
+        </div>
+      )}
 
       {/* Десктоп: таблица */}
       <div className="admin-table-container bookings-table-wrap">
@@ -109,6 +246,7 @@ export default function BookingsPage() {
               <th>Гостей</th>
               <th>Сумма</th>
               <th>Статус</th>
+              {isTrash && <th>Удалена</th>}
               <th>Действия</th>
             </tr>
           </thead>
@@ -128,18 +266,8 @@ export default function BookingsPage() {
                     {getStatusBadge(booking.status, booking.prepaid_status)}
                   </span>
                 </td>
-                <td className="actions">
-                  <Link href={`/admin/bookings/${booking.id}`} className="admin-button small">
-                    Детали
-                  </Link>
-                  <button
-                    className="admin-button small danger"
-                    disabled={deletingId === booking.id}
-                    onClick={() => handleDelete(booking.id)}
-                  >
-                    {deletingId === booking.id ? 'Удаление...' : 'Удалить'}
-                  </button>
-                </td>
+                {isTrash && <td>{formatDeleted(booking.deleted_at)}</td>}
+                <td className="actions">{renderActions(booking)}</td>
               </tr>
             ))}
           </tbody>
@@ -165,28 +293,26 @@ export default function BookingsPage() {
               <span className="booking-card__price">{booking.total_price.toLocaleString()} ₽</span>
             </div>
             <div className="booking-card__phone">{booking.guest_phone}</div>
-            <div className="booking-card__actions">
-              <Link href={`/admin/bookings/${booking.id}`} className="admin-button small">
-                Детали
-              </Link>
-              <button
-                className="admin-button small danger"
-                disabled={deletingId === booking.id}
-                onClick={() => handleDelete(booking.id)}
-              >
-                {deletingId === booking.id ? 'Удаление...' : 'Удалить'}
-              </button>
-            </div>
+            {isTrash && (
+              <div className="booking-card__deleted">Удалена: {formatDeleted(booking.deleted_at)}</div>
+            )}
+            <div className="booking-card__actions">{renderActions(booking)}</div>
           </div>
         ))}
         {bookings.length === 0 && (
-          <p style={{ color: '#64748b', padding: '24px 0' }}>Нет бронирований</p>
+          <p className="bookings-empty">{isTrash ? 'Корзина пуста' : 'Нет бронирований'}</p>
         )}
       </div>
 
       <style jsx>{`
         /* Мобиль: прячем таблицу, показываем карточки */
         .bookings-cards-wrap { display: none; }
+        .bookings-view-switch { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bookings-notice { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+        .bookings-notice.ok { background: #e8f5e9; color: #2e7d32; }
+        .bookings-notice.error { background: #fdecea; color: #b71c1c; }
+        .bookings-empty { color: #64748b; padding: 24px 0; }
+        .booking-card__deleted { font-size: 13px; color: #b71c1c; margin-bottom: 10px; }
 
         @media (max-width: 768px) {
           .bookings-table-wrap { display: none; }
@@ -242,11 +368,13 @@ export default function BookingsPage() {
 
           .booking-card__actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
           }
 
           .booking-card__actions .admin-button.small {
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0;
             text-align: center;
             padding: 8px 12px;
             font-size: 13px;

@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
         SELECT id FROM bookings
         WHERE apartment_id = ?
           AND status != 'cancelled'
+          AND deleted_at IS NULL
           AND check_out > ?
           AND check_in < ?
         UNION ALL

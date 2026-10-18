@@ -22,7 +22,7 @@ export async function GET() {
     const websiteBookings = (
       db
         .prepare(
-          `SELECT COUNT(*) as count FROM bookings WHERE status = 'confirmed' AND check_in >= date('now')`
+          `SELECT COUNT(*) as count FROM bookings WHERE status = 'confirmed' AND deleted_at IS NULL AND check_in >= date('now')`
         )
         .get() as { count: number }
     ).count;

@@ -29,7 +29,8 @@ export default async function BookingPage({ params }: PageProps) {
 
   // Преобразуем числа
   const formattedBooking = {
-    ...booking,
+    ...booking, // deleted_at != null — заявка в корзине
+    is_deleted: booking.deleted_at != null,
     total_price: Number(booking.total_price),
     prepaid_amount: Number(booking.prepaid_amount || 0),
     manager_notes: booking.manager_notes || '',

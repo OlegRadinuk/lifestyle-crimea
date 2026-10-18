@@ -137,6 +137,7 @@ export async function GET() {
               SELECT 1 FROM bookings b
               WHERE b.apartment_id = a.id
                 AND b.status != 'cancelled'
+                AND b.deleted_at IS NULL
                 AND b.check_in < ? AND b.check_out > ?
             )
             OR EXISTS (

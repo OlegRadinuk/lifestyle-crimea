@@ -8,13 +8,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const apartmentId = searchParams.get('apartment_id');
+  const trash = searchParams.get('trash') === '1';
 
   try {
     let query = `
       SELECT b.*, a.title as apartment_title 
       FROM bookings b
       JOIN apartments a ON b.apartment_id = a.id
-      WHERE 1=1
+      WHERE ${trash ? 'b.deleted_at IS NOT NULL' : 'b.deleted_at IS NULL'}
     `;
     const params: any[] = [];
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
       params.push(apartmentId);
     }
 
-    query += ` ORDER BY b.check_in DESC`;
+    query += trash ? ` ORDER BY b.deleted_at DESC` : ` ORDER BY b.check_in DESC`;
 
     const bookings = db.prepare(query).all(...params);
 

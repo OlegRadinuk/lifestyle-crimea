@@ -356,6 +356,9 @@ function ensureDatabaseStructure() {
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_at TEXT"); } catch {}
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_ip TEXT"); } catch {}
     try { db.exec("ALTER TABLE bookings ADD COLUMN pd_consent_version TEXT"); } catch {}
+    // Миграция: корзина заявок (мягкое удаление). NULL = активна, иначе — время удаления
+    try { db.exec("ALTER TABLE bookings ADD COLUMN deleted_at TEXT"); } catch {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_bookings_deleted_at ON bookings(deleted_at)"); } catch {}
 
     // Создаём таблицу apartment_images если нет
     db.exec(`
@@ -704,7 +707,7 @@ export const bookingService = {
     const stmt = db.prepare(`
       SELECT COUNT(*) as count FROM (
         SELECT check_in, check_out FROM bookings 
-        WHERE apartment_id = ? AND status = 'confirmed'
+        WHERE apartment_id = ? AND status = 'confirmed' AND deleted_at IS NULL
         AND check_in < ? AND check_out > ?
         UNION ALL
         SELECT check_in, check_out FROM external_bookings 
@@ -762,7 +765,7 @@ export const bookingService = {
   getBookingsForExport: (apartmentId: string, fromDate?: string): Pick<Booking, 'check_in' | 'check_out'>[] => {
     let query = `
       SELECT check_in, check_out FROM bookings 
-      WHERE apartment_id = ? AND status = 'confirmed'
+      WHERE apartment_id = ? AND status = 'confirmed' AND deleted_at IS NULL
     `;
     const params: any[] = [apartmentId];
     if (fromDate) {
@@ -796,6 +799,7 @@ export const bookingService = {
   getAllBookings: (): Booking[] => {
     const stmt = db.prepare(`
       SELECT * FROM bookings 
+      WHERE deleted_at IS NULL
       ORDER BY check_in ASC
     `);
     return stmt.all() as Booking[];
@@ -804,16 +808,17 @@ export const bookingService = {
   getBookingsByApartment: (apartmentId: string): Booking[] => {
     const stmt = db.prepare(`
       SELECT * FROM bookings
-      WHERE apartment_id = ?
+      WHERE apartment_id = ? AND deleted_at IS NULL
       ORDER BY check_in ASC
     `);
     return stmt.all(apartmentId) as Booking[];
   },
 
+  /* Мягкое удаление (в корзину). Окончательное удаление — только через админ-роут из корзины. */
   deleteBooking: (id: string | number): boolean => {
-    const existing = db.prepare('SELECT id FROM bookings WHERE id = ?').get(String(id));
+    const existing = db.prepare('SELECT id FROM bookings WHERE id = ? AND deleted_at IS NULL').get(String(id));
     if (!existing) return false;
-    db.prepare('DELETE FROM bookings WHERE id = ?').run(String(id));
+    db.prepare('UPDATE bookings SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(String(id));
     return true;
   },
 };
@@ -1062,11 +1067,12 @@ export function getBookingStats(apartmentId?: string) {
       SUM(CASE WHEN check_in > date('now') THEN 1 ELSE 0 END) as upcoming,
       SUM(total_price) as revenue
     FROM bookings
+    WHERE deleted_at IS NULL
   `;
   const params: any[] = [];
   
   if (apartmentId) {
-    query += ` WHERE apartment_id = ?`;
+    query += ` AND apartment_id = ?`;
     params.push(apartmentId);
   }
   

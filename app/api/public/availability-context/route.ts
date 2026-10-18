@@ -47,6 +47,7 @@ export async function GET() {
       SELECT check_in, check_out FROM bookings
       WHERE apartment_id = ?
         AND status != 'cancelled'
+        AND deleted_at IS NULL
         AND check_out > date('now')
         AND check_in  < date('now', '+60 days')
       UNION ALL

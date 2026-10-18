@@ -8,13 +8,13 @@ export async function GET(request: Request) {
   try {
     // Брони с сайта
     const websiteBookings = {
-      total: (db.prepare('SELECT COUNT(*) as count FROM bookings').get() as any)?.count || 0,
-      confirmed: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('confirmed') as any)?.count || 0,
-      pending: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('pending') as any)?.count || 0,
-      cancelled: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE status = ?').get('cancelled') as any)?.count || 0,
+      total: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE deleted_at IS NULL').get() as any)?.count || 0,
+      confirmed: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE deleted_at IS NULL AND status = ?').get('confirmed') as any)?.count || 0,
+      pending: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE deleted_at IS NULL AND status = ?').get('pending') as any)?.count || 0,
+      cancelled: (db.prepare('SELECT COUNT(*) as count FROM bookings WHERE deleted_at IS NULL AND status = ?').get('cancelled') as any)?.count || 0,
       // двойные кавычки SQLite читает как ИМЯ КОЛОНКИ — запрос падал целиком,
       // и дашборд оставался без статистики
-      revenue: (db.prepare('SELECT SUM(total_price) as sum FROM bookings WHERE status = ?').get('confirmed') as any)?.sum || 0,
+      revenue: (db.prepare('SELECT SUM(total_price) as sum FROM bookings WHERE deleted_at IS NULL AND status = ?').get('confirmed') as any)?.sum || 0,
     };
 
     // Блокированные даты из Travelline
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const upcomingBookings = {
       website: db.prepare(`
         SELECT COUNT(*) as count FROM bookings 
-        WHERE check_in > date('now') AND status = 'confirmed'
+        WHERE deleted_at IS NULL AND check_in > date('now') AND status = 'confirmed'
       `).get() as any,
       travelline: db.prepare(`
         SELECT COUNT(*) as count FROM blocked_dates 
